@@ -1,0 +1,159 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # Qdrant Vector Database
+  # ========================================
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"  # HTTP API
+      - "6334:6334"  # gRPC API (optional)
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      # Performance settings
+      - QDRANT__SERVICE__GRPC_PORT=6334
+      - QDRANT__LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - aviation-rag-network
+
+  # ========================================
+  # Ollama (Optional - can run standalone)
+  # Uncomment if you want to run Ollama in Docker
+  # Note: Requires NVIDIA GPU support
+  # ========================================
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama
+  #   restart: unless-stopped
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   environment:
+  #     - OLLAMA_HOST=0.0.0.0
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
+  #   networks:
+  #     - aviation-rag-network
+  #   command: serve
+
+  # ========================================
+  # Redis Cache (Optional)
+  # Uncomment for caching embeddings/responses
+  # ========================================
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: redis-cache
+  #   restart: unless-stopped
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   command: redis-server --appendonly yes
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #   networks:
+  #     - aviation-rag-network
+
+  # ========================================
+  # PostgreSQL (Optional)
+  # Uncomment for metadata storage
+  # ========================================
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: postgres-metadata
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   environment:
+  #     - POSTGRES_DB=aviation_metadata
+  #     - POSTGRES_USER=aviation_user
+  #     - POSTGRES_PASSWORD=change_this_password
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U aviation_user -d aviation_metadata"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #   networks:
+  #     - aviation-rag-network
+
+  # ========================================
+  # Prometheus (Optional)
+  # Uncomment for monitoring
+  # ========================================
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   restart: unless-stopped
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - prometheus_data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #   networks:
+  #     - aviation-rag-network
+
+  # ========================================
+  # Grafana (Optional)
+  # Uncomment for monitoring dashboards
+  # ========================================
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: grafana
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=change_this_password
+  #   networks:
+  #     - aviation-rag-network
+
+# ========================================
+# Networks
+# ========================================
+networks:
+  aviation-rag-network:
+    driver: bridge
+
+# ========================================
+# Volumes
+# ========================================
+volumes:
+  qdrant_storage:
+    driver: local
+  # ollama_data:
+  #   driver: local
+  # redis_data:
+  #   driver: local
+  # postgres_data:
+  #   driver: local
+  # prometheus_data:
+  #   driver: local
+  # grafana_data:
+  #   driver: local

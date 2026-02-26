@@ -1,0 +1,96 @@
+# ========================================
+# .dockerignore for Aviation RAG System
+# ========================================
+
+# Git
+.git
+.gitignore
+
+# Python cache
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Documentation
+docs/_build/
+*.tex
+*.pdf
+*.aux
+*.log
+
+# Docker (avoid recursive copy)
+Dockerfile*
+docker-compose*.yml
+.docker*
+
+# Environment files (security)
+.env
+.env.*
+!.env.example
+!.env.docker
+
+# Logs
+logs/
+*.log
+
+# Large data files (use volumes instead)
+# Uncomment if you want to exclude data from build context
+# data/
+# models_cache/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+tests/
+scripts/test_*.py
+
+# Web app (built separately)
+web/
+
+# Example files
+examples/

@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Estatísticas - Aviation RAG System{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/ragweb/ragweb/static/css/stats.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h1>Estatísticas do Sistema</h1>
+    <a href="{{ request.url_for('stats_page') }}" class="refresh-btn">🔄 Atualizar</a>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-error">
+    <strong>Erro ao carregar estatísticas:</strong> {{ error }}
+  </div>
+  {% else %}
+
+  {% if stats %}
+  <div style="margin: 1.5rem 0;">
+    <span class="status-indicator {% if stats.status == 'healthy' or stats.status == 'ok' or stats.status == 'green' %}status-healthy{% else %}status-error{% endif %}">
+      <span class="status-dot"></span>
+      Status: {{ stats.status|upper }}
+    </span>
+  </div>
+
+  <!-- Estatísticas de Vetores -->
+  <h2 style="margin-top: 2rem; color: var(--text-primary);">📊 Banco Vetorial</h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-label">Total de Vetores</div>
+      <p class="stat-value">{{ "{:,}".format(stats.vectors_count) }}</p>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🔢</div>
+      <div class="stat-label">Total de Pontos</div>
+      <p class="stat-value">{{ "{:,}".format(stats.points_count) }}</p>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">💾</div>
+      <div class="stat-label">Taxa de Indexação</div>
+      <p class="stat-value">
+        {% if stats.vectors_count > 0 %}
+          {{ "%.1f"|format((stats.points_count / stats.vectors_count) * 100) }}%
+        {% else %}
+          0%
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- Estatísticas de Documentos -->
+  {% if stats.documents %}
+  <h2 style="margin-top: 2rem; color: var(--text-primary);">📚 Documentos por Tipo</h2>
+  <div class="stats-grid">
+    {% for type_key, type_data in stats.documents.by_type.items() %}
+    {% if type_data.count > 0 %}
+    <div class="stat-card">
+      <div class="stat-icon">
+        {% if type_key == 'leis' %}⚖️
+        {% elif type_key == 'medidas_provisorias' %}📜
+        {% elif type_key == 'acordaos' %}⚖️
+        {% elif type_key == 'projetos_lei' %}📝
+        {% elif type_key == 'ica' %}✈️
+        {% elif type_key == 'mca' %}📘
+        {% elif type_key == 'rbac' %}📋
+        {% elif type_key == 'portarias' %}📄
+        {% elif type_key == 'resolucoes' %}📑
+        {% else %}📁
+        {% endif %}
+      </div>
+      <div class="stat-label">{{ type_data.label }}</div>
+      <p class="stat-value">{{ type_data.count }}</p>
+    </div>
+    {% endif %}
+    {% endfor %}
+    
+    <div class="stat-card highlight">
+      <div class="stat-icon">📚</div>
+      <div class="stat-label">Total de Documentos</div>
+      <p class="stat-value">{{ stats.documents.total_processed }}</p>
+    </div>
+  </div>
+  
+  <!-- Estatísticas por Fonte -->
+  {% if stats.documents.sources %}
+  <h2 style="margin-top: 2rem; color: var(--text-primary);">🌐 Documentos por Fonte</h2>
+  <div class="stats-grid">
+    {% if stats.documents.sources.lexml > 0 %}
+    <div class="stat-card">
+      <div class="stat-icon">⚖️</div>
+      <div class="stat-label">LexML (Legislação)</div>
+      <p class="stat-value">{{ stats.documents.sources.lexml }}</p>
+    </div>
+    {% endif %}
+    {% if stats.documents.sources.decea > 0 %}
+    <div class="stat-card">
+      <div class="stat-icon">✈️</div>
+      <div class="stat-label">DECEA (Aeronáutica)</div>
+      <p class="stat-value">{{ stats.documents.sources.decea }}</p>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <!-- Seção Expandida: Sobre as Métricas -->
+  <div class="info-section">
+    <h3>📊 Compreendendo as Métricas do Sistema</h3>
+    
+    <h4 style="color: var(--primary-color); margin-top: 1.5rem;">🔢 Métricas de Capacidade e Indexação</h4>
+    
+    <p style="line-height: 1.8; margin-bottom: 1rem;">
+      <strong>Vetores (Embeddings):</strong> Representam a capacidade semântica do sistema. Atualmente com 
+      <strong>{{ "{:,}".format(stats.vectors_count) }} vetores</strong>, cada documento regulatório é dividido 
+      em trechos menores (chunks) e convertido em representação numérica multidimensional através de modelos 
+      de embedding especializados em linguagem jurídica brasileira (Legal-BERTimbau). Quanto maior o número de 
+      vetores, mais granular e precisa é a busca semântica, permitindo localizar informações específicas mesmo 
+      em regulamentações extensas.
+    </p>
+    
+    <p style="line-height: 1.8; margin-bottom: 1rem;">
+      <strong>Pontos no Banco Vetorial:</strong> Com <strong>{{ "{:,}".format(stats.points_count) }} pontos</strong> 
+      armazenados no Qdrant, esta métrica indica quantos vetores foram efetivamente processados, otimizados e 
+      persistidos no banco de dados vetorial. A arquitetura Qdrant organiza esses pontos em estruturas HNSW 
+      (Hierarchical Navigable Small World) que permitem buscas de similaridade em tempo próximo a O(log n), 
+      garantindo performance mesmo com milhões de documentos.
+    </p>
+    
+    <p style="line-height: 1.8; margin-bottom: 1rem;">
+      <strong>Taxa de Indexação:</strong> A taxa de 
+      {% if stats.vectors_count > 0 %}
+        <strong>{{ "%.1f"|format((stats.points_count / stats.vectors_count) * 100) }}%</strong>
+      {% else %}
+        <strong>0%</strong>
+      {% endif %}
+      reflete a eficiência da pipeline de processamento. Uma taxa próxima a 100% indica que todo o conteúdo 
+      vetorizado foi corretamente indexado no banco. Taxas inferiores podem indicar processamento em andamento 
+      ou necessidade de reindexação. O sistema monitora esta métrica para detectar anomalias no fluxo de ingestão.
+    </p>
+
+    <h4 style="color: var(--primary-color); margin-top: 1.5rem;">📚 Métricas de Cobertura Documental</h4>
+    
+    <p style="line-height: 1.8; margin-bottom: 1rem;">
+      <strong>Documentos por Tipo:</strong> O sistema categoriza automaticamente as regulamentações em tipos 
+      normativos específicos. Atualmente processados <strong>{{ stats.documents.total_processed if stats.documents else 0 }} documentos</strong> 
+      distribuídos entre Leis e Decretos Federais, Instruções de Comando da Aeronáutica (ICA), Manuais de Comando 
+      (MCA), Regulamentos Brasileiros da Aviação Civil (RBAC), Portarias, Resoluções e outros instrumentos regulatórios. 
+      Esta categorização permite filtragem semântica e priorização de fontes com base na hierarquia normativa brasileira.
+    </p>
+    
+    <p style="line-height: 1.8; margin-bottom: 1rem;">
+      <strong>Documentos por Fonte:</strong> A rastreabilidade das origens é fundamental para confiabilidade. 
+      O sistema integra duas bases primárias:
+    </p>
+    <ul style="line-height: 1.8; margin-left: 1.5rem; margin-bottom: 1rem;">
+      <li>
+        <strong>LexML (Legislação Federal):</strong> 
+        {% if stats.documents and stats.documents.sources %}
+          {{ stats.documents.sources.lexml if stats.documents.sources.lexml else 0 }} documentos
+        {% else %}
+          0 documentos
+        {% endif %}
+        extraídos do portal oficial do Senado Federal e Planalto, incluindo leis, decretos e medidas provisórias 
+        relacionadas à aviação civil brasileira.
+      </li>
+      <li>
+        <strong>DECEA (Departamento de Controle do Espaço Aéreo):</strong> 
+        {% if stats.documents and stats.documents.sources %}
+          {{ stats.documents.sources.decea if stats.documents.sources.decea else 0 }} documentos
+        {% else %}
+          0 documentos
+        {% endif %}
+        técnicos e operacionais da aeronáutica, abrangendo ICAs, MCAs, circulares e instruções específicas 
+        do comando da aeronáutica.
+      </li>
+    </ul>
+    
+    <p style="line-height: 1.8; margin-bottom: 1rem;">
+      <strong>Documentos Originais Preservados:</strong> Além dos vetores processados, o sistema mantém 
+      {% if stats.documents %}
+        <strong>{{ stats.documents.total_originals }} arquivos HTML originais</strong>
+      {% else %}
+        arquivos HTML originais
+      {% endif %}
+      baixados diretamente das fontes governamentais. Esta camada de preservação garante auditabilidade, 
+      permite reprocessamento com novos modelos de embedding, e serve como backup caso as fontes oficiais 
+      sofram alterações ou indisponibilidade.
+    </p>
+
+    <h4 style="color: var(--primary-color); margin-top: 1.5rem;">🔍 Status e Monitoramento</h4>
+    
+    <p style="line-height: 1.8; margin-bottom: 1rem;">
+      <strong>Status do Sistema:</strong> O indicador 
+      <span class="status-indicator {% if stats.status == 'healthy' or stats.status == 'ok' or stats.status == 'green' %}status-healthy{% else %}status-error{% endif %}" 
+            style="display: inline-flex; font-size: 0.9rem; padding: 4px 10px;">
+        <span class="status-dot"></span>
+        {{ stats.status|upper }}
+      </span>
+      reflete a saúde operacional do banco vetorial Qdrant. Status "HEALTHY" ou "OK" confirma que o serviço 
+      está respondendo adequadamente, com latências normais e sem erros de indexação. Monitoramento contínuo 
+      24/7 detecta degradações de performance ou falhas de conectividade.
+    </p>
+
+    <h4 style="color: var(--primary-color); margin-top: 1.5rem;">🔄 Processo de Atualização e Versionamento</h4>
+    
+    <p style="line-height: 1.8; margin-bottom: 1rem;">
+      <strong>Ciclo de Ingestão:</strong> O sistema opera em modo híbrido com ingestão incremental automatizada. 
+      Scrapers monitoram periodicamente as fontes oficiais (LexML via API e DECEA via web scraping) detectando 
+      novas publicações e atualizações de regulamentações existentes. Documentos modificados passam por 
+      extração temporal de metadados (datas de vigência, revogação e alteração) garantindo que consultas 
+      temporais retornem versões corretas das normas para cada período histórico.
+    </p>
+    
+    <p style="line-height: 1.8; margin-bottom: 1rem;">
+      <strong>Versionamento Regulatório:</strong> Cada documento mantém histórico completo de versões através 
+      de campos de metadados temporais (effective_date, expiration_date, modification_date). Esta arquitetura 
+      permite consultas do tipo "Qual era a regulamentação sobre X em janeiro de 2023?" - essencial para 
+      análises retrospectivas de conformidade e investigações de incidentes aeronáuticos.
+    </p>
+
+    <p style="line-height: 1.8; margin-bottom: 0.5rem;">
+      <strong>Última Atualização:</strong> {{ timestamp }}
+    </p>
+  </div>
+
+  <p class="timestamp">⏰ Dados atualizados em: {{ timestamp }}</p>
+
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

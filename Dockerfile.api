@@ -1,0 +1,61 @@
+# ========================================
+# Dockerfile para API RAG
+# Aviation RAG System - Backend
+# ========================================
+
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Prevent Python from writing pyc files and buffering stdout/stderr
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY config.py .
+COPY api/ ./api/
+COPY database/ ./database/
+COPY models/ ./models/
+COPY parsers/ ./parsers/
+COPY pipeline/ ./pipeline/
+COPY search/ ./search/
+
+# Create directories for data and models cache
+RUN mkdir -p /app/data /app/models_cache /app/logs
+
+# Create non-root user for security
+RUN useradd -m -u 1000 apiuser && \
+    chown -R apiuser:apiuser /app
+
+USER apiuser
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Default environment variables
+ENV API_HOST=0.0.0.0
+ENV API_PORT=8000
+ENV PYTHONPATH=/app
+
+# Run application
+CMD ["uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "8000"]

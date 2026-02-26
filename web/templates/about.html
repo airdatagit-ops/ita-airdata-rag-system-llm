@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Sobre - Aviation RAG System{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/ragweb/ragweb/static/css/about.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Sobre o Sistema</h1>
+
+  <div class="content-section">
+    <h2>O que é o AirData RAG System?</h2>
+    <p>
+      O AirData RAG System é uma plataforma de inteligência artificial especializada em 
+      regulamentações da aviação civil brasileira. Utilizando tecnologia RAG (Retrieval-Augmented 
+      Generation), o sistema combina busca semântica avançada com modelos de linguagem para 
+      fornecer respostas precisas, contextualizadas e verificáveis sobre normas da ANAC.
+    </p>
+    <p>
+      Desenvolvido pelo Instituto Tecnológico de Aeronáutica (ITA) como parte do Projeto AirData, 
+      a plataforma oferece uma interface conversacional intuitiva onde profissionais da aviação 
+      podem obter informações regulatórias de forma rápida e confiável, com sistema de avaliação 
+      de qualidade integrado.
+    </p>
+  </div>
+
+
+    <div class="team-section">
+    <h2>Como Funciona?</h2>
+    <p>
+      O sistema utiliza uma arquitetura RAG (Retrieval-Augmented Generation) distribuída:
+    </p>
+    <ol style="line-height: 1.8;">
+      <li>
+        <strong>Interface Web:</strong> Aplicação FastAPI com chat em tempo real, sistema de 
+        avaliação por estrelas e histórico persistente de conversas.
+      </li>
+      <li>
+        <strong>API RAG:</strong> Servidor especializado que processa consultas, realiza busca 
+        vetorial no Qdrant e gera respostas usando modelos LLM via Ollama.
+      </li>
+      <li>
+        <strong>Base de Conhecimento:</strong> Documentos da ANAC processados e indexados como 
+        embeddings vetoriais com metadados temporais e regulatórios.
+      </li>
+    </ol>
+    <p>
+      Quando você faz uma pergunta, o sistema converte sua consulta em um vetor semântico, 
+      busca os trechos mais relevantes dos documentos oficiais da ANAC, e utiliza um modelo 
+      de linguagem para sintetizar uma resposta coerente. Você pode então avaliar a qualidade 
+      da resposta em 5 dimensões diferentes.
+    </p>
+  </div>
+
+  <div class="content-section">
+    <h2>Recursos Principais</h2>
+    <ul class="feature-list">
+      <li>
+        <span class="feature-icon">🤖</span>
+        <div>
+          <strong>Chat Conversacional:</strong> Interface de bate-papo com IA especializada em 
+          aviação civil, com streaming de respostas em tempo real.
+        </div>
+      </li>
+      <li>
+        <span class="feature-icon">📋</span>
+        <div>
+          <strong>Avaliação de Qualidade:</strong> Sistema de 5 estrelas para avaliar precisão, 
+          completude, clareza, citações e relevância de cada resposta.
+        </div>
+      </li>
+      <li>
+        <span class="feature-icon">📚</span>
+        <div>
+          <strong>Fontes ANAC Verificáveis:</strong> Todas as respostas baseadas em documentos 
+          oficiais da ANAC, com citações precisas e scores de relevância.
+        </div>
+      </li>
+      <li>
+        <span class="feature-icon">⚡</span>
+        <div>
+          <strong>Busca Vetorial Qdrant</strong> Sistema de busca semântica de alta performance 
+          para encontrar conteúdo relevante instantaneamente.
+        </div>
+      </li>
+      <li>
+        <span class="feature-icon">🔍</span>
+        <div>
+          <strong>Busca sem IA:</strong> Ferramenta de busca vetorial direta para explorar 
+          documentos similares sem processamento de linguagem.
+        </div>
+      </li>
+      <li>
+        <span class="feature-icon">📊</span>
+        <div>
+          <strong>Histórico Completo:</strong> Todas as conversas salvas com títulos automáticos, 
+          avaliações persistentes e métricas de uso detalhadas.
+        </div>
+      </li>
+    </ul>
+  </div>
+
+
+
+  <div class="content-section">
+    <h2>Stack Tecnológico</h2>
+    <div class="tech-stack">
+      <div class="tech-item">
+        <h4><span class="tech-icon">🐍</span> Backend</h4>
+        <p><a href="https://fastapi.tiangolo.com">FastAPI</a> - Framework web moderno e assíncrono para Python</p>
+      </div>
+
+      <div class="tech-item">
+        <h4><span class="tech-icon">🎨</span> Frontend</h4>
+        <p> <a href='https://jinja.palletsprojects.com/en/stable/'>Jinja2</a> Templates + CSS puro para interface responsiva</p>
+      </div>
+
+      <div class="tech-item">
+        <h4><span class="tech-icon">💾</span> Banco Vetorial</h4>
+        <p><a href="https://qdrant.tech">Qdrant</a> - Banco de dados vetorial de alta performance</p>
+      </div>
+
+      <div class="tech-item">
+        <h4><span class="tech-icon">🤖</span> LLM</h4>
+        <p>Modelos de linguagem para geração de respostas contextualizadas</p>
+      </div>
+
+      <div class="tech-item">
+        <h4><span class="tech-icon">🔐</span> Segurança</h4>
+        <p>Autenticação via API Key e rate limiting</p>
+      </div>
+
+      <div class="tech-item">
+        <h4><span class="tech-icon">📡</span> API</h4>
+        <p>RESTful API com documentação OpenAPI automática</p>
+      </div>
+    </div>
+  </div>
+
+
+
+
+</div>
+{% endblock %}

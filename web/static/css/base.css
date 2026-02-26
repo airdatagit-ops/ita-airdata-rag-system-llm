@@ -1,0 +1,257 @@
+/* Base Styles - Common styles used across all pages */
+
+/* Theme Variables */
+:root {
+  --bg-page: #f8fafc;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --bg-hover: #dee2e6;
+  --text-primary: #24292e;
+  --text-secondary: #586069;
+  --text-muted: #6c757d;
+  --border-color: #d1d5da;
+  --primary-color: #003C7D;
+  --primary-hover: #0366d6;
+  --header-bg: #ffffff;
+  --footer-bg: #f6f8fa;
+}
+
+[data-theme="dark"] {
+  --bg-page: #0d1117;
+  --bg-primary: #161b22;
+  --bg-secondary: #1c2128;
+  --bg-tertiary: #2d333b;
+  --bg-hover: #373e47;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #848d97;
+  --border-color: #30363d;
+  --primary-color: #58a6ff;
+  --primary-hover: #79c0ff;
+  --header-bg: #161b22;
+  --footer-bg: #0d1117;
+}
+
+/* Base Styles */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  margin: 0;
+  color: var(--text-primary);
+  background: var(--bg-page);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Header */
+.airdata-header {
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  transition: background-color 0.3s ease;
+}
+
+.airdata-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  flex: 1;
+}
+
+/* Logo */
+.airdata-header .logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--primary-color);
+  transition: color 0.3s ease;
+}
+
+.airdata-header .logo-image {
+  height: 1%;
+  width: auto;
+}
+
+.airdata-header .logo-img {
+  height: 40px;
+}
+
+.airdata-header .logo-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Navigation */
+.airdata-header .nav-container {
+  display: flex;
+  gap: 16px;
+}
+
+.airdata-header .nav-item {
+  position: relative;
+}
+
+.airdata-header .nav-link {
+  display: block;
+  padding: 8px 12px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.airdata-header .nav-link:hover,
+.airdata-header .nav-link.active {
+  background-color: var(--bg-tertiary);
+  color: var(--primary-hover);
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-hover);
+  transform: scale(1.05);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+.theme-icon {
+  display: inline-block;
+  line-height: 1;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+h1 {
+  color: var(--primary-color);
+  margin-top: 0;
+  transition: color 0.3s ease;
+}
+
+h2, h3 {
+  color: var(--primary-color);
+  margin-top: 2rem;
+  transition: color 0.3s ease;
+}
+
+/* Footer Styles */
+.footer {
+  background-color: var(--footer-bg);
+  padding-top: 0;
+  text-align: center;
+  color: var(--text-secondary);
+  padding-bottom: 0;
+  border-top: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.footer-content {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem 2rem;
+}
+
+.footer-org {
+  font-size: 1rem;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+  margin: 1rem 0;
+}
+
+.footer-links a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+  color: var(--primary-hover);
+}
+
+.footer-copyright {
+  margin: 0;
+  opacity: 0.8;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.footer-bottom-bar {
+  height: 8px;
+  background-color: var(--primary-color);
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+/* Dark mode text improvements */
+html[data-theme="dark"] h1 {
+  color: #79c0ff !important;
+}
+
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] h4 {
+  color: #79c0ff !important;
+}
+
+html[data-theme="dark"] p {
+  color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] strong {
+  color: white !important;
+}
+
+html[data-theme="dark"] a {
+  color: #79c0ff !important;
+}
+
+html[data-theme="dark"] a:hover {
+  color: var(--primary-hover) !important;
+}
+
+html[data-theme="dark"] .container {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}

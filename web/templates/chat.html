@@ -1,0 +1,845 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - Aviation RAG System{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/ragweb/ragweb/static/css/chat.css">
+<style>
+  .footer {
+    display: none !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+  <div class="chat-container">
+    <!-- Sidebar for settings and history -->
+    <aside class="chat-sidebar">
+      <div class="sidebar-section">
+        <h3>⚙️ Configurações</h3>
+        
+        <div class="form-group">
+          <label for="modelSelect">Modelo LLM (Armazenamento)</label>
+          <select id="modelSelect" class="model-select">
+            {% for model in models %}
+            <option value="{{ model.name }}" {% if model.name == current_model %}selected{% endif %}>
+              {{ model.name }} {% if model.size %}({{ model.size }}){% endif %}
+            </option>
+            {% else %}
+            <option value="">Nenhum modelo disponível</option>
+            {% endfor %}
+          </select>
+          <small>Modelo atual: <span id="currentModel">{{ current_model }}</span></small>
+        </div>
+        
+        <div class="form-group">
+          <label class="checkbox-label">
+        <input type="checkbox" id="useRag" checked="true"/>
+            Usar RAG (buscar regulamentos)
+          </label>
+          <small>Busca informações nos documentos indexados</small>
+        </div>
+        
+        <button id="newChatBtn" class="btn btn-secondary">
+          🔄 Nova Conversa
+        </button>
+      </div>
+      
+      <div class="sidebar-section">
+        <h3>📜 Histórico</h3>
+        <div id="historyList" class="history-list">
+          <p class="loading">Carregando histórico...</p>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Main chat area -->
+    <div class="chat-main">
+      <div class="chat-header">
+        <h2>💬 Chat com o modelo LLM assistente AirData</h2>
+        <div class="chat-status">
+          <span class="status-dot"></span>
+          <span id="statusText">Conectado</span>
+        </div>
+      </div>
+      
+      <div class="chat-messages" id="chatMessages">
+        <div class="message assistant">
+          <div class="message-avatar">🤖</div>
+          <div class="message-content">
+            <p>Olá! Sou um assistente especializado em regulamentação de aviação civil brasileira.</p>
+            <p>Como posso ajudá-lo hoje?</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chat-input-area">
+        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+          <span></span><span></span><span></span>
+          <span class="typing-text">Gerando resposta...</span>
+        </div>
+        
+        <form id="chatForm" class="chat-form">
+          <div class="input-wrapper">
+            <textarea 
+              id="messageInput" 
+              placeholder="Digite sua mensagem..."
+              rows="1"
+              autofocus
+            ></textarea>
+            <button type="submit" id="sendBtn" class="send-btn">
+              <span class="send-icon">➤</span>
+            </button>
+          </div>
+        </form>
+        
+        <div class="chat-footer">
+          <span id="sessionInfo">Nova sessão</span>
+          <span id="modelInfo">Modelo: {{ current_model }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Modal para exibir texto completo das fontes -->
+<div id="sourceModal" class="source-modal">
+  <div class="source-modal-content">
+    <div class="source-modal-header">
+      <h3 id="sourceModalTitle">📄 Fonte</h3>
+      <button class="source-modal-close" onclick="ChatApp.closeSourceModal()">&times;</button>
+    </div>
+    <div class="source-modal-body">
+      <div class="source-modal-meta" id="sourceModalMeta"></div>
+      <div class="source-modal-text" id="sourceModalText"></div>
+    </div>
+    <div class="source-modal-footer">
+      <button class="btn btn-secondary" onclick="ChatApp.copySourceText()">📋 Copiar Texto</button>
+      <button class="btn btn-primary" onclick="ChatApp.closeSourceModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+{% if error %}
+<script>
+  alert("Erro ao carregar a página: {{ error }}");
+</script>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Chat application state
+  const ChatApp = {
+    sessionId: null,
+    messageCount: 0,
+    isLoading: false,
+    sourcesData: {}, // Store sources data by ID
+    
+    // DOM elements
+    elements: {
+      chatMessages: document.getElementById('chatMessages'),
+      messageInput: document.getElementById('messageInput'),
+      chatForm: document.getElementById('chatForm'),
+      sendBtn: document.getElementById('sendBtn'),
+      modelSelect: document.getElementById('modelSelect'),
+      useRag: document.getElementById('useRag'),
+      typingIndicator: document.getElementById('typingIndicator'),
+      newChatBtn: document.getElementById('newChatBtn'),
+      historyList: document.getElementById('historyList'),
+      statusText: document.getElementById('statusText'),
+      sessionInfo: document.getElementById('sessionInfo'),
+      modelInfo: document.getElementById('modelInfo'),
+      currentModel: document.getElementById('currentModel'),
+      sourceModal: document.getElementById('sourceModal')
+    },
+    
+    init() {
+      this.bindEvents();
+      this.loadHistory();
+      this.autoResizeTextarea();
+    },
+    
+    bindEvents() {
+      // Form submission
+      this.elements.chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.sendMessage();
+      });
+      
+      // Enter key (without shift) sends message
+      this.elements.messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          this.sendMessage();
+        }
+      });
+      
+      // New chat button
+      this.elements.newChatBtn.addEventListener('click', () => {
+        this.startNewChat();
+      });
+      
+      // Model change
+      this.elements.modelSelect.addEventListener('change', async (e) => {
+        await this.changeModel(e.target.value);
+      });
+      
+      // Auto-resize textarea
+      this.elements.messageInput.addEventListener('input', () => {
+        this.autoResizeTextarea();
+      });
+      
+      // Modal: close on click outside or ESC key
+      this.elements.sourceModal.addEventListener('click', (e) => {
+        if (e.target === this.elements.sourceModal) {
+          this.closeSourceModal();
+        }
+      });
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.elements.sourceModal.classList.contains('active')) {
+          this.closeSourceModal();
+        }
+      });
+    },
+    
+    autoResizeTextarea() {
+      const textarea = this.elements.messageInput;
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+    },
+    
+    async sendMessage() {
+      const message = this.elements.messageInput.value.trim();
+      if (!message || this.isLoading) return;
+      
+      this.isLoading = true;
+      this.elements.sendBtn.disabled = true;
+      this.elements.messageInput.value = '';
+      this.autoResizeTextarea();
+      
+      // Add user message to UI
+      this.addMessage('user', message);
+      
+      // Show typing indicator
+      this.showTypingIndicator();
+      
+      try {
+        // Use streaming endpoint for real-time response
+        const response = await fetch('/ragweb/api/chat/stream', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: message,
+            session_id: this.sessionId,
+            use_rag: this.elements.useRag.checked,
+            model_name: this.elements.modelSelect.value
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Hide typing indicator and create message placeholder
+        this.hideTypingIndicator();
+        const messageDiv = this.createStreamingMessage();
+        const textContainer = messageDiv.querySelector('.message-text');
+        
+        let fullContent = '';
+        let sources = null;
+        let finalData = null;
+        
+        // Read SSE stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          const text = decoder.decode(value, { stream: true });
+          const lines = text.split('\n');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                
+                if (data.type === 'token') {
+                  fullContent += data.content;
+                  textContainer.innerHTML = this.formatMessage(fullContent);
+                  this.scrollToBottom();
+                } else if (data.type === 'sources') {
+                  sources = data.sources;
+                } else if (data.type === 'done') {
+                  finalData = data;
+                  this.sessionId = data.session_id;
+                  this.messageCount = data.message_count;
+                } else if (data.type === 'error') {
+                  throw new Error(data.error);
+                }
+              } catch (e) {
+                // Ignore parse errors for incomplete chunks
+                if (e.message && !e.message.includes('JSON')) {
+                  throw e;
+                }
+              }
+            }
+          }
+        }
+        
+        // Update message with final metadata
+        this.finalizeStreamingMessage(messageDiv, sources, finalData);
+        
+        // Update UI
+        this.updateSessionInfo();
+        if (finalData?.model_used) {
+          this.elements.modelInfo.textContent = `Modelo: ${finalData.model_used}`;
+          this.elements.currentModel.textContent = finalData.model_used;
+        }
+        
+        // Refresh history
+        this.loadHistory();
+        
+      } catch (error) {
+        console.error('Error sending message:', error);
+        this.hideTypingIndicator();
+        this.addMessage('system', `❌ Erro ao enviar mensagem: ${error.message}`);
+        this.setStatus('error', 'Erro de conexão');
+      } finally {
+        this.isLoading = false;
+        this.elements.sendBtn.disabled = false;
+        this.elements.messageInput.focus();
+      }
+    },
+    
+    createStreamingMessage() {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message assistant streaming';
+      
+      messageDiv.innerHTML = `
+        <div class="message-avatar">🤖</div>
+        <div class="message-content">
+          <div class="message-text"></div>
+        </div>
+      `;
+      
+      this.elements.chatMessages.appendChild(messageDiv);
+      this.scrollToBottom();
+      return messageDiv;
+    },
+    
+    finalizeStreamingMessage(messageDiv, sources, finalData) {
+      messageDiv.classList.remove('streaming');
+      const contentDiv = messageDiv.querySelector('.message-content');
+      
+      // Generate unique message ID
+      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      messageDiv.dataset.messageId = messageId;
+      
+      // Add sources if present
+      if (sources && sources.length > 0) {
+        let sourcesHTML = `
+          <div class="message-sources">
+            <div class="sources-header">📚 Fontes consultadas (clique para ver detalhes):</div>
+            <ul class="sources-list">
+        `;
+        sources.slice(0, 3).forEach((source, idx) => {
+          const sourceId = `source_${messageId}_${idx}`;
+          // Store source data globally
+          this.sourcesData[sourceId] = {
+            regulation_id: source.regulation_id || 'Desconhecido',
+            text: source.text || 'Texto não disponível',
+            score: source.score || 0
+          };
+          const previewText = (source.text || '').substring(0, 80).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          sourcesHTML += `
+            <li class="source-item clickable" data-source-id="${sourceId}">
+              <div class="source-info">
+                <strong>${source.regulation_id}</strong>
+                <span class="source-preview">${previewText}...</span>
+              </div>
+              <span class="score">(score: ${source.score?.toFixed(2) || 'N/A'}) 👁️</span>
+            </li>
+          `;
+        });
+        sourcesHTML += `</ul></div>`;
+        contentDiv.insertAdjacentHTML('beforeend', sourcesHTML);
+        
+        // Bind click events for sources
+        this.bindSourceClickEvents(contentDiv);
+      }
+      
+      // Add metadata
+      if (finalData) {
+        const metaHTML = `
+          <div class="message-meta">
+            ${finalData.model_used ? `<span class="meta-model">${finalData.model_used}</span>` : ''}
+            ${finalData.processing_time_ms ? `<span class="meta-time">${finalData.processing_time_ms}ms</span>` : ''}
+            <span class="meta-timestamp">${new Date().toLocaleTimeString()}</span>
+          </div>
+        `;
+        contentDiv.insertAdjacentHTML('beforeend', metaHTML);
+      }
+      
+      // Add rating section
+      const ratingHTML = this.createRatingHTML(messageId, sources && sources.length > 0);
+      contentDiv.insertAdjacentHTML('beforeend', ratingHTML);
+      
+      // Bind rating events
+      this.bindRatingEvents(messageDiv, messageId);
+    },
+    
+    addMessage(role, content, sources = null, model = null, processingTime = null, existingRatings = null, messageId = null) {
+      const msgId = messageId || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${role}`;
+      messageDiv.dataset.messageId = msgId;
+      
+      let avatar = '🤖';
+      if (role === 'user') avatar = '👤';
+      if (role === 'system') avatar = '⚠️';
+      
+      let messageHTML = `
+        <div class="message-avatar">${avatar}</div>
+        <div class="message-content">
+          <div class="message-text">${this.formatMessage(content)}</div>
+      `;
+      
+      // Add sources if RAG was used
+      if (sources && sources.length > 0) {
+        messageHTML += `
+          <div class="message-sources">
+            <div class="sources-header">📚 Fontes consultadas (clique para ver detalhes):</div>
+            <ul class="sources-list">
+        `;
+        sources.slice(0, 3).forEach((source, idx) => {
+          const sourceId = `source_${msgId}_${idx}`;
+          // Store source data globally
+          this.sourcesData[sourceId] = {
+            regulation_id: source.regulation_id || 'Desconhecido',
+            text: source.text || 'Texto não disponível',
+            score: source.score || 0
+          };
+          const previewText = (source.text || '').substring(0, 80).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          messageHTML += `
+            <li class="source-item clickable" data-source-id="${sourceId}">
+              <div class="source-info">
+                <strong>${source.regulation_id}</strong>
+                <span class="source-preview">${previewText}...</span>
+              </div>
+              <span class="score">(score: ${source.score?.toFixed(2) || 'N/A'}) 👁️</span>
+            </li>
+          `;
+        });
+        messageHTML += `</ul></div>`;
+      }
+      
+      // Add metadata
+      if (model || processingTime) {
+        messageHTML += `
+          <div class="message-meta">
+            ${model ? `<span class="meta-model">${model}</span>` : ''}
+            ${processingTime ? `<span class="meta-time">${processingTime}ms</span>` : ''}
+            <span class="meta-timestamp">${new Date().toLocaleTimeString()}</span>
+          </div>
+        `;
+      }
+      
+      // Add rating section for assistant messages
+      if (role === 'assistant') {
+        const hasSources = sources && sources.length > 0;
+        messageHTML += this.createRatingHTML(msgId, hasSources, existingRatings);
+      }
+      
+      messageHTML += `</div>`;
+      messageDiv.innerHTML = messageHTML;
+      
+      this.elements.chatMessages.appendChild(messageDiv);
+      
+      // Bind rating events for assistant messages
+      if (role === 'assistant') {
+        this.bindRatingEvents(messageDiv, msgId);
+      }
+      
+      // Bind source click events if sources exist
+      if (sources && sources.length > 0) {
+        this.bindSourceClickEvents(messageDiv);
+      }
+      
+      this.scrollToBottom();
+    },
+    
+    createRatingHTML(messageId, hasSources = false, existingRatings = null) {
+      const ratings = existingRatings || {};
+      
+      const categories = [
+        { id: 'factual_accuracy', label: 'Precisão', tooltip: 'Informações corretas e sem alucinações' },
+        { id: 'completeness', label: 'Completude', tooltip: 'Abordou todos os aspectos' },
+        { id: 'clarity', label: 'Clareza', tooltip: 'Resposta clara e bem estruturada' },
+        { id: 'citation_quality', label: 'Citações', tooltip: 'Citou corretamente as normas', requiresSources: true },
+        { id: 'relevance', label: 'Relevância', tooltip: 'Manteve-se no tema solicitado' }
+      ];
+      
+      let categoriesHTML = categories
+        .filter(cat => !cat.requiresSources || hasSources)
+        .map(cat => `
+          <div class="rating-category-compact">
+            <span class="rating-label" title="${cat.tooltip}">${cat.label}</span>
+            <div class="star-rating" data-category="${cat.id}" data-message-id="${messageId}">
+              ${this.createStarsHTML(cat.id, messageId, ratings[cat.id])}
+            </div>
+          </div>
+        `).join('');
+      
+      return `
+        <div class="message-rating" data-message-id="${messageId}">
+          <div class="rating-grid">
+            ${categoriesHTML}
+          </div>
+          <div class="rating-status" id="rating-status-${messageId}"></div>
+        </div>
+      `;
+    },
+    
+    createStarsHTML(category, messageId, currentRating = 0) {
+      let html = '';
+      for (let i = 1; i <= 5; i++) {
+        const filled = i <= currentRating ? 'filled' : '';
+        html += `<span class="star ${filled}" data-value="${i}">★</span>`;
+      }
+      return html;
+    },
+    
+    bindRatingEvents(messageDiv, messageId) {
+      const starContainers = messageDiv.querySelectorAll('.star-rating');
+      
+      starContainers.forEach(container => {
+        const stars = container.querySelectorAll('.star');
+        const category = container.dataset.category;
+        
+        stars.forEach(star => {
+          // Hover effect
+          star.addEventListener('mouseenter', () => {
+            const value = parseInt(star.dataset.value);
+            stars.forEach((s, idx) => {
+              s.classList.toggle('hover', idx < value);
+            });
+          });
+          
+          star.addEventListener('mouseleave', () => {
+            stars.forEach(s => s.classList.remove('hover'));
+          });
+          
+          // Click to rate
+          star.addEventListener('click', () => {
+            const value = parseInt(star.dataset.value);
+            this.submitRating(messageId, category, value);
+            
+            // Update visual
+            stars.forEach((s, idx) => {
+              s.classList.toggle('filled', idx < value);
+            });
+          });
+        });
+      });
+    },
+    
+    async submitRating(messageId, category, value) {
+      const statusEl = document.getElementById(`rating-status-${messageId}`);
+      
+      try {
+        const response = await fetch('/ragweb/api/chat/rate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: this.sessionId,
+            message_id: messageId,
+            category: category,
+            rating: value
+          })
+        });
+        
+        if (response.ok) {
+          if (statusEl) {
+            statusEl.textContent = '✅ Avaliação salva!';
+            statusEl.className = 'rating-status success';
+            setTimeout(() => { statusEl.textContent = ''; }, 2000);
+          }
+        } else {
+          throw new Error('Erro ao salvar');
+        }
+      } catch (error) {
+        console.error('Error submitting rating:', error);
+        if (statusEl) {
+          statusEl.textContent = '❌ Erro ao salvar avaliação';
+          statusEl.className = 'rating-status error';
+        }
+      }
+    },
+    
+    formatMessage(content) {
+      // Convert newlines to <br>
+      let formatted = content.replace(/\n/g, '<br>');
+      
+      // Simple markdown-like formatting
+      formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      
+      return formatted;
+    },
+    
+    showTypingIndicator() {
+      this.elements.typingIndicator.style.display = 'flex';
+      this.scrollToBottom();
+    },
+    
+    hideTypingIndicator() {
+      this.elements.typingIndicator.style.display = 'none';
+    },
+    
+    scrollToBottom() {
+      this.elements.chatMessages.scrollTop = this.elements.chatMessages.scrollHeight;
+    },
+    
+    // Source Modal functions
+    currentSourceText: '',
+    
+    bindSourceClickEvents(container) {
+      const sources = container.querySelectorAll('.source-item.clickable[data-source-id]');
+      sources.forEach(sourceEl => {
+        sourceEl.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const sourceId = sourceEl.dataset.sourceId;
+          this.openSourceModal(sourceId);
+        });
+      });
+    },
+    
+    openSourceModal(sourceId) {
+      const sourceData = this.sourcesData[sourceId];
+      if (!sourceData) {
+        console.error('Source data not found for:', sourceId);
+        return;
+      }
+      
+      const modal = document.getElementById('sourceModal');
+      const titleEl = document.getElementById('sourceModalTitle');
+      const metaEl = document.getElementById('sourceModalMeta');
+      const textEl = document.getElementById('sourceModalText');
+      
+      this.currentSourceText = sourceData.text;
+      
+      titleEl.textContent = `📄 ${sourceData.regulation_id}`;
+      metaEl.innerHTML = `<span class="meta-score">Score de similaridade: <strong>${sourceData.score?.toFixed(4) || 'N/A'}</strong></span>`;
+      textEl.textContent = sourceData.text;
+      
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    },
+    
+    closeSourceModal() {
+      const modal = document.getElementById('sourceModal');
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    },
+    
+    copySourceText() {
+      navigator.clipboard.writeText(this.currentSourceText)
+        .then(() => {
+          const btn = document.querySelector('.source-modal-footer .btn-secondary');
+          const originalText = btn.textContent;
+          btn.textContent = '✅ Copiado!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        })
+        .catch(err => {
+          console.error('Erro ao copiar:', err);
+          alert('Erro ao copiar texto');
+        });
+    },
+    
+    startNewChat() {
+      // Clear session
+      this.sessionId = null;
+      this.messageCount = 0;
+      
+      // Clear messages (keep welcome message)
+      this.elements.chatMessages.innerHTML = `
+        <div class="message assistant">
+          <div class="message-avatar">🤖</div>
+          <div class="message-content">
+            <p>Olá! Sou um assistente especializado em regulamentação de aviação civil brasileira.</p>
+            <p>Como posso ajudá-lo hoje?</p>
+            <p class="hint">💡 Dica: Ative o "Usar RAG" para buscar informações em documentos oficiais.</p>
+          </div>
+        </div>
+      `;
+      
+      this.updateSessionInfo();
+      this.elements.messageInput.focus();
+    },
+    
+    updateSessionInfo() {
+      if (this.sessionId) {
+        this.elements.sessionInfo.textContent = `Sessão: ${this.sessionId.substring(0, 8)}... | ${this.messageCount} msgs`;
+      } else {
+        this.elements.sessionInfo.textContent = 'Nova sessão';
+      }
+    },
+    
+    async changeModel(modelName) {
+      try {
+        this.setStatus('loading', 'Alterando modelo...');
+        
+        const response = await fetch('/ragweb/api/models/change', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ model_name: modelName })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        this.elements.currentModel.textContent = data.current_model;
+        this.elements.modelInfo.textContent = `Modelo: ${data.current_model}`;
+        this.setStatus('success', 'Modelo alterado');
+        
+        // Add system message
+        this.addMessage('system', `✅ Modelo alterado para: ${data.current_model}`);
+        
+        setTimeout(() => this.setStatus('connected', 'Conectado'), 2000);
+        
+      } catch (error) {
+        console.error('Error changing model:', error);
+        this.setStatus('error', 'Erro ao alterar modelo');
+        this.addMessage('system', `❌ Erro ao alterar modelo: ${error.message}`);
+      }
+    },
+    
+    setStatus(status, text) {
+      const statusDot = document.querySelector('.status-dot');
+      
+      statusDot.className = 'status-dot';
+      if (status === 'loading') statusDot.classList.add('loading');
+      else if (status === 'error') statusDot.classList.add('error');
+      else if (status === 'success') statusDot.classList.add('success');
+      else statusDot.classList.add('connected');
+      
+      this.elements.statusText.textContent = text;
+    },
+    
+    async loadHistory() {
+      try {
+        const response = await fetch('/ragweb/api/chat/history');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.history && data.history.length > 0) {
+          this.renderHistory(data.history);
+        } else {
+          this.elements.historyList.innerHTML = '<p class="no-history">Nenhum histórico encontrado</p>';
+        }
+        
+      } catch (error) {
+        console.error('Error loading history:', error);
+        this.elements.historyList.innerHTML = '<p class="error">Erro ao carregar histórico</p>';
+      }
+    },
+    
+    renderHistory(history) {
+      let html = '';
+      
+      history.slice(0, 10).forEach(item => {
+        const date = item.last_updated ? new Date(item.last_updated).toLocaleDateString('pt-BR') : 'N/A';
+        const title = item.title || 'Conversa sem título';
+        const model = item.model || 'N/A';
+        html += `
+          <div class="history-item" data-session="${item.session_id}">
+            <div class="history-title" title="${title}">${title}</div>
+            <div class="history-meta">
+              <span class="history-model" title="Modelo: ${model}">🤖 ${model}</span>
+            </div>
+            <div class="history-info">
+              <span class="history-count">${item.messages_count || 0} msgs</span>
+              <span class="history-date">${date}</span>
+            </div>
+          </div>
+        `;
+      });
+      
+      this.elements.historyList.innerHTML = html;
+      
+      // Add click handlers
+      this.elements.historyList.querySelectorAll('.history-item').forEach(item => {
+        item.addEventListener('click', () => {
+          this.loadSession(item.dataset.session);
+        });
+      });
+    },
+    
+    async loadSession(sessionId) {
+      try {
+        this.setStatus('loading', 'Carregando sessão...');
+        
+        const response = await fetch(`/ragweb/api/chat/history/${sessionId}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Clear current messages
+        this.elements.chatMessages.innerHTML = '';
+        
+        // Update session info
+        this.sessionId = sessionId;
+        this.messageCount = data.messages?.length || 0;
+        this.updateSessionInfo();
+        
+        // Render messages
+        if (data.messages) {
+          data.messages.forEach(msg => {
+            this.addMessage(
+              msg.role,
+              msg.content,
+              msg.sources,
+              msg.model,
+              msg.processing_time_ms,
+              msg.ratings || null,
+              msg.message_id || null
+            );
+          });
+        }
+        
+        this.setStatus('connected', 'Conectado');
+        
+      } catch (error) {
+        console.error('Error loading session:', error);
+        this.setStatus('error', 'Erro ao carregar sessão');
+        this.addMessage('system', `❌ Erro ao carregar sessão: ${error.message}`);
+      }
+    }
+  };
+  
+  // Initialize when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    ChatApp.init();
+  });
+</script>
+{% endblock %}

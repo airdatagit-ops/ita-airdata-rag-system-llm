@@ -1,0 +1,11 @@
+- Unificar os docker-composes e resolver problemas de conflito
+
+- Entender melhor o erro do código do LeXML:
+ Error fetching documents: HTTPSConnectionPool(host='www.lexml.gov.br', port=443): Max retries exce
+eded with url: /sru?operation=searchRetrieve&version=1.1&query=%28dc.subject+any+%22avia%C3%A7%C3%A3o%22+or+dc.subject+any+%22ANAC%22%29+and+urn+any+%22br%3Afederal%22&s
+tartRecord=1&maximumRecords=10 (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:992)')))
+
+- Unificar os arquivos .env da API do RAG e da aplicação web
+- Trocar o site do lexml.gov.br/sru para o pergamum.anac.gov.br
+- Testar o script test_system.py no LESSIONA e ver se o problema do LLM é só de memória RAM
+- Criar uma página na seção web exclusivamente pra chat com um LLM selecionável, que recebe as informações do RAG e mostra pro usuário de forma formatada e compreensível.

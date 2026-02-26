@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Sistema RAG AirData{% endblock %}</title>
+  
+  <!-- Base CSS -->
+  <link rel="stylesheet" href="/ragweb/ragweb/static/css/base.css">
+  
+  {% block extra_styles %}{% endblock %}
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+    main.main-content {
+      flex: 1;
+      overflow: hidden;
+    }
+    .footer {
+      flex-shrink: 0;
+      margin-top: 0px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="airdata-header">
+    <a href="{{ request.url_for('home') }}" class="logo-container">
+      <img src="/ragweb/ragweb/static/images/airdata-logo.png" alt="AirData Logo" class="logo-image" style="height: 50px;">
+      <span class="logo-text">RAG System</span>
+    </a>
+
+    <nav class="nav-container">
+      <div class="nav-item">
+        <a href="{{ request.url_for('home') }}" class="nav-link {% if current_page == 'home' %}active{% endif %}">Início</a>
+      </div>
+
+      <div class="nav-item">
+        <a href="{{ request.url_for('chat_page') }}" class="nav-link {% if current_page == 'chat' %}active{% endif %}">Chat</a>
+      </div>
+
+      <div class="nav-item">
+        <a href="{{ request.url_for('search_page') }}" class="nav-link {% if current_page == 'search' %}active{% endif %}">Buscar Regulamentações</a>
+      </div>
+
+      <div class="nav-item">
+        <a href="{{ request.url_for('stats_page') }}" class="nav-link {% if current_page == 'stats' %}active{% endif %}">Estatísticas</a>
+      </div>
+
+      <div class="nav-item">
+        <a href="{{ request.url_for('about_page') }}" class="nav-link {% if current_page == 'about' %}active{% endif %}">Sobre</a>
+      </div>
+    </nav>
+    
+    <button id="themeToggle" class="theme-toggle" aria-label="Alternar tema">
+      <span class="theme-icon">🌙</span>
+    </button>
+  </header>
+
+  <!-- Main Content -->
+  {% block content %}{% endblock %}
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p class="footer-org"><strong>Instituto Tecnológico de Aeronáutica - ITA</strong></p>
+      <div class="footer-links">
+        <a href="https://www.airdata.ita.br" target="_blank">Portal AirData</a>
+        <a href="https://github.com/ita-airdata" target="_blank">GitHub</a>
+      </div>
+      <p class="footer-copyright">
+        © 2026 Projeto AirData - Todos os direitos reservados
+      </p>
+    </div>
+    <div class="footer-bottom-bar"></div>
+  </footer>
+
+  {% block extra_scripts %}{% endblock %}
+  
+  <script>
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.querySelector('.theme-icon');
+    const html = document.documentElement;
+    
+    // Check for saved theme preference or default to light mode
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    html.setAttribute('data-theme', currentTheme);
+    updateThemeIcon(currentTheme);
+    
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+    });
+    
+    function updateThemeIcon(theme) {
+      themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+  </script>
+</body>
+</html>

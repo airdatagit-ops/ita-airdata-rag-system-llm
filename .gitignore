@@ -1,0 +1,8 @@
+venv
+models_cache
+web/venv
+.idea
+api/__pycache__
+__pycache__
+data/
+web/chat_history

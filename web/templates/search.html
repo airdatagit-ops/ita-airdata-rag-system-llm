@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Buscar Regulamentações - Aviation RAG System{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/ragweb/ragweb/static/css/search.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Buscar Regulamentações</h1>
+  <p style="color: var(--text-secondary);">
+    Consulte o banco de dados de regulamentações através de busca vetorial. <br>
+    Esta ferramenta realiza uma busca por similaridade semântica sem uso de modelos de linguagem, <br>
+    retornando apenas os documentos mais relevantes do banco indexado.
+  </p>
+
+  {% if error %}
+  <div class="alert alert-error">
+    <strong>Erro:</strong> {{ error }}
+  </div>
+  {% endif %}
+
+  <form method="post" action="{{ request.url_for('search_post') }}" class="search-form">
+    <div class="form-group">
+      <label for="query">Sua pergunta *</label>
+      <input 
+        type="text" 
+        id="query" 
+        name="query" 
+        required
+        placeholder="Ex: Quais são os requisitos para certificação de pilotos comerciais?"
+        value="{{ query if query else '' }}"
+      />
+      <small>Digite sua pergunta sobre regulamentações aeronáuticas</small>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="date">Data (opcional)</label>
+        <input 
+          type="date" 
+          id="date" 
+          name="date"
+          value="{{ search_params.date if search_params and search_params.date else '' }}"
+        />
+        <small>Buscar regulamentações vigentes nesta data</small>
+      </div>
+
+      <div class="form-group">
+        <label for="limit">Número de resultados</label>
+        <select id="limit" name="limit">
+          <option value="3" {% if search_params and search_params.limit == 3 %}selected{% endif %}>3</option>
+          <option value="5" {% if not search_params or search_params.limit == 5 %}selected{% endif %}>5</option>
+          <option value="10" {% if search_params and search_params.limit == 10 %}selected{% endif %}>10</option>
+          <option value="15" {% if search_params and search_params.limit == 15 %}selected{% endif %}>15</option>
+        </select>
+        <small>Quantas fontes retornar</small>
+      </div>
+
+      <div class="form-group">
+        <label for="score_threshold">Afinidade vetorial mínima (opcional)</label>
+        <input 
+          type="number" 
+          id="score_threshold" 
+          name="score_threshold" 
+          step="0.01" 
+          min="0" 
+          max="1"
+          placeholder="0.0 - 1.0"
+          value="{{ search_params.score_threshold if search_params and search_params.score_threshold else '' }}"
+        />
+        
+        <small>Filtrar resultados com score mínimo (0.0 a 1.0) / (0% até 100%)</small>
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn">🔍 Buscar</button>
+  </form>
+
+  {% if result %}
+  <div class="results-section">
+    <div class="performance-stats">
+      <div class="performance-stat">
+        <span>🔎</span>
+        <span><strong>Busca vetorial:</strong> {{ result.search_time_ms }}ms</span>
+      </div>
+      <div class="performance-stat">
+        <span>📊</span>
+        <span><strong>Resultados:</strong> {{ result.total_results }}</span>
+      </div>
+    </div>
+
+    <div class="sources-list">
+      <h2>Documentos Encontrados ({{ result.sources|length }})</h2>
+      
+      {% for source in result.sources %}
+      <div class="source-card">
+        <div class="source-header">
+          <div class="source-id">{{ source.regulation_id }}</div>
+          <div class="source-score">Score: {{ "%.3f"|format(source.score) }}</div>
+        </div>
+
+        <div class="source-text">{{ source.text }}</div>
+
+        <div class="source-metadata">
+          {% if source.version %}
+          <div class="metadata-item">
+            <span class="metadata-label">Versão:</span>
+            <span>{{ source.version }}</span>
+          </div>
+          {% endif %}
+
+          {% if source.effective_date %}
+          <div class="metadata-item">
+            <span class="metadata-label">Data efetiva:</span>
+            <span>{{ source.effective_date }}</span>
+          </div>
+          {% endif %}
+
+          {% if source.expiry_date %}
+          <div class="metadata-item">
+            <span class="metadata-label">Data de expiração:</span>
+            <span>{{ source.expiry_date }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if source.metadata %}
+        <details style="margin-top: 1rem;">
+          <summary style="cursor: pointer; color: var(--primary-color); font-weight: 600;">
+            Ver metadados completos
+          </summary>
+          <pre style="margin-top: 0.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: 4px; overflow-x: auto; font-size: 0.875rem;">{{ source.metadata|tojson(indent=2) }}</pre>
+        </details>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

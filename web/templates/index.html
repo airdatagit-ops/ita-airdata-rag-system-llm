@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Início - Aviation RAG System{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/ragweb/ragweb/static/css/home.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="hero">
+    <h1>AirData RAG System</h1>
+    <p>
+      Plataforma inteligente para consulta de regulamentações aeronáuticas brasileiras.
+      Utilize inteligência artificial para obter respostas precisas e contextualizadas 
+      sobre normas da aviação civil, com fontes verificáveis e avaliação de qualidade.
+    </p>
+    <a href="{{ request.url_for('chat_page') }}" class="cta-button">Iniciar Chat</a>
+  </div>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h3>Chat Inteligente</h3>
+      <p>
+        Converse com IA especializada em aviação civil brasileira.
+        Faça perguntas complexas e receba respostas fundamentadas 
+        nas regulamentações oficiais da ANAC.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📋</div>
+      <h3>Avaliação de Respostas</h3>
+      <p>
+        Sistema de avaliação com 5 estrelas para cada resposta.
+        Avalie precisão, completude, clareza, citações e relevância 
+        para melhorar continuamente a qualidade.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📚</div>
+      <h3>Fontes Oficiais</h3>
+      <p>
+        Todas as respostas são baseadas em documentos oficiais 
+        da ANAC, com citações precisas e scores de relevância 
+        para garantir confiabilidade.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Streaming em Tempo Real</h3>
+      <p>
+        Respostas aparecem palavra por palavra em tempo real.
+        Sistema otimizado com busca vetorial usando Qdrant 
+        para performance máxima.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <h3>Busca Vetorial</h3>
+      <p>
+        Busque documentos similares semanticamente sem usar IA.
+        Ferramenta rápida para explorar o conhecimento 
+        da base regulatória.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Histórico e Estatísticas</h3>
+      <p>
+        Histórico completo de conversas com títulos automáticos.
+        Métricas de uso, performance e status do sistema 
+        em tempo real.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
