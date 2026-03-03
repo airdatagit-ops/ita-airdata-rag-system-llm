@@ -1,163 +1,148 @@
-# 🛩️ Aviation RAG Web Interface - COMECE AQUI
+# Comece Aqui - AirData RAG Web Interface
 
-## ⚡ Início Rápido (5 minutos)
-
-### 1. Configure a API Key
-
-Edite o arquivo `.env`:
-```bash
-nano .env  # ou use seu editor preferido
-```
-
-Altere esta linha:
-```env
-API_KEY=sua-chave-api-aqui
-```
-
-### 2. Execute
-
-**Linux/macOS:**
-```bash
-chmod +x run.sh
-./run.sh
-```
-
-**Windows:**
-```bat
-run.bat
-```
-
-### 3. Acesse
-
-Abra seu navegador em: **http://localhost:8001**
+> **Leia este documento primeiro.** Ele explica o que é este projeto, como ele se encaixa na arquitetura geral do sistema AirData RAG e quais são os pré-requisitos para executá-lo.
 
 ---
 
-## 📚 Documentação
+## O que é este projeto?
 
-Este projeto contém documentação completa em vários arquivos:
+Este diretório (`web/`) contém a **interface web** do sistema AirData RAG. Trata-se de uma aplicação web construída com **FastAPI** (Python) que fornece ao usuário final uma interface gráfica para interagir com o sistema de consulta de regulamentações aeronáuticas brasileiras.
 
-| Arquivo | Descrição |
-|---------|-----------|
-| **[README.md](README.md)** | 📖 Documentação principal completa |
-| **[QUICKSTART.md](QUICKSTART.md)** | ⚡ Guia de início rápido detalhado |
-| **[STRUCTURE.md](STRUCTURE.md)** | 🏗️ Estrutura de arquivos explicada |
-| **[HIERARCHY.md](HIERARCHY.md)** | 📁 Hierarquia visual do projeto |
-| **[DEPLOY.md](DEPLOY.md)** | 🚀 Guia de deploy em produção |
-
-**Recomendação**: Leia nesta ordem se for sua primeira vez:
-1. Este arquivo (START_HERE.md) ✅
-2. QUICKSTART.md
-3. README.md (para detalhes completos)
+A aplicação web **não processa dados por conta própria**. Ela atua como um **frontend** que se comunica via HTTP com uma **API RAG backend** separada. Toda a lógica de busca vetorial, geração de respostas com LLM e gerenciamento de modelos é realizada pela API backend — este projeto apenas disponibiliza uma interface amigável para o usuário.
 
 ---
 
-## 🎯 O que este projeto faz?
-
-Este é um **interface web** para interagir com um sistema RAG (Retrieval-Augmented Generation) de regulamentações aeronáuticas.
-
-### Funcionalidades:
-- 🔍 Buscar regulamentações em linguagem natural
-- 📊 Ver estatísticas do sistema
-- 📚 Visualizar fontes e metadados
-- ⚡ Interface moderna e responsiva
-
----
-
-## 📂 Estrutura do Projeto
+## Arquitetura Geral
 
 ```
-rag-web-app/
-├── 📄 main.py              # Aplicação FastAPI
-├── 📁 app/                 # Configurações
-├── 📁 templates/           # Páginas HTML
-├── 📁 static/              # CSS, JS, imagens
-└── 📚 *.md                 # Documentação
+┌──────────────────────────────────────────────────────────┐
+│                      USUÁRIO                             │
+│                   (Navegador Web)                        │
+└─────────────────────┬────────────────────────────────────┘
+                      │ HTTP (porta configurável)
+                      ▼
+┌──────────────────────────────────────────────────────────┐
+│              WEB APP (Este projeto)                       │
+│                                                          │
+│  Framework: FastAPI + Jinja2 + Uvicorn                   │
+│  Função: Interface gráfica, proxy de requisições,        │
+│          persistência de histórico de chat                │
+│                                                          │
+│  Páginas:                                                │
+│    /           → Página inicial                          │
+│    /chat       → Chat com LLM (streaming)                │
+│    /pesquisa   → Busca vetorial (sem LLM)                │
+│    /estatisticas → Estatísticas do sistema               │
+│    /sobre      → Informações sobre o projeto             │
+│    /health     → Health check (JSON)                     │
+└─────────────────────┬────────────────────────────────────┘
+                      │ HTTP + API Key
+                      ▼
+┌──────────────────────────────────────────────────────────┐
+│              API RAG (Projeto separado)                   │
+│                                                          │
+│  Endpoints consumidos:                                   │
+│    POST /api/chat          → Chat com LLM                │
+│    POST /api/chat/stream   → Chat com streaming (SSE)    │
+│    POST /api/vector-search → Busca vetorial pura         │
+│    GET  /api/models        → Lista de modelos LLM        │
+│    POST /api/models/change → Trocar modelo LLM           │
+│    GET  /stats             → Estatísticas do Qdrant      │
+└─────────────────────┬────────────────────────────────────┘
+                      │
+                      ▼
+┌──────────────────────────────────────────────────────────┐
+│        Qdrant (Banco Vetorial) + Ollama (LLM)            │
+└──────────────────────────────────────────────────────────┘
 ```
 
-Para ver a estrutura completa: **[HIERARCHY.md](HIERARCHY.md)**
+### Importante
+
+- A **API RAG backend** precisa estar rodando e acessível para que esta aplicação web funcione corretamente.
+- Sem a API backend, as páginas de chat, busca e estatísticas apresentarão erros de conexão.
+- A página inicial (`/`) e a página sobre (`/sobre`) funcionam de forma independente, pois são páginas estáticas.
 
 ---
 
-## ⚙️ Pré-requisitos
+## Pré-requisitos
 
-Você precisa ter:
+Antes de executar esta aplicação, certifique-se de que você possui:
 
-1. **Python 3.8+** instalado
-2. **API RAG** rodando (backend)
-3. **Chave de API** válida
+### Obrigatórios
 
-Não tem a API? Você precisa do backend rodando primeiro!
+| Requisito | Versão Mínima | Descrição |
+|-----------|---------------|-----------|
+| **Python** | 3.8+ | Interpretador Python |
+| **pip** | 20.0+ | Gerenciador de pacotes Python |
+| **API RAG Backend** | — | Servidor da API RAG rodando e acessível na rede |
+
+### Recomendados
+
+| Requisito | Descrição |
+|-----------|-----------|
+| **venv** | Módulo de ambientes virtuais do Python (vem incluso no Python 3.3+) |
+| **Git** | Para controle de versão |
 
 ---
 
-## 🔧 Configuração
+## Estrutura de Arquivos
 
-O arquivo `.env` controla todas as configurações:
-
-```env
-# Servidor Web
-HOST=0.0.0.0
-PORT=8001
-
-# API Backend
-API_BASE_URL=http://localhost:8000
-API_KEY=sua-chave-aqui         # ← IMPORTANTE: Configure isso!
 ```
-
----
-
-## 🚀 Próximos Passos
-
-Depois de rodar pela primeira vez:
-
-1. ✅ Teste a busca em `/search`
-2. ✅ Veja as estatísticas em `/stats`
-3. ✅ Leia o [README.md](README.md) completo
-4. ✅ Para produção, veja [DEPLOY.md](DEPLOY.md)
-
----
-
-## 🆘 Problemas Comuns
-
-### "Connection refused" ao buscar
-
-**Causa**: API backend não está rodando
-
-**Solução**: Verifique se a API está rodando em `http://localhost:8000`
-```bash
-curl http://localhost:8000/health
-```
-
-### "Invalid API Key"
-
-**Causa**: Chave incorreta no `.env`
-
-**Solução**: Verifique o `.env` e configure a chave correta
-
-### Porta 8001 já em uso
-
-**Solução**: Mude a porta no `.env`:
-```env
-PORT=8002
+web/
+├── main.py              # Ponto de entrada da aplicação (execute este arquivo)
+├── requirements.txt     # Dependências Python necessárias
+├── .env                 # Variáveis de ambiente (configuração local)
+├── env.example          # Exemplo de .env para referência
+├── gitignore            # Arquivo gitignore do projeto
+│
+├── app/                 # Módulo de configuração da aplicação
+│   ├── __init__.py      # Exporta o objeto 'settings'
+│   └── config.py        # Classe Settings (lê variáveis do .env)
+│
+├── templates/           # Templates HTML (Jinja2)
+│   ├── base.html        # Template base (header, footer, tema, navegação)
+│   ├── index.html       # Página inicial
+│   ├── chat.html        # Página de chat (inclui toda a lógica JS do chat)
+│   ├── search.html      # Página de busca vetorial
+│   ├── stats.html       # Página de estatísticas
+│   └── about.html       # Página sobre o sistema
+│
+├── static/              # Arquivos estáticos
+│   ├── css/             # Folhas de estilo por página
+│   │   ├── base.css     # Estilos globais, tema claro/escuro, navegação
+│   │   ├── home.css     # Estilos da página inicial
+│   │   ├── chat.css     # Estilos do chat (mensagens, sidebar, rating, modal)
+│   │   ├── search.css   # Estilos da página de busca
+│   │   ├── stats.css    # Estilos da página de estatísticas
+│   │   ├── about.css    # Estilos da página sobre
+│   │   └── custom.css   # Estilos personalizados adicionais
+│   ├── js/
+│   │   └── app.js       # JavaScript utilitário (validação, highlight, etc.)
+│   └── images/          # Imagens e logos
+│
+├── chat_history/        # Histórico de conversas (criado automaticamente)
+│   └── *.json           # Arquivos JSON por sessão de chat
+│
+└── docs/                # Documentação (você está aqui)
+    ├── START_HERE.md     # Este arquivo
+    ├── QUICKSTART.md     # Guia rápido de execução
+    └── README.md         # Documentação completa e detalhada
 ```
 
 ---
 
-## 📞 Suporte
+## Próximos Passos
 
-- 📖 Leia a documentação em `README.md`
-- 🐛 Problemas? Veja `QUICKSTART.md` > Troubleshooting
-- 💬 Issues: GitHub do projeto
-
----
-
-## 🎓 Projeto AirData - ITA
-
-Desenvolvido pelo Instituto Tecnológico de Aeronáutica
-
-© 2026 Projeto AirData - Todos os direitos reservados
+| Objetivo | Documento |
+|----------|-----------|
+| Quero **rodar o projeto o mais rápido possível** | Leia o [QUICKSTART.md](QUICKSTART.md) |
+| Quero **entender o projeto em profundidade** | Leia o [README.md](README.md) |
 
 ---
 
-**Pronto para começar? Execute `./run.sh` (Linux/Mac) ou `run.bat` (Windows)!**
+## Contato
+
+Projeto AirData — Instituto Tecnológico de Aeronáutica (ITA)
+
+- Portal: [https://www.airdata.ita.br](https://www.airdata.ita.br)
+- GitHub: [https://github.com/ita-airdata](https://github.com/ita-airdata)

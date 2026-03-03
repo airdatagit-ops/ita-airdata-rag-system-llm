@@ -1,183 +1,187 @@
-# Guia de Início Rápido 🚀
+# Guia Rápido de Execução - AirData RAG Web Interface
 
-Este guia ajudará você a configurar e executar a aplicação web em poucos minutos.
-
-## Pré-requisitos
-
-Antes de começar, certifique-se de ter:
-
-- [ ] Python 3.8 ou superior instalado
-- [ ] API RAG rodando em `http://localhost:8000` (ou outra URL)
-- [ ] Chave de API válida da API RAG
-
-## Passos Rápidos
-
-### 1. Clone e Entre no Diretório
-
-```bash
-cd web
-```
-
-### 2. Execute o Script de Inicialização
-
-**Linux/macOS:**
-```bash
-./run.sh
-```
-
-**Windows:**
-```bat
-run.bat
-```
-
-### 3. Configure a API Key
-
-Edite o arquivo `.env` e configure sua chave de API:
-
-```env
-API_KEY=sua-chave-api-aqui
-API_BASE_URL=http://localhost:8000
-```
-
-### 4. Acesse a Aplicação
-
-Abra seu navegador em: **http://localhost:8001**
-
-## Configuração Manual (Alternativa)
-
-Se preferir configurar manualmente:
-
-```bash
-# 1. Criar ambiente virtual
-python -m venv venv
-
-# 2. Ativar ambiente virtual
-# Linux/macOS:
-source venv/bin/activate
-# Windows:
-venv\Scripts\activate
-
-# 3. Instalar dependências
-pip install -r requirements.txt
-
-# 4. Copiar e editar .env
-cp .env.example .env
-# Edite .env com suas configurações
-
-# 5. Executar aplicação
-python main.py
-```
-
-## Verificação Rápida
-
-Teste se tudo está funcionando:
-
-1. **Página Inicial**: http://localhost:8001
-   - Deve exibir a página inicial do sistema
-
-2. **Busca**: http://localhost:8001/search
-   - Deve exibir o formulário de busca
-
-3. **Estatísticas**: http://localhost:8001/stats
-   - Deve exibir estatísticas do sistema (requer API rodando)
-
-4. **Health Check**: http://localhost:8001/health
-   - Deve retornar: `{"status": "healthy", "timestamp": "..."}`
-
-## Primeiros Passos
-
-### Fazer uma Busca
-
-1. Acesse: http://localhost:8001/search
-2. Digite uma pergunta, exemplo:
-   ```
-   Quais são os requisitos para certificação de pilotos comerciais?
-   ```
-3. Clique em "Buscar"
-4. Visualize a resposta e as fontes
-
-### Ver Estatísticas
-
-1. Acesse: http://localhost:8001/stats
-2. Visualize:
-   - Total de vetores indexados
-   - Total de pontos no banco
-   - Status do sistema
-
-## Troubleshooting
-
-### Erro: "Connection refused" ao acessar /stats ou /search
-
-**Causa**: A API RAG não está rodando ou URL incorreta
-
-**Solução**:
-1. Verifique se a API RAG está rodando: `curl http://localhost:8000/health`
-2. Confirme a URL no arquivo `.env`
-3. Verifique se a porta está correta
-
-### Erro: "Invalid API Key"
-
-**Causa**: Chave de API incorreta ou não configurada
-
-**Solução**:
-1. Verifique o arquivo `.env`
-2. Confirme que `API_KEY` está correta
-3. Verifique com o administrador da API RAG
-
-### Erro: "Port already in use"
-
-**Causa**: Porta 8001 já está sendo usada
-
-**Solução**:
-1. Pare o processo que está usando a porta
-2. Ou altere a porta no `.env`:
-   ```env
-   PORT=8002
-   ```
-
-### Página não carrega estilos CSS
-
-**Causa**: Problema com arquivos estáticos
-
-**Solução**:
-1. Verifique se o diretório `static/` existe
-2. Reinicie a aplicação com `--reload`
-
-## Próximos Passos
-
-Depois de configurar e testar:
-
-- [ ] Leia o [README.md](README.md) completo para mais detalhes
-- [ ] Explore a [documentação da API](http://localhost:8000/docs)
-- [ ] Personalize os templates em `templates/`
-- [ ] Configure HTTPS para produção
-- [ ] Configure monitoring e logging
-
-## Comandos Úteis
-
-```bash
-# Parar a aplicação
-Ctrl + C
-
-# Reinstalar dependências
-pip install -r requirements.txt --upgrade
-
-# Limpar cache Python
-find . -type d -name __pycache__ -exec rm -r {} +
-
-# Ver logs em tempo real
-tail -f logs/app.log  # se logging em arquivo estiver configurado
-```
-
-## Suporte
-
-Se encontrar problemas:
-
-1. Verifique os logs no terminal
-2. Consulte a seção de Troubleshooting acima
-3. Abra uma issue no GitHub
-4. Entre em contato com a equipe AirData
+> Este guia contém os passos mínimos necessários para colocar a aplicação web em funcionamento. Para informações mais detalhadas, consulte o [README.md](README.md).
 
 ---
 
-Desenvolvido pelo ITA - Projeto AirData
+## Resumo
+
+A execução da aplicação web se resume a **3 etapas**:
+
+1. Criar e ativar um ambiente virtual Python
+2. Instalar as dependências do `requirements.txt`
+3. Executar o `main.py`
+
+---
+
+## Passo a Passo
+
+### 1. Navegue até o diretório do projeto web
+
+```bash
+cd /caminho/para/aviation-rag-system/web
+```
+
+### 2. Crie um ambiente virtual Python
+
+```bash
+python3 -m venv venv
+```
+
+> **Nota:** Se o comando `python3` não estiver disponível, tente `python`. O importante é usar Python 3.8 ou superior.
+
+### 3. Ative o ambiente virtual
+
+**Linux / macOS:**
+```bash
+source venv/bin/activate
+```
+
+**Windows (CMD):**
+```cmd
+venv\Scripts\activate.bat
+```
+
+**Windows (PowerShell):**
+```powershell
+venv\Scripts\Activate.ps1
+```
+
+Após a ativação, você verá `(venv)` no início da linha de comando, indicando que o ambiente virtual está ativo.
+
+### 4. Instale as dependências
+
+```bash
+pip install -r requirements.txt
+```
+
+Este comando instalará todas as bibliotecas necessárias, incluindo:
+- **FastAPI** — framework web
+- **Uvicorn** — servidor ASGI
+- **Jinja2** — motor de templates HTML
+- **httpx** — cliente HTTP assíncrono (para comunicação com a API backend)
+- **pydantic-settings** — gerenciamento de configurações
+- **loguru** — sistema de logging
+- **python-dotenv** — carregamento de variáveis de ambiente
+
+### 5. Configure as variáveis de ambiente
+
+Copie o arquivo de exemplo e edite com suas configurações:
+
+```bash
+cp env.example .env
+```
+
+Abra o arquivo `.env` em um editor de texto e configure:
+
+```env
+# Endereço e porta em que o servidor web vai rodar
+HOST=127.0.0.1
+PORT=8082
+RELOAD=True
+
+# Prefixo de rota (usado quando atrás de um reverse proxy)
+ROOT_PATH=/ragweb
+
+# URL da API RAG backend (deve estar rodando e acessível)
+API_BASE_URL=http://localhost:8000
+
+# Chave de autenticação da API RAG
+API_KEY=sua-chave-api-aqui
+
+# Informações da aplicação
+APP_NAME=Aviation RAG Web Interface
+APP_VERSION=1.0.0
+```
+
+**Variáveis essenciais que você precisa configurar:**
+
+| Variável | O que configurar |
+|----------|-----------------|
+| `HOST` | IP onde o servidor vai escutar (`127.0.0.1` para acesso local, `0.0.0.0` para acesso externo) |
+| `PORT` | Porta do servidor web (ex: `8082`) |
+| `API_BASE_URL` | URL completa da API RAG backend (ex: `http://161.24.29.22/ragapi`) |
+| `API_KEY` | Chave de API para autenticação com o backend |
+| `ROOT_PATH` | Prefixo de URL se o app estiver atrás de um reverse proxy (ex: `/ragweb`). Deixe vazio (`""`) se não usar proxy |
+
+### 6. Execute a aplicação
+
+```bash
+python main.py
+```
+
+A saída esperada será semelhante a:
+
+```
+INFO:     Uvicorn running on http://127.0.0.1:8082 (Press CTRL+C to quit)
+INFO:     Started reloader process [xxxxx] using WatchFiles
+INFO:     Started server process [xxxxx]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+```
+
+### 7. Acesse no navegador
+
+Abra o navegador e acesse:
+
+```
+http://127.0.0.1:8082/ragweb/
+```
+
+> **Atenção:** A URL completa inclui o `ROOT_PATH` configurado no `.env`. Se você configurou `ROOT_PATH=/ragweb`, a URL base será `http://HOST:PORT/ragweb/`. Se `ROOT_PATH` estiver vazio, acesse `http://HOST:PORT/`.
+
+---
+
+## Verificação Rápida
+
+Após iniciar a aplicação, você pode verificar se está funcionando:
+
+| Verificação | URL | Resultado Esperado |
+|-------------|-----|-------------------|
+| Health check | `http://HOST:PORT/ragweb/health` | JSON: `{"status": "healthy", ...}` |
+| Página inicial | `http://HOST:PORT/ragweb/` | Página HTML com cards de funcionalidades |
+| Página sobre | `http://HOST:PORT/ragweb/sobre` | Página HTML com informações do sistema |
+
+> As páginas de **Chat**, **Busca** e **Estatísticas** necessitam que a API RAG backend esteja acessível. Se ela não estiver rodando, essas páginas exibirão mensagens de erro.
+
+---
+
+## Encerrando a Aplicação
+
+Para parar o servidor, pressione `Ctrl+C` no terminal onde ele está rodando.
+
+Para desativar o ambiente virtual:
+
+```bash
+deactivate
+```
+
+---
+
+## Problemas Comuns
+
+### "ModuleNotFoundError: No module named 'fastapi'"
+O ambiente virtual não está ativado ou as dependências não foram instaladas. Execute:
+```bash
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### "Connection refused" ao acessar Chat ou Busca
+A API RAG backend não está rodando ou a variável `API_BASE_URL` no `.env` está incorreta. Verifique se a API está acessível:
+```bash
+curl http://SEU_API_BASE_URL/stats
+```
+
+### "API Error: 401" ou "Unauthorized"
+A chave de API (`API_KEY`) no `.env` está incorreta. Verifique com o administrador da API backend qual é a chave correta.
+
+### Página carrega mas sem dados
+Verifique o terminal do servidor — erros de conexão com a API backend serão exibidos nos logs do Loguru.
+
+---
+
+## Referências
+
+- [START_HERE.md](START_HERE.md) — Visão geral e arquitetura do projeto
+- [README.md](README.md) — Documentação completa e detalhada
