@@ -1,0 +1,179 @@
+{
+  "timestamp": "2026-03-10T08:38:13.292133",
+  "k": 5,
+  "metrics": {
+    "total_queries": 20,
+    "unique_queries": 20,
+    "mean_precision_at_k": 0.0823529411764706,
+    "mean_recall": 0.4117647058823529,
+    "mrr": 0.23039215686274508,
+    "hit_rate": 0.4117647058823529,
+    "retrieval_queries": 17,
+    "retrieval_hit_rate": 0.4117647058823529,
+    "retrieval_mrr": 0.23039215686274508,
+    "coverage_queries": 3,
+    "coverage_hit_rate": 1.0
+  },
+  "query_results": [
+    {
+      "query_id": "Q001",
+      "query": "Qual artigo trata da proposta de cartas de corredores visuais?",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "first_rank": 3
+    },
+    {
+      "query_id": "Q002",
+      "query": "Como solicitar divulgação de informação aeronáutica?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q003",
+      "query": "Quais informações cada tipo de carta fornece?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q004",
+      "query": "O que diz sobre representação de obstáculos na carta?",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "first_rank": 1
+    },
+    {
+      "query_id": "Q005",
+      "query": "O que diz sobre representação de obstáculos na carta?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q006",
+      "query": "Como representar perfil de pista na carta?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q007",
+      "query": "Qual escala usar para perfil de terreno além de 900m da pista?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q008",
+      "query": "Como indicar quando a carta não está em escala?",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "first_rank": 1
+    },
+    {
+      "query_id": "Q009",
+      "query": "Como indicar quando a carta não está em escala?",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q010",
+      "query": "Para que servem as cartas de voo visual a baixas altitudes?",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "first_rank": 4
+    },
+    {
+      "query_id": "Q011",
+      "query": "Como identificar a carta pelo nome da cidade?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q012",
+      "query": "O que são cartas GeoPDF georreferenciadas?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q013",
+      "query": "Quais são os requisitos para ATCO instrutor de IFCTA?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q014",
+      "query": "Quais critérios para seleção de ATCO?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q015",
+      "query": "O que é RBAC 91?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q016",
+      "query": "Quais são os requisitos de manutenção de aeronaves?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q017",
+      "query": "O que diz a lei 7565 sobre aviação?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    },
+    {
+      "query_id": "Q018",
+      "query": "Como funciona o comitê de segurança da informação no DECEA?",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "first_rank": 3
+    },
+    {
+      "query_id": "Q019",
+      "query": "O que é prestação de tarefa por tempo certo?",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "first_rank": 1
+    },
+    {
+      "query_id": "Q020",
+      "query": "Quando a altitude mínima do setor não foi estabelecida, o que representar?",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_rank": null
+    }
+  ]
+}
