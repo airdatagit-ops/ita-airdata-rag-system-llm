@@ -1,21 +1,17 @@
 {
-  "timestamp": "2026-03-12T09:08:30.326534",
+  "timestamp": "2026-03-12T09:35:16.700758",
   "k": 5,
-  "elapsed_seconds": 7.952886581420898,
+  "elapsed_seconds": 6.556055784225464,
   "metrics": {
     "total_queries": 60,
-    "unique_queries": 60,
-    "mean_precision_at_k": 0.09454545454545454,
-    "mean_recall": 0.39090909090909093,
-    "mrr": 0.2684848484848485,
-    "hit_rate": 0.41818181818181815,
-    "mean_ndcg": 0.3031797878544846,
     "retrieval_queries": 55,
     "retrieval_hit_rate": 0.41818181818181815,
     "retrieval_mrr": 0.2684848484848485,
     "retrieval_ndcg": 0.3031797878544846,
+    "retrieval_precision": 0.09454545454545454,
+    "retrieval_recall": 0.39090909090909093,
     "coverage_queries": 5,
-    "coverage_hit_rate": 1.0
+    "coverage_correct_rate": 1.0
   },
   "query_results": [
     {

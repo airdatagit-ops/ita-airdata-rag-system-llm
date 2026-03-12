@@ -69,19 +69,15 @@ class EvaluationResult:
     timestamp: str
     k: int
     total_queries: int
-    unique_queries: int
     elapsed_seconds: float
-    mean_precision_at_k: float
-    mean_recall: float
-    mrr: float
-    hit_rate: float
-    mean_ndcg: float
-    coverage_queries: int
-    coverage_hit_rate: float
     retrieval_queries: int
     retrieval_hit_rate: float
     retrieval_mrr: float
     retrieval_ndcg: float
+    retrieval_precision: float
+    retrieval_recall: float
+    coverage_queries: int
+    coverage_correct_rate: float
     query_results: List[QueryResult] = field(default_factory=list)
 
 
@@ -157,23 +153,19 @@ class RetrievalEvaluator:
         category = items[0].category
 
         relevant_expected, moderate_expected = self._get_expected_docs(query_id)
-        all_expected = relevant_expected + moderate_expected
+        relevant_set = set(relevant_expected)
+        moderate_set = set(moderate_expected)
+        all_expected_set = relevant_set | moderate_set
 
         raw_results = qdrant_manager.search(
             query_vector=query_embedding.tolist(),
             limit=k,
             score_threshold=config.SEARCH_SCORE_THRESHOLD,
         )
-        results = []
-        for r in raw_results:
-            results.append({
-                'regulation_id': r.payload.get('regulation_id', ''),
-                'score': r.score,
-            })
-        retrieved_ids = [r['regulation_id'] for r in results]
-        retrieved_scores = [(r['regulation_id'], r['score']) for r in results]
+        retrieved_ids = [r.payload.get('regulation_id', '') for r in raw_results]
+        retrieved_scores = [(r.payload.get('regulation_id', ''), r.score) for r in raw_results]
 
-        if 'NOT_IN_DB' in relevant_expected:
+        if 'NOT_IN_DB' in relevant_set:
             return QueryResult(
                 query_id=query_id, query=query, category=category,
                 expected_docs=[(d, 'irrelevant') for d in relevant_expected],
@@ -183,20 +175,19 @@ class RetrievalEvaluator:
                 precision_at_k=0.0, recall=0.0, ndcg_at_k=0.0, hit=False,
             )
 
-        relevant_found = [d for d in retrieved_ids if d in relevant_expected]
-        moderate_found = [d for d in retrieved_ids if d in moderate_expected]
+        relevant_found = [d for d in retrieved_ids if d in relevant_set]
+        moderate_found = [d for d in retrieved_ids if d in moderate_set]
 
-        first_relevant_rank = None
-        for i, doc_id in enumerate(retrieved_ids, 1):
-            if doc_id in relevant_expected:
-                first_relevant_rank = i
-                break
+        first_relevant_rank = next(
+            (i for i, d in enumerate(retrieved_ids, 1) if d in relevant_set),
+            None
+        )
 
-        relevant_in_retrieved = len([d for d in retrieved_ids if d in all_expected])
-        precision_at_k = relevant_in_retrieved / k if k > 0 else 0.0
-        recall = relevant_in_retrieved / len(all_expected) if all_expected else 0.0
+        matched = sum(1 for d in retrieved_ids if d in all_expected_set)
+        precision_at_k = matched / k if k > 0 else 0.0
+        recall = matched / len(all_expected_set) if all_expected_set else 0.0
         ndcg = _compute_ndcg(retrieved_ids, relevant_expected, moderate_expected, k)
-        hit = len(relevant_found) > 0 or len(moderate_found) > 0
+        hit = bool(relevant_found or moderate_found)
 
         return QueryResult(
             query_id=query_id, query=query, category=category,
@@ -254,43 +245,36 @@ class RetrievalEvaluator:
         retrieval_results = [r for r in query_results if r.category != 'coverage']
         coverage_results = [r for r in query_results if r.category == 'coverage']
 
-        if retrieval_results:
-            mean_precision = sum(r.precision_at_k for r in retrieval_results) / len(retrieval_results)
-            mean_recall = sum(r.recall for r in retrieval_results) / len(retrieval_results)
-            hit_rate = sum(1 for r in retrieval_results if r.hit) / len(retrieval_results)
-            mean_ndcg = sum(r.ndcg_at_k for r in retrieval_results) / len(retrieval_results)
-
-            reciprocal_ranks = []
-            for r in retrieval_results:
-                if r.first_relevant_rank:
-                    reciprocal_ranks.append(1.0 / r.first_relevant_rank)
-                else:
-                    reciprocal_ranks.append(0.0)
-            mrr = sum(reciprocal_ranks) / len(reciprocal_ranks)
+        n = len(retrieval_results)
+        if n > 0:
+            hit_rate = sum(1 for r in retrieval_results if r.hit) / n
+            precision = sum(r.precision_at_k for r in retrieval_results) / n
+            recall = sum(r.recall for r in retrieval_results) / n
+            ndcg = sum(r.ndcg_at_k for r in retrieval_results) / n
+            mrr = sum(
+                (1.0 / r.first_relevant_rank) if r.first_relevant_rank else 0.0
+                for r in retrieval_results
+            ) / n
         else:
-            mean_precision = mean_recall = hit_rate = mrr = mean_ndcg = 0.0
+            hit_rate = precision = recall = ndcg = mrr = 0.0
 
-        coverage_hit_rate = 0.0
+        coverage_correct = 0.0
         if coverage_results:
-            coverage_hit_rate = sum(1 for r in coverage_results if not r.hit) / len(coverage_results)
+            coverage_correct = sum(1 for r in coverage_results if not r.hit) / len(coverage_results)
 
         return EvaluationResult(
             timestamp=datetime.now().isoformat(),
             k=k,
             total_queries=len(query_results),
-            unique_queries=len(self.golden_set),
             elapsed_seconds=elapsed,
-            mean_precision_at_k=mean_precision,
-            mean_recall=mean_recall,
-            mrr=mrr,
-            hit_rate=hit_rate,
-            mean_ndcg=mean_ndcg,
-            coverage_queries=len(coverage_results),
-            coverage_hit_rate=coverage_hit_rate,
-            retrieval_queries=len(retrieval_results),
+            retrieval_queries=n,
             retrieval_hit_rate=hit_rate,
             retrieval_mrr=mrr,
-            retrieval_ndcg=mean_ndcg,
+            retrieval_ndcg=ndcg,
+            retrieval_precision=precision,
+            retrieval_recall=recall,
+            coverage_queries=len(coverage_results),
+            coverage_correct_rate=coverage_correct,
             query_results=query_results,
         )
 
@@ -298,32 +282,31 @@ class RetrievalEvaluator:
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        ts = result.timestamp.replace(":", "").replace("-", "")[:15]
 
-        summary_path = output_path / f"summary_{timestamp}.csv"
+        summary_path = output_path / f"summary_{ts}.csv"
         with open(summary_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(['metric', 'value'])
-            writer.writerow(['timestamp', result.timestamp])
-            writer.writerow(['k', result.k])
-            writer.writerow(['elapsed_seconds', f"{result.elapsed_seconds:.2f}"])
-            writer.writerow(['total_queries', result.total_queries])
-            writer.writerow(['unique_queries', result.unique_queries])
-            writer.writerow(['mean_precision_at_k', f"{result.mean_precision_at_k:.4f}"])
-            writer.writerow(['mean_recall', f"{result.mean_recall:.4f}"])
-            writer.writerow(['mrr', f"{result.mrr:.4f}"])
-            writer.writerow(['hit_rate', f"{result.hit_rate:.4f}"])
-            writer.writerow(['mean_ndcg', f"{result.mean_ndcg:.4f}"])
-            writer.writerow(['retrieval_queries', result.retrieval_queries])
-            writer.writerow(['retrieval_hit_rate', f"{result.retrieval_hit_rate:.4f}"])
-            writer.writerow(['retrieval_mrr', f"{result.retrieval_mrr:.4f}"])
-            writer.writerow(['retrieval_ndcg', f"{result.retrieval_ndcg:.4f}"])
-            writer.writerow(['coverage_queries', result.coverage_queries])
-            writer.writerow(['coverage_hit_rate', f"{result.coverage_hit_rate:.4f}"])
+            metrics = [
+                ('timestamp', result.timestamp),
+                ('k', result.k),
+                ('elapsed_seconds', f"{result.elapsed_seconds:.2f}"),
+                ('total_queries', result.total_queries),
+                ('retrieval_queries', result.retrieval_queries),
+                ('retrieval_hit_rate', f"{result.retrieval_hit_rate:.4f}"),
+                ('retrieval_mrr', f"{result.retrieval_mrr:.4f}"),
+                ('retrieval_ndcg', f"{result.retrieval_ndcg:.4f}"),
+                ('retrieval_precision', f"{result.retrieval_precision:.4f}"),
+                ('retrieval_recall', f"{result.retrieval_recall:.4f}"),
+                ('coverage_queries', result.coverage_queries),
+                ('coverage_correct_rate', f"{result.coverage_correct_rate:.4f}"),
+            ]
+            writer.writerows(metrics)
 
         logger.info(f"Summary saved: {summary_path}")
 
-        details_path = output_path / f"details_{timestamp}.csv"
+        details_path = output_path / f"details_{ts}.csv"
         with open(details_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow([
@@ -349,7 +332,7 @@ class RetrievalEvaluator:
 
         logger.info(f"Details saved: {details_path}")
 
-        json_path = output_path / f"results_{timestamp}.json"
+        json_path = output_path / f"results_{ts}.json"
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump({
                 'timestamp': result.timestamp,
@@ -357,18 +340,14 @@ class RetrievalEvaluator:
                 'elapsed_seconds': result.elapsed_seconds,
                 'metrics': {
                     'total_queries': result.total_queries,
-                    'unique_queries': result.unique_queries,
-                    'mean_precision_at_k': result.mean_precision_at_k,
-                    'mean_recall': result.mean_recall,
-                    'mrr': result.mrr,
-                    'hit_rate': result.hit_rate,
-                    'mean_ndcg': result.mean_ndcg,
                     'retrieval_queries': result.retrieval_queries,
                     'retrieval_hit_rate': result.retrieval_hit_rate,
                     'retrieval_mrr': result.retrieval_mrr,
                     'retrieval_ndcg': result.retrieval_ndcg,
+                    'retrieval_precision': result.retrieval_precision,
+                    'retrieval_recall': result.retrieval_recall,
                     'coverage_queries': result.coverage_queries,
-                    'coverage_hit_rate': result.coverage_hit_rate,
+                    'coverage_correct_rate': result.coverage_correct_rate,
                 },
                 'query_results': [
                     {
@@ -393,29 +372,30 @@ class RetrievalEvaluator:
 
 def print_report(result: EvaluationResult):
     """Print a formatted evaluation report."""
+    k = result.k
     print("\n" + "=" * 70)
     print("  RAG RETRIEVAL QUALITY EVALUATION REPORT")
     print("=" * 70)
     print(f"  Timestamp:    {result.timestamp}")
-    print(f"  K:            {result.k}")
+    print(f"  K:            {k}")
     print(f"  Elapsed:      {result.elapsed_seconds:.2f}s")
     print(f"  Queries:      {result.total_queries}")
     print()
 
     print("  RETRIEVAL METRICS")
     print("  " + "-" * 40)
-    print(f"    Queries:           {result.retrieval_queries}")
-    print(f"    Hit Rate@{result.k}:        {result.retrieval_hit_rate:.1%}")
-    print(f"    MRR:               {result.retrieval_mrr:.4f}")
-    print(f"    NDCG@{result.k}:            {result.retrieval_ndcg:.4f}")
-    print(f"    Mean Precision@{result.k}: {result.mean_precision_at_k:.4f}")
-    print(f"    Mean Recall:       {result.mean_recall:.4f}")
+    print(f"    Queries:        {result.retrieval_queries}")
+    print(f"    Hit Rate@{k}:     {result.retrieval_hit_rate:.1%}")
+    print(f"    MRR:            {result.retrieval_mrr:.4f}")
+    print(f"    NDCG@{k}:         {result.retrieval_ndcg:.4f}")
+    print(f"    Precision@{k}:    {result.retrieval_precision:.4f}")
+    print(f"    Recall:         {result.retrieval_recall:.4f}")
     print()
 
     print("  COVERAGE METRICS")
     print("  " + "-" * 40)
     print(f"    Queries:             {result.coverage_queries}")
-    print(f"    Correct 'Not Found': {result.coverage_hit_rate:.1%}")
+    print(f"    Correct 'Not Found': {result.coverage_correct_rate:.1%}")
     print()
 
     hits = [qr for qr in result.query_results if qr.hit and qr.category != 'coverage']
