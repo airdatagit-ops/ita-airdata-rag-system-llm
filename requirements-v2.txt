@@ -1,0 +1,80 @@
+# ========================================
+# Aviation RAG System - Requirements (Otimizado)
+# ========================================
+# Apenas bibliotecas diretamente usadas no projeto.
+# Dependências transitivas serão instaladas automaticamente pelo pip.
+
+# ========================================
+# Core Framework (API)
+# ========================================
+fastapi>=0.100.0
+uvicorn>=0.23.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+python-dotenv>=1.0.0
+python-multipart>=0.0.6
+jinja2>=3.1.0
+slowapi>=0.1.9
+
+# ========================================
+# HTTP / Web Scraping
+# ========================================
+requests>=2.31.0
+httpx>=0.24.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# ========================================
+# Selenium (DECEA Scraper)
+# ========================================
+selenium>=4.10.0
+webdriver-manager>=4.0.0
+
+# ========================================
+# Vector Database
+# ========================================
+qdrant-client>=1.6.0
+
+# ========================================
+# ML / Embeddings
+# ========================================
+# NOTA: PyTorch deve ser instalado ANTES deste arquivo.
+# - CPU:  pip install torch --index-url https://download.pytorch.org/whl/cpu
+# - GPU:  pip install torch
+sentence-transformers>=2.2.0
+transformers>=4.30.0
+numpy>=1.24.0
+
+# ========================================
+# LLM (Ollama)
+# ========================================
+ollama>=0.1.0
+
+# ========================================
+# PDF Processing
+# ========================================
+pdfplumber>=0.10.0
+PyPDF2>=3.0.0
+pillow>=10.0.0
+PyMuPDF>=1.23.0
+
+# ========================================
+# OCR (Opcional - para PDFs escaneados)
+# ========================================
+# Descomente se precisar de OCR:
+# paddlepaddle>=2.5.0
+# paddleocr>=2.7.0
+
+# ========================================
+# Utilities
+# ========================================
+loguru>=0.7.0
+tqdm>=4.65.0
+tabulate>=0.9.0
+python-dateutil>=2.8.0
+
+# ========================================
+# Testing
+# ========================================
+pytest>=7.4.0
+pytest-asyncio>=0.21.0

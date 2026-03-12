@@ -1,0 +1,1101 @@
+{
+  "timestamp": "2026-03-12T09:08:30.326534",
+  "k": 5,
+  "elapsed_seconds": 7.952886581420898,
+  "metrics": {
+    "total_queries": 60,
+    "unique_queries": 60,
+    "mean_precision_at_k": 0.09454545454545454,
+    "mean_recall": 0.39090909090909093,
+    "mrr": 0.2684848484848485,
+    "hit_rate": 0.41818181818181815,
+    "mean_ndcg": 0.3031797878544846,
+    "retrieval_queries": 55,
+    "retrieval_hit_rate": 0.41818181818181815,
+    "retrieval_mrr": 0.2684848484848485,
+    "retrieval_ndcg": 0.3031797878544846,
+    "coverage_queries": 5,
+    "coverage_hit_rate": 1.0
+  },
+  "query_results": [
+    {
+      "query_id": "Q001",
+      "query": "Qual artigo trata da proposta de cartas de corredores visuais?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 0.5,
+      "first_rank": 3,
+      "expected": [
+        "ICA-96-1-art563"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art248",
+        "ICA-96-1-art96",
+        "ICA-96-1-art563"
+      ]
+    },
+    {
+      "query_id": "Q002",
+      "query": "Como solicitar divulgação de informação aeronáutica?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 0.5,
+      "ndcg": 0.38009376671593426,
+      "first_rank": null,
+      "expected": [
+        "ICA-96-1-art563",
+        "ICA-96-1-art591"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art591",
+        "ICA-07-36",
+        "ICA-53-4-art1"
+      ]
+    },
+    {
+      "query_id": "Q003",
+      "query": "Quais informações cada tipo de carta aeronáutica fornece?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-96-1-art12"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art85",
+        "ICA-96-1-art16",
+        "ICA-96-1-art173"
+      ]
+    },
+    {
+      "query_id": "Q004",
+      "query": "O que diz sobre representação de obstáculos na vista de planta da carta?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.4,
+      "recall": 1.0,
+      "ndcg": 1.0,
+      "first_rank": 1,
+      "expected": [
+        "ICA-96-1-art248",
+        "ICA-96-1-art255"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art248",
+        "ICA-96-1-art255",
+        "ICA-96-1-art249"
+      ]
+    },
+    {
+      "query_id": "Q005",
+      "query": "Como representar o perfil de cada pista e zona de parada na carta?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 1.0,
+      "first_rank": 1,
+      "expected": [
+        "ICA-96-1-art96"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art96",
+        "ICA-96-1-art480",
+        "ICA-96-1-art157"
+      ]
+    },
+    {
+      "query_id": "Q006",
+      "query": "Qual escala horizontal usar para perfil de terreno além de 900m da pista?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 0.43067655807339306,
+      "first_rank": 4,
+      "expected": [
+        "ICA-96-1-art121"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art98",
+        "ICA-96-1-art476",
+        "ICA-96-1-art90"
+      ]
+    },
+    {
+      "query_id": "Q007",
+      "query": "Como indicar na carta quando ela não está desenhada em escala?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.4,
+      "recall": 1.0,
+      "ndcg": 0.8597186998521972,
+      "first_rank": 2,
+      "expected": [
+        "ICA-96-1-art179",
+        "ICA-96-1-art204"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art204",
+        "ICA-96-1-art179",
+        "ICA-96-1-art178"
+      ]
+    },
+    {
+      "query_id": "Q008",
+      "query": "Para que servem as cartas de voo visual a baixas altitudes?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 0.43067655807339306,
+      "first_rank": 4,
+      "expected": [
+        "ICA-96-1-art485"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art104",
+        "ICA-96-1-art269",
+        "ICA-96-1-art107"
+      ]
+    },
+    {
+      "query_id": "Q009",
+      "query": "Como identificar a carta pelo nome da cidade e aeródromo?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 0.38685280723454163,
+      "first_rank": 5,
+      "expected": [
+        "ICA-96-1-art323"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art292",
+        "ICA-96-1-art343",
+        "ICA-96-1-art333"
+      ]
+    },
+    {
+      "query_id": "Q010",
+      "query": "O que são cartas GeoPDF georreferenciadas?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-96-1-art45"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art75",
+        "ICA-96-1-art82",
+        "ICA-96-1-art76"
+      ]
+    },
+    {
+      "query_id": "Q011",
+      "query": "Quando a altitude mínima do setor não foi estabelecida o que representar na carta?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-96-1-art194",
+        "ICA-96-1-art219"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art264",
+        "ICA-96-1-art218",
+        "ICA-96-1-art465"
+      ]
+    },
+    {
+      "query_id": "Q012",
+      "query": "Quais são os requisitos gerais para ser instrutor de IFCTA?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-100-47-art5"
+      ],
+      "retrieved_top3": [
+        "ICA-100-47-art19",
+        "ICA-100-47-art25",
+        "ICA-37-937"
+      ]
+    },
+    {
+      "query_id": "Q013",
+      "query": "Quais critérios específicos para seleção de ATCO instrutor orgânico?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 0.38685280723454163,
+      "first_rank": 5,
+      "expected": [
+        "ICA-100-47-art10"
+      ],
+      "retrieved_top3": [
+        "ICA-100-47-art1",
+        "ICA-100-47-art8",
+        "ICA-100-47-art18"
+      ]
+    },
+    {
+      "query_id": "Q014",
+      "query": "Quando a habilitação técnica do instrutor de IFCTA perde a validade?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.4,
+      "recall": 1.0,
+      "ndcg": 1.0,
+      "first_rank": 1,
+      "expected": [
+        "ICA-100-47-art14",
+        "ICA-100-47-art13"
+      ],
+      "retrieved_top3": [
+        "ICA-100-47-art14",
+        "ICA-100-47-art13",
+        "ICA-100-47-art9"
+      ]
+    },
+    {
+      "query_id": "Q015",
+      "query": "Qual a validade da habilitação técnica para instrutor de IFCTA?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-100-47-art12"
+      ],
+      "retrieved_top3": [
+        "ICA-100-47-art19",
+        "ICA-100-47-art13",
+        "ICA-100-47-art10"
+      ]
+    },
+    {
+      "query_id": "Q016",
+      "query": "Como funciona a avaliação instrucional do instrutor orgânico?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 0.5,
+      "ndcg": 0.7601875334318685,
+      "first_rank": 1,
+      "expected": [
+        "ICA-100-47-art19",
+        "ICA-100-47-art20"
+      ],
+      "retrieved_top3": [
+        "ICA-100-47-art19",
+        "ICA-100-47-art18",
+        "ICA-100-47-art8"
+      ]
+    },
+    {
+      "query_id": "Q017",
+      "query": "Qual é a composição do Conselho de Instrução da IFCTA?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-100-47-art30",
+        "ICA-100-47-art32"
+      ],
+      "retrieved_top3": [
+        "ICA-100-47-art25",
+        "ICA-100-47-art28",
+        "ICA-100-47-art35"
+      ]
+    },
+    {
+      "query_id": "Q018",
+      "query": "Sobre o que o Conselho de Instrução pode deliberar?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 0.6309297535714575,
+      "first_rank": 2,
+      "expected": [
+        "ICA-100-47-art29"
+      ],
+      "retrieved_top3": [
+        "ICA-100-47-art35",
+        "ICA-100-47-art29",
+        "ICA-100-47-art41"
+      ]
+    },
+    {
+      "query_id": "Q019",
+      "query": "Qual nível de proficiência em inglês é exigido para instrutor de língua inglesa aeronáutica?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 0.6309297535714575,
+      "first_rank": 2,
+      "expected": [
+        "ICA-100-47-art6"
+      ],
+      "retrieved_top3": [
+        "ICA-37-924",
+        "ICA-100-47-art6",
+        "ICA-100-47-art17"
+      ]
+    },
+    {
+      "query_id": "Q020",
+      "query": "Como é calculado o conceito operacional de instrução?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 1.0,
+      "first_rank": 1,
+      "expected": [
+        "ICA-100-47-art24"
+      ],
+      "retrieved_top3": [
+        "ICA-100-47-art24",
+        "ICA-100-47-art19",
+        "ICA-100-47-art23"
+      ]
+    },
+    {
+      "query_id": "Q021",
+      "query": "Quem tem competência para conceder a HT para instrutor de IFCTA?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-100-47-art9"
+      ],
+      "retrieved_top3": [
+        "ICA-100-47-art11",
+        "ICA-100-47-art16",
+        "ICA-100-47-art7"
+      ]
+    },
+    {
+      "query_id": "Q022",
+      "query": "Como funciona o comitê de segurança da informação no DECEA?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 0.5,
+      "first_rank": 3,
+      "expected": [
+        "ICA-7-58"
+      ],
+      "retrieved_top3": [
+        "ICA-07-37",
+        "ICA-800-5",
+        "ICA-7-58"
+      ]
+    },
+    {
+      "query_id": "Q023",
+      "query": "O que é prestação de tarefa por tempo certo no Comando da Aeronáutica?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 1.0,
+      "first_rank": 1,
+      "expected": [
+        "ICA-35-13"
+      ],
+      "retrieved_top3": [
+        "ICA-35-13",
+        "ICA-96-1-art546",
+        "ICA-96-1-art15"
+      ]
+    },
+    {
+      "query_id": "Q024",
+      "query": "Como funciona a gestão de cópias de segurança de sistemas no SISCEAB?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-07-29"
+      ],
+      "retrieved_top3": [
+        "ICA-800-9",
+        "ICA-205-48",
+        "ICA-07-31"
+      ]
+    },
+    {
+      "query_id": "Q025",
+      "query": "Quais são as regras sobre gestão de mudanças em sistemas do SISCEAB?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-07-24-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-07-31",
+        "ICA-12-37",
+        "ICA-63-43"
+      ]
+    },
+    {
+      "query_id": "Q026",
+      "query": "Como funciona o uso especial do espaço aéreo?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 1.0,
+      "first_rank": 1,
+      "expected": [
+        "ICA-100-36"
+      ],
+      "retrieved_top3": [
+        "ICA-100-36",
+        "ICA-121-13",
+        "ICA-351-5"
+      ]
+    },
+    {
+      "query_id": "Q027",
+      "query": "Quais são as regras para operações VFR e IFR?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-100-1-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-100-47-art21",
+        "ICA-100-24-art1",
+        "ICA-96-1-art229"
+      ]
+    },
+    {
+      "query_id": "Q028",
+      "query": "Como funciona o gerenciamento de fluxo de tráfego aéreo?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-100-22-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-07-28",
+        "ICA-12-36",
+        "ICA-81-4"
+      ]
+    },
+    {
+      "query_id": "Q029",
+      "query": "Quais são os procedimentos de navegação aérea?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-100-23-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-121-13",
+        "ICA-7-26",
+        "ICA-81-4"
+      ]
+    },
+    {
+      "query_id": "Q030",
+      "query": "Como funciona o serviço meteorológico para navegação aérea?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-100-37-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-121-13",
+        "ICA-12-36",
+        "ICA-351-5"
+      ]
+    },
+    {
+      "query_id": "Q031",
+      "query": "Quais são as regras para aeronaves não tripuladas (drones)?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-100-40-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-37-269",
+        "ICA-07-21",
+        "ICA-96-1-art326"
+      ]
+    },
+    {
+      "query_id": "Q032",
+      "query": "Como funciona o sistema de telecomunicações aeronáuticas?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 1.0,
+      "first_rank": 1,
+      "expected": [
+        "ICA-102-3"
+      ],
+      "retrieved_top3": [
+        "ICA-102-3",
+        "ICA-121-13",
+        "ICA-12-36"
+      ]
+    },
+    {
+      "query_id": "Q033",
+      "query": "Quais são os requisitos para operador de telecomunicações?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 0.6309297535714575,
+      "first_rank": 2,
+      "expected": [
+        "ICA-102-7-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-102-3",
+        "ICA-102-7-art1",
+        "ICA-64-5"
+      ]
+    },
+    {
+      "query_id": "Q034",
+      "query": "Como funciona a classificação de dados meteorológicos?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-105-2-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-12-36",
+        "ICA-7-26",
+        "ICA-96-1-art118"
+      ]
+    },
+    {
+      "query_id": "Q035",
+      "query": "Quais são as regras de gestão de risco no SISCEAB?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-16-6-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-07-31",
+        "ICA-12-37",
+        "ICA-205-48"
+      ]
+    },
+    {
+      "query_id": "Q036",
+      "query": "Como funciona o sistema de informação NOTAM?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-53-1-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-63-33",
+        "ICA-96-1-art100",
+        "ICA-800-3"
+      ]
+    },
+    {
+      "query_id": "Q037",
+      "query": "Quais são as regras sobre informação aeronáutica digital?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-53-7-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-7-26",
+        "ICA-07-36",
+        "ICA-07-27"
+      ]
+    },
+    {
+      "query_id": "Q038",
+      "query": "Como funciona a prevenção de incursão em pista?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 1.0,
+      "first_rank": 1,
+      "expected": [
+        "ICA-81-4"
+      ],
+      "retrieved_top3": [
+        "ICA-81-4",
+        "ICA-121-13",
+        "ICA-07-27"
+      ]
+    },
+    {
+      "query_id": "Q039",
+      "query": "Quais são as regras sobre proteção contra incêndio?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 1.0,
+      "first_rank": 1,
+      "expected": [
+        "ICA-92-19"
+      ],
+      "retrieved_top3": [
+        "ICA-92-19",
+        "ICA-96-1-art217",
+        "ICA-96-1-art257"
+      ]
+    },
+    {
+      "query_id": "Q040",
+      "query": "Como funcionam as inspeções de segurança operacional?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 1.0,
+      "ndcg": 0.38685280723454163,
+      "first_rank": 5,
+      "expected": [
+        "ICA-121-13"
+      ],
+      "retrieved_top3": [
+        "ICA-7-26",
+        "ICA-7-58",
+        "ICA-07-27"
+      ]
+    },
+    {
+      "query_id": "Q041",
+      "query": "O que são estações EPTA e como funcionam?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-63-10-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-63-29",
+        "ICA-63-12",
+        "ICA-66-24"
+      ]
+    },
+    {
+      "query_id": "Q042",
+      "query": "Quais são os requisitos de saúde e certificado médico para controladores?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-63-15-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art487",
+        "ICA-96-1-art175",
+        "ICA-37-269"
+      ]
+    },
+    {
+      "query_id": "Q043",
+      "query": "Como funciona a prevenção ao uso de substâncias psicoativas no controle de tráfego?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-63-50-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-81-4",
+        "ICA-07-37",
+        "ICA-07-27"
+      ]
+    },
+    {
+      "query_id": "Q044",
+      "query": "Como funciona o sistema de gestão da qualidade no SISCEAB?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-800-3",
+        "ICA-800-5"
+      ],
+      "retrieved_top3": [
+        "ICA-07-31",
+        "ICA-12-37",
+        "ICA-800-9"
+      ]
+    },
+    {
+      "query_id": "Q045",
+      "query": "Quais são as regras para visitas técnicas de segurança operacional?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-121-7-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-37-269",
+        "ICA-7-26",
+        "ICA-07-27"
+      ]
+    },
+    {
+      "query_id": "Q046",
+      "query": "Qual a escala recomendada para carta de aproximação por instrumentos?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-96-1-art174"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art437",
+        "ICA-96-1-art377",
+        "ICA-96-1-art89"
+      ]
+    },
+    {
+      "query_id": "Q047",
+      "query": "Quais obstáculos devem ser representados na carta de aeródromo?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-96-1-art347"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art304",
+        "ICA-96-1-art96",
+        "ICA-96-1-art249"
+      ]
+    },
+    {
+      "query_id": "Q048",
+      "query": "Quais são os tipos de cartas aeronáuticas previstos na ICA 96-1?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-96-1-art10"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art1",
+        "ICA-96-1-art96",
+        "ICA-96-1-art88"
+      ]
+    },
+    {
+      "query_id": "Q049",
+      "query": "Como deve ser a representação do relevo nas cartas?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-96-1-art30"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art178",
+        "ICA-96-1-art296",
+        "ICA-96-1-art469"
+      ]
+    },
+    {
+      "query_id": "Q050",
+      "query": "Quais informações devem constar na carta de área terminal?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-96-1-art157"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art264",
+        "ICA-96-1-art480",
+        "ICA-96-1-art122"
+      ]
+    },
+    {
+      "query_id": "Q051",
+      "query": "O que é RBAC 91?",
+      "category": "coverage",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [],
+      "retrieved_top3": [
+        "ICA-96-1-art94",
+        "ICA-96-1-art74",
+        "ICA-96-1-art92"
+      ]
+    },
+    {
+      "query_id": "Q052",
+      "query": "Quais são os requisitos de manutenção de aeronaves da ANAC?",
+      "category": "coverage",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [],
+      "retrieved_top3": [
+        "ICA-96-1-art590",
+        "ICA-96-1-art562",
+        "ICA-63-46"
+      ]
+    },
+    {
+      "query_id": "Q053",
+      "query": "O que diz a lei 7565 sobre o Código Brasileiro de Aeronáutica?",
+      "category": "coverage",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [],
+      "retrieved_top3": [
+        "ICA-96-1-art70",
+        "ICA-96-1-art156",
+        "ICA-96-1-art7"
+      ]
+    },
+    {
+      "query_id": "Q054",
+      "query": "Quais são as regras da ANAC para licença de piloto comercial?",
+      "category": "coverage",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [],
+      "retrieved_top3": [
+        "ICA-96-1-art571",
+        "ICA-96-1-art584",
+        "ICA-96-1-art609"
+      ]
+    },
+    {
+      "query_id": "Q055",
+      "query": "Qual a resolução ANAC sobre transporte aéreo de passageiros?",
+      "category": "coverage",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [],
+      "retrieved_top3": [
+        "ICA-96-1-art609",
+        "ICA-07-28",
+        "ICA-96-1-art590"
+      ]
+    },
+    {
+      "query_id": "Q056",
+      "query": "Como funciona o programa de pesquisa do DECEA?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-351-5"
+      ],
+      "retrieved_top3": [
+        "ICA-17-1",
+        "ICA-07-37",
+        "ICA-800-5"
+      ]
+    },
+    {
+      "query_id": "Q057",
+      "query": "Quais são os requisitos para proficiência em inglês aeronáutico (EPLIS)?",
+      "category": "retrieval",
+      "hit": true,
+      "precision": 0.2,
+      "recall": 0.5,
+      "ndcg": 0.7601875334318685,
+      "first_rank": 1,
+      "expected": [
+        "ICA-37-924",
+        "ICA-37-937"
+      ],
+      "retrieved_top3": [
+        "ICA-37-924",
+        "ICA-100-47-art6",
+        "ICA-100-47-art17"
+      ]
+    },
+    {
+      "query_id": "Q058",
+      "query": "Como funciona a doutrina operacional do controle de tráfego aéreo?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-63-45-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-81-4",
+        "ICA-7-26",
+        "ICA-07-28"
+      ]
+    },
+    {
+      "query_id": "Q059",
+      "query": "Quais são as regras sobre jornada de trabalho dos controladores de tráfego aéreo?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-100-45-art1"
+      ],
+      "retrieved_top3": [
+        "ICA-37-269",
+        "ICA-07-28",
+        "ICA-81-4"
+      ]
+    },
+    {
+      "query_id": "Q060",
+      "query": "Qual o procedimento para representar auxílios à navegação nas cartas?",
+      "category": "retrieval",
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
+      "expected": [
+        "ICA-96-1-art62"
+      ],
+      "retrieved_top3": [
+        "ICA-96-1-art261",
+        "ICA-96-1-art591",
+        "ICA-96-1-art484"
+      ]
+    }
+  ]
+}

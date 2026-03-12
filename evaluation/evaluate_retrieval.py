@@ -1,32 +1,38 @@
 """
 RAG Retrieval Quality Evaluation Script.
 
-This script evaluates the retrieval quality of the RAG system using a golden set
-of queries and expected relevant documents.
+Evaluates retrieval quality using a golden set of queries and expected documents.
 
 Metrics computed:
 - Precision@K: Proportion of retrieved docs that are relevant
 - Recall@K: Proportion of relevant docs that were retrieved
 - MRR (Mean Reciprocal Rank): Average of 1/rank of first relevant doc
 - Hit Rate@K: Proportion of queries with at least one relevant doc in top K
+- NDCG@K: Normalized Discounted Cumulative Gain
 
 Usage:
     python -m evaluation.evaluate_retrieval
-    python -m evaluation.evaluate_retrieval --k 5 --output results/
+    python -m evaluation.evaluate_retrieval --k 5 --workers 4
 """
 
 import argparse
 import csv
 import json
+import math
+import time
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+import numpy as np
 from loguru import logger
 
-from search.vector_search import VectorSearch
+from models.embeddings import EmbeddingModel
+from database.qdrant_manager import QdrantManager
+from config import config
 
 
 @dataclass
@@ -35,7 +41,7 @@ class GoldenSetItem:
     query_id: str
     query: str
     expected_doc_id: str
-    relevance: str  # relevant, moderate, irrelevant
+    relevance: str
     category: str
     notes: str = ""
 
@@ -45,13 +51,15 @@ class QueryResult:
     """Result of evaluating a single query."""
     query_id: str
     query: str
-    expected_docs: List[Tuple[str, str]]  # (doc_id, relevance)
-    retrieved_docs: List[Tuple[str, float]]  # (doc_id, score)
+    category: str
+    expected_docs: List[Tuple[str, str]]
+    retrieved_docs: List[Tuple[str, float]]
     relevant_found: List[str]
     moderate_found: List[str]
     first_relevant_rank: Optional[int]
     precision_at_k: float
     recall: float
+    ndcg_at_k: float
     hit: bool
 
 
@@ -62,47 +70,55 @@ class EvaluationResult:
     k: int
     total_queries: int
     unique_queries: int
-    
-    # Aggregate metrics
+    elapsed_seconds: float
     mean_precision_at_k: float
     mean_recall: float
-    mrr: float  # Mean Reciprocal Rank
+    mrr: float
     hit_rate: float
-    
-    # Coverage metrics
+    mean_ndcg: float
     coverage_queries: int
     coverage_hit_rate: float
-    
-    # Retrieval metrics
     retrieval_queries: int
     retrieval_hit_rate: float
     retrieval_mrr: float
-    
-    # Per-query results
+    retrieval_ndcg: float
     query_results: List[QueryResult] = field(default_factory=list)
+
+
+def _compute_ndcg(retrieved_ids: List[str], relevant: List[str], moderate: List[str], k: int) -> float:
+    """Compute NDCG@K with graded relevance (relevant=2, moderate=1)."""
+    dcg = 0.0
+    for i, doc_id in enumerate(retrieved_ids[:k]):
+        if doc_id in relevant:
+            rel = 2.0
+        elif doc_id in moderate:
+            rel = 1.0
+        else:
+            rel = 0.0
+        dcg += rel / math.log2(i + 2)
+
+    ideal_rels = sorted(
+        [2.0] * len(relevant) + [1.0] * len(moderate),
+        reverse=True
+    )[:k]
+
+    idcg = sum(r / math.log2(i + 2) for i, r in enumerate(ideal_rels))
+    return dcg / idcg if idcg > 0 else 0.0
 
 
 class RetrievalEvaluator:
     """Evaluates RAG retrieval quality against a golden set."""
-    
+
     def __init__(self, golden_set_path: str = "evaluation/golden_set.csv"):
-        """
-        Initialize evaluator.
-        
-        Args:
-            golden_set_path: Path to the golden set CSV file
-        """
         self.golden_set_path = Path(golden_set_path)
         self.golden_set: Dict[str, List[GoldenSetItem]] = defaultdict(list)
-        self.vector_search = VectorSearch()
-        
         self._load_golden_set()
-        
+
     def _load_golden_set(self):
         """Load golden set from CSV."""
         if not self.golden_set_path.exists():
             raise FileNotFoundError(f"Golden set not found: {self.golden_set_path}")
-        
+
         with open(self.golden_set_path, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
@@ -115,226 +131,211 @@ class RetrievalEvaluator:
                     notes=row.get('notes', '')
                 )
                 self.golden_set[item.query_id].append(item)
-        
+
         logger.info(f"Loaded {len(self.golden_set)} unique queries from golden set")
-    
+
     def _get_expected_docs(self, query_id: str) -> Tuple[List[str], List[str]]:
-        """
-        Get expected relevant and moderate docs for a query.
-        
-        Returns:
-            Tuple of (relevant_doc_ids, moderate_doc_ids)
-        """
         relevant = []
         moderate = []
-        
         for item in self.golden_set[query_id]:
             if item.relevance == 'relevant':
                 relevant.append(item.expected_doc_id)
             elif item.relevance == 'moderate':
                 moderate.append(item.expected_doc_id)
-        
         return relevant, moderate
-    
-    def _evaluate_query(self, query_id: str, k: int) -> QueryResult:
-        """
-        Evaluate a single query.
-        
-        Args:
-            query_id: Query ID from golden set
-            k: Number of results to retrieve
-            
-        Returns:
-            QueryResult with metrics
-        """
+
+    def _evaluate_single_query(
+        self,
+        query_id: str,
+        k: int,
+        query_embedding: np.ndarray,
+        qdrant_manager: QdrantManager
+    ) -> QueryResult:
+        """Evaluate a single query using a pre-computed embedding."""
         items = self.golden_set[query_id]
         query = items[0].query
         category = items[0].category
-        
+
         relevant_expected, moderate_expected = self._get_expected_docs(query_id)
         all_expected = relevant_expected + moderate_expected
-        
-        # Handle coverage tests (expected NOT_IN_DB)
+
+        raw_results = qdrant_manager.search(
+            query_vector=query_embedding.tolist(),
+            limit=k,
+            score_threshold=config.SEARCH_SCORE_THRESHOLD,
+        )
+        results = []
+        for r in raw_results:
+            results.append({
+                'regulation_id': r.payload.get('regulation_id', ''),
+                'score': r.score,
+            })
+        retrieved_ids = [r['regulation_id'] for r in results]
+        retrieved_scores = [(r['regulation_id'], r['score']) for r in results]
+
         if 'NOT_IN_DB' in relevant_expected:
-            # For coverage tests, we expect NO relevant results
-            results = self.vector_search.search(query, limit=k)
-            retrieved_ids = [r.get('regulation_id', '') for r in results]
-            retrieved_scores = [(r.get('regulation_id', ''), r.get('score', 0)) for r in results]
-            
             return QueryResult(
-                query_id=query_id,
-                query=query,
-                expected_docs=[(d, 'relevant') for d in relevant_expected],
+                query_id=query_id, query=query, category=category,
+                expected_docs=[(d, 'irrelevant') for d in relevant_expected],
                 retrieved_docs=retrieved_scores,
-                relevant_found=[],
-                moderate_found=[],
+                relevant_found=[], moderate_found=[],
                 first_relevant_rank=None,
-                precision_at_k=0.0,
-                recall=0.0,
-                hit=False  # For coverage tests, we expect miss
+                precision_at_k=0.0, recall=0.0, ndcg_at_k=0.0, hit=False,
             )
-        
-        # Normal retrieval test
-        results = self.vector_search.search(query, limit=k)
-        retrieved_ids = [r.get('regulation_id', '') for r in results]
-        retrieved_scores = [(r.get('regulation_id', ''), r.get('score', 0)) for r in results]
-        
-        # Find relevant docs in retrieved
+
         relevant_found = [d for d in retrieved_ids if d in relevant_expected]
         moderate_found = [d for d in retrieved_ids if d in moderate_expected]
-        
-        # Calculate first relevant rank (1-indexed)
+
         first_relevant_rank = None
         for i, doc_id in enumerate(retrieved_ids, 1):
             if doc_id in relevant_expected:
                 first_relevant_rank = i
                 break
-        
-        # Calculate metrics
-        # Precision@K: relevant found / K
+
         relevant_in_retrieved = len([d for d in retrieved_ids if d in all_expected])
         precision_at_k = relevant_in_retrieved / k if k > 0 else 0.0
-        
-        # Recall: relevant found / total relevant expected
-        total_relevant = len(all_expected)
-        recall = relevant_in_retrieved / total_relevant if total_relevant > 0 else 0.0
-        
-        # Hit: at least one relevant doc found
+        recall = relevant_in_retrieved / len(all_expected) if all_expected else 0.0
+        ndcg = _compute_ndcg(retrieved_ids, relevant_expected, moderate_expected, k)
         hit = len(relevant_found) > 0 or len(moderate_found) > 0
-        
+
         return QueryResult(
-            query_id=query_id,
-            query=query,
-            expected_docs=[(d, 'relevant') for d in relevant_expected] + 
+            query_id=query_id, query=query, category=category,
+            expected_docs=[(d, 'relevant') for d in relevant_expected] +
                          [(d, 'moderate') for d in moderate_expected],
             retrieved_docs=retrieved_scores,
-            relevant_found=relevant_found,
-            moderate_found=moderate_found,
+            relevant_found=relevant_found, moderate_found=moderate_found,
             first_relevant_rank=first_relevant_rank,
-            precision_at_k=precision_at_k,
-            recall=recall,
-            hit=hit
+            precision_at_k=precision_at_k, recall=recall,
+            ndcg_at_k=ndcg, hit=hit,
         )
-    
-    def evaluate(self, k: int = 5) -> EvaluationResult:
+
+    def evaluate(self, k: int = 5, workers: int = 1) -> EvaluationResult:
         """
-        Run full evaluation on golden set.
-        
+        Run full evaluation. Embeddings are batched, search parallelized.
+
         Args:
             k: Number of results to retrieve per query
-            
-        Returns:
-            EvaluationResult with all metrics
+            workers: Number of parallel workers for Qdrant search
         """
-        logger.info(f"Starting evaluation with k={k}")
-        
-        query_results = []
-        retrieval_results = []
-        coverage_results = []
-        
-        for query_id in self.golden_set.keys():
-            result = self._evaluate_query(query_id, k)
-            query_results.append(result)
-            
-            # Separate by category
-            category = self.golden_set[query_id][0].category
-            if category == 'coverage':
-                coverage_results.append(result)
-            else:
-                retrieval_results.append(result)
-        
-        # Calculate aggregate metrics for retrieval queries
+        start = time.time()
+        logger.info(f"Starting evaluation: k={k}, workers={workers}")
+
+        query_ids = list(self.golden_set.keys())
+        queries = [self.golden_set[qid][0].query for qid in query_ids]
+
+        # Batch encode all queries at once
+        logger.info(f"Encoding {len(queries)} queries in batch...")
+        embed_model = EmbeddingModel()
+        embeddings = embed_model.encode(queries)
+        logger.info(f"Encoded {len(queries)} queries")
+
+        qdrant = QdrantManager()
+
+        if workers <= 1:
+            query_results = [
+                self._evaluate_single_query(qid, k, embeddings[i], qdrant)
+                for i, qid in enumerate(query_ids)
+            ]
+        else:
+            query_results = [None] * len(query_ids)
+            with ThreadPoolExecutor(max_workers=workers) as executor:
+                futures = {
+                    executor.submit(
+                        self._evaluate_single_query, qid, k, embeddings[i], qdrant
+                    ): i
+                    for i, qid in enumerate(query_ids)
+                }
+                for future in as_completed(futures):
+                    idx = futures[future]
+                    query_results[idx] = future.result()
+
+        elapsed = time.time() - start
+
+        retrieval_results = [r for r in query_results if r.category != 'coverage']
+        coverage_results = [r for r in query_results if r.category == 'coverage']
+
         if retrieval_results:
             mean_precision = sum(r.precision_at_k for r in retrieval_results) / len(retrieval_results)
             mean_recall = sum(r.recall for r in retrieval_results) / len(retrieval_results)
             hit_rate = sum(1 for r in retrieval_results if r.hit) / len(retrieval_results)
-            
-            # MRR
+            mean_ndcg = sum(r.ndcg_at_k for r in retrieval_results) / len(retrieval_results)
+
             reciprocal_ranks = []
             for r in retrieval_results:
                 if r.first_relevant_rank:
                     reciprocal_ranks.append(1.0 / r.first_relevant_rank)
                 else:
                     reciprocal_ranks.append(0.0)
-            mrr = sum(reciprocal_ranks) / len(reciprocal_ranks) if reciprocal_ranks else 0.0
-            
-            retrieval_hit_rate = hit_rate
-            retrieval_mrr = mrr
+            mrr = sum(reciprocal_ranks) / len(reciprocal_ranks)
         else:
-            mean_precision = mean_recall = hit_rate = mrr = 0.0
-            retrieval_hit_rate = retrieval_mrr = 0.0
-        
-        # Coverage metrics (expecting NOT to find)
+            mean_precision = mean_recall = hit_rate = mrr = mean_ndcg = 0.0
+
         coverage_hit_rate = 0.0
         if coverage_results:
-            # For coverage, hit means we DIDN'T find irrelevant content marked as relevant
             coverage_hit_rate = sum(1 for r in coverage_results if not r.hit) / len(coverage_results)
-        
+
         return EvaluationResult(
             timestamp=datetime.now().isoformat(),
             k=k,
             total_queries=len(query_results),
             unique_queries=len(self.golden_set),
+            elapsed_seconds=elapsed,
             mean_precision_at_k=mean_precision,
             mean_recall=mean_recall,
             mrr=mrr,
             hit_rate=hit_rate,
+            mean_ndcg=mean_ndcg,
             coverage_queries=len(coverage_results),
             coverage_hit_rate=coverage_hit_rate,
             retrieval_queries=len(retrieval_results),
-            retrieval_hit_rate=retrieval_hit_rate,
-            retrieval_mrr=retrieval_mrr,
-            query_results=query_results
+            retrieval_hit_rate=hit_rate,
+            retrieval_mrr=mrr,
+            retrieval_ndcg=mean_ndcg,
+            query_results=query_results,
         )
-    
+
     def save_results(self, result: EvaluationResult, output_dir: str = "evaluation/results"):
-        """
-        Save evaluation results to CSV files.
-        
-        Args:
-            result: EvaluationResult to save
-            output_dir: Directory to save results
-        """
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-        # Save summary
+
         summary_path = output_path / f"summary_{timestamp}.csv"
         with open(summary_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(['metric', 'value'])
             writer.writerow(['timestamp', result.timestamp])
             writer.writerow(['k', result.k])
+            writer.writerow(['elapsed_seconds', f"{result.elapsed_seconds:.2f}"])
             writer.writerow(['total_queries', result.total_queries])
             writer.writerow(['unique_queries', result.unique_queries])
             writer.writerow(['mean_precision_at_k', f"{result.mean_precision_at_k:.4f}"])
             writer.writerow(['mean_recall', f"{result.mean_recall:.4f}"])
             writer.writerow(['mrr', f"{result.mrr:.4f}"])
             writer.writerow(['hit_rate', f"{result.hit_rate:.4f}"])
+            writer.writerow(['mean_ndcg', f"{result.mean_ndcg:.4f}"])
             writer.writerow(['retrieval_queries', result.retrieval_queries])
             writer.writerow(['retrieval_hit_rate', f"{result.retrieval_hit_rate:.4f}"])
             writer.writerow(['retrieval_mrr', f"{result.retrieval_mrr:.4f}"])
+            writer.writerow(['retrieval_ndcg', f"{result.retrieval_ndcg:.4f}"])
             writer.writerow(['coverage_queries', result.coverage_queries])
             writer.writerow(['coverage_hit_rate', f"{result.coverage_hit_rate:.4f}"])
-        
-        logger.info(f"Summary saved to: {summary_path}")
-        
-        # Save detailed results
+
+        logger.info(f"Summary saved: {summary_path}")
+
         details_path = output_path / f"details_{timestamp}.csv"
         with open(details_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow([
-                'query_id', 'query', 'expected_docs', 'retrieved_docs',
+                'query_id', 'query', 'category', 'expected_docs', 'retrieved_docs',
                 'relevant_found', 'moderate_found', 'first_relevant_rank',
-                'precision_at_k', 'recall', 'hit'
+                'precision_at_k', 'recall', 'ndcg_at_k', 'hit'
             ])
-            
             for qr in result.query_results:
                 writer.writerow([
                     qr.query_id,
                     qr.query,
+                    qr.category,
                     ';'.join([f"{d}:{r}" for d, r in qr.expected_docs]),
                     ';'.join([f"{d}:{s:.3f}" for d, s in qr.retrieved_docs[:5]]),
                     ';'.join(qr.relevant_found),
@@ -342,17 +343,18 @@ class RetrievalEvaluator:
                     qr.first_relevant_rank or 'N/A',
                     f"{qr.precision_at_k:.4f}",
                     f"{qr.recall:.4f}",
+                    f"{qr.ndcg_at_k:.4f}",
                     qr.hit
                 ])
-        
-        logger.info(f"Details saved to: {details_path}")
-        
-        # Save as JSON for programmatic access
+
+        logger.info(f"Details saved: {details_path}")
+
         json_path = output_path / f"results_{timestamp}.json"
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump({
                 'timestamp': result.timestamp,
                 'k': result.k,
+                'elapsed_seconds': result.elapsed_seconds,
                 'metrics': {
                     'total_queries': result.total_queries,
                     'unique_queries': result.unique_queries,
@@ -360,9 +362,11 @@ class RetrievalEvaluator:
                     'mean_recall': result.mean_recall,
                     'mrr': result.mrr,
                     'hit_rate': result.hit_rate,
+                    'mean_ndcg': result.mean_ndcg,
                     'retrieval_queries': result.retrieval_queries,
                     'retrieval_hit_rate': result.retrieval_hit_rate,
                     'retrieval_mrr': result.retrieval_mrr,
+                    'retrieval_ndcg': result.retrieval_ndcg,
                     'coverage_queries': result.coverage_queries,
                     'coverage_hit_rate': result.coverage_hit_rate,
                 },
@@ -370,97 +374,99 @@ class RetrievalEvaluator:
                     {
                         'query_id': qr.query_id,
                         'query': qr.query,
+                        'category': qr.category,
                         'hit': qr.hit,
                         'precision': qr.precision_at_k,
                         'recall': qr.recall,
+                        'ndcg': qr.ndcg_at_k,
                         'first_rank': qr.first_relevant_rank,
+                        'expected': [d for d, _ in qr.expected_docs],
+                        'retrieved_top3': [d for d, _ in qr.retrieved_docs[:3]],
                     }
                     for qr in result.query_results
                 ]
             }, f, indent=2, ensure_ascii=False)
-        
-        logger.info(f"JSON saved to: {json_path}")
-        
+
+        logger.info(f"JSON saved: {json_path}")
         return summary_path, details_path, json_path
 
 
 def print_report(result: EvaluationResult):
     """Print a formatted evaluation report."""
-    print("\n" + "=" * 60)
-    print("RAG RETRIEVAL QUALITY EVALUATION REPORT")
-    print("=" * 60)
-    print(f"Timestamp: {result.timestamp}")
-    print(f"K (results per query): {result.k}")
-    print(f"Total queries evaluated: {result.total_queries}")
+    print("\n" + "=" * 70)
+    print("  RAG RETRIEVAL QUALITY EVALUATION REPORT")
+    print("=" * 70)
+    print(f"  Timestamp:    {result.timestamp}")
+    print(f"  K:            {result.k}")
+    print(f"  Elapsed:      {result.elapsed_seconds:.2f}s")
+    print(f"  Queries:      {result.total_queries}")
     print()
-    
-    print("RETRIEVAL METRICS (queries expecting results)")
-    print("-" * 40)
-    print(f"  Queries:           {result.retrieval_queries}")
-    print(f"  Hit Rate@{result.k}:        {result.retrieval_hit_rate:.1%}")
-    print(f"  MRR:               {result.retrieval_mrr:.4f}")
-    print(f"  Mean Precision@{result.k}: {result.mean_precision_at_k:.4f}")
-    print(f"  Mean Recall:       {result.mean_recall:.4f}")
+
+    print("  RETRIEVAL METRICS")
+    print("  " + "-" * 40)
+    print(f"    Queries:           {result.retrieval_queries}")
+    print(f"    Hit Rate@{result.k}:        {result.retrieval_hit_rate:.1%}")
+    print(f"    MRR:               {result.retrieval_mrr:.4f}")
+    print(f"    NDCG@{result.k}:            {result.retrieval_ndcg:.4f}")
+    print(f"    Mean Precision@{result.k}: {result.mean_precision_at_k:.4f}")
+    print(f"    Mean Recall:       {result.mean_recall:.4f}")
     print()
-    
-    print("COVERAGE METRICS (queries expecting NO results)")
-    print("-" * 40)
-    print(f"  Queries:           {result.coverage_queries}")
-    print(f"  Correct 'Not Found': {result.coverage_hit_rate:.1%}")
+
+    print("  COVERAGE METRICS")
+    print("  " + "-" * 40)
+    print(f"    Queries:             {result.coverage_queries}")
+    print(f"    Correct 'Not Found': {result.coverage_hit_rate:.1%}")
     print()
-    
-    print("PER-QUERY RESULTS")
-    print("-" * 40)
-    
-    # Group by hit/miss
-    hits = [qr for qr in result.query_results if qr.hit]
-    misses = [qr for qr in result.query_results if not qr.hit and 'NOT_IN_DB' not in str(qr.expected_docs)]
-    
-    print(f"\n✅ HITS ({len(hits)}):")
-    for qr in hits[:10]:
-        rank_str = f"rank {qr.first_relevant_rank}" if qr.first_relevant_rank else "moderate"
-        print(f"  [{qr.query_id}] {qr.query[:50]}... → {rank_str}")
-    
-    print(f"\n❌ MISSES ({len(misses)}):")
+
+    hits = [qr for qr in result.query_results if qr.hit and qr.category != 'coverage']
+    misses = [qr for qr in result.query_results if not qr.hit and qr.category != 'coverage']
+
+    print(f"  ✅ HITS ({len(hits)}/{result.retrieval_queries})")
+    print("  " + "-" * 40)
+    for qr in sorted(hits, key=lambda x: x.first_relevant_rank or 99):
+        rank_str = f"rank {qr.first_relevant_rank}" if qr.first_relevant_rank else "moderate only"
+        ndcg_str = f"NDCG={qr.ndcg_at_k:.2f}"
+        print(f"    [{qr.query_id}] {qr.query[:55]:<55} {rank_str:<15} {ndcg_str}")
+
+    print(f"\n  ❌ MISSES ({len(misses)}/{result.retrieval_queries})")
+    print("  " + "-" * 40)
     for qr in misses:
-        expected = [d for d, r in qr.expected_docs]
-        retrieved = [d for d, s in qr.retrieved_docs[:3]]
-        print(f"  [{qr.query_id}] {qr.query[:50]}...")
-        print(f"       Expected: {expected}")
-        print(f"       Got:      {retrieved}")
-    
-    print("\n" + "=" * 60)
+        expected = [d for d, _ in qr.expected_docs]
+        retrieved = [d for d, _ in qr.retrieved_docs[:3]]
+        print(f"    [{qr.query_id}] {qr.query[:55]}")
+        print(f"         Expected:  {expected}")
+        print(f"         Got:       {retrieved}")
+
+    print("\n" + "=" * 70)
 
 
 def main():
-    """Main entry point."""
     parser = argparse.ArgumentParser(description="Evaluate RAG retrieval quality")
     parser.add_argument('--k', type=int, default=5, help="Number of results to retrieve")
     parser.add_argument('--golden-set', type=str, default="evaluation/golden_set.csv",
                        help="Path to golden set CSV")
     parser.add_argument('--output', type=str, default="evaluation/results",
                        help="Output directory for results")
+    parser.add_argument('--workers', type=int, default=4,
+                       help="Number of parallel workers for search")
     parser.add_argument('--quiet', action='store_true', help="Suppress detailed output")
-    
+
     args = parser.parse_args()
-    
+
     try:
         evaluator = RetrievalEvaluator(args.golden_set)
-        result = evaluator.evaluate(k=args.k)
-        
+        result = evaluator.evaluate(k=args.k, workers=args.workers)
+
         if not args.quiet:
             print_report(result)
-        
-        # Save results
+
         evaluator.save_results(result, args.output)
-        
-        # Exit with success/failure based on hit rate
+
         if result.retrieval_hit_rate < 0.5:
             logger.warning(f"Low hit rate: {result.retrieval_hit_rate:.1%}")
             return 1
-        
         return 0
-        
+
     except Exception as e:
         logger.error(f"Evaluation failed: {e}")
         import traceback
