@@ -17,8 +17,9 @@
 9. [API RAG (Backend)](#9-api-rag-backend)
 10. [Interface Web (Frontend)](#10-interface-web-frontend)
 11. [Scripts Utilitários](#11-scripts-utilitários)
-12. [Deploy em Produção (systemctl + Nginx)](#12-deploy-em-produção-systemctl--nginx)
-13. [Resolução de Problemas](#13-resolução-de-problemas)
+12. [Avaliação de Qualidade](#12-avaliação-de-qualidade)
+13. [Deploy em Produção (systemctl + Nginx)](#13-deploy-em-produção-systemctl--nginx)
+14. [Resolução de Problemas](#14-resolução-de-problemas)
 
 ---
 
@@ -65,6 +66,7 @@ Pergunta do usuário
 | Scraper DECEA | Selenium + BeautifulSoup | `parsers/decea_scraper.py` |
 | Scraper LexML | Requests + BeautifulSoup | `parsers/lexml_scraper.py` |
 | Ingestão | Chunking + Embedding + Upload | `pipeline/ingestion.py` |
+| Avaliação | Golden Set + Métricas IR | `evaluation/evaluate_retrieval.py` |
 | Interface Web | FastAPI + Jinja2 | `web/main.py` |
 
 ---
@@ -676,6 +678,8 @@ python main.py
 | `test_system.py` | `python -m scripts.test_system` | Testa todos os componentes |
 | `test_chatbot.py` | `python -m scripts.test_chatbot` | Testa os endpoints do chatbot |
 
+> Para avaliação de qualidade da busca, veja a [Seção 12](#12-avaliação-de-qualidade).
+
 ### Exemplos detalhados:
 
 ```bash
@@ -710,7 +714,161 @@ python -m scripts.reset_database --confirm --clear-tracker
 
 ---
 
-## 12. Deploy em Produção (systemctl + Nginx)
+## 12. Avaliação de Qualidade
+
+O sistema inclui um framework de avaliação para medir a qualidade da busca semântica (retrieval). Isso permite acompanhar o impacto de mudanças no chunking, embeddings, pré-processamento ou configuração do Qdrant.
+
+### 12.1. Conceitos
+
+A avaliação é baseada em um **golden set** — um conjunto curado de queries com documentos esperados como resposta, cada um classificado por relevância:
+
+| Relevância | Peso NDCG | Significado |
+|------------|-----------|-------------|
+| `relevant` | 2 | O documento responde diretamente à query |
+| `moderate` | 1 | O documento é relacionado mas não responde completamente |
+| `irrelevant` | 0 | Documento de cobertura (não deve existir no banco) |
+
+### 12.2. Métricas
+
+| Métrica | O que mede |
+|---------|------------|
+| **Hit Rate@K** | % de queries onde ao menos um documento relevante aparece nos top K resultados |
+| **MRR** (Mean Reciprocal Rank) | Média de 1/posição do primeiro documento relevante. MRR=1 significa que o doc relevante sempre aparece em 1º |
+| **NDCG@K** (Normalized Discounted Cumulative Gain) | Qualidade do ranking considerando relevância gradual. Penaliza documentos relevantes que aparecem em posições baixas |
+| **Precision@K** | % dos K documentos retornados que são relevantes |
+| **Recall** | % dos documentos relevantes esperados que foram retornados |
+| **Coverage** | % das queries de cobertura (documentos inexistentes) onde o sistema corretamente não retorna hits |
+
+### 12.3. Golden Set
+
+O golden set está em `evaluation/golden_set.csv` com o formato:
+
+```csv
+query_id,query,expected_doc_id,relevance,category,notes
+Q001,Qual artigo trata da proposta de cartas...,ICA-96-1-art563,relevant,retrieval,Art. 563 menciona...
+Q051,O que é RBAC 91?,NOT_IN_DB,irrelevant,coverage,Documento não indexado
+```
+
+Uma mesma query pode ter múltiplas linhas quando mais de um documento é esperado como resposta. A coluna `category` distingue queries de `retrieval` (devem encontrar documentos) de queries de `coverage` (testam que o sistema rejeita corretamente buscas sem resultado).
+
+O golden set atual contém **60 queries** cobrindo 30+ ICAs diferentes, com foco em:
+
+- **ICA-96-1** — Cartas aeronáuticas (documento principal, 640 chunks)
+- **ICA-100-47** — Habilitação de instrutores IFCTA
+- **30+ outros ICAs** — Telecomunicações, meteorologia, drones, NOTAM, gestão de risco, qualidade, etc.
+- **5 queries de cobertura** — Documentos ANAC/RBAC que não estão indexados
+
+### 12.4. Como executar
+
+```bash
+# Avaliação padrão (K=5, 4 workers paralelos)
+python -m evaluation.evaluate_retrieval
+
+# Configuração personalizada
+python -m evaluation.evaluate_retrieval --k 10 --workers 8
+
+# Modo silencioso (apenas salva arquivos, sem relatório no terminal)
+python -m evaluation.evaluate_retrieval --quiet
+
+# Golden set alternativo
+python -m evaluation.evaluate_retrieval --golden-set caminho/para/outro_golden_set.csv
+```
+
+**Parâmetros disponíveis:**
+
+| Parâmetro | Padrão | Descrição |
+|-----------|--------|-----------|
+| `--k` | `5` | Número de documentos a recuperar por query |
+| `--workers` | `4` | Threads paralelas para busca no Qdrant |
+| `--golden-set` | `evaluation/golden_set.csv` | Caminho do golden set |
+| `--output` | `evaluation/results` | Diretório de saída dos resultados |
+| `--quiet` | `false` | Suprime relatório no terminal |
+
+### 12.5. Saída
+
+O script produz três artefatos em `evaluation/results/`:
+
+| Arquivo | Conteúdo |
+|---------|----------|
+| `summary_*.csv` | Métricas agregadas (uma linha por métrica) |
+| `details_*.csv` | Resultado por query (docs esperados, retornados, métricas individuais) |
+| `results_*.json` | Dados completos em JSON para análise programática |
+
+Exemplo de relatório no terminal:
+
+```
+======================================================================
+  RAG RETRIEVAL QUALITY EVALUATION REPORT
+======================================================================
+  Timestamp:    2026-03-12T09:35:16
+  K:            5
+  Elapsed:      6.56s
+  Queries:      60
+
+  RETRIEVAL METRICS
+  ----------------------------------------
+    Queries:        55
+    Hit Rate@5:     41.8%
+    MRR:            0.2685
+    NDCG@5:         0.3032
+    Precision@5:    0.0945
+    Recall:         0.3909
+
+  COVERAGE METRICS
+  ----------------------------------------
+    Queries:             5
+    Correct 'Not Found': 100.0%
+```
+
+### 12.6. Otimização de performance
+
+O script é otimizado para execução rápida:
+
+1. **Batch encoding** — Todas as queries são codificadas em uma única chamada ao modelo de embeddings, evitando overhead de 60 chamadas individuais
+2. **Busca paralela** — As buscas no Qdrant são executadas em threads concorrentes via `ThreadPoolExecutor`
+3. **Separação de responsabilidades** — Usa `EmbeddingModel` e `QdrantManager` diretamente (em vez de `VectorSearch`) para ter controle sobre batching e paralelismo
+
+### 12.7. Como expandir o golden set
+
+Para adicionar novas queries ao golden set:
+
+1. Identifique o documento relevante no Qdrant:
+
+```bash
+python -m scripts.inspect_qdrant
+```
+
+2. Adicione uma linha no `evaluation/golden_set.csv`:
+
+```csv
+Q061,Minha nova pergunta sobre o tema X?,ICA-XX-YY-artZZ,relevant,retrieval,Justificativa breve
+```
+
+3. Se a query já existe e um novo documento também é relevante, adicione outra linha com o mesmo `query_id`:
+
+```csv
+Q061,Minha nova pergunta sobre o tema X?,ICA-XX-YY-artWW,moderate,retrieval,Doc secundário
+```
+
+4. Execute a avaliação para verificar o impacto:
+
+```bash
+python -m evaluation.evaluate_retrieval
+```
+
+### 12.8. Interpretando os resultados
+
+| Cenário | O que fazer |
+|---------|-------------|
+| Hit Rate baixo (<50%) | Os documentos relevantes não estão sendo encontrados. Investigar qualidade dos chunks e do texto extraído |
+| MRR baixo (<0.3) | Documentos relevantes aparecem mas em posições baixas. Considerar ajustar embeddings ou score threshold |
+| NDCG baixo com Hit Rate alto | O ranking está ruim — docs moderados aparecem antes dos relevantes. Revisar modelo de embeddings |
+| Coverage <100% | O sistema está retornando falsos positivos para documentos inexistentes. Ajustar score threshold |
+| Precision baixo | Muitos documentos irrelevantes nos top K. Aumentar score threshold ou melhorar chunking |
+
+---
+
+## 13. Deploy em Produção (systemctl + Nginx)
 
 O sistema está configurado para rodar em produção usando **systemd** para gerenciamento de processos e **Nginx** como reverse proxy.
 
@@ -913,7 +1071,7 @@ sudo systemctl start nginx
 
 ---
 
-## 13. Resolução de Problemas
+## 14. Resolução de Problemas
 
 ### Erros de importação ao executar scripts
 
