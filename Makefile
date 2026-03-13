@@ -8,18 +8,14 @@ FILE ?=
 
 help:
 	@echo "Usage:"
-	@echo "  make test                   Run all unit tests"
-	@echo "  make test FILE=path         Run specific test file or directory"
-	@echo "  make eval                   Run both evaluations"
-	@echo "  make eval-retrieval         Run retrieval evaluation"
-	@echo "  make eval-generation        Run generation evaluation"
-	@echo "  make clean                  Remove evaluation result files"
-	@echo ""
-	@echo "Variables:"
-	@echo "  K=10                        Number of results to retrieve (default: 5)"
-	@echo "  WORKERS=8                   Parallel search workers (default: 4)"
-	@echo "  SAMPLE=10                   Limit generation eval queries (default: all)"
-	@echo "  FILE=tests/test_foo.py      Target for make test (default: tests/)"
+	@echo "  make test                        Run all unit tests"
+	@echo "  make test FILE=tests/evaluation   Run tests in a specific dir or file"
+	@echo "  make eval                         Run both evaluations"
+	@echo "  make eval-retrieval               Run retrieval evaluation"
+	@echo "  make eval-retrieval K=10          Override K for retrieval"
+	@echo "  make eval-generation              Run generation evaluation"
+	@echo "  make eval-generation SAMPLE=10    Limit generation to 10 queries"
+	@echo "  make clean                        Remove evaluation result files"
 
 test:
 	$(PYTHON) -m pytest $(or $(FILE),tests/) -v --tb=short
