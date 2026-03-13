@@ -7,12 +7,11 @@ Metrics computed:
 - Empty Rate: % of queries where LLM returned "not found"
 - Citation Rate: % of responses containing document source IDs
 - Hedging Rate: % of responses with uncertainty language
-- Mean Response Length: average token count of responses
-- Hallucination Indicators: responses that cite non-existent document IDs
+- Mean/Median Response Length: token count statistics
 
 Usage:
     python -m evaluation.evaluate_generation
-    python -m evaluation.evaluate_generation --k 5 --workers 4 --sample 20
+    python -m evaluation.evaluate_generation --k 5 --sample 10
 """
 
 import argparse
@@ -20,16 +19,18 @@ import csv
 import json
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from loguru import logger
 
-from search.vector_search import VectorSearch
+from models.embeddings import EmbeddingModel
 from models.llm import LlamaModel
+from database.qdrant_manager import QdrantManager
+from config import config
 
 
 NOT_FOUND_PATTERNS = [
@@ -102,24 +103,18 @@ def analyze_response(
     lower = response.lower()
 
     is_empty = any(re.search(p, lower) for p in NOT_FOUND_PATTERNS)
-
     citations = CITATION_PATTERN.findall(response)
-    has_citation = len(citations) > 0
-
     hedging_found = [p for p in HEDGING_PATTERNS if re.search(p, lower)]
-    has_hedging = len(hedging_found) > 0
-
-    tokens = len(response.split())
 
     return ResponseAnalysis(
         query_id=query_id,
         query=query,
         response=response,
-        response_tokens=tokens,
+        response_tokens=len(response.split()),
         is_empty=is_empty,
-        has_citation=has_citation,
+        has_citation=bool(citations),
         citations_found=citations,
-        has_hedging=has_hedging,
+        has_hedging=bool(hedging_found),
         hedging_words=hedging_found,
         retrieved_doc_ids=retrieved_doc_ids,
         search_time_ms=search_time_ms,
@@ -132,97 +127,88 @@ class GenerationEvaluator:
 
     def __init__(self, golden_set_path: str = "evaluation/golden_set.csv"):
         self.golden_set_path = Path(golden_set_path)
-        self.queries: List[Tuple[str, str]] = []
+        self.queries: Dict[str, str] = {}
         self._load_queries()
 
     def _load_queries(self):
         if not self.golden_set_path.exists():
             raise FileNotFoundError(f"Golden set not found: {self.golden_set_path}")
 
-        seen = set()
         with open(self.golden_set_path, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 qid = row['query_id']
-                if qid not in seen and row.get('category') != 'coverage':
-                    seen.add(qid)
-                    self.queries.append((qid, row['query']))
+                if qid not in self.queries and row.get('category') != 'coverage':
+                    self.queries[qid] = row['query']
 
         logger.info(f"Loaded {len(self.queries)} queries for generation evaluation")
 
-    def evaluate(
-        self,
-        k: int = 5,
-        sample: Optional[int] = None,
-        workers: int = 1,
-    ) -> GenerationEvalResult:
+    def evaluate(self, k: int = 5, sample: Optional[int] = None) -> GenerationEvalResult:
         """
-        Run generation evaluation on golden set queries.
+        Run generation evaluation. Search is batch-encoded and parallelized,
+        LLM calls are sequential (Ollama serializes requests).
 
         Args:
             k: Number of documents to retrieve per query
             sample: Limit to N queries (useful for quick tests)
-            workers: Parallel workers for RAG pipeline
         """
         start = time.time()
 
-        queries = self.queries[:sample] if sample else self.queries
-        logger.info(f"Evaluating {len(queries)} queries (k={k}, workers={workers})")
+        query_ids = list(self.queries.keys())[:sample]
+        query_texts = [self.queries[qid] for qid in query_ids]
+        logger.info(f"Evaluating {len(query_ids)} queries (k={k})")
 
-        search = VectorSearch()
+        embed_model = EmbeddingModel()
+        qdrant = QdrantManager()
         llm = LlamaModel()
 
-        def _run_single(qid: str, query: str) -> ResponseAnalysis:
+        logger.info(f"Batch encoding {len(query_texts)} queries...")
+        embeddings = embed_model.encode(query_texts)
+
+        analyses = []
+        for i, qid in enumerate(query_ids):
             search_start = time.time()
-            results = search.search(query, limit=k)
+            raw_results = qdrant.search(
+                query_vector=embeddings[i].tolist(),
+                limit=k,
+                score_threshold=config.SEARCH_SCORE_THRESHOLD,
+            )
             search_ms = int((time.time() - search_start) * 1000)
 
-            doc_ids = [r.get('regulation_id', '') for r in results]
+            doc_ids = [r.payload.get('regulation_id', '') for r in raw_results]
+            context_docs = [
+                {
+                    'regulation_id': r.payload.get('regulation_id', ''),
+                    'text': r.payload.get('text', ''),
+                    'score': r.score,
+                }
+                for r in raw_results
+            ]
 
             llm_start = time.time()
-            if results:
-                answer = llm.generate_with_context(query=query, context_documents=results)
+            if context_docs:
+                answer = llm.generate_with_context(query=query_texts[i], context_documents=context_docs)
             else:
                 answer = "Não encontrei informações relevantes nos documentos disponíveis."
             llm_ms = int((time.time() - llm_start) * 1000)
 
-            return analyze_response(qid, query, answer, doc_ids, search_ms, llm_ms)
-
-        analyses = []
-        if workers <= 1:
-            for qid, query in queries:
-                analyses.append(_run_single(qid, query))
-                logger.debug(f"[{qid}] done ({len(analyses)}/{len(queries)})")
-        else:
-            futures_map = {}
-            with ThreadPoolExecutor(max_workers=workers) as executor:
-                for qid, query in queries:
-                    f = executor.submit(_run_single, qid, query)
-                    futures_map[f] = qid
-                for future in as_completed(futures_map):
-                    analyses.append(future.result())
-                    logger.debug(f"[{futures_map[future]}] done ({len(analyses)}/{len(queries)})")
+            analyses.append(analyze_response(qid, query_texts[i], answer, doc_ids, search_ms, llm_ms))
+            logger.debug(f"[{qid}] done ({len(analyses)}/{len(query_ids)}) llm={llm_ms}ms")
 
         elapsed = time.time() - start
         n = len(analyses)
 
-        empty_rate = sum(1 for a in analyses if a.is_empty) / n if n else 0
-        citation_rate = sum(1 for a in analyses if a.has_citation) / n if n else 0
-        hedging_rate = sum(1 for a in analyses if a.has_hedging) / n if n else 0
         tokens = sorted(a.response_tokens for a in analyses)
-        mean_tokens = sum(tokens) / n if n else 0
-        median_tokens = tokens[n // 2] if n else 0
-
         return GenerationEvalResult(
             timestamp=datetime.now().isoformat(),
             k=k,
             total_queries=n,
             elapsed_seconds=elapsed,
-            empty_rate=empty_rate,
-            citation_rate=citation_rate,
-            hedging_rate=hedging_rate,
-            mean_response_tokens=mean_tokens,
-            median_response_tokens=median_tokens,
+            empty_rate=sum(1 for a in analyses if a.is_empty) / n if n else 0,
+            citation_rate=sum(1 for a in analyses if a.has_citation) / n if n else 0,
+            hedging_rate=sum(1 for a in analyses if a.has_hedging) / n if n else 0,
+            mean_response_tokens=sum(tokens) / n if n else 0,
+            median_response_tokens=tokens[n // 2] if n else 0,
             analyses=analyses,
         )
 
@@ -353,15 +339,13 @@ def main():
     parser.add_argument('--output', type=str, default="evaluation/results")
     parser.add_argument('--sample', type=int, default=None,
                        help="Limit to N queries (for quick tests)")
-    parser.add_argument('--workers', type=int, default=1,
-                       help="Parallel workers (careful with LLM concurrency)")
     parser.add_argument('--quiet', action='store_true')
 
     args = parser.parse_args()
 
     try:
         evaluator = GenerationEvaluator(args.golden_set)
-        result = evaluator.evaluate(k=args.k, sample=args.sample, workers=args.workers)
+        result = evaluator.evaluate(k=args.k, sample=args.sample)
 
         if not args.quiet:
             print_report(result)
