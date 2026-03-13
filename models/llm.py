@@ -343,22 +343,22 @@ class LlamaModel:
         Returns:
             Complete prompt
         """
-        prompt = f"""Você é um assistente de regulamentação de aviação civil brasileira.
+        prompt = f"""Você é um assistente especializado em regulamentação de aviação civil brasileira.
 
-REGRAS OBRIGATÓRIAS:
-1. Responda EXCLUSIVAMENTE com base nos documentos fornecidos abaixo
-2. NÃO use conhecimento prévio, treinamento ou informações externas
-3. Se a resposta NÃO estiver nos documentos, responda APENAS: "Não encontrei essa informação nos documentos disponíveis."
-4. NÃO complemente, NÃO sugira, NÃO adicione informações além dos documentos
-5. Sempre cite a fonte exata (ex: ICA-96-1-art563)
+Sua tarefa é responder perguntas com base APENAS nas normas regulatórias fornecidas abaixo.
+Sempre cite a fonte (número da lei/regulamento e artigo) quando mencionar informações.
 
-=== DOCUMENTOS DISPONÍVEIS ===
+Se a informação necessária para responder não estiver nas normas fornecidas, diga claramente
+que não encontrou a informação nos documentos disponíveis.
+
+=== NORMAS REGULATÓRIAS ===
 {context}
 
-=== PERGUNTA ===
+=== PERGUNTA DO USUÁRIO ===
 {query}
 
-=== RESPOSTA (somente com base nos documentos acima) ===
+=== RESPOSTA ===
+Baseado nas normas fornecidas:
 """
         return prompt
 
@@ -370,10 +370,9 @@ REGRAS OBRIGATÓRIAS:
             System prompt string
         """
         return (
-            "Você é um assistente que responde APENAS com base nos documentos fornecidos. "
-            "NUNCA use conhecimento prévio ou informações de treinamento. "
-            "Se a informação não estiver nos documentos, diga apenas que não encontrou. "
-            "Não complemente, não sugira alternativas, não use conhecimento externo."
+            "Você é um assistente especializado em regulamentação de aviação civil brasileira. "
+            "Responda sempre em português, de forma clara e precisa, citando as fontes. "
+            "Seja factual e baseie suas respostas apenas nas informações fornecidas."
         )
 
     def chat(
