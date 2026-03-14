@@ -64,7 +64,7 @@ Pergunta do usuário
 | Embeddings | Legal-BERTimbau (sentence-transformers) | `models/embeddings.py` |
 | LLM | Ollama (llama3, phi3, etc.) | `models/llm.py` |
 | Banco vetorial | Qdrant | `database/qdrant_manager.py` |
-| Scraper DECEA | Selenium + BeautifulSoup | `parsers/decea_scraper.py` |
+| Scraper DECEA | Requests + BeautifulSoup | `crawler/scrapers/decea_scraper.py` |
 | Scraper LexML | Requests + BeautifulSoup | `parsers/lexml_scraper.py` |
 | Ingestão | Chunking + Embedding + Upload | `pipeline/ingestion.py` |
 | Avaliação (retrieval) | Golden Set + Métricas IR | `evaluation/evaluate_retrieval.py` |
@@ -95,7 +95,7 @@ O arquivo `requirements.txt` na raiz contém todas as dependências. As principa
 | `torch` | PyTorch (backend do modelo de embeddings) |
 | `ollama` | Cliente Python para Ollama |
 | `beautifulsoup4` | Parsing HTML dos scrapers |
-| `selenium` | Automação de navegador (scraper DECEA) |
+| `lxml` | Parser HTML rápido para scraper DECEA |
 | `requests` | Requisições HTTP |
 | `pydantic`, `pydantic-settings` | Validação de dados e configurações |
 | `loguru` | Logging estruturado |
@@ -377,34 +377,32 @@ O sistema extrai documentos de duas fontes principais:
 
 ### 7.1. DECEA (Instruções de Comando da Aeronáutica)
 
-**Scraper:** `parsers/decea_scraper.py`
+**Scraper:** `crawler/scrapers/decea_scraper.py`
 **Script de ingestão:** `scripts/ingest_decea.py`
 
-O scraper DECEA usa **Selenium** para acessar o portal de publicações do DECEA (`publicacoes.decea.mil.br`), que renderiza conteúdo via JavaScript. Ele:
+O scraper DECEA usa **HTTP direto** (`requests` + `BeautifulSoup`) para acessar o portal de publicações do DECEA (`publicacoes.decea.mil.br`). O portal usa Next.js com Server-Side Rendering, o que permite extrair todo o conteúdo sem navegador. Ele:
 
-1. Navega pelo índice de publicações
-2. Filtra por tipo de documento (ICA, MCA, PCA, etc.)
-3. Baixa os PDFs originais
-4. Extrai o texto dos PDFs
-5. Salva como JSON em `data/decea/`
+1. Parseia o índice de publicações via HTML estático
+2. Filtra por tipo de documento (ICA, MCA, PCA, DCA, CIRCEA, NSCA, etc.)
+3. Extrai URLs de PDFs assinadas (S3) de cada página de publicação
+4. Baixa os PDFs originais em paralelo (`ThreadPoolExecutor`)
+5. Extrai texto dos PDFs (PyMuPDF, pdfplumber, OCR fallback)
+6. Salva JSONs em `data/decea/` e PDFs originais em `data/originals/ica/`
 
 **Como executar:**
 
 ```bash
-# Ingerir ICAs (Instruções de Comando da Aeronáutica)
+# Via Makefile (recomendado)
+make collect-decea                          # Padrão: 100 ICAs, 8 workers
+make collect-decea LIMIT=200 WORKERS=8      # Custom
+make collect-decea DOC_TYPES=ICA,MCA        # Múltiplos tipos
+
+# Via script direto
 python -m scripts.ingest_decea --doc-types ICA --limit 50
-
-# Ingerir ICAs e MCAs
-python -m scripts.ingest_decea --doc-types ICA,MCA --limit 100
-
-# Ingerir documentos específicos por slug
+python -m scripts.ingest_decea --doc-types ICA,MCA --limit 100 --workers 8
 python -m scripts.ingest_decea --slugs ICA-63-47,ICA-100-12,ICA-100-37
-
-# Pular download e usar JSONs existentes
-python -m scripts.ingest_decea --skip-download
-
-# Sem extrair texto dos PDFs (usar apenas a descrição)
-python -m scripts.ingest_decea --doc-types ICA --no-text
+python -m scripts.ingest_decea --skip-download    # Usar JSONs existentes
+python -m scripts.ingest_decea --no-text           # Apenas descrição
 ```
 
 **Parâmetros disponíveis:**
@@ -414,12 +412,11 @@ python -m scripts.ingest_decea --doc-types ICA --no-text
 | `--doc-types` | Tipos de documento separados por vírgula (ICA, MCA, PCA, DCA, TCA, CIRCEA, NSCA) |
 | `--slugs` | Slugs específicos separados por vírgula |
 | `--keywords` | Palavras-chave para filtro |
-| `--limit` | Máximo de documentos |
+| `--limit` | Máximo de documentos (padrão: 100) |
+| `--workers` | Workers paralelos para download (padrão: 8) |
 | `--download-dir` | Diretório de saída (padrão: `./data/decea`) |
 | `--skip-download` | Usar apenas JSONs já existentes |
 | `--no-text` | Não extrair texto dos PDFs |
-
-**Requisito:** Chrome/Chromium instalado (para Selenium).
 
 ### 7.2. LexML (Legislação Federal)
 
@@ -672,7 +669,7 @@ python main.py
 | Script | Comando | Descrição |
 |--------|---------|-----------|
 | `setup_qdrant.py` | `python -m scripts.setup_qdrant` | Inicializa a coleção no Qdrant |
-| `ingest_decea.py` | `python -m scripts.ingest_decea` | Baixa e ingere documentos DECEA |
+| `ingest_decea.py` | `python -m scripts.ingest_decea` | Baixa e ingere documentos DECEA (alternativa: `make collect-decea`) |
 | `ingest_lexml.py` | `python -m scripts.ingest_lexml` | Baixa e ingere documentos LexML |
 | `ingest_pdfs.py` | `python -m scripts.ingest_pdfs --source DIR` | Ingere PDFs de um diretório |
 | `reset_database.py` | `python -m scripts.reset_database --confirm` | Reseta o banco vetorial |
@@ -693,7 +690,8 @@ source venv/bin/activate
 python -m scripts.setup_qdrant
 
 # 2. Ingerir documentos DECEA
-python -m scripts.ingest_decea --doc-types ICA,MCA --limit 100
+python -m scripts.ingest_decea --doc-types ICA,MCA --limit 100 --workers 8
+# Alternativa via Makefile: make collect-decea DOC_TYPES=ICA,MCA LIMIT=100 WORKERS=8
 
 # 3. Ingerir documentos LexML
 python -m scripts.ingest_lexml --keywords "aviação,ANAC" --limit 200

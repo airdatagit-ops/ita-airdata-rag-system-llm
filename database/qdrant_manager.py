@@ -42,11 +42,10 @@ class QdrantManager:
         self.collection_name = collection_name or config.QDRANT_COLLECTION_NAME
         self.api_key = api_key or config.QDRANT_API_KEY
 
-        # Initialize client
         if self.api_key:
-            self.client = QdrantClient(url=self.host, api_key=self.api_key)
+            self.client = QdrantClient(url=self.host, api_key=self.api_key, prefer_grpc=True)
         else:
-            self.client = QdrantClient(host=self.host, port=self.port)
+            self.client = QdrantClient(host=self.host, port=self.port, prefer_grpc=True)
 
         logger.info(f"QdrantManager initialized ({self.host}:{self.port})")
 
@@ -130,37 +129,38 @@ class QdrantManager:
     def upsert_points(
         self,
         points: List[Dict],
-        batch_size: int = 100
+        batch_size: int = 64,
+        parallel: int = 2
     ) -> bool:
         """
-        Upsert points to collection.
+        Upsert points using upload_points with built-in batching and parallelism.
 
         Args:
-            points: List of point dictionaries with id, vector, payload
-            batch_size: Batch size for upload
+            points: List of point dicts with id, vector, payload
+            batch_size: Points per batch (default 64, Qdrant's recommended)
+            parallel: Number of parallel upload workers
 
         Returns:
             True if successful
         """
         try:
-            # Convert to PointStruct
-            qdrant_points = []
-            for point in points:
-                point_id = point.get("id") or str(uuid.uuid4())
-                qdrant_points.append(PointStruct(
-                    id=point_id,
-                    vector=point["vector"],
-                    payload=point.get("payload", {})
-                ))
-
-            # Upload in batches
-            for i in range(0, len(qdrant_points), batch_size):
-                batch = qdrant_points[i:i + batch_size]
-                self.client.upsert(
-                    collection_name=self.collection_name,
-                    points=batch
+            qdrant_points = [
+                PointStruct(
+                    id=p.get("id") or str(uuid.uuid4()),
+                    vector=p["vector"],
+                    payload=p.get("payload", {}),
                 )
-                logger.debug(f"Uploaded batch {i//batch_size + 1}")
+                for p in points
+            ]
+
+            self.client.upload_points(
+                collection_name=self.collection_name,
+                points=qdrant_points,
+                batch_size=batch_size,
+                parallel=parallel,
+                max_retries=3,
+                wait=True,
+            )
 
             logger.success(f"Upserted {len(points)} points")
             return True
