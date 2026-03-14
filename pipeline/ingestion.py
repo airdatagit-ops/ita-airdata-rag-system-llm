@@ -155,7 +155,6 @@ class IngestionPipeline:
             logger.warning("No chunks produced from any document")
             return 0
 
-        logger.info(f"Produced {len(all_chunks)} chunks from {len(json_paths)} documents")
 
         if not self.enable_embedding:
             logger.info("Embedding disabled — skipping encode and upsert")
