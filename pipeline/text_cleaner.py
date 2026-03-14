@@ -214,15 +214,39 @@ class TextCleaner:
     def _is_garbled_word(word: str) -> bool:
         """Check if a word looks like a font-encoding artifact (e.g. ROT-3).
 
-        Garbled words from custom PDF fonts have abnormally low vowel
-        ratios because the original vowels (A,E,I,O,U) get shifted to
-        consonant positions (D,H,L,R,X).
+        Uses a two-pronged heuristic:
+        1. Extremely low vowel ratio (< 10%) is always suspicious.
+        2. If applying ROT(-3) to ASCII letters *significantly increases*
+           the vowel ratio, the word was likely encoded — original vowels
+           (A,E,I,O,U) shift to consonant positions (D,H,L,R,X), but some
+           original consonants (B,F,L,R,V) shift to vowel positions
+           (E,I,O,U,Y), giving the encoded word a non-zero but still
+           below-normal vowel ratio that a simple threshold would miss.
         """
         alpha_chars = [c for c in word if c.isalpha()]
         if len(alpha_chars) < 5:
             return False
-        vowel_count = sum(1 for c in alpha_chars if c in _VOWELS)
-        return (vowel_count / len(alpha_chars)) < 0.15
+
+        vowel_orig = sum(1 for c in alpha_chars if c in _VOWELS)
+        ratio_orig = vowel_orig / len(alpha_chars)
+
+        if ratio_orig < 0.10:
+            return True
+
+        decoded_vowels = 0
+        for c in alpha_chars:
+            if 'A' <= c <= 'Z':
+                d = chr((ord(c) - ord('A') - 3) % 26 + ord('A'))
+            elif 'a' <= c <= 'z':
+                d = chr((ord(c) - ord('a') - 3) % 26 + ord('a'))
+            else:
+                d = c
+            if d in _VOWELS:
+                decoded_vowels += 1
+
+        ratio_decoded = decoded_vowels / len(alpha_chars)
+
+        return (ratio_decoded - ratio_orig) > 0.12 and ratio_decoded > 0.35
 
     @classmethod
     def _remove_garbled_text(cls, text: str) -> tuple[str, int]:
@@ -233,10 +257,11 @@ class TextCleaner:
         of "QUE").  These lines are administrative boilerplate (portaria
         headers) that add noise to embeddings.
 
-        Detection criteria:
-        - Lines with 3+ words (5+ chars): flagged if >= 50% are garbled.
-        - Lines with 1-2 words (5+ chars) and no clean words: flagged
-          if all are garbled (catches isolated garbled words).
+        A line is flagged when it contains >= 2 garbled words (4+ chars)
+        AND they make up >= 50% of the line's 4+ char words.  Requiring
+        two garbled words avoids false positives on legitimate English
+        meteorological terms (HUNDRED, DRIZZLE, SHALLOW, etc.) which
+        individually share vowel-pattern traits with ROT-3 text.
         """
         lines = text.split('\n')
         kept: list[str] = []
@@ -244,20 +269,15 @@ class TextCleaner:
 
         for line in lines:
             words = re.findall(r'[a-zA-ZÀ-ÿ]{3,}', line)
-            long_words = [w for w in words if len(w) >= 5]
+            candidate_words = [w for w in words if len(w) >= 5]
 
-            if long_words:
-                garbled_count = sum(1 for w in long_words if cls._is_garbled_word(w))
-
-                if len(long_words) >= 3 and garbled_count / len(long_words) >= 0.5:
+            if len(candidate_words) >= 2:
+                garbled_count = sum(
+                    1 for w in candidate_words if cls._is_garbled_word(w)
+                )
+                if garbled_count >= 2 and garbled_count / len(candidate_words) >= 0.5:
                     removed += 1
                     continue
-
-                if len(long_words) <= 2 and garbled_count == len(long_words):
-                    clean_short = [w for w in words if len(w) < 5 and not cls._is_garbled_word(w)]
-                    if len(clean_short) <= 1:
-                        removed += 1
-                        continue
 
             kept.append(line)
 
