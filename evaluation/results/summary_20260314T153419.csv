@@ -1,0 +1,13 @@
+metric,value
+timestamp,2026-03-14T15:34:19.970586
+k,5
+elapsed_seconds,8.64
+total_queries,60
+retrieval_queries,55
+retrieval_hit_rate,0.2364
+retrieval_mrr,0.1406
+retrieval_ndcg,0.1612
+retrieval_precision,0.0582
+retrieval_recall,0.2182
+coverage_queries,5
+coverage_correct_rate,1.0000

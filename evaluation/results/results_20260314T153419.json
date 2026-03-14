@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-03-12T09:35:16.700758",
+  "timestamp": "2026-03-14T15:34:19.970586",
   "k": 5,
-  "elapsed_seconds": 6.556055784225464,
+  "elapsed_seconds": 8.64301609992981,
   "metrics": {
     "total_queries": 60,
     "retrieval_queries": 55,
-    "retrieval_hit_rate": 0.41818181818181815,
-    "retrieval_mrr": 0.2684848484848485,
-    "retrieval_ndcg": 0.3031797878544846,
-    "retrieval_precision": 0.09454545454545454,
-    "retrieval_recall": 0.39090909090909093,
+    "retrieval_hit_rate": 0.23636363636363636,
+    "retrieval_mrr": 0.1406060606060606,
+    "retrieval_ndcg": 0.16119126637468464,
+    "retrieval_precision": 0.05818181818181818,
+    "retrieval_recall": 0.21818181818181817,
     "coverage_queries": 5,
     "coverage_correct_rate": 1.0
   },
@@ -21,34 +21,34 @@
       "hit": true,
       "precision": 0.2,
       "recall": 1.0,
-      "ndcg": 0.5,
-      "first_rank": 3,
+      "ndcg": 0.43067655807339306,
+      "first_rank": 4,
       "expected": [
         "ICA-96-1-art563"
       ],
       "retrieved_top3": [
         "ICA-96-1-art248",
         "ICA-96-1-art96",
-        "ICA-96-1-art563"
+        "ICA-63-46-art91"
       ]
     },
     {
       "query_id": "Q002",
       "query": "Como solicitar divulgação de informação aeronáutica?",
       "category": "retrieval",
-      "hit": true,
-      "precision": 0.2,
-      "recall": 0.5,
-      "ndcg": 0.38009376671593426,
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
       "first_rank": null,
       "expected": [
         "ICA-96-1-art563",
         "ICA-96-1-art591"
       ],
       "retrieved_top3": [
-        "ICA-96-1-art591",
-        "ICA-07-36",
-        "ICA-53-4-art1"
+        "ICA-53-4-art1",
+        "ICA-100-37-art570",
+        "ICA-102-16-art552"
       ]
     },
     {
@@ -64,9 +64,9 @@
         "ICA-96-1-art12"
       ],
       "retrieved_top3": [
-        "ICA-96-1-art85",
-        "ICA-96-1-art16",
-        "ICA-96-1-art173"
+        "ICA-105-17-art260",
+        "ICA-53-7-art27",
+        "ICA-105-17-art262"
       ]
     },
     {
@@ -85,7 +85,7 @@
       "retrieved_top3": [
         "ICA-96-1-art248",
         "ICA-96-1-art255",
-        "ICA-96-1-art249"
+        "ICA-100-37-art735"
       ]
     },
     {
@@ -147,18 +147,18 @@
       "query_id": "Q008",
       "query": "Para que servem as cartas de voo visual a baixas altitudes?",
       "category": "retrieval",
-      "hit": true,
-      "precision": 0.2,
-      "recall": 1.0,
-      "ndcg": 0.43067655807339306,
-      "first_rank": 4,
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
       "expected": [
         "ICA-96-1-art485"
       ],
       "retrieved_top3": [
-        "ICA-96-1-art104",
-        "ICA-96-1-art269",
-        "ICA-96-1-art107"
+        "ICA-100-37-art619",
+        "ICA-100-37-art13",
+        "ICA-100-37-art634"
       ]
     },
     {
@@ -192,9 +192,9 @@
         "ICA-96-1-art45"
       ],
       "retrieved_top3": [
+        "ICA-63-47-art162",
         "ICA-96-1-art75",
-        "ICA-96-1-art82",
-        "ICA-96-1-art76"
+        "ICA-53-7-art15"
       ]
     },
     {
@@ -231,7 +231,7 @@
       "retrieved_top3": [
         "ICA-100-47-art19",
         "ICA-100-47-art25",
-        "ICA-37-937"
+        "ICA-100-47-art16"
       ]
     },
     {
@@ -268,7 +268,7 @@
       "retrieved_top3": [
         "ICA-100-47-art14",
         "ICA-100-47-art13",
-        "ICA-100-47-art9"
+        "ICA-66-23-art149"
       ]
     },
     {
@@ -352,15 +352,15 @@
       "hit": true,
       "precision": 0.2,
       "recall": 1.0,
-      "ndcg": 0.6309297535714575,
-      "first_rank": 2,
+      "ndcg": 1.0,
+      "first_rank": 1,
       "expected": [
         "ICA-100-47-art6"
       ],
       "retrieved_top3": [
-        "ICA-37-924",
         "ICA-100-47-art6",
-        "ICA-100-47-art17"
+        "ICA-37-924-art3-1",
+        "ICA-37-924-art3-16"
       ]
     },
     {
@@ -370,15 +370,15 @@
       "hit": true,
       "precision": 0.2,
       "recall": 1.0,
-      "ndcg": 1.0,
-      "first_rank": 1,
+      "ndcg": 0.5,
+      "first_rank": 3,
       "expected": [
         "ICA-100-47-art24"
       ],
       "retrieved_top3": [
-        "ICA-100-47-art24",
+        "ICA-63-45-art13",
         "ICA-100-47-art19",
-        "ICA-100-47-art23"
+        "ICA-100-47-art24"
       ]
     },
     {
@@ -394,45 +394,45 @@
         "ICA-100-47-art9"
       ],
       "retrieved_top3": [
-        "ICA-100-47-art11",
         "ICA-100-47-art16",
-        "ICA-100-47-art7"
+        "ICA-100-47-art11",
+        "ICA-100-47-art12"
       ]
     },
     {
       "query_id": "Q022",
       "query": "Como funciona o comitê de segurança da informação no DECEA?",
       "category": "retrieval",
-      "hit": true,
-      "precision": 0.2,
-      "recall": 1.0,
-      "ndcg": 0.5,
-      "first_rank": 3,
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
       "expected": [
         "ICA-7-58"
       ],
       "retrieved_top3": [
-        "ICA-07-37",
-        "ICA-800-5",
-        "ICA-7-58"
+        "ICA-102-16-art13",
+        "ICA-63-51-art13",
+        "ICA-63-47-art7"
       ]
     },
     {
       "query_id": "Q023",
       "query": "O que é prestação de tarefa por tempo certo no Comando da Aeronáutica?",
       "category": "retrieval",
-      "hit": true,
-      "precision": 0.2,
-      "recall": 1.0,
-      "ndcg": 1.0,
-      "first_rank": 1,
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
       "expected": [
         "ICA-35-13"
       ],
       "retrieved_top3": [
-        "ICA-35-13",
         "ICA-96-1-art546",
-        "ICA-96-1-art15"
+        "ICA-100-31-art158",
+        "ICA-100-37-art827"
       ]
     },
     {
@@ -448,9 +448,9 @@
         "ICA-07-29"
       ],
       "retrieved_top3": [
-        "ICA-800-9",
-        "ICA-205-48",
-        "ICA-07-31"
+        "ICA-63-12-art1",
+        "ICA-800-3-art2",
+        "ICA-800-5-art2"
       ]
     },
     {
@@ -466,27 +466,27 @@
         "ICA-07-24-art1"
       ],
       "retrieved_top3": [
-        "ICA-07-31",
-        "ICA-12-37",
-        "ICA-63-43"
+        "ICA-800-5-art2",
+        "ICA-800-3-art2",
+        "ICA-100-24-art15"
       ]
     },
     {
       "query_id": "Q026",
       "query": "Como funciona o uso especial do espaço aéreo?",
       "category": "retrieval",
-      "hit": true,
-      "precision": 0.2,
-      "recall": 1.0,
-      "ndcg": 1.0,
-      "first_rank": 1,
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
       "expected": [
         "ICA-100-36"
       ],
       "retrieved_top3": [
-        "ICA-100-36",
-        "ICA-121-13",
-        "ICA-351-5"
+        "ICA-121-3-art14",
+        "ICA-105-2-art6",
+        "ICA-100-23-art18"
       ]
     },
     {
@@ -502,9 +502,9 @@
         "ICA-100-1-art1"
       ],
       "retrieved_top3": [
-        "ICA-100-47-art21",
-        "ICA-100-24-art1",
-        "ICA-96-1-art229"
+        "ICA-100-12-art120",
+        "ICA-100-12-art51",
+        "ICA-100-37-art641"
       ]
     },
     {
@@ -520,9 +520,9 @@
         "ICA-100-22-art1"
       ],
       "retrieved_top3": [
-        "ICA-07-28",
-        "ICA-12-36",
-        "ICA-81-4"
+        "ICA-102-16-art72",
+        "ICA-100-37-art558",
+        "ICA-100-37-art74"
       ]
     },
     {
@@ -538,9 +538,9 @@
         "ICA-100-23-art1"
       ],
       "retrieved_top3": [
-        "ICA-121-13",
-        "ICA-7-26",
-        "ICA-81-4"
+        "ICA-100-24-art1",
+        "ICA-100-24-art18",
+        "ICA-100-23-art11"
       ]
     },
     {
@@ -556,9 +556,9 @@
         "ICA-100-37-art1"
       ],
       "retrieved_top3": [
-        "ICA-121-13",
-        "ICA-12-36",
-        "ICA-351-5"
+        "ICA-105-2-art6",
+        "ICA-105-2-art48",
+        "ICA-100-37-art856"
       ]
     },
     {
@@ -574,45 +574,45 @@
         "ICA-100-40-art1"
       ],
       "retrieved_top3": [
-        "ICA-37-269",
-        "ICA-07-21",
-        "ICA-96-1-art326"
+        "ICA-100-37-art284",
+        "ICA-100-37-art1074",
+        "ICA-100-12-art29"
       ]
     },
     {
       "query_id": "Q032",
       "query": "Como funciona o sistema de telecomunicações aeronáuticas?",
       "category": "retrieval",
-      "hit": true,
-      "precision": 0.2,
-      "recall": 1.0,
-      "ndcg": 1.0,
-      "first_rank": 1,
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
       "expected": [
         "ICA-102-3"
       ],
       "retrieved_top3": [
-        "ICA-102-3",
-        "ICA-121-13",
-        "ICA-12-36"
+        "ICA-102-16-art6",
+        "ICA-100-37-art782",
+        "ICA-102-16-art72"
       ]
     },
     {
       "query_id": "Q033",
       "query": "Quais são os requisitos para operador de telecomunicações?",
       "category": "retrieval",
-      "hit": true,
-      "precision": 0.2,
-      "recall": 1.0,
-      "ndcg": 0.6309297535714575,
-      "first_rank": 2,
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
       "expected": [
         "ICA-102-7-art1"
       ],
       "retrieved_top3": [
-        "ICA-102-3",
-        "ICA-102-7-art1",
-        "ICA-64-5"
+        "ICA-102-16-art6",
+        "ICA-102-16-art79",
+        "ICA-100-31-art161"
       ]
     },
     {
@@ -628,9 +628,9 @@
         "ICA-105-2-art1"
       ],
       "retrieved_top3": [
-        "ICA-12-36",
-        "ICA-7-26",
-        "ICA-96-1-art118"
+        "ICA-105-17-art100",
+        "ICA-105-17-art245",
+        "ICA-105-15-art131"
       ]
     },
     {
@@ -646,9 +646,9 @@
         "ICA-16-6-art1"
       ],
       "retrieved_top3": [
-        "ICA-07-31",
-        "ICA-12-37",
-        "ICA-205-48"
+        "ICA-121-3-art1",
+        "ICA-800-3-art2",
+        "ICA-800-5-art2"
       ]
     },
     {
@@ -664,9 +664,9 @@
         "ICA-53-1-art1"
       ],
       "retrieved_top3": [
-        "ICA-63-33",
-        "ICA-96-1-art100",
-        "ICA-800-3"
+        "ICA-100-37-art1086",
+        "ICA-63-51-art13",
+        "ICA-102-16-art79"
       ]
     },
     {
@@ -682,63 +682,63 @@
         "ICA-53-7-art1"
       ],
       "retrieved_top3": [
-        "ICA-7-26",
-        "ICA-07-36",
-        "ICA-07-27"
+        "ICA-100-31-art151",
+        "ICA-100-31-art159",
+        "ICA-100-37-art182"
       ]
     },
     {
       "query_id": "Q038",
       "query": "Como funciona a prevenção de incursão em pista?",
       "category": "retrieval",
-      "hit": true,
-      "precision": 0.2,
-      "recall": 1.0,
-      "ndcg": 1.0,
-      "first_rank": 1,
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
       "expected": [
         "ICA-81-4"
       ],
       "retrieved_top3": [
-        "ICA-81-4",
-        "ICA-121-13",
-        "ICA-07-27"
+        "ICA-100-37-art1015",
+        "ICA-100-37-art277",
+        "ICA-100-37-art1026"
       ]
     },
     {
       "query_id": "Q039",
       "query": "Quais são as regras sobre proteção contra incêndio?",
       "category": "retrieval",
-      "hit": true,
-      "precision": 0.2,
-      "recall": 1.0,
-      "ndcg": 1.0,
-      "first_rank": 1,
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
       "expected": [
         "ICA-92-19"
       ],
       "retrieved_top3": [
-        "ICA-92-19",
-        "ICA-96-1-art217",
-        "ICA-96-1-art257"
+        "ICA-100-31-art151",
+        "ICA-100-37-art512",
+        "ICA-17-1-art184"
       ]
     },
     {
       "query_id": "Q040",
       "query": "Como funcionam as inspeções de segurança operacional?",
       "category": "retrieval",
-      "hit": true,
-      "precision": 0.2,
-      "recall": 1.0,
-      "ndcg": 0.38685280723454163,
-      "first_rank": 5,
+      "hit": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "ndcg": 0.0,
+      "first_rank": null,
       "expected": [
         "ICA-121-13"
       ],
       "retrieved_top3": [
-        "ICA-7-26",
-        "ICA-7-58",
-        "ICA-07-27"
+        "ICA-100-37-art903",
+        "ICA-121-3-art12",
+        "ICA-800-5-art48"
       ]
     },
     {
@@ -754,9 +754,9 @@
         "ICA-63-10-art1"
       ],
       "retrieved_top3": [
-        "ICA-63-29",
-        "ICA-63-12",
-        "ICA-66-24"
+        "ICA-63-46-art77",
+        "ICA-105-15-art7",
+        "ICA-53-4-art42"
       ]
     },
     {
@@ -772,9 +772,9 @@
         "ICA-63-15-art1"
       ],
       "retrieved_top3": [
-        "ICA-96-1-art487",
-        "ICA-96-1-art175",
-        "ICA-37-269"
+        "ICA-64-7-art1",
+        "ICA-63-47-art204",
+        "ICA-100-37-art904"
       ]
     },
     {
@@ -790,9 +790,9 @@
         "ICA-63-50-art1"
       ],
       "retrieved_top3": [
-        "ICA-81-4",
-        "ICA-07-37",
-        "ICA-07-27"
+        "ICA-100-37-art1110",
+        "ICA-100-37-art9",
+        "ICA-100-37-art735"
       ]
     },
     {
@@ -809,9 +809,9 @@
         "ICA-800-5"
       ],
       "retrieved_top3": [
-        "ICA-07-31",
-        "ICA-12-37",
-        "ICA-800-9"
+        "ICA-105-15-art124",
+        "ICA-53-8-art83",
+        "ICA-105-17-art34"
       ]
     },
     {
@@ -827,9 +827,9 @@
         "ICA-121-7-art1"
       ],
       "retrieved_top3": [
-        "ICA-37-269",
-        "ICA-7-26",
-        "ICA-07-27"
+        "ICA-100-24-art27",
+        "ICA-100-24-art1",
+        "ICA-100-24-art21"
       ]
     },
     {
@@ -845,9 +845,9 @@
         "ICA-96-1-art174"
       ],
       "retrieved_top3": [
-        "ICA-96-1-art437",
-        "ICA-96-1-art377",
-        "ICA-96-1-art89"
+        "ICA-100-37-art1012",
+        "ICA-100-37-art1022",
+        "ICA-100-23-art45"
       ]
     },
     {
@@ -881,9 +881,9 @@
         "ICA-96-1-art10"
       ],
       "retrieved_top3": [
-        "ICA-96-1-art1",
-        "ICA-96-1-art96",
-        "ICA-96-1-art88"
+        "ICA-53-8-art129",
+        "ICA-102-16-art25",
+        "ICA-105-15-art96"
       ]
     },
     {
@@ -919,7 +919,7 @@
       "retrieved_top3": [
         "ICA-96-1-art264",
         "ICA-96-1-art480",
-        "ICA-96-1-art122"
+        "ICA-102-16-art407"
       ]
     },
     {
@@ -933,9 +933,9 @@
       "first_rank": null,
       "expected": [],
       "retrieved_top3": [
-        "ICA-96-1-art94",
-        "ICA-96-1-art74",
-        "ICA-96-1-art92"
+        "ICA-63-46-art92",
+        "ICA-105-15-art116",
+        "ICA-100-37-art1150"
       ]
     },
     {
@@ -949,9 +949,9 @@
       "first_rank": null,
       "expected": [],
       "retrieved_top3": [
-        "ICA-96-1-art590",
-        "ICA-96-1-art562",
-        "ICA-63-46"
+        "ICA-63-46-art38",
+        "ICA-63-46-art37",
+        "ICA-96-1-art590"
       ]
     },
     {
@@ -966,8 +966,8 @@
       "expected": [],
       "retrieved_top3": [
         "ICA-96-1-art70",
-        "ICA-96-1-art156",
-        "ICA-96-1-art7"
+        "ICA-63-46-art71",
+        "ICA-100-31-art7"
       ]
     },
     {
@@ -981,9 +981,9 @@
       "first_rank": null,
       "expected": [],
       "retrieved_top3": [
-        "ICA-96-1-art571",
-        "ICA-96-1-art584",
-        "ICA-96-1-art609"
+        "ICA-100-12-art49",
+        "ICA-63-46-art38",
+        "ICA-12-35-art13"
       ]
     },
     {
@@ -997,9 +997,9 @@
       "first_rank": null,
       "expected": [],
       "retrieved_top3": [
+        "ICA-63-46-art38",
         "ICA-96-1-art609",
-        "ICA-07-28",
-        "ICA-96-1-art590"
+        "ICA-100-37-art857"
       ]
     },
     {
@@ -1015,9 +1015,9 @@
         "ICA-351-5"
       ],
       "retrieved_top3": [
-        "ICA-17-1",
-        "ICA-07-37",
-        "ICA-800-5"
+        "ICA-102-16-art13",
+        "ICA-63-47-art7",
+        "ICA-105-2-art32"
       ]
     },
     {
@@ -1027,16 +1027,16 @@
       "hit": true,
       "precision": 0.2,
       "recall": 0.5,
-      "ndcg": 0.7601875334318685,
-      "first_rank": 1,
+      "ndcg": 0.4796249331362629,
+      "first_rank": 2,
       "expected": [
         "ICA-37-924",
         "ICA-37-937"
       ],
       "retrieved_top3": [
-        "ICA-37-924",
         "ICA-100-47-art6",
-        "ICA-100-47-art17"
+        "ICA-37-924-art3-16",
+        "ICA-37-924-art3-1"
       ]
     },
     {
@@ -1052,9 +1052,9 @@
         "ICA-63-45-art1"
       ],
       "retrieved_top3": [
-        "ICA-81-4",
-        "ICA-7-26",
-        "ICA-07-28"
+        "ICA-100-24-art1",
+        "ICA-121-3-art18",
+        "ICA-121-3-art81"
       ]
     },
     {
@@ -1070,9 +1070,9 @@
         "ICA-100-45-art1"
       ],
       "retrieved_top3": [
-        "ICA-37-269",
-        "ICA-07-28",
-        "ICA-81-4"
+        "ICA-100-37-art7",
+        "ICA-100-31-art159",
+        "ICA-102-16-art402"
       ]
     },
     {
@@ -1089,8 +1089,8 @@
       ],
       "retrieved_top3": [
         "ICA-96-1-art261",
-        "ICA-96-1-art591",
-        "ICA-96-1-art484"
+        "ICA-102-16-art127",
+        "ICA-100-37-art735"
       ]
     }
   ]
