@@ -501,15 +501,34 @@ Documento JSON/XML/PDF
   1. Parsing (extrair texto e metadados)
         │
         ▼
-  2. Chunking (dividir em trechos de ~512 tokens)
+  2. Quality Gate (QualityValidator)
+        │    - Rejeita documentos GARBAGE (OCR falho, ratio alfabético < 15%)
+        │    - Classifica em GARBAGE / LOW / MEDIUM / GOOD
+        ▼
+  3. Text Cleaning (TextCleaner)
+        │    - Normalização Unicode (NFKC)
+        │    - Remoção de control chars (\x03 → espaço, demais removidos)
+        │    - Remoção de texto garbled (ROT-3 / fontes sem ToUnicode CMap)
+        │    - Remoção de headers institucionais repetidos
+        │    - Remoção de page numbers (ex: "10/26")
+        │    - Remoção de linhas TOC com reticências
+        │    - Correção de hifenização de quebra de linha
+        │    - Padronização de aspas e travessões
+        │    - Normalização de whitespace
+        ▼
+  4. Chunking (dividir em trechos de ~512 tokens)
         │    - ArticleChunker: para legislação (divide por artigos)
         │    - ICAChunker: para ICAs (divide por seções/capítulos)
         ▼
-  3. Embedding (gerar vetor de 1024 dimensões para cada chunk)
+  5. Embedding (gerar vetor de 1024 dimensões para cada chunk)
         │
         ▼
-  4. Upload (upsert no Qdrant com metadados)
+  6. Upload (upsert no Qdrant com metadados)
 ```
+
+> **Nota:** Os dados brutos em `data/decea/` nunca são modificados. A limpeza é
+> aplicada em memória durante a ingestão, antes do embedding. O script
+> `validate_data.py` permite gerar snapshots limpos para inspeção e comparação.
 
 ### Chunkers disponíveis:
 
@@ -672,6 +691,7 @@ python main.py
 | `ingest_decea.py` | `python -m scripts.ingest_decea` | Baixa e ingere documentos DECEA (alternativa: `make collect-decea`) |
 | `ingest_lexml.py` | `python -m scripts.ingest_lexml` | Baixa e ingere documentos LexML |
 | `ingest_pdfs.py` | `python -m scripts.ingest_pdfs --source DIR` | Ingere PDFs de um diretório |
+| `validate_data.py` | `python -m scripts.validate_data` | Valida qualidade e limpeza dos documentos |
 | `reset_database.py` | `python -m scripts.reset_database --confirm` | Reseta o banco vetorial |
 | `inspect_qdrant.py` | `python -m scripts.inspect_qdrant` | Inspeciona dados do Qdrant |
 | `test_system.py` | `python -m scripts.test_system` | Testa todos os componentes |
@@ -710,6 +730,15 @@ python -m scripts.test_chatbot
 
 # 8. Resetar tudo e re-ingerir
 python -m scripts.reset_database --confirm --clear-tracker
+
+# 9. Validar qualidade dos documentos (relatório no terminal)
+python -m scripts.validate_data --report-only
+
+# 10. Validar + limpar e salvar snapshot para comparação
+python -m scripts.validate_data --clean --output-dir data/cleaned/v1
+
+# 11. Apenas relatório com limpeza aplicada (sem salvar arquivos)
+python -m scripts.validate_data --clean --report-only
 ```
 
 ---
