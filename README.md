@@ -28,7 +28,9 @@
 
 O Aviation RAG System é uma plataforma que combina:
 
-- **Busca semântica vetorial** — Encontra trechos de documentos similares à pergunta do usuário usando embeddings
+- **Busca semântica vetorial** — Encontra trechos de documentos similares à pergunta do usuário usando embeddings (dense vectors)
+- **Busca por keywords (opcional)** — Busca BM25 via sparse vectors para termos exatos, siglas e referências a artigos
+- **Busca híbrida (opcional)** — Combina busca semântica + keywords usando Reciprocal Rank Fusion (RRF)
 - **Geração aumentada por recuperação (RAG)** — Usa os trechos recuperados como contexto para um LLM gerar respostas fundamentadas
 - **Chat conversacional** — Mantém histórico de conversa por sessão, com streaming em tempo real
 
@@ -170,10 +172,15 @@ cp env.example .env
 | Variável | Tipo | Padrão | Descrição |
 |----------|------|--------|-----------|
 | `SEARCH_TOP_K` | int | `5` | Número de resultados retornados |
-| `SEARCH_SCORE_THRESHOLD` | float | `0.3` | Score mínimo de similaridade (0-1) |
+| `SEARCH_SCORE_THRESHOLD` | float | `0.3` | Score mínimo de similaridade (apenas busca dense-only) |
+| `SEARCH_DENSE_ENABLED` | bool | `true` | Habilita busca semântica (dense vectors) |
+| `SEARCH_SPARSE_ENABLED` | bool | `false` | Habilita busca por keywords/BM25 (sparse vectors via fastembed) |
+| `SPARSE_EMBEDDING_MODEL` | string | `Qdrant/bm25` | Modelo de sparse embeddings (usado quando `SEARCH_SPARSE_ENABLED=true`) |
 | `HNSW_M` | int | `16` | Parâmetro M do índice HNSW |
 | `HNSW_EF_CONSTRUCT` | int | `100` | Parâmetro ef_construct do HNSW |
 | `HNSW_EF_SEARCH` | int | `64` | Parâmetro ef para busca no HNSW |
+
+> **Busca híbrida:** Quando ambos `SEARCH_DENSE_ENABLED` e `SEARCH_SPARSE_ENABLED` estão habilitados, o sistema combina os resultados usando Reciprocal Rank Fusion (RRF) via Qdrant Query API. Isso melhora a recuperação de termos exatos (siglas, artigos, nomes de ICAs) que a busca semântica pura pode perder. A coleção deve ser recriada ao habilitar sparse pela primeira vez (`python -m scripts.setup_qdrant --recreate`).
 
 #### Chunking
 

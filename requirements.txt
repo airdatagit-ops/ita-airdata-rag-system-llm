@@ -15,6 +15,7 @@ python-dotenv>=1.0.0
 python-multipart>=0.0.6
 jinja2>=3.1.0
 slowapi>=0.1.9
+fastembed==0.7.4
 
 # ========================================
 # HTTP / Web Scraping

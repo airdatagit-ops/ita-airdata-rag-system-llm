@@ -33,6 +33,7 @@ class TestGeneratePointId:
 
 PATCHES = [
     "pipeline.ingestion.EmbeddingModel",
+    "pipeline.ingestion.SparseEncoder",
     "pipeline.ingestion.QdrantManager",
     "pipeline.ingestion.LexMLParser",
     "pipeline.ingestion.PDFParser",
@@ -45,7 +46,8 @@ PATCHES = [
 def pipeline():
     with patch.multiple("pipeline.ingestion", **{cls.rsplit(".", 1)[-1]: MagicMock() for cls in PATCHES}):
         p = IngestionPipeline()
-        p.embedding_model = MagicMock()
+        p.dense_model = MagicMock()
+        p.sparse_model = None
         p.db = MagicMock()
         p.lexml_parser = MagicMock()
         p.pdf_parser = MagicMock()
@@ -57,7 +59,15 @@ def pipeline():
 # _load_and_chunk
 # ---------------------------------------------------------------------------
 
-def _make_json(content="x" * 100, slug="ICA-1-1", doc_type="ICA", **extra):
+_VALID_CONTENT = (
+    "Art 1 Esta instrucao estabelece os procedimentos para operacao de aeronaves "
+    "no espaco aereo brasileiro conforme as normas vigentes do Comando da Aeronautica "
+    "e regulamentacoes do DECEA aplicaveis a todos os operadores e pilotos certificados "
+    "que atuam em territorio nacional ou sob jurisdicao brasileira"
+)
+
+
+def _make_json(content=_VALID_CONTENT, slug="ICA-1-1", doc_type="ICA", **extra):
     doc = {"content": content, "slug": slug, "type": doc_type, "title": "T", **extra}
     return json.dumps(doc)
 
@@ -119,13 +129,13 @@ class TestIngestJsonDocuments:
             f.write_text(_make_json(slug=f"DOC-{i}"))
             files.append(str(f))
 
-        pipeline.embedding_model.encode.return_value = np.random.rand(3, 4)
+        pipeline.dense_model.encode.return_value = np.random.rand(3, 4)
 
         result = pipeline.ingest_json_documents(files)
 
         assert result == 3
-        pipeline.embedding_model.encode.assert_called_once()
-        assert len(pipeline.embedding_model.encode.call_args[0][0]) == 3
+        pipeline.dense_model.encode.assert_called_once()
+        assert len(pipeline.dense_model.encode.call_args[0][0]) == 3
         pipeline.db.upsert_points.assert_called_once()
         assert len(pipeline.db.upsert_points.call_args[0][0]) == 3
 
@@ -137,7 +147,7 @@ class TestIngestJsonDocuments:
         result = pipeline.ingest_json_documents([str(f)])
 
         assert result == 0
-        pipeline.embedding_model.encode.assert_not_called()
+        pipeline.dense_model.encode.assert_not_called()
         pipeline.db.upsert_points.assert_not_called()
 
     @patch("pipeline.ingestion.get_chunker")
@@ -151,7 +161,7 @@ class TestIngestJsonDocuments:
         chunker = MagicMock()
         chunker.chunk.return_value = [{"text": "ok", "regulation_id": "g"}]
         mock_get_chunker.return_value = chunker
-        pipeline.embedding_model.encode.return_value = np.random.rand(1, 4)
+        pipeline.dense_model.encode.return_value = np.random.rand(1, 4)
 
         result = pipeline.ingest_json_documents([str(bad), str(good)])
         assert result == 1
@@ -161,7 +171,7 @@ class TestIngestJsonDocuments:
         chunker = MagicMock()
         chunker.chunk.return_value = [{"text": "same text", "regulation_id": "X"}]
         mock_get_chunker.return_value = chunker
-        pipeline.embedding_model.encode.return_value = np.random.rand(1, 4)
+        pipeline.dense_model.encode.return_value = np.random.rand(1, 4)
 
         f = tmp_path / "doc.json"
         f.write_text(_make_json(slug="X"))
@@ -185,12 +195,12 @@ class TestIngestLexml:
     def test_batch_encode_and_upsert(self, pipeline):
         pipeline.lexml_parser.parse_xml.return_value = [{"text": "art1"}]
         pipeline.chunker.chunk.return_value = [{"text": "c1", "regulation_id": "r1"}]
-        pipeline.embedding_model.encode.return_value = np.random.rand(2, 4)
+        pipeline.dense_model.encode.return_value = np.random.rand(2, 4)
 
         result = pipeline.ingest_lexml(["a.xml", "b.xml"])
 
         assert result == 2
-        pipeline.embedding_model.encode.assert_called_once()
+        pipeline.dense_model.encode.assert_called_once()
         pipeline.db.upsert_points.assert_called_once()
 
     def test_returns_zero_when_no_chunks(self, pipeline):
@@ -209,12 +219,12 @@ class TestIngestPdfs:
             {"text": "sec1", "regulation_id": "p1"},
             {"text": "sec2", "regulation_id": "p2"},
         ]
-        pipeline.embedding_model.encode.return_value = np.random.rand(2, 4)
+        pipeline.dense_model.encode.return_value = np.random.rand(2, 4)
 
         result = pipeline.ingest_pdfs(["doc.pdf"])
 
         assert result == 2
-        pipeline.embedding_model.encode.assert_called_once()
+        pipeline.dense_model.encode.assert_called_once()
         pipeline.db.upsert_points.assert_called_once()
 
     def test_returns_zero_on_parse_error(self, pipeline):
@@ -223,7 +233,7 @@ class TestIngestPdfs:
 
     def test_generates_id_when_missing(self, pipeline):
         pipeline.pdf_parser.parse_pdf.return_value = [{"text": "no id section"}]
-        pipeline.embedding_model.encode.return_value = np.random.rand(1, 4)
+        pipeline.dense_model.encode.return_value = np.random.rand(1, 4)
 
         pipeline.ingest_pdfs(["doc.pdf"])
         points = pipeline.db.upsert_points.call_args[0][0]
