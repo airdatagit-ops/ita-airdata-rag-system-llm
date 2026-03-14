@@ -691,7 +691,7 @@ python main.py
 | `ingest_decea.py` | `python -m scripts.ingest_decea` | Baixa e ingere documentos DECEA (alternativa: `make collect-decea`) |
 | `ingest_lexml.py` | `python -m scripts.ingest_lexml` | Baixa e ingere documentos LexML |
 | `ingest_pdfs.py` | `python -m scripts.ingest_pdfs --source DIR` | Ingere PDFs de um diretório |
-| `validate_data.py` | `python -m scripts.validate_data` | Valida qualidade e limpeza dos documentos |
+| `validate_data.py` | `python -m scripts.validate_data` | Valida qualidade e limpeza dos documentos (alternativa: `make validate-data`) |
 | `reset_database.py` | `python -m scripts.reset_database --confirm` | Reseta o banco vetorial |
 | `inspect_qdrant.py` | `python -m scripts.inspect_qdrant` | Inspeciona dados do Qdrant |
 | `test_system.py` | `python -m scripts.test_system` | Testa todos os componentes |
