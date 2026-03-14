@@ -34,6 +34,11 @@ from models.embeddings import EmbeddingModel
 from database.qdrant_manager import QdrantManager
 from config import config
 
+try:
+    from models.embeddings import SparseEncoder
+except ImportError:
+    SparseEncoder = None
+
 
 @dataclass
 class GoldenSetItem:
@@ -81,17 +86,55 @@ class EvaluationResult:
     query_results: List[QueryResult] = field(default_factory=list)
 
 
+def _extract_doc_id(regulation_id: str) -> str:
+    """Extract document-level ID by stripping the article suffix.
+
+    'ICA-96-1-art563' -> 'ICA-96-1'
+    'ICA-7-58-art2-0' -> 'ICA-7-58'
+    'ICA-7-58'        -> 'ICA-7-58'
+    """
+    return regulation_id.split("-art")[0]
+
+
+def _is_doc_level_id(doc_id: str) -> bool:
+    """True when the expected ID has no article suffix."""
+    return "-art" not in doc_id
+
+
+def _matches_expected(retrieved_id: str, expected_id: str) -> bool:
+    """Match a retrieved chunk against an expected ID.
+
+    Article-level IDs require exact match; document-level IDs accept any
+    chunk from the same document.
+    """
+    if _is_doc_level_id(expected_id):
+        return _extract_doc_id(retrieved_id) == expected_id
+    return retrieved_id == expected_id
+
+
+def _any_match(retrieved_id: str, expected_ids) -> bool:
+    """True if retrieved_id matches ANY of the expected IDs."""
+    return any(_matches_expected(retrieved_id, eid) for eid in expected_ids)
+
+
 def _compute_ndcg(retrieved_ids: List[str], relevant: List[str], moderate: List[str], k: int) -> float:
-    """Compute NDCG@K with graded relevance (relevant=2, moderate=1)."""
+    """Compute NDCG@K with graded relevance (relevant=2, moderate=1).
+
+    Each expected doc is counted at most once (first matching chunk wins).
+    """
+    matched_relevant = set()
+    matched_moderate = set()
     dcg = 0.0
     for i, doc_id in enumerate(retrieved_ids[:k]):
-        if doc_id in relevant:
-            rel = 2.0
-        elif doc_id in moderate:
-            rel = 1.0
-        else:
-            rel = 0.0
-        dcg += rel / math.log2(i + 2)
+        matched_exp = _first_unmatched(doc_id, relevant, matched_relevant)
+        if matched_exp:
+            matched_relevant.add(matched_exp)
+            dcg += 2.0 / math.log2(i + 2)
+            continue
+        matched_exp = _first_unmatched(doc_id, moderate, matched_moderate)
+        if matched_exp:
+            matched_moderate.add(matched_exp)
+            dcg += 1.0 / math.log2(i + 2)
 
     ideal_rels = sorted(
         [2.0] * len(relevant) + [1.0] * len(moderate),
@@ -100,6 +143,14 @@ def _compute_ndcg(retrieved_ids: List[str], relevant: List[str], moderate: List[
 
     idcg = sum(r / math.log2(i + 2) for i, r in enumerate(ideal_rels))
     return dcg / idcg if idcg > 0 else 0.0
+
+
+def _first_unmatched(retrieved_id: str, expected_ids: List[str], already_matched: set) -> Optional[str]:
+    """Return the first expected ID that matches and hasn't been matched yet."""
+    for eid in expected_ids:
+        if eid not in already_matched and _matches_expected(retrieved_id, eid):
+            return eid
+    return None
 
 
 class RetrievalEvaluator:
@@ -144,7 +195,7 @@ class RetrievalEvaluator:
         self,
         query_id: str,
         k: int,
-        query_embedding: np.ndarray,
+        query_embedding,
         qdrant_manager: QdrantManager
     ) -> QueryResult:
         """Evaluate a single query using a pre-computed embedding."""
@@ -157,11 +208,17 @@ class RetrievalEvaluator:
         moderate_set = set(moderate_expected)
         all_expected_set = relevant_set | moderate_set
 
-        raw_results = qdrant_manager.search(
-            query_vector=query_embedding.tolist(),
-            limit=k,
-            score_threshold=config.SEARCH_SCORE_THRESHOLD,
-        )
+        search_kwargs = {"limit": k}
+        if self._hybrid_mode or self._sparse_mode:
+            if query_embedding.get("dense") is not None:
+                search_kwargs["dense_vector"] = query_embedding["dense"].tolist()
+            if query_embedding.get("sparse") is not None:
+                search_kwargs["sparse_vector"] = query_embedding["sparse"]
+        else:
+            dense = query_embedding.get("dense")
+            search_kwargs["query_vector"] = dense.tolist() if hasattr(dense, 'tolist') else dense
+            search_kwargs["score_threshold"] = config.SEARCH_SCORE_THRESHOLD
+        raw_results = qdrant_manager.search(**search_kwargs)
         retrieved_ids = [r.payload.get('regulation_id', '') for r in raw_results]
         retrieved_scores = [(r.payload.get('regulation_id', ''), r.score) for r in raw_results]
 
@@ -175,17 +232,30 @@ class RetrievalEvaluator:
                 precision_at_k=0.0, recall=0.0, ndcg_at_k=0.0, hit=False,
             )
 
-        relevant_found = [d for d in retrieved_ids if d in relevant_set]
-        moderate_found = [d for d in retrieved_ids if d in moderate_set]
+        relevant_found = []
+        moderate_found = []
+        seen_relevant = set()
+        seen_moderate = set()
+        for d in retrieved_ids:
+            exp = _first_unmatched(d, list(relevant_set), seen_relevant)
+            if exp:
+                relevant_found.append(d)
+                seen_relevant.add(exp)
+                continue
+            exp = _first_unmatched(d, list(moderate_set), seen_moderate)
+            if exp:
+                moderate_found.append(d)
+                seen_moderate.add(exp)
 
         first_relevant_rank = next(
-            (i for i, d in enumerate(retrieved_ids, 1) if d in relevant_set),
+            (i for i, d in enumerate(retrieved_ids, 1) if _any_match(d, relevant_set)),
             None
         )
 
-        matched = sum(1 for d in retrieved_ids if d in all_expected_set)
+        all_expected = relevant_set | moderate_set
+        matched = len(seen_relevant) + len(seen_moderate)
         precision_at_k = matched / k if k > 0 else 0.0
-        recall = matched / len(all_expected_set) if all_expected_set else 0.0
+        recall = matched / len(all_expected) if all_expected else 0.0
         ndcg = _compute_ndcg(retrieved_ids, relevant_expected, moderate_expected, k)
         hit = bool(relevant_found or moderate_found)
 
@@ -200,13 +270,14 @@ class RetrievalEvaluator:
             ndcg_at_k=ndcg, hit=hit,
         )
 
-    def evaluate(self, k: int = 5, workers: int = 1) -> EvaluationResult:
+    def evaluate(self, k: int = 5, workers: int = 1, search_mode: str = "auto") -> EvaluationResult:
         """
         Run full evaluation. Embeddings are batched, search parallelized.
 
         Args:
             k: Number of results to retrieve per query
             workers: Number of parallel workers for Qdrant search
+            search_mode: "dense", "sparse", "hybrid", or "auto" (from config)
         """
         start = time.time()
         logger.info(f"Starting evaluation: k={k}, workers={workers}")
@@ -214,10 +285,39 @@ class RetrievalEvaluator:
         query_ids = list(self.golden_set.keys())
         queries = [self.golden_set[qid][0].query for qid in query_ids]
 
-        # Batch encode all queries at once
-        logger.info(f"Encoding {len(queries)} queries in batch...")
-        embed_model = EmbeddingModel()
-        embeddings = embed_model.encode(queries)
+        if search_mode == "auto":
+            use_dense = getattr(config, 'SEARCH_DENSE_ENABLED', True)
+            use_sparse = getattr(config, 'SEARCH_SPARSE_ENABLED', False)
+        else:
+            use_dense = search_mode in ("dense", "hybrid")
+            use_sparse = search_mode in ("sparse", "hybrid")
+
+        if use_sparse and SparseEncoder is None:
+            logger.warning("SparseEncoder not available — falling back to dense-only")
+            use_sparse = False
+            use_dense = True
+
+        self._sparse_mode = use_sparse and not use_dense
+        self._hybrid_mode = use_dense and use_sparse
+
+        mode_label = "hybrid" if self._hybrid_mode else ("sparse" if self._sparse_mode else "dense")
+        logger.info(f"Encoding {len(queries)} queries in batch (mode={mode_label})...")
+
+        dense_embeddings = None
+        sparse_embeddings = None
+        if use_dense:
+            embed_model = EmbeddingModel()
+            dense_embeddings = embed_model.encode(queries)
+        if use_sparse:
+            sparse_model = SparseEncoder()
+            sparse_embeddings = sparse_model.encode(queries)
+
+        embeddings = []
+        for i in range(len(queries)):
+            embeddings.append({
+                "dense": dense_embeddings[i] if dense_embeddings is not None else None,
+                "sparse": sparse_embeddings[i] if sparse_embeddings is not None else None,
+            })
         logger.info(f"Encoded {len(queries)} queries")
 
         qdrant = QdrantManager()
@@ -430,12 +530,15 @@ def main():
     parser.add_argument('--workers', type=int, default=4,
                        help="Number of parallel workers for search")
     parser.add_argument('--quiet', action='store_true', help="Suppress detailed output")
+    parser.add_argument('--search-mode', type=str, default="auto",
+                       choices=["auto", "dense", "sparse", "hybrid"],
+                       help="Search mode: auto (from config), dense, sparse, or hybrid")
 
     args = parser.parse_args()
 
     try:
         evaluator = RetrievalEvaluator(args.golden_set)
-        result = evaluator.evaluate(k=args.k, workers=args.workers)
+        result = evaluator.evaluate(k=args.k, workers=args.workers, search_mode=args.search_mode)
 
         if not args.quiet:
             print_report(result)

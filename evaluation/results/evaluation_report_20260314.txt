@@ -1,0 +1,135 @@
+================================================================================
+  RELATÓRIO DE AVALIAÇÃO DE RETRIEVAL - RAG Aviation System
+  Data: 2026-03-14
+================================================================================
+
+1. CONTEXTO
+--------------------------------------------------------------------------------
+Avaliação comparativa de 3 modalidades de busca sobre os mesmos dados
+indexados (99 documentos DECEA, 6.534 chunks), com pipeline de limpeza
+de dados ativo (TextCleaner + QualityValidator + ROT-3).
+
+  - Golden Set: 60 queries (55 retrieval + 5 coverage)
+  - K: 5 (top-5 resultados)
+  - Embedding denso: Legal-BERTimbau-sts-large-ma-v3 (1024 dim, cosine)
+  - Embedding esparso: Qdrant/bm25 (FastEmbed)
+  - Fusão híbrida: Reciprocal Rank Fusion (RRF) via Qdrant
+  - Collection: aviation_regulations (Qdrant, named vectors: dense+sparse)
+  - Documentos rejeitados: 5 (4 garbage/OCR falho + 1 low quality)
+
+
+2. RESULTADOS COMPARATIVOS
+--------------------------------------------------------------------------------
+
+  Métrica            | Dense-only | Sparse-only | Híbrido (RRF)
+  -------------------|------------|-------------|---------------
+  Hit Rate@5         |    21.8%   |    23.6%    |    27.3%
+  MRR                |    0.1315  |    0.1333   |    0.1800
+  NDCG@5             |    0.1525  |    0.1556   |    0.2033
+  Precision@5        |    5.5%    |    5.5%     |    6.9%
+  Recall             |    20.9%   |    21.8%    |    26.4%
+  Coverage (Not Found)|   100%    |    100%     |    100%
+
+  Baseline anterior*  | Hit Rate 41.8% | MRR 0.268 | NDCG 0.303
+
+  * Baseline da branch feature/quality-evaluation antes das mudanças de
+    limpeza e chunking. A diferença se deve principalmente à alteração
+    nos IDs dos chunks (ver seção 4).
+
+
+3. ANÁLISE POR MODALIDADE
+--------------------------------------------------------------------------------
+
+  3.1 Dense-only (Legal-BERTimbau)
+  --------------------------------
+  - 12 hits / 55 queries
+  - Hits exclusivos (não encontrados pelo sparse): Q009, Q013, Q014, Q019
+  - Forte em queries semânticas complexas onde o significado importa
+    mais que as palavras exatas.
+  - Fraco em queries com termos técnicos/siglas específicas.
+
+  3.2 Sparse-only (BM25)
+  --------------------------------
+  - 13 hits / 55 queries
+  - Hits exclusivos (não encontrados pelo dense): Q008, Q010, Q011, Q021, Q043
+  - Forte em match exato de termos: siglas (IFCTA, ATCO, GeoPDF, HT),
+    números de artigo, nomes próprios de ICAs.
+  - Fraco em queries que usam sinônimos ou paráfrases do conteúdo.
+  - Extremamente rápido: encoding <1s, busca <0.5s.
+
+  3.3 Híbrido (Dense + Sparse, RRF)
+  --------------------------------
+  - 15 hits / 55 queries (+25% vs dense, +15% vs sparse)
+  - Captura a maioria dos hits de ambos os modos.
+  - Perdas do RRF: Q009 (do dense) e Q043 (do sparse) não ranquearam
+    alto o suficiente na fusão.
+  - Melhor MRR (0.18 vs 0.13) indica que os hits aparecem em posições
+    melhores no ranking.
+
+
+4. OBSERVAÇÕES IMPORTANTES
+--------------------------------------------------------------------------------
+
+  4.1 Mismatch de IDs no Golden Set
+  ----------------------------------
+  Muitos "misses" encontram o documento correto mas com ID de chunk
+  diferente do esperado. Exemplos:
+
+    Q022: esperava ICA-7-58        → retornou ICA-7-58-art2-0       (mesmo doc!)
+    Q023: esperava ICA-35-13       → retornou ICA-35-13-art3-0      (mesmo doc!)
+    Q031: esperava ICA-100-40-art1 → retornou ICA-100-40-art3-3     (mesmo doc!)
+    Q038: esperava ICA-81-4        → retornou ICA-81-4-art3-6       (mesmo doc!)
+    Q042: esperava ICA-63-15-art1  → retornou ICA-63-15-art3-6      (mesmo doc!)
+    Q057: esperava ICA-37-924      → retornou ICA-37-924-art3-6     (mesmo doc!)
+
+  Se a avaliação usasse match por prefixo de regulation_id (nível de
+  documento em vez de chunk), o hit rate seria significativamente maior
+  em todos os 3 modos.
+
+  RECOMENDAÇÃO: Atualizar o golden set para refletir os IDs de chunk
+  atuais, ou implementar avaliação com match por prefixo.
+
+  4.2 Degradação vs. Baseline Anterior
+  --------------------------------------
+  A baseline anterior (Hit Rate 41.8%) foi avaliada ANTES das mudanças de:
+  - TextCleaner (remoção de headers, footers, page numbers, ROT-3)
+  - QualityValidator (rejeição de documentos garbage/low quality)
+  - Reestruturação de chunks/IDs
+
+  A degradação NÃO indica que a limpeza piorou a qualidade real.
+  Indica que o golden set precisa ser recalibrado para os novos IDs.
+
+  4.3 Custo computacional
+  ------------------------
+  - Sparse-only: ~0.3s (encoding + busca)
+  - Dense-only:  ~6s (encoding 3s + busca 0.3s)
+  - Híbrido:     ~6s (encoding dense 3s + sparse <0.1s + busca 0.4s)
+
+  O overhead do sparse no modo híbrido é desprezível (~0.1s).
+
+
+5. CONCLUSÕES E PRÓXIMOS PASSOS
+--------------------------------------------------------------------------------
+
+  5.1 Conclusões
+  ---------------
+  ✓ Busca híbrida (RRF) é consistentemente superior às buscas isoladas
+  ✓ Dense e sparse são complementares (cada um encontra hits que o outro perde)
+  ✓ BM25 surpreendentemente competitivo com embeddings neurais neste domínio
+  ✓ Custo do sparse no modo híbrido é desprezível
+  ✓ Coverage 100%: o sistema não retorna documentos irrelevantes para
+    queries que não deveriam ter resultado
+
+  5.2 Próximos Passos Recomendados
+  ---------------------------------
+  [ ] Recalibrar o golden set para os novos IDs de chunk
+  [ ] Implementar avaliação com match por prefixo (document-level hit rate)
+  [ ] Testar com K=10 e K=20 para entender a curva de recall
+  [ ] Avaliar parent-child retrieval (busca no child, contexto do parent)
+  [ ] Extrair metadata estruturada para filtragem mais precisa
+  [ ] Avaliar re-ranking com cross-encoder após o retrieval inicial
+
+
+================================================================================
+  Gerado automaticamente em 2026-03-14 15:22
+================================================================================
