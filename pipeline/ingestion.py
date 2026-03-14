@@ -11,6 +11,8 @@ from tqdm import tqdm
 from models.embeddings import EmbeddingModel
 from parsers import LexMLParser, PDFParser
 from pipeline.chunking import ArticleChunker, ICAChunker, get_chunker
+from pipeline.text_cleaner import TextCleaner
+from pipeline.quality import QualityValidator, QualityLevel
 from database.qdrant_manager import QdrantManager
 
 
@@ -24,14 +26,24 @@ def generate_point_id(text: str) -> str:
 class IngestionPipeline:
     """End-to-end pipeline for ingesting documents."""
 
-    def __init__(self):
-        self.embedding_model = EmbeddingModel()
+    def __init__(self, enable_cleaning: bool = True, enable_embedding: bool = True):
+        self.text_cleaner = TextCleaner()
+        self.quality_validator = QualityValidator()
+        self.enable_cleaning = enable_cleaning
+        self.enable_embedding = enable_embedding
+
+        if enable_embedding:
+            self.embedding_model = EmbeddingModel()
+            self.db = QdrantManager()
+
         self.lexml_parser = LexMLParser()
         self.pdf_parser = PDFParser()
         self.chunker = ArticleChunker()
-        self.ica_chunker = ICAChunker()  # Specialized chunker for ICAs
-        self.db = QdrantManager()
-        logger.info("IngestionPipeline initialized")
+        self.ica_chunker = ICAChunker()
+        logger.info(
+            f"IngestionPipeline initialized "
+            f"(cleaning={enable_cleaning}, embedding={enable_embedding})"
+        )
 
     def ingest_lexml(self, xml_paths: List[str]) -> int:
         """Ingest LexML XML documents."""
@@ -69,7 +81,7 @@ class IngestionPipeline:
         return len(points)
 
     def _load_and_chunk(self, json_path: str) -> List[Dict]:
-        """Load a JSON document and return its chunks (no embedding yet)."""
+        """Load a JSON document, validate, clean, and chunk it."""
         with open(json_path, 'r', encoding='utf-8') as f:
             doc = json.load(f)
 
@@ -80,6 +92,22 @@ class IngestionPipeline:
 
         doc_id = doc.get('urn') or doc.get('slug') or doc.get('url') or Path(json_path).stem
         doc_id = doc_id.replace(':', '_').replace('/', '_').replace('?', '_')[:100]
+
+        # Quality gate: reject garbage documents
+        quality = self.quality_validator.validate(content, doc_id=doc_id)
+        if not quality.is_acceptable:
+            logger.warning(
+                f"Rejected {doc_id} [{quality.level.value}]: {quality.reject_reason}"
+            )
+            return []
+
+        # Clean text if enabled
+        if self.enable_cleaning:
+            content, stats = self.text_cleaner.clean(content, doc_id=doc_id)
+            if len(content) < 50:
+                logger.warning(f"Skipping {doc_id}: content too short after cleaning")
+                return []
+
         doc_type = doc.get('type', '') or doc.get('doc_type', '')
 
         article = {
@@ -97,7 +125,8 @@ class IngestionPipeline:
                 "description": doc.get('description'),
                 "origin": doc.get('origin'),
                 "source": doc.get('source', 'web'),
-                "chunk_type": "document"
+                "chunk_type": "document",
+                "quality_level": quality.level.value,
             }
         }
 
@@ -108,23 +137,29 @@ class IngestionPipeline:
         """
         Ingest JSON documents (from web scraping).
 
-        Processes in three phases for performance:
-        1. Read all JSONs and chunk them
-        2. Batch-encode all texts in a single model call
-        3. Batch-upsert all points to Qdrant
+        Processes in phases:
+        1. Read all JSONs, validate, clean, and chunk them
+        2. Batch-encode all texts in a single model call (if embedding enabled)
+        3. Batch-upsert all points to Qdrant (if embedding enabled)
         """
         all_chunks = []
 
-        for json_path in tqdm(json_paths, desc="Chunking Documents"):
+        for json_path in tqdm(json_paths, desc="Processing Documents"):
             try:
                 chunks = self._load_and_chunk(json_path)
                 all_chunks.extend(chunks)
             except Exception as e:
-                logger.error(f"Error chunking {json_path}: {e}")
+                logger.error(f"Error processing {json_path}: {e}")
 
         if not all_chunks:
             logger.warning("No chunks produced from any document")
             return 0
+
+        logger.info(f"Produced {len(all_chunks)} chunks from {len(json_paths)} documents")
+
+        if not self.enable_embedding:
+            logger.info("Embedding disabled — skipping encode and upsert")
+            return len(all_chunks)
 
         logger.info(f"Encoding {len(all_chunks)} chunks in batch...")
         texts = [c["text"] for c in all_chunks]
