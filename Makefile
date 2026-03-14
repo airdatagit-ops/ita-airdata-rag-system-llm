@@ -47,5 +47,12 @@ else
 	$(PYTHON) -m scripts.validate_data --data-dir $(DATA_DIR) --report-only
 endif
 
+validate-data:
+ifdef CLEAN
+	$(PYTHON) -m scripts.validate_data --data-dir $(DATA_DIR) --clean
+else
+	$(PYTHON) -m scripts.validate_data --data-dir $(DATA_DIR) --report-only
+endif
+
 clean:
 	rm -f evaluation/results/*.csv evaluation/results/*.json
