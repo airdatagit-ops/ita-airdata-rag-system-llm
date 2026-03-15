@@ -1,0 +1,70 @@
+query_id,query,expected_doc_id,relevance,category,notes
+Q001,Qual artigo trata da proposta de cartas de corredores visuais?,ICA-96-1-art563,relevant,retrieval,Art. 563 menciona proposta de cartas de corredores visuais via SDIA
+Q002,Como solicitar divulgação de informação aeronáutica?,ICA-96-1-art563,relevant,retrieval,Menciona Solicitação de Divulgação de Informação Aeronáutica
+Q002,Como solicitar divulgação de informação aeronáutica?,ICA-96-1-art591,moderate,retrieval,Também trata de divulgação de informação
+Q003,Quais informações cada tipo de carta aeronáutica fornece?,ICA-96-1-art12,relevant,retrieval,Art. 12 define função de cada tipo de carta
+Q004,O que diz sobre representação de obstáculos na vista de planta da carta?,ICA-96-1-art248,relevant,retrieval,Art. 248 trata de obstáculos na vista de planta
+Q004,O que diz sobre representação de obstáculos na vista de planta da carta?,ICA-96-1-art255,moderate,retrieval,Art. 255 trata de obstáculos na superfície visual
+Q005,Como representar o perfil de cada pista e zona de parada na carta?,ICA-96-1-art96,relevant,retrieval,Art. 96 sobre planos de pista e zona de parada
+Q006,Qual escala horizontal usar para perfil de terreno além de 900m da pista?,ICA-96-1-art121,relevant,retrieval,Art. 121 especifica escala horizontal para perfil
+Q007,Como indicar na carta quando ela não está desenhada em escala?,ICA-96-1-art179,relevant,retrieval,Art. 179 sobre anotação de carta fora de escala
+Q007,Como indicar na carta quando ela não está desenhada em escala?,ICA-96-1-art204,moderate,retrieval,Art. 204 similar sobre carta fora de escala
+Q008,Para que servem as cartas de voo visual a baixas altitudes?,ICA-96-1-art485,relevant,retrieval,Art. 485 define finalidade das cartas de voo visual
+Q009,Como identificar a carta pelo nome da cidade e aeródromo?,ICA-96-1-art323,relevant,retrieval,Art. 323 sobre identificação da carta por cidade/aeródromo
+Q010,O que são cartas GeoPDF georreferenciadas?,ICA-96-1-art45,relevant,retrieval,Art. 45 sobre cartas em GeoPDF
+Q011,Quando a altitude mínima do setor não foi estabelecida o que representar na carta?,ICA-96-1-art194,relevant,retrieval,Art. 194 sobre altitudes mínimas quando setor não estabelecido
+Q011,Quando a altitude mínima do setor não foi estabelecida o que representar na carta?,ICA-96-1-art219,moderate,retrieval,Art. 219 similar sobre altitudes mínimas
+Q012,Quais são os requisitos gerais para ser instrutor de IFCTA?,ICA-100-47-art5,relevant,retrieval,Art. 5 lista requisitos gerais para instrutores
+Q013,Quais critérios específicos para seleção de ATCO instrutor orgânico?,ICA-100-47-art10,relevant,retrieval,Art. 10 critérios específicos para ATCO orgânico
+Q014,Quando a habilitação técnica do instrutor de IFCTA perde a validade?,ICA-100-47-art14,relevant,retrieval,Art. 14 sobre perda de validade da HT
+Q014,Quando a habilitação técnica do instrutor de IFCTA perde a validade?,ICA-100-47-art13,moderate,retrieval,Art. 13 sobre suspensão da HT (relacionado)
+Q015,Qual a validade da habilitação técnica para instrutor de IFCTA?,ICA-100-47-art12,relevant,retrieval,Art. 12 validade indeterminada da HT
+Q016,Como funciona a avaliação instrucional do instrutor orgânico?,ICA-100-47-art19,relevant,retrieval,Art. 19 sobre avaliação instrucional bienal
+Q016,Como funciona a avaliação instrucional do instrutor orgânico?,ICA-100-47-art20,moderate,retrieval,Art. 20 sobre avaliação teórica
+Q017,Qual é a composição do Conselho de Instrução da IFCTA?,ICA-100-47-art30,relevant,retrieval,Art. 30 composição do conselho
+Q017,Qual é a composição do Conselho de Instrução da IFCTA?,ICA-100-47-art32,moderate,retrieval,Art. 32 cargos dos membros efetivos
+Q018,Sobre o que o Conselho de Instrução pode deliberar?,ICA-100-47-art29,relevant,retrieval,Art. 29 competências do conselho
+Q019,Qual nível de proficiência em inglês é exigido para instrutor de língua inglesa aeronáutica?,ICA-100-47-art6,relevant,retrieval,Art. 6 nível 5 EPLIS para instrutor de inglês
+Q020,Como é calculado o conceito operacional de instrução?,ICA-100-47-art24,relevant,retrieval,Art. 24 cálculo do conceito operacional
+Q021,Quem tem competência para conceder a HT para instrutor de IFCTA?,ICA-100-47-art9,relevant,retrieval,Art. 9 competência do Comandante/Diretor
+Q022,Como funciona o comitê de segurança da informação no DECEA?,ICA-7-58,relevant,retrieval,ICA 7-58 sobre comitês de segurança da informação
+Q023,O que é prestação de tarefa por tempo certo no Comando da Aeronáutica?,ICA-35-13,relevant,retrieval,ICA 35-13 sobre PTTC
+Q024,Como funciona a gestão de cópias de segurança de sistemas no SISCEAB?,ICA-07-29,relevant,retrieval,ICA 07-29 sobre backup
+Q025,Quais são as regras sobre gestão de mudanças em sistemas do SISCEAB?,ICA-07-24-art1,relevant,retrieval,Art. 1 da ICA 07-24 sobre gestão de mudanças
+Q026,Como funciona o uso especial do espaço aéreo?,ICA-100-36,relevant,retrieval,ICA 100-36 sobre uso especial do espaço aéreo
+Q027,Quais são as regras para operações VFR e IFR?,ICA-100-1-art1,relevant,retrieval,ICA 100-1 sobre regras de voo
+Q028,Como funciona o gerenciamento de fluxo de tráfego aéreo?,ICA-100-22-art1,relevant,retrieval,ICA 100-22 sobre gerenciamento de fluxo
+Q029,Quais são os procedimentos de navegação aérea?,ICA-100-23-art1,relevant,retrieval,ICA 100-23 sobre procedimentos de navegação
+Q030,Como funciona o serviço meteorológico para navegação aérea?,ICA-100-37-art1,relevant,retrieval,ICA 100-37 sobre serviço meteorológico
+Q031,Quais são as regras para aeronaves não tripuladas (drones)?,ICA-100-40-art1,relevant,retrieval,ICA 100-40 sobre aeronaves não tripuladas
+Q032,Como funciona o sistema de telecomunicações aeronáuticas?,ICA-102-3,relevant,retrieval,ICA 102-3 sobre telecomunicações
+Q033,Quais são os requisitos para operador de telecomunicações?,ICA-102-7-art1,relevant,retrieval,ICA 102-7 sobre operador de telecomunicações
+Q034,Como funciona a classificação de dados meteorológicos?,ICA-105-2-art1,relevant,retrieval,ICA 105-2 sobre classificação meteorológica
+Q035,Quais são as regras de gestão de risco no SISCEAB?,ICA-16-6-art1,relevant,retrieval,ICA 16-6 sobre gestão de risco
+Q036,Como funciona o sistema de informação NOTAM?,ICA-53-1-art1,relevant,retrieval,ICA 53-1 sobre NOTAM
+Q037,Quais são as regras sobre informação aeronáutica digital?,ICA-53-7-art1,relevant,retrieval,ICA 53-7 sobre informação aeronáutica digital
+Q038,Como funciona a prevenção de incursão em pista?,ICA-81-4,relevant,retrieval,ICA 81-4 sobre prevenção de incursão em pista
+Q039,Quais são as regras sobre proteção contra incêndio?,ICA-92-19,relevant,retrieval,ICA 92-19 sobre proteção contra incêndio
+Q040,Como funcionam as inspeções de segurança operacional?,ICA-121-13,relevant,retrieval,ICA 121-13 sobre inspeções de segurança
+Q041,O que são estações EPTA e como funcionam?,ICA-63-10-art1,relevant,retrieval,ICA 63-10 sobre estações EPTA
+Q042,Quais são os requisitos de saúde e certificado médico para controladores?,ICA-63-15-art1,relevant,retrieval,ICA 63-15 sobre exames médicos
+Q043,Como funciona a prevenção ao uso de substâncias psicoativas no controle de tráfego?,ICA-63-50-art1,relevant,retrieval,ICA 63-50 sobre substâncias psicoativas
+Q044,Como funciona o sistema de gestão da qualidade no SISCEAB?,ICA-800-3,relevant,retrieval,ICA 800-3 sobre SGQ
+Q044,Como funciona o sistema de gestão da qualidade no SISCEAB?,ICA-800-5,moderate,retrieval,ICA 800-5 também sobre qualidade
+Q045,Quais são as regras para visitas técnicas de segurança operacional?,ICA-121-7-art1,relevant,retrieval,ICA 121-7 sobre visitas técnicas
+Q046,Qual a escala recomendada para carta de aproximação por instrumentos?,ICA-96-1-art174,relevant,retrieval,Art. 174 sobre escala de carta de aproximação
+Q047,Quais obstáculos devem ser representados na carta de aeródromo?,ICA-96-1-art347,relevant,retrieval,Art. 347 sobre obstáculos na carta de aeródromo
+Q048,Quais são os tipos de cartas aeronáuticas previstos na ICA 96-1?,ICA-96-1-art10,relevant,retrieval,Art. 10 sobre tipologia das cartas
+Q049,Como deve ser a representação do relevo nas cartas?,ICA-96-1-art30,relevant,retrieval,Art. 30 sobre representação do relevo
+Q050,Quais informações devem constar na carta de área terminal?,ICA-96-1-art157,relevant,retrieval,Art. 157 sobre carta de área terminal
+Q051,O que é RBAC 91?,NOT_IN_DB,irrelevant,coverage,Documento não indexado - teste de cobertura
+Q052,Quais são os requisitos de manutenção de aeronaves da ANAC?,NOT_IN_DB,irrelevant,coverage,RBAC não indexado - teste de cobertura
+Q053,O que diz a lei 7565 sobre o Código Brasileiro de Aeronáutica?,NOT_IN_DB,irrelevant,coverage,Lei não indexada - teste de cobertura
+Q054,Quais são as regras da ANAC para licença de piloto comercial?,NOT_IN_DB,irrelevant,coverage,RBAC 61 não indexado
+Q055,Qual a resolução ANAC sobre transporte aéreo de passageiros?,NOT_IN_DB,irrelevant,coverage,Resolução ANAC não indexada
+Q056,Como funciona o programa de pesquisa do DECEA?,ICA-351-5,relevant,retrieval,ICA 351-5 sobre programa de pesquisa
+Q057,Quais são os requisitos para proficiência em inglês aeronáutico (EPLIS)?,ICA-37-924,relevant,retrieval,ICA 37-924 sobre EPLIS
+Q057,Quais são os requisitos para proficiência em inglês aeronáutico (EPLIS)?,ICA-37-937,moderate,retrieval,ICA 37-937 também sobre inglês
+Q058,Como funciona a doutrina operacional do controle de tráfego aéreo?,ICA-63-45-art1,relevant,retrieval,ICA 63-45 sobre doutrina operacional
+Q059,Quais são as regras sobre jornada de trabalho dos controladores de tráfego aéreo?,ICA-100-45-art1,relevant,retrieval,ICA 100-45 sobre fluxo de trabalho
+Q060,Qual o procedimento para representar auxílios à navegação nas cartas?,ICA-96-1-art62,relevant,retrieval,Art. 62 sobre representação de auxílios à navegação

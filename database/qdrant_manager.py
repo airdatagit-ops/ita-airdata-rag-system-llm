@@ -11,7 +11,8 @@ from loguru import logger
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
     Distance, VectorParams, PointStruct, Filter, FieldCondition,
-    DatetimeRange, MatchValue, PayloadSchemaType, HnswConfigDiff
+    DatetimeRange, MatchValue, PayloadSchemaType, HnswConfigDiff,
+    IsNullCondition, PayloadField
 )
 
 from config import config
@@ -261,12 +262,10 @@ class QdrantManager:
             must=[
                 FieldCondition(key="status", match=MatchValue(value="active")),
                 FieldCondition(key="effective_date", range=DatetimeRange(lte=target_date)),
-                {
-                    "should": [
-                        FieldCondition(key="expiry_date", range=DatetimeRange(gte=target_date)),
-                        FieldCondition(key="expiry_date", match=MatchValue(value=None))
-                    ]
-                }
+            ],
+            should=[
+                FieldCondition(key="expiry_date", range=DatetimeRange(gte=target_date)),
+                IsNullCondition(is_null=PayloadField(key="expiry_date")),
             ]
         )
 

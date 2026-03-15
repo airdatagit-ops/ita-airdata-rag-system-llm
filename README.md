@@ -17,8 +17,10 @@
 9. [API RAG (Backend)](#9-api-rag-backend)
 10. [Interface Web (Frontend)](#10-interface-web-frontend)
 11. [Scripts Utilitários](#11-scripts-utilitários)
-12. [Deploy em Produção (systemctl + Nginx)](#12-deploy-em-produção-systemctl--nginx)
-13. [Resolução de Problemas](#13-resolução-de-problemas)
+12. [Avaliação de Qualidade](#12-avaliação-de-qualidade)
+13. [Testes e Automação (Makefile)](#13-testes-e-automação-makefile)
+14. [Deploy em Produção (systemctl + Nginx)](#14-deploy-em-produção-systemctl--nginx)
+15. [Resolução de Problemas](#15-resolução-de-problemas)
 
 ---
 
@@ -65,6 +67,8 @@ Pergunta do usuário
 | Scraper DECEA | Selenium + BeautifulSoup | `parsers/decea_scraper.py` |
 | Scraper LexML | Requests + BeautifulSoup | `parsers/lexml_scraper.py` |
 | Ingestão | Chunking + Embedding + Upload | `pipeline/ingestion.py` |
+| Avaliação (retrieval) | Golden Set + Métricas IR | `evaluation/evaluate_retrieval.py` |
+| Avaliação (geração) | Heurísticas de qualidade LLM | `evaluation/evaluate_generation.py` |
 | Interface Web | FastAPI + Jinja2 | `web/main.py` |
 
 ---
@@ -676,6 +680,8 @@ python main.py
 | `test_system.py` | `python -m scripts.test_system` | Testa todos os componentes |
 | `test_chatbot.py` | `python -m scripts.test_chatbot` | Testa os endpoints do chatbot |
 
+> Para avaliação de qualidade da busca, veja a [Seção 12](#12-avaliação-de-qualidade).
+
 ### Exemplos detalhados:
 
 ```bash
@@ -710,11 +716,218 @@ python -m scripts.reset_database --confirm --clear-tracker
 
 ---
 
-## 12. Deploy em Produção (systemctl + Nginx)
+## 12. Avaliação de Qualidade
+
+O sistema inclui dois módulos de avaliação independentes: um para a **busca semântica (retrieval)** e outro para a **qualidade de geração do LLM**. Ambos compartilham o mesmo golden set e podem ser executados via `Makefile` ou diretamente.
+
+### 12.1. Conceitos
+
+A avaliação é baseada em um **golden set** (`evaluation/golden_set.csv`) — um conjunto curado de queries com documentos esperados como resposta, cada um classificado por relevância:
+
+| Relevância | Peso NDCG | Significado |
+|------------|-----------|-------------|
+| `relevant` | 2 | O documento responde diretamente à query |
+| `moderate` | 1 | O documento é relacionado mas não responde completamente |
+| `irrelevant` | 0 | Documento de cobertura (não deve existir no banco) |
+
+Uma mesma query pode ter múltiplas linhas quando mais de um documento é esperado. A coluna `category` distingue queries de `retrieval` (devem encontrar documentos) de queries de `coverage` (testam que o sistema rejeita corretamente buscas sem resultado).
+
+O golden set atual contém **60 queries** cobrindo 30+ ICAs diferentes, incluindo 5 queries de cobertura para documentos não indexados.
+
+### 12.2. Avaliação de Retrieval
+
+Mede a qualidade da busca semântica — se os documentos certos estão sendo encontrados e bem ranqueados.
+
+**Métricas:**
+
+| Métrica | O que mede |
+|---------|------------|
+| **Hit Rate@K** | % de queries onde ao menos um documento relevante aparece nos top K resultados |
+| **MRR** (Mean Reciprocal Rank) | Média de 1/posição do primeiro documento relevante |
+| **NDCG@K** | Qualidade do ranking considerando relevância gradual |
+| **Precision@K** | % dos K documentos retornados que são relevantes |
+| **Recall** | % dos documentos relevantes esperados que foram retornados |
+| **Coverage** | % das queries de cobertura corretamente sem resultado |
+
+**Como executar:**
+
+```bash
+# Via Makefile (recomendado)
+make eval-retrieval
+make eval-retrieval K=10 WORKERS=8
+
+# Direto
+python -m evaluation.evaluate_retrieval --k 5 --workers 4
+python -m evaluation.evaluate_retrieval --golden-set outro.csv --quiet
+```
+
+**Parâmetros:**
+
+| Parâmetro | Padrão | Descrição |
+|-----------|--------|-----------|
+| `--k` | `5` | Documentos a recuperar por query |
+| `--workers` | `4` | Threads paralelas para busca no Qdrant |
+| `--golden-set` | `evaluation/golden_set.csv` | Caminho do golden set |
+| `--output` | `evaluation/results` | Diretório de saída |
+| `--quiet` | `false` | Suprime relatório no terminal |
+
+### 12.3. Avaliação de Geração (Heurísticas)
+
+Mede a qualidade das respostas do LLM usando heurísticas — sem necessidade, por enquanto, de golden answers ou de outro LLM como juiz.
+
+**Métricas:**
+
+| Métrica | O que mede |
+|---------|------------|
+| **Empty Rate** | % de respostas onde o LLM diz "não encontrei" |
+| **Citation Rate** | % de respostas que citam documentos (ex: ICA-100-47) |
+| **Hedging Rate** | % de respostas com linguagem evasiva ("possivelmente", "talvez") |
+| **Mean/Median Length** | Comprimento médio das respostas (em tokens) |
+
+**Como executar:**
+
+```bash
+# Via Makefile (recomendado)
+make eval-generation
+make eval-generation K=3 SAMPLE=10
+
+# Direto
+python -m evaluation.evaluate_generation --k 5
+python -m evaluation.evaluate_generation --sample 15 --quiet
+```
+
+**Parâmetros:**
+
+| Parâmetro | Padrão | Descrição |
+|-----------|--------|-----------|
+| `--k` | `5` | Documentos a recuperar por query como contexto |
+| `--golden-set` | `evaluation/golden_set.csv` | Caminho do golden set |
+| `--output` | `evaluation/results` | Diretório de saída |
+| `--sample` | todos | Limitar a N queries (para testes rápidos) |
+| `--quiet` | `false` | Suprime relatório no terminal |
+
+### 12.4. Executar ambas as avaliações
+
+```bash
+make eval                    # retrieval + geração com defaults
+make eval K=10               # ambas com K=10
+```
+
+### 12.5. Saída
+
+Cada avaliação produz três artefatos em `evaluation/results/`:
+
+| Arquivo | Conteúdo |
+|---------|----------|
+| `summary_*.csv` | Métricas agregadas |
+| `details_*.csv` | Resultado por query |
+| `results_*.json` | Dados completos para análise programática |
+
+### 12.6. Otimização de performance
+
+Ambos os scripts são otimizados para execução rápida:
+
+1. **Batch encoding** — Todas as queries são codificadas em uma única chamada ao modelo de embeddings
+2. **Busca paralela (retrieval)** — Buscas no Qdrant via `ThreadPoolExecutor` concorrente
+3. **Separação de responsabilidades** — Usam `EmbeddingModel` e `QdrantManager` diretamente para controle sobre batching e paralelismo
+
+A avaliação de geração executa chamadas ao LLM sequencialmente, já que o Ollama não se beneficia de requisições paralelas.
+
+### 12.7. Como expandir o golden set
+
+1. Identifique o documento relevante no Qdrant:
+
+```bash
+python -m scripts.inspect_qdrant
+```
+
+2. Adicione uma linha no `evaluation/golden_set.csv`:
+
+```csv
+Q061,Minha nova pergunta sobre o tema X?,ICA-XX-YY-artZZ,relevant,retrieval,Justificativa breve
+```
+
+3. Se a query já existe e um novo documento também é relevante, adicione outra linha com o mesmo `query_id`:
+
+```csv
+Q061,Minha nova pergunta sobre o tema X?,ICA-XX-YY-artWW,moderate,retrieval,Doc secundário
+```
+
+### 12.8. Interpretando os resultados
+
+| Cenário | O que fazer |
+|---------|-------------|
+| Hit Rate baixo (<50%) | Investigar qualidade dos chunks e do texto extraído |
+| MRR baixo (<0.3) | Documentos relevantes em posições baixas. Ajustar embeddings ou score threshold |
+| NDCG baixo com Hit Rate alto | Ranking ruim — revisar modelo de embeddings |
+| Coverage <100% | Falsos positivos. Ajustar score threshold |
+| Empty Rate alto (>50%) | Documentos recuperados não contêm a informação. Melhorar chunking ou expandir base |
+| Citation Rate baixo | LLM não cita fontes. Ajustar prompt |
+| Hedging Rate alto | LLM inseguro nas respostas. Verificar qualidade do contexto recuperado |
+
+---
+
+## 13. Testes e Automação (Makefile)
+
+### 13.1. Estrutura de testes
+
+Os testes unitários ficam em `tests/`, organizados por domínio:
+
+```
+tests/
+├── __init__.py
+└── evaluation/
+    ├── __init__.py
+    ├── test_evaluate_retrieval.py
+    └── test_evaluate_generation.py
+```
+
+Todos os testes usam **mocks** para isolar dependências externas (Qdrant, Ollama, modelo de embeddings), garantindo execução rápida e sem necessidade de serviços rodando.
+
+### 13.2. Executar testes
+
+```bash
+# Todos os testes
+make test
+
+# Testes de um diretório específico
+make test FILE=tests/evaluation/
+
+# Teste de um arquivo específico
+make test FILE=tests/evaluation/test_evaluate_retrieval.py
+
+# Direto via pytest
+python -m pytest tests/ -v --tb=short
+```
+
+### 13.3. Comandos do Makefile
+
+| Comando | Descrição |
+|---------|-----------|
+| `make help` | Lista todos os comandos disponíveis |
+| `make test` | Executa todos os testes unitários |
+| `make test FILE=<path>` | Executa testes de um arquivo ou diretório |
+| `make eval` | Executa ambas as avaliações (retrieval + geração) |
+| `make eval-retrieval` | Avaliação de retrieval |
+| `make eval-generation` | Avaliação de geração |
+| `make clean` | Remove arquivos de resultado das avaliações |
+
+**Parâmetros configuráveis:**
+
+| Parâmetro | Padrão | Uso |
+|-----------|--------|-----|
+| `K` | `5` | `make eval-retrieval K=10` |
+| `WORKERS` | `4` | `make eval-retrieval WORKERS=8` |
+| `SAMPLE` | todos | `make eval-generation SAMPLE=10` |
+| `FILE` | `tests/` | `make test FILE=tests/evaluation/` |
+
+---
+
+## 14. Deploy em Produção (systemctl + Nginx)
 
 O sistema está configurado para rodar em produção usando **systemd** para gerenciamento de processos e **Nginx** como reverse proxy.
 
-### 12.1. Serviço da API RAG (`ragapi.service`)
+### 14.1. Serviço da API RAG (`ragapi.service`)
 
 Este serviço roda o backend da API (busca vetorial + LLM).
 
@@ -745,7 +958,7 @@ StandardOutput=journal
 StandardError=journal
 ```
 
-### 12.2. Serviço da Interface Web (`ragweb.service`)
+### 14.2. Serviço da Interface Web (`ragweb.service`)
 
 Este serviço roda o frontend web.
 
@@ -776,7 +989,7 @@ StandardOutput=journal
 StandardError=journal
 ```
 
-### 12.3. Comandos de gerenciamento (systemctl)
+### 14.3. Comandos de gerenciamento (systemctl)
 
 ```bash
 # Habilitar os serviços (iniciar automaticamente no boot)
@@ -804,7 +1017,7 @@ sudo systemctl stop ragapi
 sudo systemctl stop ragweb
 ```
 
-### 12.4. Nginx (Reverse Proxy)
+### 14.4. Nginx (Reverse Proxy)
 
 O Nginx atua como reverse proxy, recebendo as requisições na porta 80 e redirecionando para os serviços internos.
 
@@ -861,7 +1074,7 @@ server {
 }
 ```
 
-### 12.5. Comandos Nginx
+### 14.5. Comandos Nginx
 
 ```bash
 # Testar configuração
@@ -878,7 +1091,7 @@ sudo tail -f /var/log/nginx/error.log
 sudo tail -f /var/log/nginx/access.log
 ```
 
-### 12.6. URLs de acesso em produção
+### 14.6. URLs de acesso em produção
 
 Com a configuração acima, os serviços ficam acessíveis em:
 
@@ -890,7 +1103,7 @@ Com a configuração acima, os serviços ficam acessíveis em:
 | Health (API) | `http://SEU_IP/ragapi/health` |
 | Estatísticas | `http://SEU_IP/ragapi/stats` (requer API Key) |
 
-### 12.7. Ordem de inicialização em produção
+### 14.7. Ordem de inicialização em produção
 
 A ordem recomendada para inicializar todos os serviços é:
 
@@ -913,7 +1126,7 @@ sudo systemctl start nginx
 
 ---
 
-## 13. Resolução de Problemas
+## 15. Resolução de Problemas
 
 ### Erros de importação ao executar scripts
 

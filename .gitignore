@@ -6,3 +6,4 @@ api/__pycache__
 __pycache__
 data/
 web/chat_history
+qdrant_storage/
