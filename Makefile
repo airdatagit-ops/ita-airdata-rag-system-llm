@@ -14,7 +14,7 @@ help:
 	@echo "Usage:"
 	@echo "  make test                               Run all unit tests"
 	@echo "  make test FILE=tests/evaluation         Run tests in a specific dir or file"
-    @echo "  make collect-decea                      Collect DECEA documents"
+	@echo "  make collect-decea                      Collect DECEA documents"
 	@echo "  make collect-decea LIMIT=50 WORKERS=8   Custom collection"
 	@echo "  make validate-data                      Quality report (no changes)"
 	@echo "  make validate-data CLEAN=1              Report + save cleaned snapshot"
@@ -39,13 +39,6 @@ eval-retrieval:
 
 eval-generation:
 	$(PYTHON) -m evaluation.evaluate_generation --k $(K) $(if $(SAMPLE),--sample $(SAMPLE),)
-
-validate-data:
-ifdef CLEAN
-	$(PYTHON) -m scripts.validate_data --data-dir $(DATA_DIR) --clean
-else
-	$(PYTHON) -m scripts.validate_data --data-dir $(DATA_DIR) --report-only
-endif
 
 validate-data:
 ifdef CLEAN
