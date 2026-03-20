@@ -15,7 +15,7 @@ help:
 	@echo "  make test                               Run all unit tests"
 	@echo "  make test FILE=tests/evaluation         Run tests in a specific dir or file"
 	@echo "  make collect-decea                      Collect DECEA documents"
-	@echo "  make collect-decea LIMIT=50 WORKERS=8   Custom collection"
+	@echo "  make collect-decea LIMIT=50 WORKERS=8 SKIP_DOWNLOAD=1      Ingest existing JSONs only"
 	@echo "  make validate-data                      Quality report (no changes)"
 	@echo "  make validate-data CLEAN=1              Report + save cleaned snapshot"
 	@echo "  make eval                               Run both evaluations"
@@ -30,7 +30,7 @@ test:
 	$(PYTHON) -m pytest $(or $(FILE),tests/) -v --tb=short
 
 collect-decea:
-	$(PYTHON) -m scripts.ingest_decea --doc-types $(DOC_TYPES) --limit $(LIMIT) --workers $(WORKERS)
+	$(PYTHON) -m scripts.ingest_decea --doc-types $(DOC_TYPES) --limit $(LIMIT) --workers $(WORKERS) $(if $(SKIP_DOWNLOAD),--skip-download,) --download-dir $(DATA_DIR)
   
 eval: eval-retrieval eval-generation
 

@@ -68,7 +68,7 @@ class VersionManager:
 
             # Add new version
             new_version_data["payload"]["supersedes_version"] = old_version
-            self.db.upsert_points([new_version_data])
+            self.db.upsert_points([new_version_data], wait=True)
 
             logger.success(f"Superseded {old_regulation_id} v{old_version} with new version")
             return True
