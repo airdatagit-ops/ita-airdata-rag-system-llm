@@ -2,6 +2,7 @@
 Qdrant Manager for Aviation RAG System.
 
 Handles all interactions with Qdrant vector database.
+Supports dense-only, sparse-only, or hybrid (RRF) search via config flags.
 """
 
 import uuid
@@ -12,10 +13,14 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import (
     Distance, VectorParams, PointStruct, Filter, FieldCondition,
     DatetimeRange, MatchValue, PayloadSchemaType, HnswConfigDiff,
-    IsNullCondition, PayloadField
+    IsNullCondition, PayloadField, SparseVectorParams, SparseVector,
+    SearchParams, Prefetch, FusionQuery, Fusion,
+    OptimizersConfigDiff,
 )
 
 from config import config
+
+PREFETCH_MULTIPLIER = 3
 
 
 class QdrantManager:
@@ -28,15 +33,6 @@ class QdrantManager:
         collection_name: str = None,
         api_key: str = None
     ):
-        """
-        Initialize Qdrant manager.
-
-        Args:
-            host: Qdrant host
-            port: Qdrant port
-            collection_name: Collection name
-            api_key: API key for Qdrant Cloud
-        """
         self.host = host or config.QDRANT_HOST
         self.port = port or config.QDRANT_PORT
         self.collection_name = collection_name or config.QDRANT_COLLECTION_NAME
@@ -49,6 +45,11 @@ class QdrantManager:
 
         logger.info(f"QdrantManager initialized ({self.host}:{self.port})")
 
+    @property
+    def _named_vectors(self) -> bool:
+        """Use named vectors only when sparse search is enabled."""
+        return config.SEARCH_SPARSE_ENABLED
+
     def create_collection(
         self,
         vector_size: int = None,
@@ -56,20 +57,16 @@ class QdrantManager:
         recreate: bool = False
     ) -> bool:
         """
-        Create collection with optimized configuration.
+        Create collection.
 
-        Args:
-            vector_size: Embedding dimension
-            distance: Distance metric
-            recreate: Recreate if exists
-
-        Returns:
-            True if successful
+        When SEARCH_SPARSE_ENABLED=false (default), creates a standard collection
+        with a single unnamed dense vector (backward compatible).
+        When SEARCH_SPARSE_ENABLED=true, creates named vectors ("dense" + "sparse")
+        for hybrid search. Requires collection recreation.
         """
         vector_size = vector_size or config.EMBEDDING_DIMENSION
 
         try:
-            # Check if collection exists
             collections = self.client.get_collections().collections
             exists = any(c.name == self.collection_name for c in collections)
 
@@ -81,24 +78,32 @@ class QdrantManager:
                 self.client.delete_collection(self.collection_name)
                 logger.warning(f"Deleted existing collection '{self.collection_name}'")
 
-            # Create collection
-            self.client.create_collection(
-                collection_name=self.collection_name,
-                vectors_config=VectorParams(
-                    size=vector_size,
-                    distance=distance,
-                    hnsw_config=HnswConfigDiff(
-                        m=config.HNSW_M,
-                        ef_construct=config.HNSW_EF_CONSTRUCT
-                    )
-                )
+            dense_params = VectorParams(
+                size=vector_size,
+                distance=distance,
+                hnsw_config=HnswConfigDiff(
+                    m=config.HNSW_M,
+                    ef_construct=config.HNSW_EF_CONSTRUCT,
+                ),
             )
 
-            logger.success(f"Created collection '{self.collection_name}'")
+            if self._named_vectors:
+                self.client.create_collection(
+                    collection_name=self.collection_name,
+                    vectors_config={"dense": dense_params},
+                    sparse_vectors_config={"sparse": SparseVectorParams()},
+                )
+                logger.success(
+                    f"Created collection '{self.collection_name}' (dense+sparse)"
+                )
+            else:
+                self.client.create_collection(
+                    collection_name=self.collection_name,
+                    vectors_config=dense_params,
+                )
+                logger.success(f"Created collection '{self.collection_name}'")
 
-            # Create payload indexes
             self._create_payload_indexes()
-
             return True
 
         except Exception as e:
@@ -126,23 +131,58 @@ class QdrantManager:
             except Exception as e:
                 logger.warning(f"Could not create index on '{field_name}': {e}")
 
+    def disable_indexing(self):
+        """Disable HNSW indexing for faster bulk uploads."""
+        self.client.update_collection(
+            collection_name=self.collection_name,
+            optimizer_config=OptimizersConfigDiff(indexing_threshold=0),
+        )
+        logger.info("Indexing disabled (threshold=0) for bulk upload")
+
+    def enable_indexing(self, threshold: int = 20_000):
+        """Re-enable HNSW indexing after bulk upload."""
+        self.client.update_collection(
+            collection_name=self.collection_name,
+            optimizer_config=OptimizersConfigDiff(indexing_threshold=threshold),
+        )
+        logger.info(f"Indexing re-enabled (threshold={threshold})")
+
+    def wait_for_indexing(self, timeout_sec: int = 300):
+        """Block until the collection finishes indexing (status=green)."""
+        import time
+
+        deadline = time.time() + timeout_sec
+        while time.time() < deadline:
+            info = self.client.get_collection(self.collection_name)
+            if info.status.name == "GREEN":
+                logger.success("Collection indexing complete")
+                return
+            time.sleep(2)
+        logger.warning("Indexing did not finish within timeout")
+
     def upsert_points(
         self,
         points: List[Dict],
-        batch_size: int = 64,
-        parallel: int = 2
+        batch_size: int = None,
+        parallel: int = None,
+        wait: bool = False,
     ) -> bool:
         """
-        Upsert points using upload_points with built-in batching and parallelism.
+        Upsert points to the collection.
+
+        The "vector" field can be a plain list (unnamed, when sparse is off)
+        or a dict of named vectors (when sparse is on).
 
         Args:
-            points: List of point dicts with id, vector, payload
-            batch_size: Points per batch (default 64, Qdrant's recommended)
-            parallel: Number of parallel upload workers
-
-        Returns:
-            True if successful
+            batch_size: Points per batch (default: config.INGESTION_BATCH_SIZE).
+            parallel: Parallel upload workers (default: config.NUM_WORKERS).
+            wait: Block until each batch is indexed. Use False for bulk
+                  uploads when indexing is disabled; True for single-point
+                  inserts that need immediate consistency.
         """
+        batch_size = batch_size or config.INGESTION_BATCH_SIZE
+        parallel = parallel or config.NUM_WORKERS
+
         try:
             qdrant_points = [
                 PointStruct(
@@ -159,7 +199,7 @@ class QdrantManager:
                 batch_size=batch_size,
                 parallel=parallel,
                 max_retries=3,
-                wait=True,
+                wait=wait,
             )
 
             logger.success(f"Upserted {len(points)} points")
@@ -171,93 +211,123 @@ class QdrantManager:
 
     def search(
         self,
-        query_vector: List[float],
+        dense_vector: Optional[List[float]] = None,
+        sparse_vector: Optional[SparseVector] = None,
         limit: int = None,
         score_threshold: float = None,
-        filters: Dict = None,
-        with_payload: bool = True
+        filters=None,
+        with_payload: bool = True,
+        *,
+        query_vector: Optional[List[float]] = None,
     ) -> List:
         """
-        Search for similar vectors.
+        Search using dense, sparse, or hybrid (RRF) depending on provided vectors.
 
         Args:
-            query_vector: Query embedding
+            dense_vector: Dense embedding for semantic search
+            sparse_vector: Sparse vector for keyword/BM25 search
             limit: Number of results
-            score_threshold: Minimum similarity score (0 to disable threshold)
-            filters: Qdrant filter dict
+            score_threshold: Min score (only for dense-only search; ignored in hybrid/sparse)
+            filters: Qdrant filter
             with_payload: Return payload with results
-
-        Returns:
-            List of search results
+            query_vector: Deprecated alias for dense_vector (backward compat)
         """
+        if query_vector is not None and dense_vector is None:
+            dense_vector = query_vector
+
+        if dense_vector is None and sparse_vector is None:
+            raise ValueError("At least one of dense_vector or sparse_vector is required")
+
         limit = limit or config.SEARCH_TOP_K
-        # Use provided threshold, or config default
-        # score_threshold=0 means no threshold, score_threshold=None means use config
-        if score_threshold is None:
-            score_threshold = config.SEARCH_SCORE_THRESHOLD
+        has_dense = dense_vector is not None
+        has_sparse = sparse_vector is not None
 
         try:
-            # Use query_points for qdrant-client >= 1.7.0
-            if hasattr(self.client, 'query_points'):
-                # New API (qdrant-client >= 1.7.0)
-                from qdrant_client.models import SearchParams
-                
-                # Build query params
-                query_params = {
-                    "collection_name": self.collection_name,
-                    "query": query_vector,
-                    "limit": limit,
-                    "query_filter": filters,
-                    "with_payload": with_payload,
-                    "search_params": SearchParams(hnsw_ef=config.HNSW_EF_SEARCH)
-                }
-                
-                # Only add score_threshold if it's > 0
-                if score_threshold and score_threshold > 0:
-                    query_params["score_threshold"] = score_threshold
-                
-                results = self.client.query_points(**query_params)
-                # query_points returns QueryResponse with .points attribute
-                results = results.points if hasattr(results, 'points') else results
+            if has_dense and has_sparse:
+                results = self._search_hybrid(dense_vector, sparse_vector, limit, filters, with_payload)
+            elif has_dense:
+                results = self._search_dense(dense_vector, limit, score_threshold, filters, with_payload)
             else:
-                # Legacy API (qdrant-client < 1.7.0)
-                results = self.client.search(
-                    collection_name=self.collection_name,
-                    query_vector=query_vector,
-                    limit=limit,
-                    score_threshold=score_threshold if score_threshold and score_threshold > 0 else None,
-                    query_filter=filters,
-                    with_payload=with_payload,
-                    search_params={"hnsw_ef": config.HNSW_EF_SEARCH}
-                )
+                results = self._search_sparse(sparse_vector, limit, filters, with_payload)
 
-            logger.debug(f"Search returned {len(results)} results")
-            return results
+            points = results.points if hasattr(results, 'points') else results
+            logger.debug(f"Search returned {len(points)} results")
+            return points
 
         except Exception as e:
             logger.error(f"Error searching: {e}")
             return []
 
+    def _search_hybrid(self, dense_vector, sparse_vector, limit, filters, with_payload):
+        """Hybrid search: prefetch from both branches, fuse with RRF."""
+        prefetch_limit = limit * PREFETCH_MULTIPLIER
+        return self.client.query_points(
+            collection_name=self.collection_name,
+            query=FusionQuery(fusion=Fusion.RRF),
+            prefetch=[
+                Prefetch(
+                    query=dense_vector,
+                    using="dense",
+                    limit=prefetch_limit,
+                    params=SearchParams(hnsw_ef=config.HNSW_EF_SEARCH),
+                ),
+                Prefetch(
+                    query=sparse_vector,
+                    using="sparse",
+                    limit=prefetch_limit,
+                ),
+            ],
+            limit=limit,
+            query_filter=filters,
+            with_payload=with_payload,
+        )
+
+    def _search_dense(self, dense_vector, limit, score_threshold, filters, with_payload):
+        """Dense-only semantic search."""
+        if score_threshold is None:
+            score_threshold = config.SEARCH_SCORE_THRESHOLD
+
+        params = {
+            "collection_name": self.collection_name,
+            "query": dense_vector,
+            "limit": limit,
+            "query_filter": filters,
+            "with_payload": with_payload,
+            "search_params": SearchParams(hnsw_ef=config.HNSW_EF_SEARCH),
+        }
+        if self._named_vectors:
+            params["using"] = "dense"
+        if score_threshold and score_threshold > 0:
+            params["score_threshold"] = score_threshold
+
+        return self.client.query_points(**params)
+
+    def _search_sparse(self, sparse_vector, limit, filters, with_payload):
+        """Sparse-only keyword/BM25 search."""
+        return self.client.query_points(
+            collection_name=self.collection_name,
+            query=sparse_vector,
+            using="sparse",
+            limit=limit,
+            query_filter=filters,
+            with_payload=with_payload,
+        )
+
     def search_temporal(
         self,
-        query_vector: List[float],
-        target_date: str,
+        target_date: str = None,
         limit: int = None,
-        additional_filters: Dict = None
+        dense_vector: Optional[List[float]] = None,
+        sparse_vector: Optional[SparseVector] = None,
+        additional_filters=None,
+        *,
+        query_vector: Optional[List[float]] = None,
     ) -> List:
         """
         Search with temporal filtering (regulations valid on target_date).
-
-        Args:
-            query_vector: Query embedding
-            target_date: ISO format date
-            limit: Number of results
-            additional_filters: Additional Qdrant filters
-
-        Returns:
-            List of search results valid on target_date
         """
-        # Build temporal filter
+        if query_vector is not None and dense_vector is None:
+            dense_vector = query_vector
         temporal_filter = Filter(
             must=[
                 FieldCondition(key="status", match=MatchValue(value="active")),
@@ -269,7 +339,6 @@ class QdrantManager:
             ]
         )
 
-        # Merge with additional filters if provided
         if additional_filters:
             if isinstance(additional_filters, Filter):
                 temporal_filter.must.extend(additional_filters.must or [])
@@ -277,28 +346,23 @@ class QdrantManager:
                 temporal_filter.must.append(additional_filters)
 
         return self.search(
-            query_vector=query_vector,
+            dense_vector=dense_vector,
+            sparse_vector=sparse_vector,
             limit=limit,
-            filters=temporal_filter
+            filters=temporal_filter,
         )
 
     def get_collection_info(self) -> Dict:
         """Get collection statistics."""
         try:
             info = self.client.get_collection(self.collection_name)
-
-            # Get points count (this is the reliable metric)
             points_count = getattr(info, 'points_count', 0)
-            
-            # In Qdrant, points_count = vectors_count (each point has exactly 1 vector)
-            # The 'vectors_count' field may not exist in newer versions
-            vectors_count = points_count
 
             return {
-                "vectors_count": vectors_count,
+                "vectors_count": points_count,
                 "points_count": points_count,
                 "status": str(info.status),
-                "indexed_vectors_count": points_count,  # Same as points in practice
+                "indexed_vectors_count": points_count,
             }
         except Exception as e:
             logger.error(f"Error getting collection info: {e}")
@@ -306,7 +370,6 @@ class QdrantManager:
 
 
 if __name__ == "__main__":
-    """Example usage."""
     manager = QdrantManager()
     info = manager.get_collection_info()
     print(f"Collection info: {info}")

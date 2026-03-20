@@ -273,6 +273,47 @@ class EmbeddingModel:
         )
 
 
+class SparseEncoder:
+    """BM25-based sparse encoder for keyword search via fastembed."""
+
+    def __init__(self, model_name: str = None):
+        try:
+            from fastembed import SparseTextEmbedding
+        except ImportError:
+            raise ImportError(
+                "fastembed is required for sparse search. "
+                "Install with: pip install fastembed"
+            )
+
+        self.model_name = model_name or config.SPARSE_EMBEDDING_MODEL
+        logger.info(f"Loading sparse model: {self.model_name}")
+        self.model = SparseTextEmbedding(model_name=self.model_name)
+        logger.success(f"Sparse model loaded: {self.model_name}")
+
+    def encode(self, texts: Union[str, List[str]]) -> list:
+        """Encode texts into sparse vectors (SparseVector objects)."""
+        from qdrant_client.models import SparseVector
+
+        if isinstance(texts, str):
+            texts = [texts]
+
+        results = list(self.model.embed(texts))
+        return [
+            SparseVector(
+                indices=r.indices.tolist(),
+                values=r.values.tolist(),
+            )
+            for r in results
+        ]
+
+    def encode_single(self, text: str):
+        """Encode a single text into a SparseVector."""
+        return self.encode(text)[0]
+
+    def __repr__(self) -> str:
+        return f"SparseEncoder(model={self.model_name})"
+
+
 # ========================================
 # Utility Functions
 # ========================================

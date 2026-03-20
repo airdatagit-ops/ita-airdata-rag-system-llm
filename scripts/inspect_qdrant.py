@@ -31,13 +31,11 @@ def inspect_payload_structure():
     manager = QdrantManager()
     embeddings = EmbeddingModel()
     
-    # Criar um vetor de consulta
     query_text = "regulations aircraft"
     query_vector = embeddings.encode(query_text)
     
-    # Buscar
     results = manager.search(
-        query_vector=query_vector,
+        dense_vector=query_vector.tolist(),
         limit=1,
         with_payload=True
     )
@@ -120,7 +118,7 @@ def compare_multiple_records():
     embeddings = EmbeddingModel()
     
     query_vector = embeddings.encode("regulations")
-    results = manager.search(query_vector=query_vector, limit=5, with_payload=True)
+    results = manager.search(dense_vector=query_vector.tolist(), limit=5, with_payload=True)
     
     if not results:
         logger.warning("Nenhum resultado encontrado")

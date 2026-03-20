@@ -65,6 +65,9 @@ class Settings(BaseSettings):
     # ========================================
     SEARCH_TOP_K: int = getenv('SEARCH_TOP_K')
     SEARCH_SCORE_THRESHOLD: float = getenv('SEARCH_SCORE_THRESHOLD')
+    SEARCH_DENSE_ENABLED: bool = getenv('SEARCH_DENSE_ENABLED', 'true')
+    SEARCH_SPARSE_ENABLED: bool = getenv('SEARCH_SPARSE_ENABLED', 'false')
+    SPARSE_EMBEDDING_MODEL: str = getenv('SPARSE_EMBEDDING_MODEL', 'Qdrant/bm25')
     HNSW_EF_SEARCH: int = getenv('HNSW_EF_SEARCH')
     HNSW_M: int = getenv('HNSW_M')
     HNSW_EF_CONSTRUCT: int = getenv('HNSW_EF_CONSTRUCT')
@@ -330,6 +333,8 @@ def print_config():
         "Search": [
             ("Top-K", config.SEARCH_TOP_K),
             ("Score Threshold", config.SEARCH_SCORE_THRESHOLD),
+            ("Dense (semantic)", config.SEARCH_DENSE_ENABLED),
+            ("Sparse (BM25)", config.SEARCH_SPARSE_ENABLED),
         ],
         "API": [
             ("Host", config.API_HOST),

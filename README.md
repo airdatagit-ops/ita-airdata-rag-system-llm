@@ -28,7 +28,9 @@
 
 O Aviation RAG System é uma plataforma que combina:
 
-- **Busca semântica vetorial** — Encontra trechos de documentos similares à pergunta do usuário usando embeddings
+- **Busca semântica vetorial** — Encontra trechos de documentos similares à pergunta do usuário usando embeddings (dense vectors)
+- **Busca por keywords (opcional)** — Busca BM25 via sparse vectors para termos exatos, siglas e referências a artigos
+- **Busca híbrida (opcional)** — Combina busca semântica + keywords usando Reciprocal Rank Fusion (RRF)
 - **Geração aumentada por recuperação (RAG)** — Usa os trechos recuperados como contexto para um LLM gerar respostas fundamentadas
 - **Chat conversacional** — Mantém histórico de conversa por sessão, com streaming em tempo real
 
@@ -170,10 +172,15 @@ cp env.example .env
 | Variável | Tipo | Padrão | Descrição |
 |----------|------|--------|-----------|
 | `SEARCH_TOP_K` | int | `5` | Número de resultados retornados |
-| `SEARCH_SCORE_THRESHOLD` | float | `0.3` | Score mínimo de similaridade (0-1) |
+| `SEARCH_SCORE_THRESHOLD` | float | `0.3` | Score mínimo de similaridade (apenas busca dense-only) |
+| `SEARCH_DENSE_ENABLED` | bool | `true` | Habilita busca semântica (dense vectors) |
+| `SEARCH_SPARSE_ENABLED` | bool | `false` | Habilita busca por keywords/BM25 (sparse vectors via fastembed) |
+| `SPARSE_EMBEDDING_MODEL` | string | `Qdrant/bm25` | Modelo de sparse embeddings (usado quando `SEARCH_SPARSE_ENABLED=true`) |
 | `HNSW_M` | int | `16` | Parâmetro M do índice HNSW |
 | `HNSW_EF_CONSTRUCT` | int | `100` | Parâmetro ef_construct do HNSW |
 | `HNSW_EF_SEARCH` | int | `64` | Parâmetro ef para busca no HNSW |
+
+> **Busca híbrida:** Quando ambos `SEARCH_DENSE_ENABLED` e `SEARCH_SPARSE_ENABLED` estão habilitados, o sistema combina os resultados usando Reciprocal Rank Fusion (RRF) via Qdrant Query API. Isso melhora a recuperação de termos exatos (siglas, artigos, nomes de ICAs) que a busca semântica pura pode perder. A coleção deve ser recriada ao habilitar sparse pela primeira vez (`python -m scripts.setup_qdrant --recreate`).
 
 #### Chunking
 
@@ -501,15 +508,34 @@ Documento JSON/XML/PDF
   1. Parsing (extrair texto e metadados)
         │
         ▼
-  2. Chunking (dividir em trechos de ~512 tokens)
+  2. Quality Gate (QualityValidator)
+        │    - Rejeita documentos GARBAGE (OCR falho, ratio alfabético < 15%)
+        │    - Classifica em GARBAGE / LOW / MEDIUM / GOOD
+        ▼
+  3. Text Cleaning (TextCleaner)
+        │    - Normalização Unicode (NFKC)
+        │    - Remoção de control chars (\x03 → espaço, demais removidos)
+        │    - Remoção de texto garbled (ROT-3 / fontes sem ToUnicode CMap)
+        │    - Remoção de headers institucionais repetidos
+        │    - Remoção de page numbers (ex: "10/26")
+        │    - Remoção de linhas TOC com reticências
+        │    - Correção de hifenização de quebra de linha
+        │    - Padronização de aspas e travessões
+        │    - Normalização de whitespace
+        ▼
+  4. Chunking (dividir em trechos de ~512 tokens)
         │    - ArticleChunker: para legislação (divide por artigos)
         │    - ICAChunker: para ICAs (divide por seções/capítulos)
         ▼
-  3. Embedding (gerar vetor de 1024 dimensões para cada chunk)
+  5. Embedding (gerar vetor de 1024 dimensões para cada chunk)
         │
         ▼
-  4. Upload (upsert no Qdrant com metadados)
+  6. Upload (upsert no Qdrant com metadados)
 ```
+
+> **Nota:** Os dados brutos em `data/decea/` nunca são modificados. A limpeza é
+> aplicada em memória durante a ingestão, antes do embedding. O script
+> `validate_data.py` permite gerar snapshots limpos para inspeção e comparação.
 
 ### Chunkers disponíveis:
 
@@ -672,6 +698,7 @@ python main.py
 | `ingest_decea.py` | `python -m scripts.ingest_decea` | Baixa e ingere documentos DECEA (alternativa: `make collect-decea`) |
 | `ingest_lexml.py` | `python -m scripts.ingest_lexml` | Baixa e ingere documentos LexML |
 | `ingest_pdfs.py` | `python -m scripts.ingest_pdfs --source DIR` | Ingere PDFs de um diretório |
+| `validate_data.py` | `python -m scripts.validate_data` | Valida qualidade e limpeza dos documentos (alternativa: `make validate-data`) |
 | `reset_database.py` | `python -m scripts.reset_database --confirm` | Reseta o banco vetorial |
 | `inspect_qdrant.py` | `python -m scripts.inspect_qdrant` | Inspeciona dados do Qdrant |
 | `test_system.py` | `python -m scripts.test_system` | Testa todos os componentes |
@@ -710,6 +737,15 @@ python -m scripts.test_chatbot
 
 # 8. Resetar tudo e re-ingerir
 python -m scripts.reset_database --confirm --clear-tracker
+
+# 9. Validar qualidade dos documentos (relatório no terminal)
+python -m scripts.validate_data --report-only
+
+# 10. Validar + limpar e salvar snapshot para comparação
+python -m scripts.validate_data --clean --output-dir data/cleaned/v1
+
+# 11. Apenas relatório com limpeza aplicada (sem salvar arquivos)
+python -m scripts.validate_data --clean --report-only
 ```
 
 ---

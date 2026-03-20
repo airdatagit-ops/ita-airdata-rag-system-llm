@@ -1,9 +1,9 @@
-"""Vector search with temporal filtering."""
+"""Vector search with support for dense, sparse, or hybrid (RRF) modes."""
 
 from typing import Dict, List, Optional
 from loguru import logger
 
-from models.embeddings import EmbeddingModel
+from models.embeddings import EmbeddingModel, SparseEncoder
 from database.qdrant_manager import QdrantManager
 from config import config
 
@@ -12,9 +12,46 @@ class VectorSearch:
     """Vector search with temporal and semantic filtering."""
 
     def __init__(self):
-        self.embedding_model = EmbeddingModel()
+        self.dense_model = EmbeddingModel() if config.SEARCH_DENSE_ENABLED else None
+        self.sparse_model = SparseEncoder() if config.SEARCH_SPARSE_ENABLED else None
         self.db = QdrantManager()
-        logger.info("VectorSearch initialized")
+
+        modes = []
+        if self.dense_model:
+            modes.append("dense")
+        if self.sparse_model:
+            modes.append("sparse")
+        logger.info(f"VectorSearch initialized (modes: {'+'.join(modes)})")
+
+    def _encode_query(self, query: str):
+        """Encode query into dense and/or sparse vectors based on config."""
+        dense_vector = None
+        sparse_vector = None
+
+        if self.dense_model:
+            dense_vector = self.dense_model.encode(query).tolist()
+        if self.sparse_model:
+            sparse_vector = self.sparse_model.encode_single(query)
+
+        return dense_vector, sparse_vector
+
+    @staticmethod
+    def _format_results(results) -> List[Dict]:
+        """Format Qdrant results into a uniform dict structure."""
+        formatted = []
+        for result in results:
+            entry = {
+                "regulation_id": result.payload.get("regulation_id"),
+                "text": result.payload.get("text"),
+                "score": result.score,
+                "metadata": result.payload.get("metadata", {}),
+            }
+            entry.update(
+                {k: v for k, v in result.payload.items()
+                 if k not in ("text", "regulation_id", "metadata")}
+            )
+            formatted.append(entry)
+        return formatted
 
     def search(
         self,
@@ -24,40 +61,21 @@ class VectorSearch:
         filters: Dict = None
     ) -> List[Dict]:
         """
-        Search for similar regulations.
+        Search for similar regulations using configured search modes.
 
-        Args:
-            query: Search query
-            limit: Number of results
-            score_threshold: Minimum similarity
-            filters: Additional filters
-
-        Returns:
-            List of results with metadata
+        When both dense and sparse are enabled, uses Reciprocal Rank Fusion.
         """
-        # Embed query
-        query_vector = self.embedding_model.encode(query)
+        dense_vector, sparse_vector = self._encode_query(query)
 
-        # Search
         results = self.db.search(
-            query_vector=query_vector.tolist(),
+            dense_vector=dense_vector,
+            sparse_vector=sparse_vector,
             limit=limit or config.SEARCH_TOP_K,
-            score_threshold=score_threshold or config.SEARCH_SCORE_THRESHOLD,
-            filters=filters
+            score_threshold=score_threshold,
+            filters=filters,
         )
 
-        # Format results
-        formatted = []
-        for result in results:
-            formatted.append({
-                "regulation_id": result.payload.get("regulation_id"),
-                "text": result.payload.get("text"),
-                "score": result.score,
-                "metadata": result.payload.get("metadata", {}),
-                **{k: v for k, v in result.payload.items()
-                   if k not in ["text", "regulation_id", "metadata"]}
-            })
-
+        formatted = self._format_results(results)
         logger.info(f"Found {len(formatted)} results for query: {query[:50]}...")
         return formatted
 
@@ -68,23 +86,14 @@ class VectorSearch:
         limit: int = None,
         **kwargs
     ) -> List[Dict]:
-        """
-        Search for regulations valid on a specific date.
-
-        Args:
-            query: Search query
-            date: Target date (ISO format)
-            limit: Number of results
-
-        Returns:
-            List of results valid on date
-        """
-        query_vector = self.embedding_model.encode(query)
+        """Search for regulations valid on a specific date."""
+        dense_vector, sparse_vector = self._encode_query(query)
 
         results = self.db.search_temporal(
-            query_vector=query_vector.tolist(),
             target_date=date,
-            limit=limit or config.SEARCH_TOP_K
+            dense_vector=dense_vector,
+            sparse_vector=sparse_vector,
+            limit=limit or config.SEARCH_TOP_K,
         )
 
         formatted = []
@@ -96,7 +105,7 @@ class VectorSearch:
                 "score": result.score,
                 "effective_date": result.payload.get("effective_date"),
                 "expiry_date": result.payload.get("expiry_date"),
-                "metadata": result.payload.get("metadata", {})
+                "metadata": result.payload.get("metadata", {}),
             })
 
         logger.info(f"Found {len(formatted)} results valid on {date}")
