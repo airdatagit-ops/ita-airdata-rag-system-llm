@@ -15,6 +15,7 @@ from qdrant_client.models import (
     DatetimeRange, MatchValue, PayloadSchemaType, HnswConfigDiff,
     IsNullCondition, PayloadField, SparseVectorParams, SparseVector,
     SearchParams, Prefetch, FusionQuery, Fusion,
+    OptimizersConfigDiff,
 )
 
 from config import config
@@ -130,18 +131,58 @@ class QdrantManager:
             except Exception as e:
                 logger.warning(f"Could not create index on '{field_name}': {e}")
 
+    def disable_indexing(self):
+        """Disable HNSW indexing for faster bulk uploads."""
+        self.client.update_collection(
+            collection_name=self.collection_name,
+            optimizer_config=OptimizersConfigDiff(indexing_threshold=0),
+        )
+        logger.info("Indexing disabled (threshold=0) for bulk upload")
+
+    def enable_indexing(self, threshold: int = 20_000):
+        """Re-enable HNSW indexing after bulk upload."""
+        self.client.update_collection(
+            collection_name=self.collection_name,
+            optimizer_config=OptimizersConfigDiff(indexing_threshold=threshold),
+        )
+        logger.info(f"Indexing re-enabled (threshold={threshold})")
+
+    def wait_for_indexing(self, timeout_sec: int = 300):
+        """Block until the collection finishes indexing (status=green)."""
+        import time
+
+        deadline = time.time() + timeout_sec
+        while time.time() < deadline:
+            info = self.client.get_collection(self.collection_name)
+            if info.status.name == "GREEN":
+                logger.success("Collection indexing complete")
+                return
+            time.sleep(2)
+        logger.warning("Indexing did not finish within timeout")
+
     def upsert_points(
         self,
         points: List[Dict],
-        batch_size: int = 64,
-        parallel: int = 2
+        batch_size: int = None,
+        parallel: int = None,
+        wait: bool = False,
     ) -> bool:
         """
         Upsert points to the collection.
 
         The "vector" field can be a plain list (unnamed, when sparse is off)
         or a dict of named vectors (when sparse is on).
+
+        Args:
+            batch_size: Points per batch (default: config.INGESTION_BATCH_SIZE).
+            parallel: Parallel upload workers (default: config.NUM_WORKERS).
+            wait: Block until each batch is indexed. Use False for bulk
+                  uploads when indexing is disabled; True for single-point
+                  inserts that need immediate consistency.
         """
+        batch_size = batch_size or config.INGESTION_BATCH_SIZE
+        parallel = parallel or config.NUM_WORKERS
+
         try:
             qdrant_points = [
                 PointStruct(
@@ -158,7 +199,7 @@ class QdrantManager:
                 batch_size=batch_size,
                 parallel=parallel,
                 max_retries=3,
-                wait=True,
+                wait=wait,
             )
 
             logger.success(f"Upserted {len(points)} points")

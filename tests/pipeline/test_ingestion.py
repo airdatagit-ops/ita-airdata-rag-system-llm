@@ -140,6 +140,42 @@ class TestIngestJsonDocuments:
         assert len(pipeline.db.upsert_points.call_args[0][0]) == 3
 
     @patch("pipeline.ingestion.get_chunker")
+    def test_disables_indexing_during_bulk_upsert(self, mock_get_chunker, pipeline, tmp_path):
+        """Indexing is disabled before upsert and re-enabled after."""
+        chunker = MagicMock()
+        chunker.chunk.return_value = [{"text": "chunk text", "regulation_id": "d1"}]
+        mock_get_chunker.return_value = chunker
+
+        f = tmp_path / "doc.json"
+        f.write_text(_make_json(slug="DOC-1"))
+        pipeline.dense_model.encode.return_value = np.random.rand(1, 4)
+
+        pipeline.ingest_json_documents([str(f)])
+
+        calls = [c[0] for c in pipeline.db.method_calls]
+        disable_idx = calls.index("disable_indexing")
+        upsert_idx = calls.index("upsert_points")
+        enable_idx = calls.index("enable_indexing")
+        assert disable_idx < upsert_idx < enable_idx
+
+    @patch("pipeline.ingestion.get_chunker")
+    def test_re_enables_indexing_on_upsert_failure(self, mock_get_chunker, pipeline, tmp_path):
+        """Indexing is re-enabled even when upsert_points raises."""
+        chunker = MagicMock()
+        chunker.chunk.return_value = [{"text": "chunk text", "regulation_id": "d1"}]
+        mock_get_chunker.return_value = chunker
+
+        f = tmp_path / "doc.json"
+        f.write_text(_make_json(slug="DOC-1"))
+        pipeline.dense_model.encode.return_value = np.random.rand(1, 4)
+        pipeline.db.upsert_points.side_effect = RuntimeError("qdrant down")
+
+        with pytest.raises(RuntimeError):
+            pipeline.ingest_json_documents([str(f)])
+
+        pipeline.db.enable_indexing.assert_called_once()
+
+    @patch("pipeline.ingestion.get_chunker")
     def test_returns_zero_for_empty_content(self, mock_get_chunker, pipeline, tmp_path):
         f = tmp_path / "empty.json"
         f.write_text(_make_json(content="short"))

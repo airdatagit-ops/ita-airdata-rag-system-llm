@@ -103,7 +103,11 @@ class IngestionPipeline:
             })
 
         logger.info(f"Upserting {len(points)} points to Qdrant...")
-        self.db.upsert_points(points)
+        self.db.disable_indexing()
+        try:
+            self.db.upsert_points(points)
+        finally:
+            self.db.enable_indexing()
         return len(points)
 
     def ingest_lexml(self, xml_paths: List[str]) -> int:
