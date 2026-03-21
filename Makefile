@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation collect-decea collect-lexml benchmark-lexml validate-data clean help
+.PHONY: test eval eval-retrieval eval-generation collect-decea collect-lexml benchmark-lexml validate-data validate-lexml clean help
 
 PYTHON ?= python
 K ?= 5
@@ -23,8 +23,10 @@ help:
 	@echo "  make collect-lexml LIMIT=50 CONCURRENCY=3         Custom LexML collection"
 	@echo "  make collect-lexml KEYWORDS='ANAC,portaria'       Custom keywords"
 	@echo "  make benchmark-lexml                              Benchmark async LexML scraper (seq vs parallel)"
-	@echo "  make validate-data                                Quality report (no changes)"
-	@echo "  make validate-data CLEAN=1                        Report + save cleaned snapshot"
+	@echo "  make validate-data                                Quality report for DECEA (no changes)"
+	@echo "  make validate-data CLEAN=1                        DECEA report + save cleaned snapshot"
+	@echo "  make validate-lexml                               Quality report for LexML (no changes)"
+	@echo "  make validate-lexml CLEAN=1                       LexML report + save cleaned snapshot"
 	@echo "  make eval                                         Run both evaluations"
 	@echo "  make eval-retrieval                               Run retrieval evaluation"
 	@echo "  make eval-retrieval K=10                          Override K for retrieval"
@@ -58,6 +60,13 @@ ifdef CLEAN
 	$(PYTHON) -m scripts.validate_data --data-dir $(DATA_DIR) --clean
 else
 	$(PYTHON) -m scripts.validate_data --data-dir $(DATA_DIR) --report-only
+endif
+
+validate-lexml:
+ifdef CLEAN
+	$(PYTHON) -m scripts.validate_data --data-dir data/lexml --clean
+else
+	$(PYTHON) -m scripts.validate_data --data-dir data/lexml --report-only
 endif
 
 clean:

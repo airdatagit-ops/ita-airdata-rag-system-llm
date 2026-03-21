@@ -2,7 +2,7 @@
 Text cleaning pipeline for aviation regulation documents.
 
 Applies heuristic-based transformations to remove noise from
-PDF-extracted text before embedding and indexing.
+PDF-extracted and web-scraped text before embedding and indexing.
 """
 
 import re
@@ -22,6 +22,7 @@ class CleaningStats:
     original_chars: int = 0
     cleaned_chars: int = 0
     control_chars_removed: int = 0
+    legal_disclaimers_removed: int = 0
     headers_removed: int = 0
     page_numbers_removed: int = 0
     garbled_lines_removed: int = 0
@@ -38,6 +39,18 @@ class CleaningStats:
             return 0.0
         return (self.chars_removed / self.original_chars) * 100
 
+
+# Boilerplate injected by Senado/LexML web portal into scraped content.
+# Removed unconditionally (unlike institutional headers, which require repetition).
+_LEGAL_DISCLAIMER_PATTERNS = [
+    # "[Detalhes da Norma]" section label from the LexML portal
+    re.compile(r'^\s*\[Detalhes\s+da\s+Norma\]\s*$', re.MULTILINE | re.IGNORECASE),
+    # Senado/Planalto disclaimer line present in every HTML-scraped document
+    re.compile(
+        r'^[^\n]*Este\s+texto\s+não\s+substitui\s+o\s+original\s+publicado\s+no\s+Diário\s+Oficial[^\n]*$',
+        re.MULTILINE | re.IGNORECASE,
+    ),
+]
 
 # Patterns for institutional headers found across DECEA ICA documents
 _HEADER_PATTERNS = [
@@ -88,23 +101,25 @@ _SEPARATOR_LINE = re.compile(
 
 class TextCleaner:
     """
-    Cleans PDF-extracted text from aviation regulation documents.
+    Cleans text from aviation regulation documents (PDF-extracted and web-scraped).
 
     The cleaning pipeline applies transformations in order:
     1. Unicode normalization (NFKC)
     2. Control character replacement (\\x03 → space, others removed)
-    3. Garbled text removal (ROT-3 / font-encoding artifacts)
-    4. Header/footer removal
-    5. Page number removal
-    6. TOC dotted-line removal
-    7. Separator line removal
-    8. Whitespace normalization
-    9. Line-break hyphenation repair
-    10. Smart quote/dash standardization
+    3. Legal portal disclaimers removal (LexML/Senado/Planalto boilerplate)
+    4. Garbled text removal (ROT-3 / font-encoding artifacts)
+    5. Header/footer removal (repeated institutional headers)
+    6. Page number removal
+    7. TOC dotted-line removal
+    8. Separator line removal
+    9. Smart quote/dash standardization
+    10. Line-break hyphenation repair
+    11. Whitespace normalization
     """
 
     def __init__(
         self,
+        remove_legal_disclaimers: bool = True,
         remove_headers: bool = True,
         remove_page_numbers: bool = True,
         remove_toc_dots: bool = True,
@@ -114,6 +129,7 @@ class TextCleaner:
         normalize_unicode: bool = True,
         normalize_quotes: bool = True,
     ):
+        self.remove_legal_disclaimers = remove_legal_disclaimers
         self.remove_headers = remove_headers
         self.remove_page_numbers = remove_page_numbers
         self.remove_toc_dots = remove_toc_dots
@@ -141,6 +157,10 @@ class TextCleaner:
 
         text, ctrl_removed = self._remove_control_chars(text)
         stats.control_chars_removed = ctrl_removed
+
+        if self.remove_legal_disclaimers:
+            text, n = self._remove_legal_disclaimers(text)
+            stats.legal_disclaimers_removed = n
 
         if self.remove_garbled:
             text, garbled_removed = self._remove_garbled_text(text)
@@ -174,6 +194,7 @@ class TextCleaner:
             logger.debug(
                 f"Cleaned {doc_id}: {stats.original_chars} → {stats.cleaned_chars} chars "
                 f"(-{stats.reduction_pct:.1f}%, ctrl={stats.control_chars_removed}, "
+                f"disclaimers={stats.legal_disclaimers_removed}, "
                 f"garbled={stats.garbled_lines_removed}, "
                 f"hdrs={stats.headers_removed}, pgnums={stats.page_numbers_removed})"
             )
@@ -282,6 +303,21 @@ class TextCleaner:
             kept.append(line)
 
         return '\n'.join(kept), removed
+
+    @staticmethod
+    def _remove_legal_disclaimers(text: str) -> tuple[str, int]:
+        """Remove boilerplate lines injected by legal portals (Senado, LexML, Planalto).
+
+        Unlike institutional headers, these are always noise regardless of how
+        many times they appear, so they are removed unconditionally.
+        """
+        total_removed = 0
+        for pattern in _LEGAL_DISCLAIMER_PATTERNS:
+            matches = pattern.findall(text)
+            if matches:
+                text = pattern.sub('', text)
+                total_removed += len(matches)
+        return text, total_removed
 
     @staticmethod
     def _remove_headers(text: str) -> tuple[str, int]:

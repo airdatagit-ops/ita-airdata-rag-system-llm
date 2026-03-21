@@ -1,11 +1,12 @@
 """
-Validate and clean DECEA documents, generating quality reports
-and optionally saving cleaned versions to a versioned directory.
+Validate and clean collected documents (DECEA, LexML, etc.), generating
+quality reports and optionally saving cleaned versions to a versioned directory.
 
 Usage:
     python -m scripts.validate_data
     python -m scripts.validate_data --data-dir data/decea --clean --output-dir data/cleaned/v1
-    python -m scripts.validate_data --report-only
+    python -m scripts.validate_data --data-dir data/lexml --report-only
+    python -m scripts.validate_data --data-dir data/lexml --clean
 """
 
 import argparse
@@ -61,7 +62,7 @@ def run_validation(
     cleaned_docs: list[dict] = []
 
     for doc in docs:
-        doc_id = doc.get('slug') or doc.get('_filename', 'unknown')
+        doc_id = doc.get('slug') or doc.get('urn') or doc.get('_filename', 'unknown')
         content = doc.get('content', '')
 
         # Validate BEFORE cleaning
@@ -134,15 +135,18 @@ def run_validation(
         print(f"\n{'='*80}")
         print("RESUMO DA LIMPEZA")
         print(f"{'='*80}")
-        print(f"  Documentos limpos:       {len(cleaning_stats_list)}")
-        print(f"  Chars antes:             {total_before:>12,}")
-        print(f"  Chars depois:            {total_after:>12,}")
-        print(f"  Redução:                 {total_before - total_after:>12,} "
+        total_disclaimers = sum(s.legal_disclaimers_removed for s in cleaning_stats_list)
+
+        print(f"  Documentos limpos:        {len(cleaning_stats_list)}")
+        print(f"  Chars antes:              {total_before:>12,}")
+        print(f"  Chars depois:             {total_after:>12,}")
+        print(f"  Redução:                  {total_before - total_after:>12,} "
               f"({(total_before - total_after) / total_before * 100:.1f}%)")
-        print(f"  Control chars removidos: {total_ctrl:>12,}")
-        print(f"  Linhas garbled removidas:{total_garbled:>12,}")
-        print(f"  Headers removidos:       {total_hdrs:>12,}")
-        print(f"  Page numbers removidos:  {total_pg:>12,}")
+        print(f"  Control chars removidos:  {total_ctrl:>12,}")
+        print(f"  Disclaimers removidos:    {total_disclaimers:>12,}")
+        print(f"  Linhas garbled removidas: {total_garbled:>12,}")
+        print(f"  Headers removidos:        {total_hdrs:>12,}")
+        print(f"  Page numbers removidos:   {total_pg:>12,}")
 
     # Save cleaned docs
     if output_dir and cleaned_docs:
@@ -189,7 +193,7 @@ def run_validation(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Validate and optionally clean DECEA documents"
+        description="Validate and optionally clean collected documents (DECEA, LexML, etc.)"
     )
     parser.add_argument(
         '--data-dir',
