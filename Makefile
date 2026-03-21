@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation collect-decea validate-data clean help
+.PHONY: test eval eval-retrieval eval-generation collect-decea collect-lexml benchmark-lexml validate-data clean help
 
 PYTHON ?= python
 K ?= 5
@@ -9,28 +9,41 @@ FILE ?=
 SEARCH_MODE ?= auto
 DOC_TYPES ?= ICA
 DATA_DIR ?= data/decea
+KEYWORDS ?=
+CONCURRENCY ?= 5
 
 help:
 	@echo "Usage:"
-	@echo "  make test                               Run all unit tests"
-	@echo "  make test FILE=tests/evaluation         Run tests in a specific dir or file"
-	@echo "  make collect-decea                      Collect DECEA documents"
-	@echo "  make collect-decea LIMIT=50 WORKERS=8 SKIP_DOWNLOAD=1      Ingest existing JSONs only"
-	@echo "  make validate-data                      Quality report (no changes)"
-	@echo "  make validate-data CLEAN=1              Report + save cleaned snapshot"
-	@echo "  make eval                               Run both evaluations"
-	@echo "  make eval-retrieval                     Run retrieval evaluation"
-	@echo "  make eval-retrieval K=10                Override K for retrieval"
-	@echo "  make eval-retrieval SEARCH_MODE=hybrid  Evaluate with hybrid search"
-	@echo "  make eval-generation                    Run generation evaluation"
-	@echo "  make eval-generation SAMPLE=10          Limit generation to 10 queries"
-	@echo "  make clean                              Remove evaluation result files"
+	@echo "  make test                                         Run all unit tests"
+	@echo "  make test FILE=tests/evaluation                   Run tests in a specific dir or file"
+	@echo "  make collect-decea                                Collect DECEA documents (100 ICAs, 4 workers)"
+	@echo "  make collect-decea LIMIT=50 WORKERS=8             Custom DECEA collection"
+	@echo "  make collect-decea SKIP_DOWNLOAD=1                Ingest existing JSONs only"
+	@echo "  make collect-lexml                                Collect LexML documents (100 docs, 5 parallel)"
+	@echo "  make collect-lexml LIMIT=50 CONCURRENCY=3         Custom LexML collection"
+	@echo "  make collect-lexml KEYWORDS='ANAC,portaria'       Custom keywords"
+	@echo "  make benchmark-lexml                              Benchmark async LexML scraper (seq vs parallel)"
+	@echo "  make validate-data                                Quality report (no changes)"
+	@echo "  make validate-data CLEAN=1                        Report + save cleaned snapshot"
+	@echo "  make eval                                         Run both evaluations"
+	@echo "  make eval-retrieval                               Run retrieval evaluation"
+	@echo "  make eval-retrieval K=10                          Override K for retrieval"
+	@echo "  make eval-retrieval SEARCH_MODE=hybrid            Evaluate with hybrid search"
+	@echo "  make eval-generation                              Run generation evaluation"
+	@echo "  make eval-generation SAMPLE=10                    Limit generation to 10 queries"
+	@echo "  make clean                                        Remove evaluation result files"
 
 test:
 	$(PYTHON) -m pytest $(or $(FILE),tests/) -v --tb=short
 
 collect-decea:
 	$(PYTHON) -m scripts.ingest_decea --doc-types $(DOC_TYPES) --limit $(LIMIT) --workers $(WORKERS) $(if $(SKIP_DOWNLOAD),--skip-download,) --download-dir $(DATA_DIR)
+
+collect-lexml:
+	$(PYTHON) -m scripts.ingest_lexml --limit $(LIMIT) --concurrency $(CONCURRENCY) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(SKIP_DOWNLOAD),--skip-download,) $(if $(FORCE_DOWNLOAD),--force-download,)
+
+benchmark-lexml:
+	$(PYTHON) -m scripts.benchmark_lexml --limit $(LIMIT) --download 10 $(if $(KEYWORDS),--keywords $(KEYWORDS),)
   
 eval: eval-retrieval eval-generation
 
