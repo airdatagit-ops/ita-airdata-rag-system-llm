@@ -47,8 +47,14 @@ class QdrantManager:
 
     @property
     def _named_vectors(self) -> bool:
-        """Use named vectors only when sparse search is enabled."""
-        return config.SEARCH_SPARSE_ENABLED
+        """Check if the collection uses named vectors (e.g. 'dense')."""
+        if not hasattr(self, '_named_vectors_cache'):
+            try:
+                info = self.client.get_collection(self.collection_name)
+                self._named_vectors_cache = isinstance(info.config.params.vectors, dict)
+            except Exception:
+                self._named_vectors_cache = config.SEARCH_SPARSE_ENABLED
+        return self._named_vectors_cache
 
     def create_collection(
         self,
