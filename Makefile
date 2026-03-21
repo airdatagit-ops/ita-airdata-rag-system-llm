@@ -99,7 +99,7 @@ query:
 	$(PYTHON) -m scripts.query $(if $(SQL),--sql "$(SQL)",)
 
 explore:
-	$(PYTHON) -m datasette serve $(STORE_DB) --open
+	$(PYTHON) -m datasette serve --immutable $(STORE_DB) --metadata metadata.yml --open
 
 clean:
 	rm -f evaluation/results/*.csv evaluation/results/*.json
