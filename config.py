@@ -89,6 +89,7 @@ class Settings(BaseSettings):
     LEXML_API_URL: str = getenv('LEXML_API_URL')
     LEXML_MAX_RECORDS_PER_PAGE: int = getenv('LEXML_MAX_RECORDS_PER_PAGE')
     LEXML_KEYWORDS: str = getenv('LEXML_KEYWORDS')
+    LEXML_MAX_RATE: Optional[int] = getenv('LEXML_MAX_RATE')
 
     # ========================================
     # PDF Parser Configuration
