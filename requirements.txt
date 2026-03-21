@@ -72,6 +72,7 @@ pyarrow>=14.0.0
 # ========================================
 datasette>=0.64.0
 datasette-auth-passwords>=1.1
+datasette-redirect-forbidden>=0.1
 
 # ========================================
 # Utilities

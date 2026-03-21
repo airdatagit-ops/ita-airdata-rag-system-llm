@@ -510,10 +510,11 @@ make pipeline MODE=hybrid RECREATE=1   # Full rebuild com busca híbrida
 
 Duas interfaces para explorar os documentos coletados no SQLite:
 
+#### Console SQL (`make query`)
+
 ```bash
 make query                                           # Console SQL interativo (REPL)
 make query SQL="SELECT source, doc_type, COUNT(*) FROM documents GROUP BY source, doc_type"
-make explore                                         # Interface web (datasette)
 ```
 
 O console SQL suporta comandos especiais: `\tables`, `\schema`, `\sources`, `\types`, `\counts`.
@@ -531,6 +532,62 @@ make query SQL="SELECT source, COUNT(*) AS total, ROUND(AVG(LENGTH(content))) AS
 | lexml  | 3029  | 12450.0   |
 | decea  | 447   | 38721.0   |
 +--------+-------+-----------+
+```
+
+#### Interface Web (`make explore`)
+
+```bash
+make explore    # Abre o Datasette no navegador (http://localhost:8001)
+```
+
+O Datasette oferece uma interface web completa para navegar tabelas, aplicar filtros visuais, executar SQL arbitrário e exportar resultados em JSON/CSV. O banco abre em **modo read-only** (`--immutable`).
+
+**Autenticação:** O acesso requer login. Ao abrir, você será redirecionado para a página de login. Usuários configurados:
+
+| Usuário | Descrição |
+|---------|-----------|
+| `admin` | Administrador |
+| `berg`  | Usuário padrão |
+
+**Adicionando novos usuários:**
+
+1. Gere o hash da senha:
+
+```bash
+python -c "from datasette_auth_passwords import hash_password; print(hash_password('minha_senha'))"
+```
+
+2. Adicione ao `metadata.yml`:
+
+```yaml
+plugins:
+  datasette-auth-passwords:
+    novousuario_password_hash: "pbkdf2_sha256$480000$..."
+```
+
+3. Autorize o acesso na seção `allow`:
+
+```yaml
+allow:
+  id:
+    - admin
+    - berg
+    - novousuario
+```
+
+**Deploy em produção (Nginx):**
+
+```bash
+python -m datasette serve --immutable data/store.db --metadata metadata.yml \
+  --host 127.0.0.1 --port 8001 --setting base_url /datasette/ --cors
+```
+
+```nginx
+location /datasette/ {
+    proxy_pass http://127.0.0.1:8001/datasette/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
 ```
 
 ### Fluxo detalhado:
