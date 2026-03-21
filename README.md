@@ -518,6 +518,21 @@ make explore                                         # Interface web (datasette)
 
 O console SQL suporta comandos especiais: `\tables`, `\schema`, `\sources`, `\types`, `\counts`.
 
+Exemplo de consulta:
+
+```bash
+make query SQL="SELECT source, COUNT(*) AS total, ROUND(AVG(LENGTH(content))) AS avg_chars FROM documents GROUP BY source ORDER BY total DESC"
+```
+
+```
++--------+-------+-----------+
+| source | total | avg_chars |
++--------+-------+-----------+
+| lexml  | 3029  | 12450.0   |
+| decea  | 447   | 38721.0   |
++--------+-------+-----------+
+```
+
 ### Fluxo detalhado:
 
 ```
