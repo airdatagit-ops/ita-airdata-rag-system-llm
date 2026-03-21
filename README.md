@@ -182,7 +182,7 @@ cp env.example .env
 | `HNSW_EF_CONSTRUCT` | int | `100` | Parâmetro ef_construct do HNSW |
 | `HNSW_EF_SEARCH` | int | `64` | Parâmetro ef para busca no HNSW |
 
-> **Busca híbrida:** Quando ambos `SEARCH_DENSE_ENABLED` e `SEARCH_SPARSE_ENABLED` estão habilitados, o sistema combina os resultados usando Reciprocal Rank Fusion (RRF) via Qdrant Query API. Isso melhora a recuperação de termos exatos (siglas, artigos, nomes de ICAs) que a busca semântica pura pode perder. A coleção deve ser recriada ao habilitar sparse pela primeira vez (`python -m scripts.setup_qdrant --recreate`).
+> **Busca híbrida:** Quando ambos `SEARCH_DENSE_ENABLED` e `SEARCH_SPARSE_ENABLED` estão habilitados, o sistema combina os resultados usando Reciprocal Rank Fusion (RRF) via Qdrant Query API. Isso melhora a recuperação de termos exatos (siglas, artigos, nomes de ICAs) que a busca semântica pura pode perder. A coleção deve ser recriada ao habilitar sparse pela primeira vez (`make index RECREATE=1`).
 
 #### Chunking
 
@@ -226,10 +226,10 @@ docker run -d --name qdrant \
 
 ### 4.2. Criação da coleção
 
-O script `setup_qdrant.py` cria a coleção com a configuração correta:
+A coleção é criada automaticamente pela fase de indexação:
 
 ```bash
-python -m scripts.setup_qdrant
+make index RECREATE=1
 ```
 
 Isso cria a coleção `aviation_regulations` com:
@@ -269,23 +269,15 @@ Este script mostra:
 Para apagar todos os dados e recriar a coleção:
 
 ```bash
-python -m scripts.reset_database --confirm
+make index RECREATE=1
 ```
 
-Opções adicionais:
+Para forçar re-coleta e reconstrução completa:
 
 ```bash
-# Resetar e re-ingerir apenas documentos DECEA
-python -m scripts.reset_database --confirm --only-decea
-
-# Resetar e re-ingerir apenas documentos LexML
-python -m scripts.reset_database --confirm --only-lexml
-
-# Resetar sem re-ingerir (apenas limpa o banco)
-python -m scripts.reset_database --confirm --skip-ingest
-
-# Limpar também o rastreador de documentos
-python -m scripts.reset_database --confirm --clear-tracker
+make collect FORCE=1    # apaga docs da store e re-coleta
+make embed FORCE=1      # re-gera todos os embeddings
+make index RECREATE=1   # recria a coleção no Qdrant
 ```
 
 ---
@@ -388,7 +380,6 @@ O sistema extrai documentos de duas fontes principais:
 ### 7.1. DECEA (Instruções de Comando da Aeronáutica)
 
 **Scraper:** `crawler/scrapers/decea_scraper.py`
-**Script de ingestão:** `scripts/ingest_decea.py`
 
 O scraper DECEA usa **HTTP direto** (`requests` + `BeautifulSoup`) para acessar o portal de publicações do DECEA (`publicacoes.decea.mil.br`). O portal usa Next.js com Server-Side Rendering, o que permite extrair todo o conteúdo sem navegador. Ele:
 
@@ -397,99 +388,59 @@ O scraper DECEA usa **HTTP direto** (`requests` + `BeautifulSoup`) para acessar 
 3. Extrai URLs de PDFs assinadas (S3) de cada página de publicação
 4. Baixa os PDFs originais em paralelo (`ThreadPoolExecutor`)
 5. Extrai texto dos PDFs (PyMuPDF, pdfplumber, OCR fallback)
-6. Salva JSONs em `data/decea/` e PDFs originais em `data/originals/ica/`
+6. Armazena conteúdo e metadados no SQLite (`data/store.db`)
 
 **Como executar:**
 
 ```bash
-# Via Makefile (recomendado)
-make collect-decea                          # Padrão: 100 ICAs, 8 workers
-make collect-decea LIMIT=200 WORKERS=8      # Custom
-make collect-decea DOC_TYPES=ICA,MCA        # Múltiplos tipos
-
-# Via script direto
-python -m scripts.ingest_decea --doc-types ICA --limit 50
-python -m scripts.ingest_decea --doc-types ICA,MCA --limit 100 --workers 8
-python -m scripts.ingest_decea --slugs ICA-63-47,ICA-100-12,ICA-100-37
-python -m scripts.ingest_decea --skip-download    # Usar JSONs existentes
-python -m scripts.ingest_decea --no-text           # Apenas descrição
+make collect SOURCES=decea                     # Coleta todos os tipos
+make collect SOURCES=decea LIMIT=50            # Limita a 50 docs
+make collect SOURCES=decea DOC_TYPES=ICA,MCA   # Apenas ICA e MCA
+make collect SOURCES=decea CHECK=1             # Verifica alterações
+make collect SOURCES=decea FORCE=1             # Re-coleta do zero
 ```
-
-**Parâmetros disponíveis:**
-
-| Parâmetro | Descrição |
-|-----------|-----------|
-| `--doc-types` | Tipos de documento separados por vírgula (ICA, MCA, PCA, DCA, TCA, CIRCEA, NSCA) |
-| `--slugs` | Slugs específicos separados por vírgula |
-| `--keywords` | Palavras-chave para filtro |
-| `--limit` | Máximo de documentos (padrão: 100) |
-| `--workers` | Workers paralelos para download (padrão: 8) |
-| `--download-dir` | Diretório de saída (padrão: `./data/decea`) |
-| `--skip-download` | Usar apenas JSONs já existentes |
-| `--no-text` | Não extrair texto dos PDFs |
 
 ### 7.2. LexML (Legislação Federal)
 
 **Scraper:** `crawler/scrapers/lexml_scraper.py`
-**Script de ingestão:** `scripts/ingest_lexml.py`
 
 O scraper LexML usa **aiohttp (assíncrono)** + BeautifulSoup para buscar documentos no portal LexML Brasil com downloads paralelos. Ele:
 
-1. Busca documentos por palavras-chave na interface web do LexML (paginação automática)
+1. Busca documentos por palavras-chave individualmente na interface web do LexML (paginação automática)
 2. Extrai metadados (título, URN, tipo, data, autoria)
 3. Segue links para Senado ou Planalto e extrai o texto integral
 4. Baixa múltiplos documentos em paralelo (semáforo configurável)
-5. Salva como JSON em `data/lexml/` e registra no rastreador
+5. Deduplica resultados por URN entre keywords
+6. Armazena conteúdo e metadados no SQLite (`data/store.db`)
 
 **Como executar:**
 
 ```bash
-# Via Makefile (recomendado)
-make collect-lexml                              # Padrão: 100 docs, 5 downloads paralelos
-make collect-lexml LIMIT=50 CONCURRENCY=3      # Custom
-make collect-lexml KEYWORDS="ANAC,portaria"    # Palavras-chave específicas
-
-# Via script direto
-python -m scripts.ingest_lexml --limit 100
-python -m scripts.ingest_lexml --keywords "aviação,ANAC,aeroporto" --limit 50
-python -m scripts.ingest_lexml --concurrency 3 --limit 50
-python -m scripts.ingest_lexml --force-download --limit 50
-python -m scripts.ingest_lexml --skip-download
+make collect SOURCES=lexml                             # Coleta todos os docs
+make collect SOURCES=lexml LIMIT=50                    # Limita a 50 docs por keyword
+make collect SOURCES=lexml KEYWORDS="ANAC,portaria"    # Keywords específicas
+make collect SOURCES=lexml CHECK=1                     # Verifica alterações
+make collect SOURCES=lexml FORCE=1                     # Re-coleta do zero
 ```
-
-**Parâmetros disponíveis:**
-
-| Parâmetro | Descrição |
-|-----------|-----------|
-| `--keywords` | Palavras-chave separadas por vírgula (padrão: `LEXML_KEYWORDS` do `.env`) |
-| `--limit` | Máximo de documentos a buscar (padrão: 100) |
-| `--concurrency` | Downloads paralelos simultâneos (padrão: 5) |
-| `--download-dir` | Diretório de saída (padrão: `./data/lexml`) |
-| `--skip-download` | Usar apenas JSONs já existentes |
-| `--force-download` | Re-baixar mesmo que já exista no rastreador |
 
 ### 7.3. PDFs Locais
 
-**Script:** `scripts/ingest_pdfs.py`
-
-Para ingerir PDFs que já estejam em um diretório local:
+Para coletar PDFs que já estejam em um diretório local:
 
 ```bash
-# Ingerir PDFs de um diretório
-python -m scripts.ingest_pdfs --source ./meus-pdfs/
-
-# Buscar recursivamente em subdiretórios
-python -m scripts.ingest_pdfs --source ./meus-pdfs/ --recursive
+make collect SOURCES=pdf                           # PDFs do diretório padrão (./data/pdfs)
+make collect SOURCES=pdf PDF_DIR=./meus-pdfs/      # Diretório customizado
 ```
 
 ### 7.4. Rastreamento de Documentos
 
-O `DocumentTracker` (`parsers/document_tracker.py`) mantém um registro em `data/document_tracker.json` com:
+O `DocumentStore` (`pipeline/document_store.py`) mantém um registro em SQLite (`data/store.db`) com:
 
-- URNs de documentos já baixados
-- URLs já visitadas
-- Hashes de conteúdo (para detectar duplicatas)
-- Timestamps de download
+- Conteúdo completo de cada documento
+- Hash SHA256 do conteúdo (para detectar alterações)
+- Metadados (título, URL, URN, tipo, source)
+- Timestamps de coleta e atualização
+- Log de embeddings gerados
 
 Isso evita re-downloads desnecessários em execuções subsequentes.
 
@@ -760,20 +711,10 @@ python main.py
 
 | Script | Comando | Descrição |
 |--------|---------|-----------|
-| `setup_qdrant.py` | `python -m scripts.setup_qdrant` | Inicializa a coleção no Qdrant |
 | `validate_data.py` | `python -m scripts.validate_data` | Valida qualidade e limpeza dos documentos (`make validate-data`) |
-| `reset_database.py` | `python -m scripts.reset_database --confirm` | Reseta o banco vetorial |
 | `inspect_qdrant.py` | `python -m scripts.inspect_qdrant` | Inspeciona dados do Qdrant |
 | `test_system.py` | `python -m scripts.test_system` | Testa todos os componentes |
 | `test_chatbot.py` | `python -m scripts.test_chatbot` | Testa os endpoints do chatbot |
-
-**Legacy (mantidos para retrocompatibilidade):**
-
-| Script | Comando | Descrição |
-|--------|---------|-----------|
-| `ingest_decea.py` | `python -m scripts.ingest_decea` | Coleta + ingestão DECEA monolítica (`make collect-decea`) |
-| `ingest_lexml.py` | `python -m scripts.ingest_lexml` | Coleta + ingestão LexML monolítica (`make collect-lexml`) |
-| `ingest_pdfs.py` | `python -m scripts.ingest_pdfs --source DIR` | Ingere PDFs de um diretório |
 
 > Para avaliação de qualidade da busca, veja a [Seção 12](#12-avaliação-de-qualidade).
 
@@ -784,39 +725,39 @@ python main.py
 cd aviation-rag-system/
 source venv/bin/activate
 
-# 1. Criar a coleção no Qdrant
-python -m scripts.setup_qdrant
+# 1. Coletar documentos (Fase 1)
+make collect                                  # Coleta DECEA + LexML
+make collect SOURCES=decea LIMIT=50           # Apenas DECEA, 50 docs
+make collect SOURCES=pdf PDF_DIR=./meus-pdfs  # PDFs locais
 
-# 2. Ingerir documentos DECEA
-python -m scripts.ingest_decea --doc-types ICA,MCA --limit 100 --workers 8
-# Alternativa via Makefile: make collect-decea DOC_TYPES=ICA,MCA LIMIT=100 WORKERS=8
+# 2. Gerar embeddings (Fase 2)
+make embed MODE=sparse                        # Apenas sparse (sem GPU)
+make embed MODE=hybrid                        # Dense + sparse (GPU)
 
-# 3. Ingerir documentos LexML
-python -m scripts.ingest_lexml --keywords "aviação,ANAC" --limit 200
+# 3. Indexar no Qdrant (Fase 3)
+make index                                    # Upsert incremental
+make index RECREATE=1                         # Recria a coleção
 
-# 4. Ingerir PDFs locais
-python -m scripts.ingest_pdfs --source ./data/originals --recursive
+# 4. Pipeline completo (3 fases em sequência)
+make pipeline
 
 # 5. Verificar o que foi indexado
 python -m scripts.inspect_qdrant
 
-# 6. Testar todo o sistema
+# 6. Consultar documentos coletados
+make query SQL="SELECT source, COUNT(*) n FROM documents GROUP BY source"
+make explore                                  # Web UI (Datasette)
+
+# 7. Testar todo o sistema
 python -m scripts.test_system
 
-# 7. Testar o chatbot (precisa da API rodando)
-python -m scripts.test_chatbot
+# 8. Resetar tudo e re-coletar
+make collect FORCE=1                          # Apaga e re-coleta
+make embed FORCE=1                            # Re-gera embeddings
+make index RECREATE=1                         # Recria Qdrant
 
-# 8. Resetar tudo e re-ingerir
-python -m scripts.reset_database --confirm --clear-tracker
-
-# 9. Validar qualidade dos documentos (relatório no terminal)
+# 9. Validar qualidade dos documentos
 python -m scripts.validate_data --report-only
-
-# 10. Validar + limpar e salvar snapshot para comparação
-python -m scripts.validate_data --clean --output-dir data/cleaned/v1
-
-# 11. Apenas relatório com limpeza aplicada (sem salvar arquivos)
-python -m scripts.validate_data --clean --report-only
 ```
 
 ---
@@ -1020,15 +961,13 @@ python -m pytest tests/ -v --tb=short
 | `make query` | Console SQL interativo para explorar documentos |
 | `make explore` | Interface web (datasette) para explorar o SQLite |
 
-**Legacy, avaliação e utilitários:**
+**Avaliação e utilitários:**
 
 | Comando | Descrição |
 |---------|-----------|
 | `make help` | Lista todos os comandos disponíveis |
 | `make test` | Executa todos os testes unitários |
 | `make test FILE=<path>` | Executa testes de um arquivo ou diretório |
-| `make collect-decea` | Coleta documentos DECEA (legacy) |
-| `make collect-lexml` | Coleta documentos LexML (legacy) |
 | `make eval` | Executa ambas as avaliações (retrieval + geração) |
 | `make eval-retrieval` | Avaliação de retrieval |
 | `make eval-generation` | Avaliação de geração |
@@ -1274,7 +1213,7 @@ ModuleNotFoundError: No module named 'config'
 ```bash
 cd aviation-rag-system/
 source venv/bin/activate
-python -m scripts.setup_qdrant  # ✅ Correto
+python -m scripts.collect  # ✅ Correto
 ```
 
 ### Qdrant não conecta

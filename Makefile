@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation collect-decea collect-lexml validate-data validate-lexml clean help collect embed index pipeline query explore
+.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect embed index pipeline query explore
 
 PYTHON ?= python
 K ?= 5
@@ -8,7 +8,6 @@ LIMIT ?= 0
 FILE ?=
 SEARCH_MODE ?= auto
 DOC_TYPES ?= ICA,MCA,PCA,DCA,TCA,CIRCEA,NSCA,FCA
-DATA_DIR ?= data/decea
 KEYWORDS ?=
 CONCURRENCY ?= 10
 SOURCES ?= lexml,decea
@@ -38,14 +37,6 @@ help:
 	@echo "  make index RECREATE=1                             Drop + recreate Qdrant collection"
 	@echo "  make pipeline                                     Run all 3 phases in sequence"
 	@echo ""
-	@echo "  ── legacy collectors ──────────────────────────────────────────────────"
-	@echo "  make collect-decea                                Collect DECEA documents (100 ICAs, 4 workers)"
-	@echo "  make collect-decea LIMIT=50 WORKERS=8             Custom DECEA collection"
-	@echo "  make collect-decea SKIP_DOWNLOAD=1                Ingest existing JSONs only"
-	@echo "  make collect-lexml                                Collect LexML documents (100 docs, 5 parallel)"
-	@echo "  make collect-lexml LIMIT=50 CONCURRENCY=3         Custom LexML collection"
-	@echo "  make collect-lexml KEYWORDS='ANAC,portaria'       Custom keywords"
-	@echo ""
 	@echo "  ── validation & evaluation ───────────────────────────────────────────"
 	@echo "  make validate-data                                Quality report for DECEA (no changes)"
 	@echo "  make validate-data CLEAN=1                        DECEA report + save cleaned snapshot"
@@ -71,12 +62,6 @@ help:
 test:
 	$(PYTHON) -m pytest $(or $(FILE),tests/) -v --tb=short
 
-collect-decea:
-	$(PYTHON) -m scripts.ingest_decea --doc-types $(DOC_TYPES) --limit $(LIMIT) --workers $(WORKERS) $(if $(SKIP_DOWNLOAD),--skip-download,) --download-dir $(DATA_DIR)
-
-collect-lexml:
-	$(PYTHON) -m scripts.ingest_lexml --limit $(LIMIT) --concurrency $(CONCURRENCY) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(SKIP_DOWNLOAD),--skip-download,) $(if $(FORCE_DOWNLOAD),--force-download,)
-
 eval: eval-retrieval eval-generation
 
 eval-retrieval:
@@ -87,9 +72,9 @@ eval-generation:
 
 validate-data:
 ifdef CLEAN
-	$(PYTHON) -m scripts.validate_data --data-dir $(DATA_DIR) --clean
+	$(PYTHON) -m scripts.validate_data --data-dir data/decea --clean
 else
-	$(PYTHON) -m scripts.validate_data --data-dir $(DATA_DIR) --report-only
+	$(PYTHON) -m scripts.validate_data --data-dir data/decea --report-only
 endif
 
 validate-lexml:

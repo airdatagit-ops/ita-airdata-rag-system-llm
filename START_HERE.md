@@ -130,20 +130,20 @@ aviation-rag-system/
 │   └── ingestion.py         # Pipeline completo de ingestão
 │
 ├── scripts/                 # Scripts utilitários
-│   ├── setup_qdrant.py      # Inicializar coleção no Qdrant
-│   ├── ingest_decea.py      # Baixar e ingerir documentos DECEA
-│   ├── ingest_lexml.py      # Baixar e ingerir documentos LexML
-│   ├── ingest_pdfs.py       # Ingerir PDFs locais
-│   ├── reset_database.py    # Resetar banco vetorial
+│   ├── collect.py           # Fase 1: coletar documentos (make collect)
+│   ├── embed.py             # Fase 2: gerar embeddings (make embed)
+│   ├── index.py             # Fase 3: indexar no Qdrant (make index)
+│   ├── query.py             # Console SQL interativo (make query)
 │   ├── inspect_qdrant.py    # Inspecionar dados do Qdrant
+│   ├── validate_data.py     # Validar qualidade dos dados
 │   ├── test_system.py       # Testar todos os componentes
 │   └── test_chatbot.py      # Testar endpoints do chatbot
 │
 ├── data/                    # Dados extraídos
-│   ├── decea/               # JSONs de documentos DECEA
-│   ├── lexml/               # JSONs de documentos LexML
+│   ├── store.db             # SQLite com documentos coletados
+│   ├── embeddings/          # Parquet com vetores (dense/sparse)
 │   ├── originals/           # PDFs originais baixados
-│   └── document_tracker.json # Rastreamento de downloads
+│   └── pdfs/                # PDFs locais para ingestão
 │
 ├── web/                     # Interface Web (projeto separado)
 │   ├── main.py              # Aplicação web FastAPI
