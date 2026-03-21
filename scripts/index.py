@@ -177,15 +177,17 @@ def run(args: argparse.Namespace) -> int:
         logger.error("Inconsistent embedding state")
         return 1
 
-    logger.info(f"Upserting {len(points)} points to Qdrant …")
-    batch_size = args.batch_size or config.INGESTION_BATCH_SIZE
+    batch_size = args.batch_size or 500
+    logger.info(
+        f"Upserting {len(points)} points to Qdrant "
+        f"(batch_size={batch_size}, workers={args.workers}) …"
+    )
 
     db.disable_indexing()
     try:
-        for start in range(0, len(points), batch_size):
-            batch = points[start : start + batch_size]
-            db.upsert_points(batch, batch_size=batch_size, parallel=args.workers)
-            logger.info(f"  upserted {start + len(batch)}/{len(points)}")
+        db.upsert_points(
+            points, batch_size=batch_size, parallel=args.workers,
+        )
     finally:
         db.enable_indexing()
 

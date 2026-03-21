@@ -66,6 +66,10 @@ class DocumentStore:
     def __init__(self, db_path: str = None):
         self.db_path = Path(db_path or config.STORE_DB_PATH)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self._connection = sqlite3.connect(str(self.db_path), timeout=30)
+        self._connection.row_factory = sqlite3.Row
+        self._connection.execute("PRAGMA journal_mode=WAL")
+        self._connection.execute("PRAGMA synchronous=NORMAL")
         self._init_db()
         logger.info(f"DocumentStore ready ({self.db_path})")
 
@@ -75,20 +79,20 @@ class DocumentStore:
         with self._conn() as conn:
             conn.executescript(_SCHEMA_SQL)
 
+    def close(self) -> None:
+        if self._connection:
+            self._connection.close()
+            self._connection = None
+
     @contextmanager
     def _conn(self):
-        conn = sqlite3.connect(str(self.db_path), timeout=30)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA synchronous=NORMAL")
+        conn = self._connection
         try:
             yield conn
             conn.commit()
         except Exception:
             conn.rollback()
             raise
-        finally:
-            conn.close()
 
     # ── content hashing ─────────────────────────────────────────
 
@@ -168,6 +172,38 @@ class DocumentStore:
         with self._conn() as conn:
             rows = conn.execute("SELECT doc_id FROM documents").fetchall()
             return {r["doc_id"] for r in rows}
+
+    def exists(self, doc_id: str) -> bool:
+        """Check if a document exists without loading the full row."""
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM documents WHERE doc_id = ? LIMIT 1", (doc_id,)
+            ).fetchone()
+            return row is not None
+
+    def delete_by_source(self, source: str) -> int:
+        """Delete all documents (and their embedding logs) for a given source.
+
+        Returns the number of deleted documents.
+        """
+        with self._conn() as conn:
+            doc_ids = [
+                r["doc_id"]
+                for r in conn.execute(
+                    "SELECT doc_id FROM documents WHERE source = ?", (source,)
+                ).fetchall()
+            ]
+            if doc_ids:
+                placeholders = ",".join("?" * len(doc_ids))
+                conn.execute(
+                    f"DELETE FROM embedding_log WHERE doc_id IN ({placeholders})",
+                    doc_ids,
+                )
+            n = conn.execute(
+                "DELETE FROM documents WHERE source = ?", (source,)
+            ).rowcount
+            logger.info(f"Deleted {n} documents from source '{source}'")
+            return n
 
     def count(self, source: str = None) -> int:
         with self._conn() as conn:

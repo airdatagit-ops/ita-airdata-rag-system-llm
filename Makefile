@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation collect-decea collect-lexml validate-data validate-lexml clean help collect embed index pipeline
+.PHONY: test eval eval-retrieval eval-generation collect-decea collect-lexml validate-data validate-lexml clean help collect embed index pipeline query explore
 
 PYTHON ?= python
 K ?= 5
@@ -10,17 +10,21 @@ SEARCH_MODE ?= auto
 DOC_TYPES ?= ICA,MCA,PCA,DCA,TCA,CIRCEA,NSCA,FCA
 DATA_DIR ?= data/decea
 KEYWORDS ?=
-CONCURRENCY ?= 5
+CONCURRENCY ?= 10
 SOURCES ?= lexml,decea
 PDF_DIR ?= ./data/pdfs
 MODE ?=
 BATCH_SIZE ?=
+STORE_DB ?= data/store.db
+SQL ?=
 
 help:
 	@echo "Usage:"
 	@echo ""
 	@echo "  ── 3-phase pipeline ──────────────────────────────────────────────────"
-	@echo "  make collect                                      Phase 1: collect ALL documents into SQLite"
+	@echo "  make collect                                      Phase 1: collect new documents into SQLite"
+	@echo "  make collect CHECK=1                              Re-download all and verify content hashes"
+	@echo "  make collect FORCE=1                              Wipe source docs and re-collect from scratch"
 	@echo "  make collect SOURCES=lexml                        Collect only LexML (all docs)"
 	@echo "  make collect SOURCES=decea LIMIT=50               Collect only DECEA, limit to 50 docs"
 	@echo "  make collect SOURCES=pdf PDF_DIR=./data/pdfs      Collect local PDFs from directory"
@@ -53,6 +57,11 @@ help:
 	@echo "  make eval-retrieval SEARCH_MODE=hybrid            Evaluate with hybrid search"
 	@echo "  make eval-generation                              Run generation evaluation"
 	@echo "  make eval-generation SAMPLE=10                    Limit generation to 10 queries"
+	@echo ""
+	@echo "  ── analytics ─────────────────────────────────────────────────────────"
+	@echo "  make query                                        Open interactive SQL console"
+	@echo "  make query SQL='SELECT source, COUNT(*) ...'      Run a one-shot SQL query"
+	@echo "  make explore                                      Open datasette web UI for the store"
 	@echo ""
 	@echo "  ── utilities ─────────────────────────────────────────────────────────"
 	@echo "  make test                                         Run all unit tests"
@@ -91,7 +100,7 @@ else
 endif
 
 collect:
-	$(PYTHON) -m scripts.collect --sources $(SOURCES) --limit $(LIMIT) --concurrency $(CONCURRENCY) --workers $(WORKERS) --doc-types $(DOC_TYPES) --pdf-dir $(PDF_DIR) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(FORCE),--force,)
+	$(PYTHON) -m scripts.collect --sources $(SOURCES) --limit $(LIMIT) --concurrency $(CONCURRENCY) --workers $(WORKERS) --doc-types $(DOC_TYPES) --pdf-dir $(PDF_DIR) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,)
 
 embed:
 	$(PYTHON) -m scripts.embed $(if $(MODE),--mode $(MODE),) $(if $(FORCE),--force,) $(if $(BATCH_SIZE),--batch-size $(BATCH_SIZE),)
@@ -100,6 +109,12 @@ index:
 	$(PYTHON) -m scripts.index --workers $(WORKERS) $(if $(RECREATE),--recreate,) $(if $(BATCH_SIZE),--batch-size $(BATCH_SIZE),)
 
 pipeline: collect embed index
+
+query:
+	$(PYTHON) -m scripts.query $(if $(SQL),--sql "$(SQL)",)
+
+explore:
+	datasette serve $(STORE_DB) --open
 
 clean:
 	rm -f evaluation/results/*.csv evaluation/results/*.json

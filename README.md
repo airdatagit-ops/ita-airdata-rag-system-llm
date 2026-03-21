@@ -510,12 +510,22 @@ O pipeline de ingestão foi reestruturado em **3 fases independentes e idempoten
 
 ### Fase 1: Collect (`make collect`)
 
-Executa os scrapers (LexML, DECEA, etc.) e persiste documentos no SQLite. Apenas documentos cujo conteúdo mudou (hash SHA256) são efetivamente atualizados.
+Executa os scrapers (LexML, DECEA, PDFs locais) e persiste documentos no SQLite. Três modos de coleta controlam o comportamento em re-runs:
+
+| Modo | Comando | Comportamento |
+|---|---|---|
+| **Default** | `make collect` | Pula documentos que já existem no SQLite (sem HTTP). Apenas novos são baixados. Re-runs instantâneos. |
+| **Check** | `make collect CHECK=1` | Re-baixa todos os documentos e recalcula hash. Atualiza apenas os que mudaram na fonte. |
+| **Force** | `make collect FORCE=1` | Apaga todos os documentos da fonte no SQLite e re-coleta do zero. |
 
 ```bash
-make collect                           # Todas as fontes
-make collect SOURCES=lexml LIMIT=50    # Apenas LexML
-make collect SOURCES=decea             # Apenas DECEA
+make collect                              # re-run rápido (pula existentes)
+make collect CHECK=1                      # verificar mudanças nas fontes
+make collect FORCE=1                      # apagar e re-coletar tudo
+make collect SOURCES=lexml LIMIT=50       # apenas LexML, 50 docs
+make collect SOURCES=decea                # apenas DECEA (todos os tipos)
+make collect SOURCES=pdf PDF_DIR=./data/pdfs  # PDFs locais
+make collect SOURCES=lexml,decea,pdf      # todas as fontes
 ```
 
 ### Fase 2: Embed (`make embed`)
@@ -544,6 +554,18 @@ make index RECREATE=1         # Recriar coleção antes
 make pipeline                          # collect + embed + index
 make pipeline MODE=hybrid RECREATE=1   # Full rebuild com busca híbrida
 ```
+
+### Analytics (`make query` / `make explore`)
+
+Duas interfaces para explorar os documentos coletados no SQLite:
+
+```bash
+make query                                           # Console SQL interativo (REPL)
+make query SQL="SELECT source, doc_type, COUNT(*) FROM documents GROUP BY source, doc_type"
+make explore                                         # Interface web (datasette)
+```
+
+O console SQL suporta comandos especiais: `\tables`, `\schema`, `\sources`, `\types`, `\counts`.
 
 ### Fluxo detalhado:
 
@@ -729,9 +751,10 @@ python main.py
 
 | Script | Comando | Descrição |
 |--------|---------|-----------|
-| `collect.py` | `python -m scripts.collect` | Fase 1: coleta documentos de todas as fontes no SQLite (`make collect`) |
+| `collect.py` | `python -m scripts.collect` | Fase 1: coleta documentos de todas as fontes no SQLite (`make collect`). Modos: default (skip), --check, --force |
 | `embed.py` | `python -m scripts.embed` | Fase 2: gera embeddings incrementais em Parquet (`make embed`) |
 | `index.py` | `python -m scripts.index` | Fase 3: carrega embeddings no Qdrant (`make index`) |
+| `query.py` | `python -m scripts.query` | Console SQL interativo para explorar o SQLite (`make query`) |
 
 **Utilitários:**
 
@@ -988,10 +1011,14 @@ python -m pytest tests/ -v --tb=short
 
 | Comando | Descrição |
 |---------|-----------|
-| `make collect` | Fase 1: coleta de todas as fontes no SQLite |
+| `make collect` | Fase 1: coleta novos documentos (pula existentes, re-run instantâneo) |
+| `make collect CHECK=1` | Fase 1: re-baixa tudo e verifica hashes (detecta mudanças na fonte) |
+| `make collect FORCE=1` | Fase 1: apaga docs da fonte e re-coleta do zero |
 | `make embed` | Fase 2: gera embeddings incrementais em Parquet |
 | `make index` | Fase 3: carrega embeddings no Qdrant |
 | `make pipeline` | Executa as 3 fases em sequência |
+| `make query` | Console SQL interativo para explorar documentos |
+| `make explore` | Interface web (datasette) para explorar o SQLite |
 
 **Legacy, avaliação e utilitários:**
 
@@ -1012,16 +1039,19 @@ python -m pytest tests/ -v --tb=short
 | Parâmetro | Padrão | Uso |
 |-----------|--------|-----|
 | `SOURCES` | `lexml,decea` | `make collect SOURCES=lexml` |
+| `CHECK` | — | `make collect CHECK=1` (verificar hashes) |
+| `FORCE` | — | `make collect FORCE=1` (re-coletar) / `make embed FORCE=1` |
 | `MODE` | config | `make embed MODE=hybrid` |
-| `FORCE` | — | `make embed FORCE=1` |
 | `RECREATE` | — | `make index RECREATE=1` |
+| `SQL` | — | `make query SQL='SELECT ...'` |
 | `K` | `5` | `make eval-retrieval K=10` |
 | `WORKERS` | `4` | `make eval-retrieval WORKERS=8` |
 | `SAMPLE` | todos | `make eval-generation SAMPLE=10` |
 | `FILE` | `tests/` | `make test FILE=tests/evaluation/` |
-| `LIMIT` | `100` | `make collect LIMIT=50` |
-| `CONCURRENCY` | `5` | `make collect CONCURRENCY=3` |
+| `LIMIT` | `0` (sem limite) | `make collect LIMIT=50` |
+| `CONCURRENCY` | `10` | `make collect CONCURRENCY=3` |
 | `KEYWORDS` | — | `make collect KEYWORDS='ANAC,portaria'` |
+| `PDF_DIR` | `./data/pdfs` | `make collect SOURCES=pdf PDF_DIR=./meus_pdfs` |
 | `BATCH_SIZE` | config | `make embed BATCH_SIZE=64` |
 
 ---

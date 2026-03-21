@@ -2,15 +2,24 @@
 Phase 1 – Collect (Scrape) documents from all sources into the DocumentStore.
 
 Runs every registered scraper (LexML, DECEA, etc.) and persists documents
-into the SQLite store.  Only documents whose content hash has changed are
-actually written, so re-runs are fast and idempotent.
+into the SQLite store.  Three collection modes control how re-runs behave:
+
+  (default)   Skip documents that already exist in the store.  Near-instant
+              re-runs — only genuinely new documents are downloaded.
+  --check     Re-download every document and recalculate its content hash.
+              Updates only those whose content actually changed on the source.
+  --force     Delete all documents of the requested source(s) from the store,
+              then re-collect everything from scratch.
 
 Usage:
-    python -m scripts.collect                                         # full collection (all sources, no limit)
+    python -m scripts.collect                                         # fast re-run (skip existing)
+    python -m scripts.collect --check                                 # verify source changes
+    python -m scripts.collect --force                                 # wipe + re-collect
     python -m scripts.collect --sources lexml --limit 50              # only LexML, 50 docs
     python -m scripts.collect --sources pdf --pdf-dir ./data/pdfs     # local PDFs
-    make collect                                                      # full collection
-    make collect SOURCES=lexml LIMIT=50                               # LexML, 50 docs
+    make collect                                                      # fast re-run
+    make collect CHECK=1                                              # verify changes
+    make collect FORCE=1                                              # wipe + re-collect
     make collect SOURCES=lexml,decea,pdf                              # all sources incl. PDFs
 """
 
@@ -59,17 +68,36 @@ async def _collect_lexml(
     limit: int,
     concurrency: int,
     keywords: str = None,
+    check: bool = False,
     force: bool = False,
 ) -> Dict[str, int]:
     from crawler.scrapers.lexml_scraper import LexMLScraper
 
     kw_list = keywords.split(",") if keywords else config.lexml_keywords_list
-    search_limit = limit if limit > 0 else 10_000_000
+    per_kw_limit = limit if limit > 0 else 10_000_000
     stats = {"inserted": 0, "updated": 0, "unchanged": 0, "errors": 0}
 
+    if force:
+        store.delete_by_source("lexml")
+
     async with LexMLScraper(skip_duplicates=False, concurrency=concurrency) as scraper:
-        documents = await scraper.search(keywords=kw_list, limit=search_limit, doc_type="Legislação")
-        logger.info(f"[lexml] Found {len(documents)} documents to process")
+        seen_urns: set = set()
+        documents: List[Dict] = []
+
+        for kw in kw_list:
+            kw_docs = await scraper.search(
+                keywords=[kw], limit=per_kw_limit, doc_type="Legislação",
+            )
+            new = 0
+            for doc in kw_docs:
+                urn = doc.get("urn") or doc.get("url") or doc.get("title")
+                if urn not in seen_urns:
+                    seen_urns.add(urn)
+                    documents.append(doc)
+                    new += 1
+            logger.info(f"[lexml] keyword '{kw}': {len(kw_docs)} found, {new} new (dedup)")
+
+        logger.info(f"[lexml] Total unique documents to process: {len(documents)}")
 
         sem = asyncio.Semaphore(concurrency)
 
@@ -78,15 +106,10 @@ async def _collect_lexml(
                 try:
                     doc_id = _safe_doc_id(doc, "lexml")
 
-                    if not force:
-                        existing = store.get_document(doc_id)
-                        if existing:
-                            content = await scraper.get_document_text(doc, save_original=True)
-                            if content:
-                                new_hash = store.compute_content_hash(content)
-                                if existing["content_hash"] == new_hash:
-                                    stats["unchanged"] += 1
-                                    return
+                    if not check and not force:
+                        if store.exists(doc_id):
+                            stats["unchanged"] += 1
+                            return
 
                     content = await scraper.get_document_text(doc, save_original=True)
                     if not content or len(content.strip()) < 50:
@@ -125,6 +148,7 @@ def _collect_decea(
     workers: int,
     doc_types: str = "ICA",
     keywords: str = None,
+    check: bool = False,
     force: bool = False,
 ) -> Dict[str, int]:
     from crawler.scrapers.decea_scraper import DECEAScraper
@@ -132,6 +156,9 @@ def _collect_decea(
     types_list = [t.strip() for t in doc_types.split(",")]
     kw_list = [k.strip() for k in keywords.split(",")] if keywords else None
     stats = {"inserted": 0, "updated": 0, "unchanged": 0, "errors": 0}
+
+    if force:
+        store.delete_by_source("decea")
 
     search_limit = limit if limit > 0 else 10_000_000
     scraper = DECEAScraper()
@@ -141,7 +168,22 @@ def _collect_decea(
         logger.warning("[decea] No documents found")
         return stats
 
-    logger.info(f"[decea] Found {len(documents)} documents to process")
+    if not check and not force:
+        before = len(documents)
+        documents = [
+            d for d in documents
+            if not store.exists(_safe_doc_id(d, "decea"))
+        ]
+        skipped = before - len(documents)
+        if skipped:
+            stats["unchanged"] = skipped
+            logger.info(f"[decea] Skipping {skipped} existing docs, {len(documents)} new to fetch")
+
+    if not documents:
+        logger.info("[decea] All documents already collected")
+        return stats
+
+    logger.info(f"[decea] Fetching {len(documents)} documents with {workers} workers")
 
     results = scraper.fetch_all(
         documents, workers=workers, extract_text=True, save_original=True,
@@ -183,6 +225,7 @@ def _collect_pdfs(
     store: DocumentStore,
     pdf_dir: str,
     recursive: bool = True,
+    check: bool = False,
     force: bool = False,
 ) -> Dict[str, int]:
     from parsers.pdf_parser import PDFParser
@@ -199,12 +242,22 @@ def _collect_pdfs(
         logger.warning(f"[pdf] No PDF files found in {source_path}")
         return stats
 
+    if force:
+        store.delete_by_source("pdf")
+
     logger.info(f"[pdf] Found {len(pdf_paths)} PDF files in {source_path}")
 
     parser = PDFParser()
 
     for pdf_path in pdf_paths:
         try:
+            doc_id = f"pdf_{re.sub(r'[^a-zA-Z0-9._-]', '_', pdf_path.stem)}"
+
+            if not check and not force:
+                if store.exists(doc_id):
+                    stats["unchanged"] += 1
+                    continue
+
             sections = parser.parse_pdf(str(pdf_path))
             if not sections:
                 logger.warning(f"[pdf] No sections extracted from {pdf_path.name}")
@@ -216,8 +269,6 @@ def _collect_pdfs(
                 logger.warning(f"[pdf] Skipping {pdf_path.name}: content too short")
                 stats["errors"] += 1
                 continue
-
-            doc_id = f"pdf_{re.sub(r'[^a-zA-Z0-9._-]', '_', pdf_path.stem)}"
 
             title = sections[0].get("title") or pdf_path.stem
             metadata = {
@@ -251,7 +302,8 @@ def run(args: argparse.Namespace) -> int:
     sources = [s.strip().lower() for s in args.sources.split(",")]
     grand_stats: Dict[str, Dict[str, int]] = {}
 
-    logger.info(f"Starting collection: sources={sources}, limit={args.limit}")
+    mode = "force" if args.force else ("check" if args.check else "default")
+    logger.info(f"Starting collection: sources={sources}, limit={args.limit}, mode={mode}")
 
     for source in sources:
         if source == "lexml":
@@ -261,6 +313,7 @@ def run(args: argparse.Namespace) -> int:
                     limit=args.limit,
                     concurrency=args.concurrency,
                     keywords=args.keywords,
+                    check=args.check,
                     force=args.force,
                 )
             )
@@ -273,6 +326,7 @@ def run(args: argparse.Namespace) -> int:
                 workers=args.workers,
                 doc_types=args.doc_types,
                 keywords=args.keywords,
+                check=args.check,
                 force=args.force,
             )
             grand_stats["decea"] = stats
@@ -281,6 +335,7 @@ def run(args: argparse.Namespace) -> int:
             stats = _collect_pdfs(
                 store,
                 pdf_dir=args.pdf_dir,
+                check=args.check,
                 force=args.force,
             )
             grand_stats["pdf"] = stats
@@ -297,6 +352,7 @@ def run(args: argparse.Namespace) -> int:
             f"unchanged={st['unchanged']}, errors={st['errors']}"
         )
     logger.info(f"  Store totals: {store.stats()}")
+    store.close()
 
     return 0
 
@@ -308,7 +364,7 @@ def main() -> int:
         help="Comma-separated sources to collect (lexml, decea, pdf)",
     )
     parser.add_argument("--limit", type=int, default=0, help="Max documents per source (0 = unlimited)")
-    parser.add_argument("--concurrency", type=int, default=5, help="Parallel downloads (LexML)")
+    parser.add_argument("--concurrency", type=int, default=10, help="Parallel downloads (LexML)")
     parser.add_argument("--workers", type=int, default=8, help="Parallel workers (DECEA)")
     parser.add_argument(
         "--doc-types", type=str, default="ICA,MCA,PCA,DCA,TCA,CIRCEA,NSCA,FCA",
@@ -319,9 +375,14 @@ def main() -> int:
         "--pdf-dir", type=str, default="./data/pdfs",
         help="Directory containing local PDF files (used with --sources pdf)",
     )
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--check", action="store_true",
+        help="Re-download and verify content hash for all documents",
+    )
+    group.add_argument(
         "--force", action="store_true",
-        help="Force re-download even if document exists",
+        help="Delete source documents from store and re-collect from scratch",
     )
     args = parser.parse_args()
     return run(args)
