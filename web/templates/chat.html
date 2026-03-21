@@ -3,7 +3,7 @@
 {% block title %}Chat - Aviation RAG System{% endblock %}
 
 {% block extra_styles %}
-<link rel="stylesheet" href="/ragweb/ragweb/static/css/chat.css">
+<link rel="stylesheet" href="{{ request.url_for('static', path='css/chat.css') }}">
 <style>
   .footer {
     display: none !important;
@@ -130,6 +130,8 @@
 
 {% block extra_scripts %}
 <script>
+  const ROOT_PATH = '{{ request.scope["root_path"] }}';
+
   // Chat application state
   const ChatApp = {
     sessionId: null,
@@ -228,7 +230,7 @@
       
       try {
         // Use streaming endpoint for real-time response
-        const response = await fetch('/ragweb/api/chat/stream', {
+        const response = await fetch(`${ROOT_PATH}/api/chat/stream`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -554,7 +556,7 @@
       const statusEl = document.getElementById(`rating-status-${messageId}`);
       
       try {
-        const response = await fetch('/ragweb/api/chat/rate', {
+        const response = await fetch(`${ROOT_PATH}/api/chat/rate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -697,7 +699,7 @@
       try {
         this.setStatus('loading', 'Alterando modelo...');
         
-        const response = await fetch('/ragweb/api/models/change', {
+        const response = await fetch(`${ROOT_PATH}/api/models/change`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -741,7 +743,7 @@
     
     async loadHistory() {
       try {
-        const response = await fetch('/ragweb/api/chat/history');
+        const response = await fetch(`${ROOT_PATH}/api/chat/history`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -796,7 +798,7 @@
       try {
         this.setStatus('loading', 'Carregando sessão...');
         
-        const response = await fetch(`/ragweb/api/chat/history/${sessionId}`);
+        const response = await fetch(`${ROOT_PATH}/api/chat/history/${sessionId}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
