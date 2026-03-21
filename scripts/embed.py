@@ -5,6 +5,10 @@ Reads documents from SQLite, chunks them, generates dense and/or sparse
 embeddings, and persists the results as Parquet files.  Only documents
 whose content has changed since the last embedding are re-processed.
 
+Documents are processed in streaming batches (--embed-batch, default 500)
+so that memory usage stays bounded regardless of corpus size and completed
+batches are logged immediately for crash resilience.
+
 Usage:
     python -m scripts.embed --mode dense
     python -m scripts.embed --mode hybrid --force
@@ -16,7 +20,8 @@ import argparse
 import hashlib
 import json
 import uuid
-from typing import Dict, List, Set
+from contextlib import ExitStack
+from typing import Dict, List
 
 import numpy as np
 import pyarrow as pa
@@ -28,7 +33,9 @@ from pipeline.chunking import get_chunker
 from pipeline.document_store import DocumentStore
 from pipeline.embedding_store import EmbeddingStore
 from pipeline.text_cleaner import TextCleaner
-from pipeline.quality import QualityValidator, QualityLevel
+from pipeline.quality import QualityValidator
+
+_DEFAULT_EMBED_BATCH = 500
 
 
 def _generate_chunk_id(regulation_id: str, text: str) -> str:
@@ -37,23 +44,25 @@ def _generate_chunk_id(regulation_id: str, text: str) -> str:
     return str(uuid.UUID(bytes=hashlib.md5(raw.encode()).digest()))
 
 
-def _build_article(doc: Dict) -> Dict:
-    """Convert a DocumentStore row into the article dict expected by chunkers."""
-    content = doc["content"]
-    doc_id = doc["doc_id"]
+def _parse_metadata(doc: Dict) -> Dict:
+    """Parse metadata from a DocumentStore row, handling JSON strings."""
     meta = doc.get("metadata") or {}
     if isinstance(meta, str):
         try:
             meta = json.loads(meta)
         except (json.JSONDecodeError, TypeError):
             meta = {}
+    return meta
 
+
+def _build_article(doc: Dict, meta: Dict, cleaned_text: str) -> Dict:
+    """Convert a DocumentStore row into the article dict expected by chunkers."""
     doc_type = doc.get("doc_type") or meta.get("type") or meta.get("doc_type") or ""
 
     return {
-        "regulation_id": doc_id,
+        "regulation_id": doc["doc_id"],
         "title": doc.get("title") or meta.get("title", ""),
-        "text": content,
+        "text": cleaned_text,
         "effective_date": meta.get("date") or meta.get("date_published"),
         "status": meta.get("status", "active"),
         "metadata": {
@@ -88,47 +97,17 @@ def _chunk_document(
         logger.warning(f"Skipping {doc_id}: content too short after cleaning")
         return []
 
-    article = _build_article(doc)
-    article["text"] = content
-
-    meta = doc.get("metadata") or {}
-    if isinstance(meta, str):
-        try:
-            meta = json.loads(meta)
-        except (json.JSONDecodeError, TypeError):
-            meta = {}
-
+    meta = _parse_metadata(doc)
+    article = _build_article(doc, meta, content)
     doc_type = doc.get("doc_type") or meta.get("type") or ""
     chunker = get_chunker(doc_type)
     return chunker.chunk(article)
 
 
-def _embed_dense(
-    chunks: List[Dict],
-    batch_size: int,
-) -> np.ndarray:
-    from models.embeddings import EmbeddingModel
-
-    model = EmbeddingModel()
-    texts = [c["text"] for c in chunks]
-    logger.info(f"Generating dense embeddings for {len(texts)} chunks …")
-    embeddings = model.encode(texts, batch_size=batch_size, show_progress=True)
-    return embeddings
-
-
-def _embed_sparse(chunks: List[Dict]) -> list:
-    from models.embeddings import SparseEncoder
-
-    encoder = SparseEncoder()
-    texts = [c["text"] for c in chunks]
-    logger.info(f"Generating sparse embeddings for {len(texts)} chunks …")
-    return encoder.encode(texts)
-
-
 def _chunks_to_dense_table(
     chunks: List[Dict],
     dense_embeddings: np.ndarray,
-    content_hash: str,
+    content_hashes: List[str],
 ) -> pa.Table:
     """Build a PyArrow table for dense embeddings."""
     rows = {
@@ -151,7 +130,7 @@ def _chunks_to_dense_table(
         rows["chunk_index"].append(chunk.get("chunk_index", i))
         rows["text"].append(chunk["text"])
         rows["dense_vector"].append(dense_embeddings[i].tolist())
-        rows["content_hash"].append(content_hash)
+        rows["content_hash"].append(content_hashes[i])
 
         meta = {k: v for k, v in chunk.items() if k not in ("text",)}
         rows["metadata"].append(json.dumps(meta, ensure_ascii=False, default=str))
@@ -162,7 +141,7 @@ def _chunks_to_dense_table(
 def _chunks_to_sparse_table(
     chunks: List[Dict],
     sparse_vectors: list,
-    content_hash: str,
+    content_hashes: List[str],
 ) -> pa.Table:
     rows = {
         "chunk_id": [],
@@ -191,7 +170,7 @@ def _chunks_to_sparse_table(
         rows["sparse_values"].append(
             sv.values if isinstance(sv.values, list) else sv.values.tolist()
         )
-        rows["content_hash"].append(content_hash)
+        rows["content_hash"].append(content_hashes[i])
 
         meta = {k: v for k, v in chunk.items() if k not in ("text",)}
         rows["metadata"].append(json.dumps(meta, ensure_ascii=False, default=str))
@@ -205,11 +184,22 @@ def run(args: argparse.Namespace) -> int:
     mode = args.mode or config.DEFAULT_EMBEDDING_MODE
     do_dense = mode in ("dense", "hybrid")
     do_sparse = mode in ("sparse", "hybrid")
+    embed_batch = args.embed_batch
 
     doc_store = DocumentStore()
     emb_store = EmbeddingStore()
     text_cleaner = TextCleaner()
     quality_validator = QualityValidator()
+
+    # Load models once (expensive; reused across all sources and batches)
+    dense_model = None
+    sparse_model = None
+    if do_dense:
+        from models.embeddings import EmbeddingModel
+        dense_model = EmbeddingModel()
+    if do_sparse:
+        from models.embeddings import SparseEncoder
+        sparse_model = SparseEncoder()
 
     sources = [s.strip() for s in args.source.split(",")] if args.source != "all" else None
 
@@ -235,80 +225,93 @@ def run(args: argparse.Namespace) -> int:
     model_name = config.EMBEDDING_MODEL
 
     for source, source_docs in by_source.items():
-        logger.info(f"Processing {len(source_docs)} documents from source={source}")
+        n_batches = (len(source_docs) + embed_batch - 1) // embed_batch
+        logger.info(
+            f"Processing {len(source_docs)} documents from source={source} "
+            f"({n_batches} batch{'es' if n_batches != 1 else ''} of {embed_batch})"
+        )
 
-        if args.force:
-            doc_ids_to_remove = {d["doc_id"] for d in source_docs}
+        all_doc_ids = {d["doc_id"] for d in source_docs}
+        exclude_ids = None if args.force else all_doc_ids
+
+        with ExitStack() as stack:
+            dense_writer = None
+            sparse_writer = None
+
             if do_dense:
-                emb_store.remove_by_doc_ids(doc_ids_to_remove, source, kind="dense")
+                dense_writer = stack.enter_context(
+                    emb_store.streaming_writer(source, "dense", exclude_doc_ids=exclude_ids)
+                )
             if do_sparse:
-                emb_store.remove_by_doc_ids(doc_ids_to_remove, source, kind="sparse")
+                sparse_writer = stack.enter_context(
+                    emb_store.streaming_writer(source, "sparse", exclude_doc_ids=exclude_ids)
+                )
 
-        all_chunks: List[Dict] = []
-        doc_chunk_map: Dict[str, List[int]] = {}
-        doc_hashes: Dict[str, str] = {}
+            total_chunks = 0
 
-        for doc in tqdm(source_docs, desc=f"Chunking [{source}]"):
-            chunks = _chunk_document(doc, text_cleaner, quality_validator)
-            if not chunks:
-                continue
-            start = len(all_chunks)
-            all_chunks.extend(chunks)
-            doc_chunk_map[doc["doc_id"]] = list(range(start, start + len(chunks)))
-            doc_hashes[doc["doc_id"]] = doc["content_hash"]
+            for batch_idx in range(n_batches):
+                batch_start = batch_idx * embed_batch
+                batch_docs = source_docs[batch_start:batch_start + embed_batch]
 
-        if not all_chunks:
-            logger.warning(f"No chunks produced for source={source}")
-            continue
+                # ── chunk ────────────────────────────────────────────
+                batch_chunks: List[Dict] = []
+                batch_hashes: List[str] = []
+                batch_doc_info: Dict[str, Dict] = {}
 
-        logger.info(f"Total chunks for {source}: {len(all_chunks)}")
+                for doc in tqdm(
+                    batch_docs,
+                    desc=f"Chunking [{source}] {batch_idx + 1}/{n_batches}",
+                    leave=False,
+                ):
+                    chunks = _chunk_document(doc, text_cleaner, quality_validator)
+                    if not chunks:
+                        continue
+                    batch_chunks.extend(chunks)
+                    batch_hashes.extend([doc["content_hash"]] * len(chunks))
+                    batch_doc_info[doc["doc_id"]] = {
+                        "content_hash": doc["content_hash"],
+                        "num_chunks": len(chunks),
+                    }
 
-        if do_dense:
-            dense_embs = _embed_dense(all_chunks, batch_size=args.batch_size)
+                if not batch_chunks:
+                    continue
 
-            dense_tables = []
-            for doc_id, indices in doc_chunk_map.items():
-                doc_chunks = [all_chunks[i] for i in indices]
-                doc_dense = dense_embs[indices[0]:indices[-1] + 1]
-                t = _chunks_to_dense_table(doc_chunks, doc_dense, doc_hashes[doc_id])
-                dense_tables.append(t)
+                total_chunks += len(batch_chunks)
+                logger.info(
+                    f"[{source}] batch {batch_idx + 1}/{n_batches}: "
+                    f"{len(batch_chunks)} chunks from {len(batch_doc_info)} docs"
+                )
 
-            dense_table = pa.concat_tables(dense_tables, promote_options="default")
+                # ── encode & write ────────────────────────────────────
+                texts = [c["text"] for c in batch_chunks]
 
-            if args.force:
-                emb_store.save_dense(dense_table, source)
-            else:
-                doc_ids_to_remove = set(doc_chunk_map.keys())
-                emb_store.remove_by_doc_ids(doc_ids_to_remove, source, kind="dense")
-                emb_store.append_to_source(dense_table, source, kind="dense")
+                if dense_writer is not None:
+                    dense_embs = dense_model.encode(
+                        texts, batch_size=args.batch_size, show_progress=True,
+                    )
+                    table = _chunks_to_dense_table(batch_chunks, dense_embs, batch_hashes)
+                    dense_writer.write_table(table)
+                    del dense_embs, table
 
-        if do_sparse:
-            sparse_vecs = _embed_sparse(all_chunks)
+                if sparse_writer is not None:
+                    sparse_vecs = sparse_model.encode(texts)
+                    table = _chunks_to_sparse_table(batch_chunks, sparse_vecs, batch_hashes)
+                    sparse_writer.write_table(table)
+                    del sparse_vecs, table
 
-            sparse_tables = []
-            for doc_id, indices in doc_chunk_map.items():
-                doc_chunks = [all_chunks[i] for i in indices]
-                doc_sparse = [sparse_vecs[i] for i in indices]
-                t = _chunks_to_sparse_table(doc_chunks, doc_sparse, doc_hashes[doc_id])
-                sparse_tables.append(t)
+                # ── log per-batch for crash resilience ────────────────
+                for doc_id, info in batch_doc_info.items():
+                    doc_store.log_embedding(
+                        doc_id=doc_id,
+                        content_hash=info["content_hash"],
+                        embedding_mode=mode,
+                        model_name=model_name,
+                        num_chunks=info["num_chunks"],
+                    )
 
-            sparse_table = pa.concat_tables(sparse_tables, promote_options="default")
+                del batch_chunks, batch_hashes, batch_doc_info
 
-            if args.force:
-                emb_store.save_sparse(sparse_table, source)
-            else:
-                doc_ids_to_remove = set(doc_chunk_map.keys())
-                emb_store.remove_by_doc_ids(doc_ids_to_remove, source, kind="sparse")
-                emb_store.append_to_source(sparse_table, source, kind="sparse")
-
-        for doc_id, indices in doc_chunk_map.items():
-            doc_store.log_embedding(
-                doc_id=doc_id,
-                content_hash=doc_hashes[doc_id],
-                embedding_mode=mode,
-                model_name=model_name,
-                num_chunks=len(indices),
-            )
+            logger.info(f"Total chunks for {source}: {total_chunks}")
 
     logger.success(
         f"Embedding complete: {len(docs)} documents, "
@@ -334,7 +337,11 @@ def main() -> int:
     )
     parser.add_argument(
         "--batch-size", type=int, default=None,
-        help="Batch size for dense embedding (default: from config)",
+        help="Batch size for dense model encoding (default: from config)",
+    )
+    parser.add_argument(
+        "--embed-batch", type=int, default=_DEFAULT_EMBED_BATCH,
+        help=f"Documents per streaming batch (default: {_DEFAULT_EMBED_BATCH})",
     )
     args = parser.parse_args()
     if args.batch_size is None:

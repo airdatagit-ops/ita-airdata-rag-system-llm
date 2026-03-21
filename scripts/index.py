@@ -81,6 +81,8 @@ def _build_points_hybrid(
     d_texts = dense_table.column("text").to_pylist()
     d_meta = dense_table.column("metadata").to_pylist()
 
+    from qdrant_client.models import SparseVector
+
     for i in range(dense_table.num_rows):
         chunk_id = d_ids[i]
         meta = {}
@@ -93,7 +95,6 @@ def _build_points_hybrid(
         vector: Dict = {"dense": d_vectors[i]}
         sp = sparse_lookup.get(chunk_id)
         if sp:
-            from qdrant_client.models import SparseVector
             vector["sparse"] = SparseVector(
                 indices=sp["indices"], values=sp["values"]
             )

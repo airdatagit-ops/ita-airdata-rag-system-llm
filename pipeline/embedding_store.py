@@ -12,8 +12,9 @@ Usage:
     dense_df = store.load_dense()
 """
 
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, Generator, List, Optional, Set
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -73,6 +74,51 @@ class EmbeddingStore:
         path = self._sparse_path(source)
         pq.write_table(table, path, compression="snappy")
         logger.info(f"Saved {table.num_rows} sparse embeddings → {path}")
+
+    @contextmanager
+    def streaming_writer(
+        self,
+        source: str,
+        kind: str,
+        exclude_doc_ids: Set[str] = None,
+    ) -> Generator[pq.ParquetWriter, None, None]:
+        """Context manager for streaming row-group writes to a source Parquet.
+
+        Writes go to a temp file; on successful close the temp atomically
+        replaces the original.  If *exclude_doc_ids* is given, existing rows
+        whose doc_id is NOT in the set are preserved (copied as the first
+        row group).
+        """
+        schema = _DENSE_SCHEMA if kind == "dense" else _SPARSE_SCHEMA
+        directory = self.dense_dir if kind == "dense" else self.sparse_dir
+        path = directory / f"{source}.parquet"
+        tmp_path = path.with_suffix(".parquet.tmp")
+
+        writer = pq.ParquetWriter(str(tmp_path), schema, compression="snappy")
+
+        if exclude_doc_ids and path.exists():
+            existing = pq.read_table(path)
+            mask = pa.compute.invert(
+                pa.compute.is_in(
+                    existing.column("doc_id"),
+                    value_set=pa.array(list(exclude_doc_ids)),
+                )
+            )
+            kept = existing.filter(mask)
+            if kept.num_rows > 0:
+                writer.write_table(kept)
+                logger.debug(f"Preserved {kept.num_rows} existing rows in {path.name}")
+            del existing, mask, kept
+
+        try:
+            yield writer
+        except Exception:
+            writer.close()
+            tmp_path.unlink(missing_ok=True)
+            raise
+        else:
+            writer.close()
+            tmp_path.rename(path)
 
     # ── read ────────────────────────────────────────────────────
 
