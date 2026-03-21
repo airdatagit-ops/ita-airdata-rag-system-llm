@@ -466,14 +466,6 @@ python -m scripts.ingest_lexml --skip-download
 | `--skip-download` | Usar apenas JSONs já existentes |
 | `--force-download` | Re-baixar mesmo que já exista no rastreador |
 
-**Benchmark de performance:**
-
-```bash
-python -m scripts.benchmark_lexml --limit 20 --download 10
-```
-
-Compara a estratégia sequencial (1 req/s) com a paralela (5 req/s, 5 coroutines simultâneas) e exibe o speedup obtido. Útil para ajustar `LEXML_MAX_RATE` e `--concurrency` no ambiente de produção.
-
 ### 7.3. PDFs Locais
 
 **Script:** `scripts/ingest_pdfs.py`
@@ -703,7 +695,6 @@ python main.py
 | `setup_qdrant.py` | `python -m scripts.setup_qdrant` | Inicializa a coleção no Qdrant |
 | `ingest_decea.py` | `python -m scripts.ingest_decea` | Baixa e ingere documentos DECEA (alternativa: `make collect-decea`) |
 | `ingest_lexml.py` | `python -m scripts.ingest_lexml` | Baixa e ingere documentos LexML (alternativa: `make collect-lexml`) |
-| `benchmark_lexml.py` | `python -m scripts.benchmark_lexml` | Benchmark do scraper LexML async: seq vs parallel (alternativa: `make benchmark-lexml`) |
 | `ingest_pdfs.py` | `python -m scripts.ingest_pdfs --source DIR` | Ingere PDFs de um diretório |
 | `validate_data.py` | `python -m scripts.validate_data` | Valida qualidade e limpeza dos documentos (alternativa: `make validate-data`) |
 | `reset_database.py` | `python -m scripts.reset_database --confirm` | Reseta o banco vetorial |
@@ -950,7 +941,6 @@ python -m pytest tests/ -v --tb=short
 | `make test FILE=<path>` | Executa testes de um arquivo ou diretório |
 | `make collect-decea` | Coleta documentos DECEA |
 | `make collect-lexml` | Coleta documentos LexML (async, paralelo) |
-| `make benchmark-lexml` | Benchmark do scraper LexML (seq vs parallel) |
 | `make eval` | Executa ambas as avaliações (retrieval + geração) |
 | `make eval-retrieval` | Avaliação de retrieval |
 | `make eval-generation` | Avaliação de geração |

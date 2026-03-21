@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation collect-decea collect-lexml benchmark-lexml validate-data validate-lexml clean help
+.PHONY: test eval eval-retrieval eval-generation collect-decea collect-lexml validate-data validate-lexml clean help
 
 PYTHON ?= python
 K ?= 5
@@ -22,7 +22,6 @@ help:
 	@echo "  make collect-lexml                                Collect LexML documents (100 docs, 5 parallel)"
 	@echo "  make collect-lexml LIMIT=50 CONCURRENCY=3         Custom LexML collection"
 	@echo "  make collect-lexml KEYWORDS='ANAC,portaria'       Custom keywords"
-	@echo "  make benchmark-lexml                              Benchmark async LexML scraper (seq vs parallel)"
 	@echo "  make validate-data                                Quality report for DECEA (no changes)"
 	@echo "  make validate-data CLEAN=1                        DECEA report + save cleaned snapshot"
 	@echo "  make validate-lexml                               Quality report for LexML (no changes)"
@@ -44,9 +43,6 @@ collect-decea:
 collect-lexml:
 	$(PYTHON) -m scripts.ingest_lexml --limit $(LIMIT) --concurrency $(CONCURRENCY) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(SKIP_DOWNLOAD),--skip-download,) $(if $(FORCE_DOWNLOAD),--force-download,)
 
-benchmark-lexml:
-	$(PYTHON) -m scripts.benchmark_lexml --limit $(LIMIT) --download 10 $(if $(KEYWORDS),--keywords $(KEYWORDS),)
-  
 eval: eval-retrieval eval-generation
 
 eval-retrieval:
