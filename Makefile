@@ -1,27 +1,48 @@
-.PHONY: test eval eval-retrieval eval-generation collect-decea collect-lexml validate-data validate-lexml clean help
+.PHONY: test eval eval-retrieval eval-generation collect-decea collect-lexml validate-data validate-lexml clean help collect embed index pipeline
 
 PYTHON ?= python
 K ?= 5
 WORKERS ?= 4
 SAMPLE ?=
-LIMIT ?= 100
+LIMIT ?= 0
 FILE ?=
 SEARCH_MODE ?= auto
-DOC_TYPES ?= ICA
+DOC_TYPES ?= ICA,MCA,PCA,DCA,TCA,CIRCEA,NSCA,FCA
 DATA_DIR ?= data/decea
 KEYWORDS ?=
 CONCURRENCY ?= 5
+SOURCES ?= lexml,decea
+PDF_DIR ?= ./data/pdfs
+MODE ?=
+BATCH_SIZE ?=
 
 help:
 	@echo "Usage:"
-	@echo "  make test                                         Run all unit tests"
-	@echo "  make test FILE=tests/evaluation                   Run tests in a specific dir or file"
+	@echo ""
+	@echo "  ── 3-phase pipeline ──────────────────────────────────────────────────"
+	@echo "  make collect                                      Phase 1: collect ALL documents into SQLite"
+	@echo "  make collect SOURCES=lexml                        Collect only LexML (all docs)"
+	@echo "  make collect SOURCES=decea LIMIT=50               Collect only DECEA, limit to 50 docs"
+	@echo "  make collect SOURCES=pdf PDF_DIR=./data/pdfs      Collect local PDFs from directory"
+	@echo "  make collect SOURCES=lexml,decea,pdf              Collect from all sources (incl. PDFs)"
+	@echo "  make embed                                        Phase 2: generate embeddings (incremental)"
+	@echo "  make embed MODE=dense                             Dense embeddings only"
+	@echo "  make embed MODE=sparse                            Sparse embeddings only"
+	@echo "  make embed MODE=hybrid                            Both dense + sparse"
+	@echo "  make embed FORCE=1                                Re-embed everything"
+	@echo "  make index                                        Phase 3: push embeddings to Qdrant"
+	@echo "  make index RECREATE=1                             Drop + recreate Qdrant collection"
+	@echo "  make pipeline                                     Run all 3 phases in sequence"
+	@echo ""
+	@echo "  ── legacy collectors ──────────────────────────────────────────────────"
 	@echo "  make collect-decea                                Collect DECEA documents (100 ICAs, 4 workers)"
 	@echo "  make collect-decea LIMIT=50 WORKERS=8             Custom DECEA collection"
 	@echo "  make collect-decea SKIP_DOWNLOAD=1                Ingest existing JSONs only"
 	@echo "  make collect-lexml                                Collect LexML documents (100 docs, 5 parallel)"
 	@echo "  make collect-lexml LIMIT=50 CONCURRENCY=3         Custom LexML collection"
 	@echo "  make collect-lexml KEYWORDS='ANAC,portaria'       Custom keywords"
+	@echo ""
+	@echo "  ── validation & evaluation ───────────────────────────────────────────"
 	@echo "  make validate-data                                Quality report for DECEA (no changes)"
 	@echo "  make validate-data CLEAN=1                        DECEA report + save cleaned snapshot"
 	@echo "  make validate-lexml                               Quality report for LexML (no changes)"
@@ -32,6 +53,10 @@ help:
 	@echo "  make eval-retrieval SEARCH_MODE=hybrid            Evaluate with hybrid search"
 	@echo "  make eval-generation                              Run generation evaluation"
 	@echo "  make eval-generation SAMPLE=10                    Limit generation to 10 queries"
+	@echo ""
+	@echo "  ── utilities ─────────────────────────────────────────────────────────"
+	@echo "  make test                                         Run all unit tests"
+	@echo "  make test FILE=tests/evaluation                   Run tests in a specific dir or file"
 	@echo "  make clean                                        Remove evaluation result files"
 
 test:
@@ -64,6 +89,17 @@ ifdef CLEAN
 else
 	$(PYTHON) -m scripts.validate_data --data-dir data/lexml --report-only
 endif
+
+collect:
+	$(PYTHON) -m scripts.collect --sources $(SOURCES) --limit $(LIMIT) --concurrency $(CONCURRENCY) --workers $(WORKERS) --doc-types $(DOC_TYPES) --pdf-dir $(PDF_DIR) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(FORCE),--force,)
+
+embed:
+	$(PYTHON) -m scripts.embed $(if $(MODE),--mode $(MODE),) $(if $(FORCE),--force,) $(if $(BATCH_SIZE),--batch-size $(BATCH_SIZE),)
+
+index:
+	$(PYTHON) -m scripts.index --workers $(WORKERS) $(if $(RECREATE),--recreate,) $(if $(BATCH_SIZE),--batch-size $(BATCH_SIZE),)
+
+pipeline: collect embed index
 
 clean:
 	rm -f evaluation/results/*.csv evaluation/results/*.json
