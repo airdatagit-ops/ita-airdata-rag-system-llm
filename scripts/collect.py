@@ -33,10 +33,23 @@ from typing import Dict, List, Tuple
 from loguru import logger
 
 from config import config
+from parsers.temporal_extractor import TemporalExtractor
 from pipeline.document_store import DocumentStore
+
+_temporal_extractor = TemporalExtractor()
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
+
+def _extract_temporal(content: str, publication_date: str = None) -> Dict:
+    """Extract effective_date, expiry_date, status from document text."""
+    temporal = _temporal_extractor.extract_dates(content, publication_date=publication_date)
+    return {
+        "effective_date": temporal.get("effective_date"),
+        "expiry_date": temporal.get("expiry_date"),
+        "status": "revoked" if temporal.get("is_revoked") else "active",
+    }
+
 
 def _safe_doc_id(doc: Dict, source: str) -> str:
     """Derive a stable, filesystem-safe document ID."""
@@ -118,6 +131,7 @@ async def _collect_lexml(
                         return
 
                     metadata = _extract_metadata(doc, "lexml")
+                    temporal = _extract_temporal(content, doc.get("date") or doc.get("publication_date"))
                     action = store.upsert_document(
                         doc_id=doc_id,
                         source="lexml",
@@ -127,6 +141,7 @@ async def _collect_lexml(
                         url=doc.get("url"),
                         title=doc.get("title"),
                         doc_type=doc.get("doc_type"),
+                        **temporal,
                     )
                     stats[action] += 1
                     if action != "unchanged":
@@ -199,6 +214,7 @@ def _collect_decea(
 
             doc_id = _safe_doc_id(doc, "decea")
             metadata = _extract_metadata(doc, "decea")
+            temporal = _extract_temporal(content)
 
             action = store.upsert_document(
                 doc_id=doc_id,
@@ -208,6 +224,7 @@ def _collect_decea(
                 url=doc.get("source_url"),
                 title=doc.get("title"),
                 doc_type=doc.get("doc_type"),
+                **temporal,
             )
             stats[action] += 1
             if action != "unchanged":
@@ -276,6 +293,7 @@ def _collect_pdfs(
                 "path": str(pdf_path),
                 "num_sections": len(sections),
             }
+            temporal = _extract_temporal(content)
 
             action = store.upsert_document(
                 doc_id=doc_id,
@@ -284,6 +302,7 @@ def _collect_pdfs(
                 metadata=metadata,
                 title=title,
                 doc_type="PDF",
+                **temporal,
             )
             stats[action] += 1
             if action != "unchanged":

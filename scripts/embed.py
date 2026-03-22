@@ -63,8 +63,9 @@ def _build_article(doc: Dict, meta: Dict, cleaned_text: str) -> Dict:
         "regulation_id": doc["doc_id"],
         "title": doc.get("title") or meta.get("title", ""),
         "text": cleaned_text,
-        "effective_date": meta.get("date") or meta.get("date_published"),
-        "status": meta.get("status", "active"),
+        "effective_date": doc.get("effective_date") or meta.get("date") or meta.get("date_published"),
+        "expiry_date": doc.get("expiry_date"),
+        "status": doc.get("status") or meta.get("status", "active"),
         "metadata": {
             "title": doc.get("title") or meta.get("title"),
             "url": doc.get("url") or meta.get("source_url"),

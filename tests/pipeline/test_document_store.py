@@ -166,6 +166,110 @@ class TestEmbeddingTracking:
         assert len(store.get_embedded_hashes()) == 0
 
 
+class TestTemporalFields:
+
+    def test_insert_with_temporal_fields(self, store):
+        action = store.upsert_document(
+            "doc1", "lexml", "content about aviation law",
+            effective_date="2023-06-15",
+            expiry_date=None,
+            status="active",
+        )
+        assert action == "inserted"
+        doc = store.get_document("doc1")
+        assert doc["effective_date"] == "2023-06-15"
+        assert doc["expiry_date"] is None
+        assert doc["status"] == "active"
+
+    def test_insert_revoked_document(self, store):
+        store.upsert_document(
+            "doc1", "lexml", "revoked law content",
+            effective_date="2020-01-01",
+            expiry_date="2023-12-31",
+            status="revoked",
+        )
+        doc = store.get_document("doc1")
+        assert doc["status"] == "revoked"
+        assert doc["expiry_date"] == "2023-12-31"
+
+    def test_default_status_is_active(self, store):
+        store.upsert_document("doc1", "lexml", "some content")
+        doc = store.get_document("doc1")
+        assert doc["status"] == "active"
+
+    def test_update_preserves_temporal_fields(self, store):
+        store.upsert_document(
+            "doc1", "lexml", "content v1",
+            effective_date="2023-01-01",
+            status="active",
+        )
+        store.upsert_document(
+            "doc1", "lexml", "content v2",
+            effective_date="2024-01-01",
+            status="revoked",
+            expiry_date="2024-06-01",
+        )
+        doc = store.get_document("doc1")
+        assert doc["content"] == "content v2"
+        assert doc["effective_date"] == "2024-01-01"
+        assert doc["status"] == "revoked"
+        assert doc["expiry_date"] == "2024-06-01"
+
+    def test_temporal_fields_nullable(self, store):
+        store.upsert_document("doc1", "lexml", "no dates found")
+        doc = store.get_document("doc1")
+        assert doc["effective_date"] is None
+        assert doc["expiry_date"] is None
+
+
+class TestMigration:
+
+    def test_migration_adds_temporal_columns(self, tmp_path):
+        """Verify that opening a DB created without temporal columns adds them."""
+        import sqlite3
+
+        db_path = tmp_path / "old.db"
+        conn = sqlite3.connect(str(db_path))
+        conn.executescript("""
+            CREATE TABLE documents (
+                doc_id       TEXT PRIMARY KEY,
+                source       TEXT NOT NULL,
+                urn          TEXT,
+                url          TEXT,
+                title        TEXT,
+                content      TEXT NOT NULL,
+                content_hash TEXT NOT NULL,
+                doc_type     TEXT,
+                metadata     TEXT,
+                scraped_at   TEXT NOT NULL,
+                updated_at   TEXT NOT NULL
+            );
+            CREATE TABLE embedding_log (
+                doc_id         TEXT PRIMARY KEY,
+                content_hash   TEXT NOT NULL,
+                embedding_mode TEXT NOT NULL,
+                model_name     TEXT NOT NULL,
+                num_chunks     INTEGER,
+                embedded_at    TEXT NOT NULL
+            );
+        """)
+        conn.execute(
+            """INSERT INTO documents
+               (doc_id, source, content, content_hash, scraped_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            ("old_doc", "lexml", "old content", "hash123", "2024-01-01", "2024-01-01"),
+        )
+        conn.commit()
+        conn.close()
+
+        store = DocumentStore(db_path=str(db_path))
+        doc = store.get_document("old_doc")
+        assert doc is not None
+        assert doc["status"] == "active"
+        assert doc["effective_date"] is None
+        store.close()
+
+
 class TestStats:
 
     def test_stats_structure(self, store):

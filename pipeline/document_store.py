@@ -26,24 +26,23 @@ from config import config
 
 Action = Literal["inserted", "updated", "unchanged"]
 
-_SCHEMA_SQL = """
+_TABLES_SQL = """
 CREATE TABLE IF NOT EXISTS documents (
-    doc_id       TEXT PRIMARY KEY,
-    source       TEXT NOT NULL,
-    urn          TEXT,
-    url          TEXT,
-    title        TEXT,
-    content      TEXT NOT NULL,
-    content_hash TEXT NOT NULL,
-    doc_type     TEXT,
-    metadata     TEXT,
-    scraped_at   TEXT NOT NULL,
-    updated_at   TEXT NOT NULL
+    doc_id         TEXT PRIMARY KEY,
+    source         TEXT NOT NULL,
+    urn            TEXT,
+    url            TEXT,
+    title          TEXT,
+    content        TEXT NOT NULL,
+    content_hash   TEXT NOT NULL,
+    doc_type       TEXT,
+    metadata       TEXT,
+    effective_date TEXT,
+    expiry_date    TEXT,
+    status         TEXT DEFAULT 'active',
+    scraped_at     TEXT NOT NULL,
+    updated_at     TEXT NOT NULL
 );
-
-CREATE INDEX IF NOT EXISTS idx_content_hash ON documents(content_hash);
-CREATE INDEX IF NOT EXISTS idx_source       ON documents(source);
-CREATE INDEX IF NOT EXISTS idx_doc_type     ON documents(doc_type);
 
 CREATE TABLE IF NOT EXISTS embedding_log (
     doc_id         TEXT PRIMARY KEY,
@@ -54,6 +53,19 @@ CREATE TABLE IF NOT EXISTS embedding_log (
     embedded_at    TEXT NOT NULL
 );
 """
+
+_INDEXES_SQL = """
+CREATE INDEX IF NOT EXISTS idx_content_hash ON documents(content_hash);
+CREATE INDEX IF NOT EXISTS idx_source       ON documents(source);
+CREATE INDEX IF NOT EXISTS idx_doc_type     ON documents(doc_type);
+CREATE INDEX IF NOT EXISTS idx_status       ON documents(status);
+"""
+
+_TEMPORAL_COLUMNS = [
+    ("effective_date", "TEXT"),
+    ("expiry_date", "TEXT"),
+    ("status", "TEXT DEFAULT 'active'"),
+]
 
 
 def _now_iso() -> str:
@@ -77,7 +89,19 @@ class DocumentStore:
 
     def _init_db(self) -> None:
         with self._conn() as conn:
-            conn.executescript(_SCHEMA_SQL)
+            conn.executescript(_TABLES_SQL)
+            self._migrate(conn)
+            conn.executescript(_INDEXES_SQL)
+
+    def _migrate(self, conn: sqlite3.Connection) -> None:
+        """Add temporal columns to existing databases that lack them."""
+        existing = {
+            row[1] for row in conn.execute("PRAGMA table_info(documents)").fetchall()
+        }
+        for col_name, col_type in _TEMPORAL_COLUMNS:
+            if col_name not in existing:
+                conn.execute(f"ALTER TABLE documents ADD COLUMN {col_name} {col_type}")
+                logger.info(f"Migration: added column documents.{col_name}")
 
     def close(self) -> None:
         if self._connection:
@@ -114,6 +138,9 @@ class DocumentStore:
         url: str = None,
         title: str = None,
         doc_type: str = None,
+        effective_date: str = None,
+        expiry_date: str = None,
+        status: str = "active",
     ) -> Action:
         content_hash = self.compute_content_hash(content)
         meta_json = json.dumps(metadata, ensure_ascii=False) if metadata else None
@@ -128,10 +155,14 @@ class DocumentStore:
                 conn.execute(
                     """INSERT INTO documents
                        (doc_id, source, urn, url, title, content,
-                        content_hash, doc_type, metadata, scraped_at, updated_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        content_hash, doc_type, metadata,
+                        effective_date, expiry_date, status,
+                        scraped_at, updated_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (doc_id, source, urn, url, title, content,
-                     content_hash, doc_type, meta_json, now, now),
+                     content_hash, doc_type, meta_json,
+                     effective_date, expiry_date, status,
+                     now, now),
                 )
                 return "inserted"
 
@@ -142,10 +173,12 @@ class DocumentStore:
                 """UPDATE documents
                    SET content = ?, content_hash = ?, title = ?,
                        url = ?, urn = ?, doc_type = ?,
-                       metadata = ?, updated_at = ?
+                       metadata = ?, effective_date = ?,
+                       expiry_date = ?, status = ?, updated_at = ?
                    WHERE doc_id = ?""",
                 (content, content_hash, title, url, urn,
-                 doc_type, meta_json, now, doc_id),
+                 doc_type, meta_json, effective_date,
+                 expiry_date, status, now, doc_id),
             )
             return "updated"
 
