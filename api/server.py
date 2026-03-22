@@ -161,11 +161,9 @@ async def get_stats(api_key: str = Depends(verify_api_key)):
         info = db.get_collection_info()
         logger.info(f"Stats retrieved: {info}")
         
-        # Get document counts
         try:
-            from parsers.document_counter import count_documents_by_type
-            doc_counts = count_documents_by_type()
-            info["documents"] = doc_counts
+            from pipeline.document_store import DocumentStore
+            info["documents"] = DocumentStore().stats()
         except Exception as e:
             logger.warning(f"Could not get document counts: {e}")
             info["documents"] = None

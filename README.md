@@ -70,7 +70,6 @@ Pergunta do usuário
 | Scraper LexML | aiohttp (async) + BeautifulSoup | `crawler/scrapers/lexml_scraper.py` |
 | Document Store | SQLite registry + change detection | `pipeline/document_store.py` |
 | Embedding Store | Parquet-backed vector storage | `pipeline/embedding_store.py` |
-| Ingestão (legacy) | Chunking + Embedding + Upload | `pipeline/ingestion.py` |
 | Avaliação (retrieval) | Golden Set + Métricas IR | `evaluation/evaluate_retrieval.py` |
 | Avaliação (geração) | Heurísticas de qualidade LLM | `evaluation/evaluate_generation.py` |
 | Interface Web | FastAPI + Jinja2 | `web/main.py` |

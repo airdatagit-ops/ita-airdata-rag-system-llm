@@ -108,8 +108,7 @@ aviation-rag-system/
 │   └── llm.py               # Ollama/Llama (geração de texto)
 │
 ├── database/                # Banco vetorial
-│   ├── qdrant_manager.py    # CRUD no Qdrant
-│   └── versioning.py        # Versionamento de documentos
+│   └── qdrant_manager.py    # CRUD no Qdrant
 │
 ├── search/                  # Lógica de busca
 │   ├── vector_search.py     # Busca vetorial (semântica + temporal)
@@ -121,12 +120,14 @@ aviation-rag-system/
 │   ├── lexml_parser.py      # Parser de XMLs LexML
 │   ├── pdf_parser.py        # Parser de PDFs
 │   ├── ocr_processor.py     # OCR para PDFs escaneados
-│   ├── temporal_extractor.py # Extração de datas de vigência
-│   └── document_counter.py  # Contagem de documentos por tipo
+│   └── temporal_extractor.py # Extração de datas de vigência
 │
 ├── pipeline/                # Pipeline de processamento
 │   ├── chunking.py          # Divisão de textos em chunks
-│   └── ingestion.py         # Pipeline completo de ingestão
+│   ├── document_store.py    # Store SQLite (documentos coletados)
+│   ├── embedding_store.py   # Store Parquet (embeddings)
+│   ├── text_cleaner.py      # Limpeza de texto
+│   └── quality.py           # Validação de qualidade
 │
 ├── scripts/                 # Scripts utilitários
 │   ├── collect.py           # Fase 1: coletar documentos (make collect)
