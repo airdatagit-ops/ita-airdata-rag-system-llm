@@ -18,7 +18,7 @@ import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Set, Tuple
+from typing import Dict, List, Literal, Optional, Set
 
 from loguru import logger
 
@@ -26,7 +26,7 @@ from config import config
 
 Action = Literal["inserted", "updated", "unchanged"]
 
-_TABLES_SQL = """
+_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS documents (
     doc_id         TEXT PRIMARY KEY,
     source         TEXT NOT NULL,
@@ -44,6 +44,11 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at     TEXT NOT NULL
 );
 
+CREATE INDEX IF NOT EXISTS idx_content_hash ON documents(content_hash);
+CREATE INDEX IF NOT EXISTS idx_source       ON documents(source);
+CREATE INDEX IF NOT EXISTS idx_doc_type     ON documents(doc_type);
+CREATE INDEX IF NOT EXISTS idx_status       ON documents(status);
+
 CREATE TABLE IF NOT EXISTS embedding_log (
     doc_id         TEXT PRIMARY KEY,
     content_hash   TEXT NOT NULL,
@@ -53,19 +58,6 @@ CREATE TABLE IF NOT EXISTS embedding_log (
     embedded_at    TEXT NOT NULL
 );
 """
-
-_INDEXES_SQL = """
-CREATE INDEX IF NOT EXISTS idx_content_hash ON documents(content_hash);
-CREATE INDEX IF NOT EXISTS idx_source       ON documents(source);
-CREATE INDEX IF NOT EXISTS idx_doc_type     ON documents(doc_type);
-CREATE INDEX IF NOT EXISTS idx_status       ON documents(status);
-"""
-
-_TEMPORAL_COLUMNS = [
-    ("effective_date", "TEXT"),
-    ("expiry_date", "TEXT"),
-    ("status", "TEXT DEFAULT 'active'"),
-]
 
 
 def _now_iso() -> str:
@@ -89,19 +81,7 @@ class DocumentStore:
 
     def _init_db(self) -> None:
         with self._conn() as conn:
-            conn.executescript(_TABLES_SQL)
-            self._migrate(conn)
-            conn.executescript(_INDEXES_SQL)
-
-    def _migrate(self, conn: sqlite3.Connection) -> None:
-        """Add temporal columns to existing databases that lack them."""
-        existing = {
-            row[1] for row in conn.execute("PRAGMA table_info(documents)").fetchall()
-        }
-        for col_name, col_type in _TEMPORAL_COLUMNS:
-            if col_name not in existing:
-                conn.execute(f"ALTER TABLE documents ADD COLUMN {col_name} {col_type}")
-                logger.info(f"Migration: added column documents.{col_name}")
+            conn.executescript(_SCHEMA_SQL)
 
     def close(self) -> None:
         if self._connection:

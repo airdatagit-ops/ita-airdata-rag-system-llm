@@ -222,54 +222,6 @@ class TestTemporalFields:
         assert doc["expiry_date"] is None
 
 
-class TestMigration:
-
-    def test_migration_adds_temporal_columns(self, tmp_path):
-        """Verify that opening a DB created without temporal columns adds them."""
-        import sqlite3
-
-        db_path = tmp_path / "old.db"
-        conn = sqlite3.connect(str(db_path))
-        conn.executescript("""
-            CREATE TABLE documents (
-                doc_id       TEXT PRIMARY KEY,
-                source       TEXT NOT NULL,
-                urn          TEXT,
-                url          TEXT,
-                title        TEXT,
-                content      TEXT NOT NULL,
-                content_hash TEXT NOT NULL,
-                doc_type     TEXT,
-                metadata     TEXT,
-                scraped_at   TEXT NOT NULL,
-                updated_at   TEXT NOT NULL
-            );
-            CREATE TABLE embedding_log (
-                doc_id         TEXT PRIMARY KEY,
-                content_hash   TEXT NOT NULL,
-                embedding_mode TEXT NOT NULL,
-                model_name     TEXT NOT NULL,
-                num_chunks     INTEGER,
-                embedded_at    TEXT NOT NULL
-            );
-        """)
-        conn.execute(
-            """INSERT INTO documents
-               (doc_id, source, content, content_hash, scraped_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?)""",
-            ("old_doc", "lexml", "old content", "hash123", "2024-01-01", "2024-01-01"),
-        )
-        conn.commit()
-        conn.close()
-
-        store = DocumentStore(db_path=str(db_path))
-        doc = store.get_document("old_doc")
-        assert doc is not None
-        assert doc["status"] == "active"
-        assert doc["effective_date"] is None
-        store.close()
-
-
 class TestStats:
 
     def test_stats_structure(self, store):

@@ -105,6 +105,17 @@ def _chunk_document(
     return chunker.chunk(article)
 
 
+_DENSE_SCHEMA = pa.schema([
+    ("chunk_id", pa.string()),
+    ("doc_id", pa.string()),
+    ("chunk_index", pa.int32()),
+    ("text", pa.string()),
+    ("dense_vector", pa.list_(pa.float32())),
+    ("content_hash", pa.string()),
+    ("metadata", pa.string()),
+])
+
+
 def _chunks_to_dense_table(
     chunks: List[Dict],
     dense_embeddings: np.ndarray,
@@ -130,13 +141,25 @@ def _chunks_to_dense_table(
         )
         rows["chunk_index"].append(chunk.get("chunk_index", i))
         rows["text"].append(chunk["text"])
-        rows["dense_vector"].append(dense_embeddings[i].tolist())
+        rows["dense_vector"].append([float(v) for v in dense_embeddings[i].tolist()])
         rows["content_hash"].append(content_hashes[i])
 
         meta = {k: v for k, v in chunk.items() if k not in ("text",)}
         rows["metadata"].append(json.dumps(meta, ensure_ascii=False, default=str))
 
-    return pa.table(rows)
+    return pa.table(rows, schema=_DENSE_SCHEMA)
+
+
+_SPARSE_SCHEMA = pa.schema([
+    ("chunk_id", pa.string()),
+    ("doc_id", pa.string()),
+    ("chunk_index", pa.int32()),
+    ("text", pa.string()),
+    ("sparse_indices", pa.list_(pa.int64())),
+    ("sparse_values", pa.list_(pa.float32())),
+    ("content_hash", pa.string()),
+    ("metadata", pa.string()),
+])
 
 
 def _chunks_to_sparse_table(
@@ -169,14 +192,14 @@ def _chunks_to_sparse_table(
             sv.indices if isinstance(sv.indices, list) else sv.indices.tolist()
         )
         rows["sparse_values"].append(
-            sv.values if isinstance(sv.values, list) else sv.values.tolist()
+            [float(v) for v in (sv.values if isinstance(sv.values, list) else sv.values.tolist())]
         )
         rows["content_hash"].append(content_hashes[i])
 
         meta = {k: v for k, v in chunk.items() if k not in ("text",)}
         rows["metadata"].append(json.dumps(meta, ensure_ascii=False, default=str))
 
-    return pa.table(rows)
+    return pa.table(rows, schema=_SPARSE_SCHEMA)
 
 
 # ── main logic ───────────────────────────────────────────────────────────────
