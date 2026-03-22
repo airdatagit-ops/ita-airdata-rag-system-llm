@@ -19,6 +19,7 @@ import argparse
 import csv
 import json
 import math
+import re
 import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -86,14 +87,22 @@ class EvaluationResult:
     query_results: List[QueryResult] = field(default_factory=list)
 
 
+_SOURCE_PREFIX_RE = re.compile(r'^(?:decea|pdf)_')
+
+
+def _normalize_id(regulation_id: str) -> str:
+    """Strip source prefix (decea_, pdf_) so golden-set IDs match stored IDs."""
+    return _SOURCE_PREFIX_RE.sub('', regulation_id)
+
+
 def _extract_doc_id(regulation_id: str) -> str:
     """Extract document-level ID by stripping the article suffix.
 
-    'ICA-96-1-art563' -> 'ICA-96-1'
-    'ICA-7-58-art2-0' -> 'ICA-7-58'
-    'ICA-7-58'        -> 'ICA-7-58'
+    'decea_ICA-96-1-art563' -> 'ICA-96-1'
+    'ICA-7-58-art2-0'       -> 'ICA-7-58'
+    'ICA-7-58'              -> 'ICA-7-58'
     """
-    return regulation_id.split("-art")[0]
+    return _normalize_id(regulation_id).split("-art")[0]
 
 
 def _is_doc_level_id(doc_id: str) -> bool:
@@ -104,12 +113,15 @@ def _is_doc_level_id(doc_id: str) -> bool:
 def _matches_expected(retrieved_id: str, expected_id: str) -> bool:
     """Match a retrieved chunk against an expected ID.
 
+    Both sides are normalized (source prefixes stripped) before comparison.
     Article-level IDs require exact match; document-level IDs accept any
     chunk from the same document.
     """
-    if _is_doc_level_id(expected_id):
-        return _extract_doc_id(retrieved_id) == expected_id
-    return retrieved_id == expected_id
+    r = _normalize_id(retrieved_id)
+    e = _normalize_id(expected_id)
+    if _is_doc_level_id(e):
+        return _extract_doc_id(r) == e
+    return r == e
 
 
 def _any_match(retrieved_id: str, expected_ids) -> bool:
