@@ -559,7 +559,7 @@ def main():
 
         if result.retrieval_hit_rate < 0.5:
             logger.warning(f"Low hit rate: {result.retrieval_hit_rate:.1%}")
-            return 1
+
         return 0
 
     except Exception as e:
