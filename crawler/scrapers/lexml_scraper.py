@@ -27,7 +27,6 @@ from bs4 import BeautifulSoup
 from loguru import logger
 
 from config import config
-from parsers.document_tracker import DocumentTracker, get_tracker
 
 _PROJECT_ROOT = Path(__file__).parent.parent.parent
 DATA_DIR = _PROJECT_ROOT / "data" / "lexml"
@@ -86,13 +85,12 @@ class LexMLScraper:
     ):
         """
         Args:
-            skip_duplicates: Skip already-downloaded documents via DocumentTracker.
+            skip_duplicates: Kept for backward compat; dedup is now handled by DocumentStore.
             max_rate: Max requests per second. Defaults to LEXML_MAX_RATE env var (5).
             concurrency: Max simultaneous TCP connections.
             timeout: Per-request timeout in seconds.
         """
         self.skip_duplicates = skip_duplicates
-        self.tracker: Optional[DocumentTracker] = get_tracker() if skip_duplicates else None
 
         rate = max_rate if max_rate is not None else (config.LEXML_MAX_RATE or 5)
         self._limiter = AsyncLimiter(rate, 1.0)
@@ -194,16 +192,16 @@ class LexMLScraper:
         return True
 
     def is_duplicate(self, doc: Dict, content: str = None) -> bool:
-        if not self.skip_duplicates or not self.tracker:
-            return False
-        return self.tracker.is_duplicate(doc, content)
+        """Kept for backward compat; always returns False (dedup via DocumentStore)."""
+        return False
 
     def register_document(self, doc: Dict, content: str = None, file_path: str = None):
-        if self.tracker:
-            self.tracker.register_document(doc, content, file_path, source="lexml")
+        """No-op; document registration is now handled by DocumentStore."""
+        pass
 
     def get_tracker_stats(self) -> Dict:
-        return self.tracker.get_stats() if self.tracker else {}
+        """No-op; stats are now available via DocumentStore.stats()."""
+        return {}
 
     # ── HTTP with retry ───────────────────────────────────────────────────────
 

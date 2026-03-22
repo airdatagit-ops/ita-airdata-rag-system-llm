@@ -364,22 +364,14 @@ class TestParallelDownloads:
         assert results[2] == "content"
 
 
-# ── duplicate tracking ────────────────────────────────────────────────────────
-
 
 class TestDuplicateTracking:
-    def test_is_duplicate_returns_false_without_tracker(self):
+    def test_is_duplicate_always_returns_false(self):
         scraper = LexMLScraper.__new__(LexMLScraper)
         scraper.skip_duplicates = False
-        scraper.tracker = None
         assert scraper.is_duplicate({"urn": "some-urn"}) is False
 
-    def test_delegates_to_tracker(self):
+    def test_is_duplicate_returns_false_even_with_skip_flag(self):
         scraper = LexMLScraper.__new__(LexMLScraper)
         scraper.skip_duplicates = True
-        scraper.tracker = MagicMock()
-        scraper.tracker.is_duplicate.return_value = True
-
-        doc = {"urn": "urn:lex:br:federal:lei:2001-01-01;10000"}
-        assert scraper.is_duplicate(doc) is True
-        scraper.tracker.is_duplicate.assert_called_once_with(doc, None)
+        assert scraper.is_duplicate({"urn": "urn:lex:br:federal:lei:2001-01-01;10000"}) is False

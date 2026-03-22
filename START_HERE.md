@@ -122,7 +122,6 @@ aviation-rag-system/
 │   ├── pdf_parser.py        # Parser de PDFs
 │   ├── ocr_processor.py     # OCR para PDFs escaneados
 │   ├── temporal_extractor.py # Extração de datas de vigência
-│   ├── document_tracker.py  # Rastreamento de documentos (anti-duplicata)
 │   └── document_counter.py  # Contagem de documentos por tipo
 │
 ├── pipeline/                # Pipeline de processamento
