@@ -1,0 +1,159 @@
+"""
+Abstract base class for all document scrapers.
+
+Provides a unified async interface, shared utilities (save originals,
+generate document IDs), and a default parallel fetch_all() using
+asyncio.Semaphore + gather.
+
+Concrete scrapers inherit from BaseScraper and implement:
+  - source_name (property)
+  - search(**kwargs) -> List[Dict]
+  - fetch_document(doc, save_original) -> Optional[ScrapedDocument]
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import asyncio
+from loguru import logger
+
+_PROJECT_ROOT = Path(__file__).parent.parent.parent
+ORIGINALS_DIR = _PROJECT_ROOT / "data" / "originals"
+
+DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+)
+
+
+@dataclass
+class ScrapedDocument:
+    """Standardised output produced by every scraper."""
+
+    doc_id: str
+    source: str
+    title: str
+    content: str
+    metadata: Dict = field(default_factory=dict)
+    url: Optional[str] = None
+    urn: Optional[str] = None
+    doc_type: Optional[str] = None
+
+
+class BaseScraper(ABC):
+    """Async-first abstract scraper.
+
+    Sync-only scrapers wrap blocking calls with ``asyncio.to_thread``.
+    """
+
+    # ── interface ────────────────────────────────────────────────
+
+    @property
+    @abstractmethod
+    def source_name(self) -> str:
+        """Unique identifier for the source (e.g. ``'lexml'``, ``'decea'``)."""
+
+    @abstractmethod
+    async def search(self, *, limit: int = 100, **kwargs) -> List[Dict]:
+        """Return document metadata dicts matching the given criteria."""
+
+    @abstractmethod
+    async def fetch_document(
+        self, doc: Dict, save_original: bool = True
+    ) -> Optional[ScrapedDocument]:
+        """Fetch full content for a single document."""
+
+    # ── default parallel fetch ──────────────────────────────────
+
+    async def fetch_all(
+        self,
+        documents: List[Dict],
+        concurrency: int = 10,
+        save_original: bool = True,
+    ) -> List[ScrapedDocument]:
+        """Fetch all documents with controlled concurrency.
+
+        Subclasses may override for custom behaviour.
+        """
+        n = len(documents)
+        logger.info(f"[{self.source_name}] Fetching {n} documents (concurrency={concurrency})")
+
+        sem = asyncio.Semaphore(concurrency)
+
+        async def _fetch(idx: int, doc: Dict):
+            async with sem:
+                try:
+                    return idx, await self.fetch_document(doc, save_original=save_original)
+                except Exception as exc:
+                    logger.error(f"[{self.source_name}] Error on {doc.get('title', '?')[:50]}: {exc}")
+                    return idx, None
+
+        tasks = [_fetch(i, d) for i, d in enumerate(documents)]
+        raw = await asyncio.gather(*tasks)
+
+        results: List[Optional[ScrapedDocument]] = [None] * n
+        done = 0
+        for idx, result in raw:
+            results[idx] = result
+            done += 1
+            if done % 20 == 0 or done == n:
+                logger.info(f"[{self.source_name}] Progress: {done}/{n}")
+
+        return [r for r in results if r is not None]
+
+    # ── shared helpers ──────────────────────────────────────────
+
+    def make_doc_id(self, doc: Dict) -> str:
+        """Generate a stable, filesystem-safe document ID.
+
+        Override in subclass for source-specific logic.
+        """
+        title = doc.get("title", "unknown")
+        return re.sub(r"[^a-zA-Z0-9._-]", "_", title)[:100]
+
+    # ── save originals ──────────────────────────────────────────
+
+    @staticmethod
+    def save_original_file(
+        content: bytes | str,
+        *,
+        folder_name: str,
+        stem: str,
+        extension: str = ".html",
+        meta: Optional[Dict] = None,
+    ) -> None:
+        """Persist an original file (HTML or PDF) alongside its metadata JSON."""
+        try:
+            folder = ORIGINALS_DIR / folder_name
+            folder.mkdir(parents=True, exist_ok=True)
+
+            path = folder / f"{stem}{extension}"
+            if isinstance(content, bytes):
+                path.write_bytes(content)
+            else:
+                path.write_text(content, encoding="utf-8")
+
+            if meta is not None:
+                meta_payload = {**meta, "downloaded_at": datetime.now().isoformat()}
+                (folder / f"{stem}_meta.json").write_text(
+                    json.dumps(meta_payload, ensure_ascii=False, indent=2),
+                    encoding="utf-8",
+                )
+        except Exception as exc:
+            logger.error(f"Error saving original ({stem}): {exc}")
+
+    # ── async context-manager (optional) ────────────────────────
+
+    async def __aenter__(self) -> "BaseScraper":
+        return self
+
+    async def __aexit__(self, *_) -> None:
+        pass

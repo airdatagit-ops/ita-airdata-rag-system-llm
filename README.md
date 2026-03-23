@@ -66,8 +66,10 @@ Pergunta do usuário
 | Embeddings | Legal-BERTimbau (sentence-transformers) | `models/embeddings.py` |
 | LLM | Ollama (llama3, phi3, etc.) | `models/llm.py` |
 | Banco vetorial | Qdrant | `database/qdrant_manager.py` |
-| Scraper DECEA | Requests + BeautifulSoup | `crawler/scrapers/decea_scraper.py` |
+| Scraper base (ABC) | Interface async + registry | `crawler/scrapers/base.py` |
+| Scraper DECEA | Requests + BeautifulSoup (async via to_thread) | `crawler/scrapers/decea_scraper.py` |
 | Scraper LexML | aiohttp (async) + BeautifulSoup | `crawler/scrapers/lexml_scraper.py` |
+| Scraper PDF (local) | PDFParser (pdfplumber/PyMuPDF) | `crawler/scrapers/pdf_scraper.py` |
 | Document Store | SQLite registry + change detection | `pipeline/document_store.py` |
 | Embedding Store | Parquet-backed vector storage | `pipeline/embedding_store.py` |
 | Avaliação (retrieval) | Golden Set + Métricas IR | `evaluation/evaluate_retrieval.py` |
@@ -380,12 +382,12 @@ O sistema extrai documentos de duas fontes principais:
 
 **Scraper:** `crawler/scrapers/decea_scraper.py`
 
-O scraper DECEA usa **HTTP direto** (`requests` + `BeautifulSoup`) para acessar o portal de publicações do DECEA (`publicacoes.decea.mil.br`). O portal usa Next.js com Server-Side Rendering, o que permite extrair todo o conteúdo sem navegador. Ele:
+O scraper DECEA herda de `BaseScraper` e usa **HTTP direto** (`requests` + `BeautifulSoup`) para acessar o portal de publicações do DECEA (`publicacoes.decea.mil.br`). O portal usa Next.js com Server-Side Rendering, o que permite extrair todo o conteúdo sem navegador. Ele:
 
 1. Parseia o índice de publicações via HTML estático
 2. Filtra por tipo de documento (ICA, MCA, PCA, DCA, CIRCEA, NSCA, etc.)
 3. Extrai URLs de PDFs assinadas (S3) de cada página de publicação
-4. Baixa os PDFs originais em paralelo (`ThreadPoolExecutor`)
+4. Baixa os PDFs originais em paralelo (via `asyncio.Semaphore` + `to_thread`)
 5. Extrai texto dos PDFs (PyMuPDF, pdfplumber, OCR fallback)
 6. Armazena conteúdo e metadados no SQLite (`data/store.db`)
 
@@ -403,7 +405,7 @@ make collect SOURCES=decea FORCE=1             # Re-coleta do zero
 
 **Scraper:** `crawler/scrapers/lexml_scraper.py`
 
-O scraper LexML usa **aiohttp (assíncrono)** + BeautifulSoup para buscar documentos no portal LexML Brasil com downloads paralelos. Ele:
+O scraper LexML herda de `BaseScraper` e usa **aiohttp (assíncrono)** + BeautifulSoup para buscar documentos no portal LexML Brasil com downloads paralelos. Ele:
 
 1. Busca documentos por palavras-chave individualmente na interface web do LexML (paginação automática)
 2. Extrai metadados (título, URN, tipo, data, autoria)
@@ -431,7 +433,30 @@ make collect SOURCES=pdf                           # PDFs do diretório padrão 
 make collect SOURCES=pdf PDF_DIR=./meus-pdfs/      # Diretório customizado
 ```
 
-### 7.4. Rastreamento de Documentos
+### 7.4. Arquitetura de Scrapers
+
+Todos os scrapers herdam de `BaseScraper` (`crawler/scrapers/base.py`), que define uma interface async unificada:
+
+| Método | Descrição |
+|--------|-----------|
+| `search(**kwargs)` | Busca documentos e retorna metadados |
+| `fetch_document(doc)` | Extrai conteúdo completo de um documento, retorna `ScrapedDocument` |
+| `fetch_all(docs, concurrency)` | Fetch paralelo com `asyncio.Semaphore` (herdado, pode ser sobrescrito) |
+| `make_doc_id(doc)` | Gera ID estável e filesystem-safe |
+| `save_original_file(...)` | Salva arquivo original (PDF/HTML) + metadata JSON |
+
+Os scrapers são registrados automaticamente via decorator `@register_scraper` e descobertos pelo registry em `crawler/scrapers/__init__.py`:
+
+```python
+from crawler.scrapers import get_scraper, list_scrapers
+
+scraper = get_scraper("decea")  # instancia DECEAScraper
+names = list_scrapers()          # ["decea", "lexml", "pdf"]
+```
+
+Para adicionar um novo scraper, basta criar uma classe em `crawler/scrapers/` que herde de `BaseScraper` e use `@register_scraper`.
+
+### 7.5. Rastreamento de Documentos
 
 O `DocumentStore` (`pipeline/document_store.py`) mantém um registro em SQLite (`data/store.db`) com:
 
@@ -993,10 +1018,19 @@ Os testes unitários ficam em `tests/`, organizados por domínio:
 ```
 tests/
 ├── __init__.py
-└── evaluation/
-    ├── __init__.py
-    ├── test_evaluate_retrieval.py
-    └── test_evaluate_generation.py
+├── crawler/
+│   └── scrapers/
+│       ├── test_base_scraper.py     # BaseScraper ABC, registry, ScrapedDocument
+│       ├── test_decea_scraper.py    # DECEAScraper (sync + async)
+│       └── test_lexml_scraper.py    # LexMLScraper (async)
+├── evaluation/
+│   ├── test_evaluate_retrieval.py
+│   └── test_evaluate_generation.py
+├── pipeline/
+│   ├── test_document_store.py
+│   ├── test_embedding_store.py
+│   └── test_text_cleaner.py
+└── ...
 ```
 
 Todos os testes usam **mocks** para isolar dependências externas (Qdrant, Ollama, modelo de embeddings), garantindo execução rápida e sem necessidade de serviços rodando.
