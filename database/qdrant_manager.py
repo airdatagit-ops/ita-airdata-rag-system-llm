@@ -45,17 +45,6 @@ class QdrantManager:
 
         logger.info(f"QdrantManager initialized ({self.host}:{self.port})")
 
-    @property
-    def _named_vectors(self) -> bool:
-        """Check if the collection uses named vectors (e.g. 'dense')."""
-        if not hasattr(self, '_named_vectors_cache'):
-            try:
-                info = self.client.get_collection(self.collection_name)
-                self._named_vectors_cache = isinstance(info.config.params.vectors, dict)
-            except Exception:
-                self._named_vectors_cache = config.SEARCH_SPARSE_ENABLED
-        return self._named_vectors_cache
-
     def create_collection(
         self,
         vector_size: int = None,
@@ -84,30 +73,21 @@ class QdrantManager:
                 self.client.delete_collection(self.collection_name)
                 logger.warning(f"Deleted existing collection '{self.collection_name}'")
 
-            dense_params = VectorParams(
-                size=vector_size,
-                distance=distance,
-                hnsw_config=HnswConfigDiff(
-                    m=config.HNSW_M,
-                    ef_construct=config.HNSW_EF_CONSTRUCT,
-                ),
+            self.client.create_collection(
+                collection_name=self.collection_name,
+                vectors_config={
+                    "dense": VectorParams(
+                        size=vector_size,
+                        distance=distance,
+                        hnsw_config=HnswConfigDiff(
+                            m=config.HNSW_M,
+                            ef_construct=config.HNSW_EF_CONSTRUCT,
+                        ),
+                    ),
+                },
+                sparse_vectors_config={"sparse": SparseVectorParams()},
             )
-
-            if self._named_vectors:
-                self.client.create_collection(
-                    collection_name=self.collection_name,
-                    vectors_config={"dense": dense_params},
-                    sparse_vectors_config={"sparse": SparseVectorParams()},
-                )
-                logger.success(
-                    f"Created collection '{self.collection_name}' (dense+sparse)"
-                )
-            else:
-                self.client.create_collection(
-                    collection_name=self.collection_name,
-                    vectors_config=dense_params,
-                )
-                logger.success(f"Created collection '{self.collection_name}'")
+            logger.success(f"Created collection '{self.collection_name}' (dense+sparse)")
 
             self._create_payload_indexes()
             return True
@@ -296,13 +276,12 @@ class QdrantManager:
         params = {
             "collection_name": self.collection_name,
             "query": dense_vector,
+            "using": "dense",
             "limit": limit,
             "query_filter": filters,
             "with_payload": with_payload,
             "search_params": SearchParams(hnsw_ef=config.HNSW_EF_SEARCH),
         }
-        if self._named_vectors:
-            params["using"] = "dense"
         if score_threshold and score_threshold > 0:
             params["score_threshold"] = score_threshold
 
