@@ -28,6 +28,7 @@ help:
 	@echo "  make collect SOURCES=decea LIMIT=50               Collect only DECEA, limit to 50 docs"
 	@echo "  make collect SOURCES=pdf PDF_DIR=./data/pdfs      Collect local PDFs from directory"
 	@echo "  make collect SOURCES=lexml,decea,pdf              Collect from all sources (incl. PDFs)"
+	@echo "  make collect ALL_LOCALITIES=1                     Include state/municipal docs (default: federal only)"
 	@echo "  make embed                                        Phase 2: generate embeddings (incremental)"
 	@echo "  make embed MODE=dense                             Dense embeddings only"
 	@echo "  make embed MODE=sparse                            Sparse embeddings only"
@@ -85,7 +86,7 @@ else
 endif
 
 collect:
-	$(PYTHON) -m scripts.collect --sources $(SOURCES) --limit $(LIMIT) --concurrency $(CONCURRENCY) --workers $(WORKERS) --doc-types $(DOC_TYPES) --pdf-dir $(PDF_DIR) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,)
+	$(PYTHON) -m scripts.collect --sources $(SOURCES) --limit $(LIMIT) --concurrency $(CONCURRENCY) --doc-types $(DOC_TYPES) --pdf-dir $(PDF_DIR) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,) $(if $(ALL_LOCALITIES),--no-federal-only,)
 
 embed:
 	$(PYTHON) -m scripts.embed $(if $(MODE),--mode $(MODE),) $(if $(FORCE),--force,) $(if $(BATCH_SIZE),--batch-size $(BATCH_SIZE),) $(if $(EMBED_BATCH),--embed-batch $(EMBED_BATCH),)

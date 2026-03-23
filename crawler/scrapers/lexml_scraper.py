@@ -118,7 +118,8 @@ class LexMLScraper(BaseScraper):
         """
         keywords = kwargs.get("keywords") or config.lexml_keywords_list
         doc_type = kwargs.get("doc_type")
-        query = self._build_query(keywords, doc_type)
+        federal_only = kwargs.get("federal_only", True)
+        query = self._build_query(keywords, doc_type, federal_only=federal_only)
         logger.info(f"Searching LexML: {query!r} (limit={limit})")
 
         documents: List[Dict] = []
@@ -312,10 +313,12 @@ class LexMLScraper(BaseScraper):
 
     # ── HTML parsing helpers ─────────────────────────────────────
 
-    def _build_query(self, keywords: List[str], doc_type: Optional[str]) -> str:
+    def _build_query(self, keywords: List[str], doc_type: Optional[str], *, federal_only: bool = True) -> str:
         parts = ["keyword=" + "+".join(keywords)] if keywords else ["lei federal"]
         if doc_type:
             parts.append(f";f1-tipoDocumento={doc_type}")
+        if federal_only:
+            parts.append(";f2-localidade=Brasil")
         return "".join(parts)
 
     def _parse_search_results(self, html: str) -> List[Dict]:

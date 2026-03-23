@@ -193,15 +193,24 @@ class TestParseSearchResults:
 class TestBuildQuery:
     def test_keywords_only(self, scraper):
         q = scraper._build_query(["aviação", "ANAC"], None)
-        assert q == "keyword=aviação+ANAC"
+        assert q == "keyword=aviação+ANAC;f2-localidade=Brasil"
 
     def test_with_doc_type(self, scraper):
         q = scraper._build_query(["aviação"], "Legislação")
-        assert q == "keyword=aviação;f1-tipoDocumento=Legislação"
+        assert q == "keyword=aviação;f1-tipoDocumento=Legislação;f2-localidade=Brasil"
 
     def test_fallback_on_empty_keywords(self, scraper):
         q = scraper._build_query([], None)
-        assert q == "lei federal"
+        assert q == "lei federal;f2-localidade=Brasil"
+
+    def test_federal_only_false_omits_localidade(self, scraper):
+        q = scraper._build_query(["aviação"], "Legislação", federal_only=False)
+        assert q == "keyword=aviação;f1-tipoDocumento=Legislação"
+        assert "f2-localidade" not in q
+
+    def test_federal_only_true_adds_localidade(self, scraper):
+        q = scraper._build_query(["aviação"], None, federal_only=True)
+        assert q == "keyword=aviação;f2-localidade=Brasil"
 
 
 # ── _get_html (retry) ─────────────────────────────────────────────────────────

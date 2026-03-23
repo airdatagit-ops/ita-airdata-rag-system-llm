@@ -414,10 +414,13 @@ O scraper LexML herda de `BaseScraper` e usa **aiohttp (assíncrono)** + Beautif
 5. Deduplica resultados por URN entre keywords
 6. Armazena conteúdo e metadados no SQLite (`data/store.db`)
 
+Por padrão, apenas legislação **federal** é coletada (`f2-localidade=Brasil`), evitando documentos estaduais/municipais cujos portais não são suportados para extração de texto integral. Para incluir todas as localidades, use `ALL_LOCALITIES=1`.
+
 **Como executar:**
 
 ```bash
-make collect SOURCES=lexml                             # Coleta todos os docs
+make collect SOURCES=lexml                             # Coleta legislação federal (padrão)
+make collect SOURCES=lexml ALL_LOCALITIES=1             # Inclui estadual/municipal
 make collect SOURCES=lexml LIMIT=50                    # Limita a 50 docs por keyword
 make collect SOURCES=lexml KEYWORDS="ANAC,portaria"    # Keywords específicas
 make collect SOURCES=lexml CHECK=1                     # Verifica alterações

@@ -133,6 +133,7 @@ async def _collect_lexml(
     keywords: str | None,
     check: bool,
     force: bool,
+    federal_only: bool = True,
 ) -> Dict[str, int]:
     """LexML needs special handling: search per-keyword with dedup."""
     from crawler.scrapers.lexml_scraper import LexMLScraper
@@ -151,7 +152,8 @@ async def _collect_lexml(
 
         for kw in kw_list:
             kw_docs = await scraper.search(
-                keywords=[kw], limit=per_kw_limit, doc_type="Legislação",
+                keywords=[kw], limit=per_kw_limit,
+                doc_type="Legislação", federal_only=federal_only,
             )
             new = 0
             for doc in kw_docs:
@@ -227,6 +229,7 @@ async def _run_async(args: argparse.Namespace) -> int:
                 keywords=args.keywords,
                 check=args.check,
                 force=args.force,
+                federal_only=args.federal_only,
             )
         elif source in list_scrapers():
             search_kwargs: Dict = {}
@@ -291,6 +294,10 @@ def main() -> int:
         help="DECEA doc types (comma-separated)",
     )
     parser.add_argument("--keywords", type=str, default=None, help="Custom keywords")
+    parser.add_argument(
+        "--federal-only", action=argparse.BooleanOptionalAction, default=True,
+        help="Restrict LexML collection to federal legislation only (default: True)",
+    )
     parser.add_argument(
         "--pdf-dir", type=str, default="./data/pdfs",
         help="Directory containing local PDF files (used with --sources pdf)",
