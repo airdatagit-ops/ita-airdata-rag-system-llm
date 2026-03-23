@@ -191,18 +191,6 @@ class LexMLScraper:
         logger.info(f"Saved: {output_path}")
         return True
 
-    def is_duplicate(self, doc: Dict, content: str = None) -> bool:
-        """Kept for backward compat; always returns False (dedup via DocumentStore)."""
-        return False
-
-    def register_document(self, doc: Dict, content: str = None, file_path: str = None):
-        """No-op; document registration is now handled by DocumentStore."""
-        pass
-
-    def get_tracker_stats(self) -> Dict:
-        """No-op; stats are now available via DocumentStore.stats()."""
-        return {}
-
     # ── HTTP with retry ───────────────────────────────────────────────────────
 
     async def _get_html(self, url: str) -> Optional[str]:

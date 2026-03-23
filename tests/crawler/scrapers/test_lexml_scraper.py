@@ -362,16 +362,3 @@ class TestParallelDownloads:
         assert results[0] == "content"
         assert isinstance(results[1], aiohttp.ClientError)
         assert results[2] == "content"
-
-
-
-class TestDuplicateTracking:
-    def test_is_duplicate_always_returns_false(self):
-        scraper = LexMLScraper.__new__(LexMLScraper)
-        scraper.skip_duplicates = False
-        assert scraper.is_duplicate({"urn": "some-urn"}) is False
-
-    def test_is_duplicate_returns_false_even_with_skip_flag(self):
-        scraper = LexMLScraper.__new__(LexMLScraper)
-        scraper.skip_duplicates = True
-        assert scraper.is_duplicate({"urn": "urn:lex:br:federal:lei:2001-01-01;10000"}) is False
