@@ -22,6 +22,8 @@ fastembed==0.7.4
 # ========================================
 requests>=2.31.0
 httpx>=0.24.0
+aiohttp>=3.9.0
+aiolimiter>=1.1.0
 beautifulsoup4>=4.12.0
 lxml>=4.9.0
 

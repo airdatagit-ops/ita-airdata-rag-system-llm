@@ -67,7 +67,7 @@ Pergunta do usuário
 | LLM | Ollama (llama3, phi3, etc.) | `models/llm.py` |
 | Banco vetorial | Qdrant | `database/qdrant_manager.py` |
 | Scraper DECEA | Requests + BeautifulSoup | `crawler/scrapers/decea_scraper.py` |
-| Scraper LexML | Requests + BeautifulSoup | `parsers/lexml_scraper.py` |
+| Scraper LexML | aiohttp (async) + BeautifulSoup | `crawler/scrapers/lexml_scraper.py` |
 | Ingestão | Chunking + Embedding + Upload | `pipeline/ingestion.py` |
 | Avaliação (retrieval) | Golden Set + Métricas IR | `evaluation/evaluate_retrieval.py` |
 | Avaliação (geração) | Heurísticas de qualidade LLM | `evaluation/evaluate_generation.py` |
@@ -203,6 +203,7 @@ cp env.example .env
 |----------|------|--------|-----------|
 | `LEXML_API_URL` | string | `https://www.lexml.gov.br/sru` | URL da API LexML |
 | `LEXML_KEYWORDS` | string | `aviação,aeronave,ANAC,...` | Palavras-chave para busca |
+| `LEXML_MAX_RATE` | int | `5` | Máximo de requisições por segundo (rate limiting do scraper async) |
 
 ---
 
@@ -427,33 +428,30 @@ python -m scripts.ingest_decea --no-text           # Apenas descrição
 
 ### 7.2. LexML (Legislação Federal)
 
-**Scraper:** `parsers/lexml_scraper.py`
+**Scraper:** `crawler/scrapers/lexml_scraper.py`
 **Script de ingestão:** `scripts/ingest_lexml.py`
 
-O scraper LexML usa **web scraping** (requests + BeautifulSoup) para buscar documentos no portal LexML Brasil. Ele:
+O scraper LexML usa **aiohttp (assíncrono)** + BeautifulSoup para buscar documentos no portal LexML Brasil com downloads paralelos. Ele:
 
-1. Busca documentos por palavras-chave na interface web do LexML
+1. Busca documentos por palavras-chave na interface web do LexML (paginação automática)
 2. Extrai metadados (título, URN, tipo, data, autoria)
-3. Baixa o conteúdo textual dos documentos via normas.leg.br
-4. Salva como JSON em `data/lexml/`
-5. Registra no rastreador para evitar re-downloads futuros
+3. Segue links para Senado ou Planalto e extrai o texto integral
+4. Baixa múltiplos documentos em paralelo (semáforo configurável)
+5. Salva como JSON em `data/lexml/` e registra no rastreador
 
 **Como executar:**
 
 ```bash
-# Ingerir com palavras-chave padrão (definidas no .env)
+# Via Makefile (recomendado)
+make collect-lexml                              # Padrão: 100 docs, 5 downloads paralelos
+make collect-lexml LIMIT=50 CONCURRENCY=3      # Custom
+make collect-lexml KEYWORDS="ANAC,portaria"    # Palavras-chave específicas
+
+# Via script direto
 python -m scripts.ingest_lexml --limit 100
-
-# Ingerir com palavras-chave específicas
 python -m scripts.ingest_lexml --keywords "aviação,ANAC,aeroporto" --limit 50
-
-# Forçar re-download de documentos já baixados
+python -m scripts.ingest_lexml --concurrency 3 --limit 50
 python -m scripts.ingest_lexml --force-download --limit 50
-
-# Limpar rastreador e baixar tudo de novo
-python -m scripts.ingest_lexml --clear-tracker --limit 100
-
-# Pular download e ingerir apenas JSONs existentes
 python -m scripts.ingest_lexml --skip-download
 ```
 
@@ -461,12 +459,12 @@ python -m scripts.ingest_lexml --skip-download
 
 | Parâmetro | Descrição |
 |-----------|-----------|
-| `--keywords` | Palavras-chave separadas por vírgula |
-| `--limit` | Máximo de documentos |
+| `--keywords` | Palavras-chave separadas por vírgula (padrão: `LEXML_KEYWORDS` do `.env`) |
+| `--limit` | Máximo de documentos a buscar (padrão: 100) |
+| `--concurrency` | Downloads paralelos simultâneos (padrão: 5) |
 | `--download-dir` | Diretório de saída (padrão: `./data/lexml`) |
 | `--skip-download` | Usar apenas JSONs já existentes |
-| `--force-download` | Reebaixar mesmo se já existir |
-| `--clear-tracker` | Limpar rastreador antes de iniciar |
+| `--force-download` | Re-baixar mesmo que já exista no rastreador |
 
 ### 7.3. PDFs Locais
 
@@ -696,7 +694,7 @@ python main.py
 |--------|---------|-----------|
 | `setup_qdrant.py` | `python -m scripts.setup_qdrant` | Inicializa a coleção no Qdrant |
 | `ingest_decea.py` | `python -m scripts.ingest_decea` | Baixa e ingere documentos DECEA (alternativa: `make collect-decea`) |
-| `ingest_lexml.py` | `python -m scripts.ingest_lexml` | Baixa e ingere documentos LexML |
+| `ingest_lexml.py` | `python -m scripts.ingest_lexml` | Baixa e ingere documentos LexML (alternativa: `make collect-lexml`) |
 | `ingest_pdfs.py` | `python -m scripts.ingest_pdfs --source DIR` | Ingere PDFs de um diretório |
 | `validate_data.py` | `python -m scripts.validate_data` | Valida qualidade e limpeza dos documentos (alternativa: `make validate-data`) |
 | `reset_database.py` | `python -m scripts.reset_database --confirm` | Reseta o banco vetorial |
@@ -941,6 +939,8 @@ python -m pytest tests/ -v --tb=short
 | `make help` | Lista todos os comandos disponíveis |
 | `make test` | Executa todos os testes unitários |
 | `make test FILE=<path>` | Executa testes de um arquivo ou diretório |
+| `make collect-decea` | Coleta documentos DECEA |
+| `make collect-lexml` | Coleta documentos LexML (async, paralelo) |
 | `make eval` | Executa ambas as avaliações (retrieval + geração) |
 | `make eval-retrieval` | Avaliação de retrieval |
 | `make eval-generation` | Avaliação de geração |
@@ -954,6 +954,9 @@ python -m pytest tests/ -v --tb=short
 | `WORKERS` | `4` | `make eval-retrieval WORKERS=8` |
 | `SAMPLE` | todos | `make eval-generation SAMPLE=10` |
 | `FILE` | `tests/` | `make test FILE=tests/evaluation/` |
+| `LIMIT` | `100` | `make collect-lexml LIMIT=50` |
+| `CONCURRENCY` | `5` | `make collect-lexml CONCURRENCY=3` |
+| `KEYWORDS` | — | `make collect-lexml KEYWORDS='ANAC,portaria'` |
 
 ---
 
