@@ -1,12 +1,13 @@
 """Tests for crawler.scrapers.decea_scraper."""
 
-import json
+import asyncio
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from crawler.scrapers.decea_scraper import DECEAScraper, _DOC_TYPE_RE
+from crawler.scrapers.base import BaseScraper, ScrapedDocument
 
 
 INDEX_HTML = """<html><body>
@@ -26,10 +27,26 @@ PUB_HTML = (
 
 @pytest.fixture
 def scraper():
-    with patch.object(Path, "mkdir"):
-        s = DECEAScraper()
+    s = DECEAScraper()
     s.session = MagicMock()
     return s
+
+
+# ── inherits BaseScraper ────────────────────────────────────
+
+
+class TestInheritance:
+    def test_is_base_scraper(self, scraper):
+        assert isinstance(scraper, BaseScraper)
+
+    def test_source_name(self, scraper):
+        assert scraper.source_name == "decea"
+
+    def test_make_doc_id_with_slug(self, scraper):
+        assert scraper.make_doc_id({"slug": "ICA-96-1"}) == "decea_ICA-96-1"
+
+    def test_make_doc_id_fallback(self, scraper):
+        assert scraper.make_doc_id({"title": "Some Title"}) == "Some_Title"
 
 
 # ── slug & regex ────────────────────────────────────────────
@@ -102,7 +119,7 @@ class TestParseIndex:
         assert scraper._parse_index_html("<html></html>") == []
 
 
-# ── search ──────────────────────────────────────────────────
+# ── sync search ─────────────────────────────────────────────
 
 
 class TestSearch:
@@ -115,13 +132,13 @@ class TestSearch:
 
     def test_filters_by_type(self, scraper):
         self._mock_index(scraper)
-        result = scraper.search(doc_types=["ICA"])
+        result = scraper._search_sync(doc_types=["ICA"])
         assert len(result) == 2
         assert all(d["type"] == "ICA" for d in result)
 
     def test_filters_by_keyword(self, scraper):
         self._mock_index(scraper)
-        result = scraper.search(doc_types=["ICA"], keywords=["cartas"])
+        result = scraper._search_sync(doc_types=["ICA"], keywords=["cartas"])
         assert len(result) == 1
         assert result[0]["slug"] == "ICA-96-1"
 
@@ -130,12 +147,24 @@ class TestSearch:
             {"type": "ICA", "title": f"Doc {i}", "slug": f"ICA-{i}"}
             for i in range(50)
         ])
-        assert len(scraper.search(limit=5)) == 5
+        assert len(scraper._search_sync(limit=5)) == 5
 
     def test_default_type_is_ica(self, scraper):
         self._mock_index(scraper)
-        result = scraper.search()
+        result = scraper._search_sync()
         assert all(d["type"] == "ICA" for d in result)
+
+
+# ── async search ────────────────────────────────────────────
+
+
+class TestAsyncSearch:
+    async def test_delegates_to_sync(self, scraper):
+        scraper.get_publications_index = MagicMock(return_value=[
+            {"type": "ICA", "title": "Doc 1", "slug": "ICA-1"},
+        ])
+        result = await scraper.search(limit=10, doc_types=["ICA"])
+        assert len(result) == 1
 
 
 # ── PDF URL extraction ──────────────────────────────────────
@@ -188,64 +217,41 @@ class TestDownloadPdf:
         assert scraper.download_pdf("http://x/f.pdf") is None
 
 
-# ── fetch_all (parallel) ───────────────────────────────────
+# ── fetch_document (async) ──────────────────────────────────
+
+
+class TestFetchDocument:
+    async def test_returns_scraped_document(self, scraper):
+        with patch.object(scraper, "get_document_text", return_value="A" * 200):
+            doc = {"slug": "ICA-1", "title": "Test", "doc_type": "ica"}
+            result = await scraper.fetch_document(doc, save_original=False)
+            assert isinstance(result, ScrapedDocument)
+            assert result.doc_id == "decea_ICA-1"
+            assert result.source == "decea"
+            assert result.content == "A" * 200
+
+    async def test_returns_none_on_no_content(self, scraper):
+        with patch.object(scraper, "get_document_text", return_value=None):
+            result = await scraper.fetch_document({"slug": "X", "title": "T"})
+            assert result is None
+
+
+# ── fetch_all (parallel via BaseScraper) ─────────────────────
 
 
 class TestFetchAll:
-    @patch.object(DECEAScraper, "get_document_text", return_value="extracted text")
-    def test_fetches_all_documents(self, _, scraper):
-        docs = [{"slug": f"ICA-{i}", "title": f"D{i}"} for i in range(5)]
-        results = scraper.fetch_all(docs, workers=2)
-        assert len(results) == 5
-        assert all(text == "extracted text" for _, text in results)
+    async def test_fetches_all_documents(self, scraper):
+        with patch.object(scraper, "get_document_text", return_value="text " * 50):
+            docs = [
+                {"slug": f"ICA-{i}", "title": f"D{i}", "doc_type": "ica"}
+                for i in range(5)
+            ]
+            results = await scraper.fetch_all(docs, concurrency=2)
+            assert len(results) == 5
+            assert all(isinstance(r, ScrapedDocument) for r in results)
 
-    @patch.object(DECEAScraper, "get_document_text")
-    def test_preserves_order(self, mock_text, scraper):
-        mock_text.side_effect = lambda d, save_original=True: d["slug"]
-        docs = [{"slug": f"ICA-{i}", "title": ""} for i in range(10)]
-        results = scraper.fetch_all(docs, workers=4)
-        for i, (doc, text) in enumerate(results):
-            assert text == f"ICA-{i}"
-
-    @patch.object(DECEAScraper, "get_document_text", side_effect=Exception("fail"))
-    def test_handles_errors_gracefully(self, _, scraper):
-        docs = [{"slug": "ICA-1", "title": "Fallback"}]
-        results = scraper.fetch_all(docs, workers=1)
-        assert len(results) == 1
-        assert results[0][1] == "Fallback"
-
-    def test_no_text_mode(self, scraper):
-        docs = [{"slug": "ICA-1", "title": "Title", "description": "Desc"}]
-        results = scraper.fetch_all(docs, workers=1, extract_text=False)
-        assert results[0][1] == "Desc"
-
-
-# ── save JSON ───────────────────────────────────────────────
-
-
-class TestSaveDocumentJson:
-    def test_creates_json_file(self, scraper, tmp_path):
-        with patch("crawler.scrapers.decea_scraper.DATA_DIR", tmp_path):
-            doc = {
-                "slug": "ICA-96-1", "type": "ICA", "number": "ICA96-1",
-                "title": "Test", "date_published": "30/04/2025",
-                "source_url": "https://example.com", "pdf_link": None,
-                "doc_type": "ica",
-            }
-            path = scraper.save_document_json(doc, "Full text content")
-
-            assert path.exists()
-            data = json.loads(path.read_text(encoding="utf-8"))
-            assert data["slug"] == "ICA-96-1"
-            assert data["content"] == "Full text content"
-            assert data["doc_type"] == "ica"
-            assert "id" in data
-
-    def test_sanitizes_slash_in_filename(self, scraper, tmp_path):
-        with patch("crawler.scrapers.decea_scraper.DATA_DIR", tmp_path):
-            doc = {"slug": "AIC-A-07/26", "type": "AIC-A", "title": "T",
-                   "number": "", "date_published": "", "source_url": "",
-                   "pdf_link": None, "doc_type": "aic-a"}
-            path = scraper.save_document_json(doc, "text")
-            assert "/" not in path.name
-            assert path.name == "AIC-A-07-26.json"
+    async def test_handles_errors_gracefully(self, scraper):
+        with patch.object(scraper, "get_document_text", side_effect=Exception("fail")):
+            docs = [{"slug": "ICA-1", "title": "Fallback", "doc_type": "ica"}]
+            results = await scraper.fetch_all(docs, concurrency=1)
+            assert len(results) == 0

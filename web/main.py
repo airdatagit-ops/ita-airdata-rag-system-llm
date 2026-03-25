@@ -354,13 +354,13 @@ async def stream_chat_message(request: Request):
             payload["session_id"] = session_id
         
         async def stream_generator():
-            """Stream response from API."""
+            """Stream response from API using raw bytes for immediate forwarding."""
             full_response = []
             final_data = None
             sources = None
+            buffer = ""
             
             try:
-                # Use httpx stream for SSE
                 async with httpx.AsyncClient(timeout=None) as client:
                     async with client.stream(
                         "POST",
@@ -368,22 +368,26 @@ async def stream_chat_message(request: Request):
                         headers=headers,
                         json=payload
                     ) as response:
-                        async for line in response.aiter_lines():
-                            if line.startswith("data: "):
-                                data_str = line[6:]  # Remove "data: " prefix
-                                try:
-                                    data = json.loads(data_str)
-                                    
-                                    if data.get("type") == "token":
-                                        full_response.append(data.get("content", ""))
-                                    elif data.get("type") == "sources":
-                                        sources = data.get("sources")
-                                    elif data.get("type") == "done":
-                                        final_data = data
-                                    
-                                    yield f"data: {data_str}\n\n"
-                                except json.JSONDecodeError:
-                                    pass
+                        async for chunk in response.aiter_bytes():
+                            # Forward raw bytes immediately for real-time streaming
+                            yield chunk
+
+                            # Parse SSE events from buffer for history saving
+                            buffer += chunk.decode("utf-8", errors="replace")
+                            while "\n\n" in buffer:
+                                event_str, buffer = buffer.split("\n\n", 1)
+                                for line in event_str.split("\n"):
+                                    if line.startswith("data: "):
+                                        try:
+                                            data = json.loads(line[6:])
+                                            if data.get("type") == "token":
+                                                full_response.append(data.get("content", ""))
+                                            elif data.get("type") == "sources":
+                                                sources = data.get("sources")
+                                            elif data.get("type") == "done":
+                                                final_data = data
+                                        except json.JSONDecodeError:
+                                            pass
                 
                 # Save to history after streaming completes
                 if final_data and full_response:
@@ -399,7 +403,7 @@ async def stream_chat_message(request: Request):
                     
             except Exception as e:
                 logger.error(f"Error in stream proxy: {e}")
-                yield f'data: {{"type": "error", "error": "{str(e)}"}}\n\n'
+                yield f'data: {{"type": "error", "error": "{str(e)}"}}\n\n'.encode("utf-8")
         
         return StreamingResponse(
             stream_generator(),

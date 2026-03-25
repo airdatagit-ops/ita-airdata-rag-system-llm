@@ -1,0 +1,20 @@
+title: "Aviation RAG - Document Store"
+description: "Explorador de documentos coletados (DECEA, LexML, PDFs)"
+
+allow:
+  id:
+    - admin
+    - berg
+
+plugins:
+  datasette-auth-passwords:
+    admin_password_hash: "pbkdf2_sha256$480000$cb2197f52da42f2d59b366b9b5979cd1$McC+zl0D8rvWzLP7gV0rsdM8J15FKyrwnm+fynz89mY="
+    berg_password_hash: "pbkdf2_sha256$480000$cb2197f52da42f2d59b366b9b5979cd1$McC+zl0D8rvWzLP7gV0rsdM8J15FKyrwnm+fynz89mY="
+  datasette-redirect-forbidden:
+    redirect_to: "/-/login"
+
+databases:
+  store:
+    tables:
+      documents:
+        sort_desc: updated_at

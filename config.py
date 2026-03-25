@@ -145,6 +145,13 @@ class Settings(BaseSettings):
     MODEL_CACHE_DIR: str = getenv('MODEL_CACHE_DIR')
 
     # ========================================
+    # Pipeline Storage (3-phase architecture)
+    # ========================================
+    STORE_DB_PATH: str = getenv('STORE_DB_PATH', './data/store.db')
+    EMBEDDINGS_DIR: str = getenv('EMBEDDINGS_DIR', './data/embeddings')
+    DEFAULT_EMBEDDING_MODE: str = getenv('DEFAULT_EMBEDDING_MODE', 'dense')
+
+    # ========================================
     # API Configuration
     # ========================================
     API_HOST: str = getenv('API_HOST')

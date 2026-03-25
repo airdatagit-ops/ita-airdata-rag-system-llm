@@ -100,29 +100,32 @@ Variáveis essenciais a configurar:
 | `API_HOST` | `127.0.0.1` | Host da API |
 | `API_PORT` | `8083` | Porta da API |
 
-### 3.5. Inicialize o banco vetorial (primeira execução)
+### 3.5. Colete e indexe documentos (primeira execução)
 
 ```bash
-python -m scripts.setup_qdrant
+# Fase 1: Coletar documentos (DECEA + LexML)
+make collect
+
+# Fase 2: Gerar embeddings (sparse sem GPU, hybrid com GPU)
+make embed MODE=sparse
+
+# Fase 3: Indexar no Qdrant
+make index RECREATE=1
 ```
 
-### 3.6. Ingira documentos (primeira execução)
+Ou tudo de uma vez:
 
 ```bash
-# Documentos DECEA (ICA, MCA, etc.)
-python -m scripts.ingest_decea --doc-types ICA --limit 50
-
-# Documentos LexML (legislação)
-python -m scripts.ingest_lexml --limit 100
+make pipeline
 ```
 
-### 3.7. Teste o sistema
+### 3.6. Teste o sistema
 
 ```bash
 python -m scripts.test_system
 ```
 
-### 3.8. Execute a API
+### 3.7. Execute a API
 
 ```bash
 python -m api.server
@@ -203,16 +206,15 @@ Exemplo correto:
 
 ```bash
 # Estando na raiz do projeto: aviation-rag-system/
-python -m scripts.setup_qdrant
-python -m scripts.ingest_decea
+python -m scripts.collect
 python -m scripts.test_system
 ```
 
 Exemplo **incorreto** (vai dar erro):
 
 ```bash
-python scripts/setup_qdrant.py     # ❌ ModuleNotFoundError
-cd scripts && python setup_qdrant.py  # ❌ ModuleNotFoundError
+python scripts/collect.py     # ❌ ModuleNotFoundError
+cd scripts && python collect.py  # ❌ ModuleNotFoundError
 ```
 
 ---

@@ -32,6 +32,11 @@ from models.llm import LlamaModel
 from database.qdrant_manager import QdrantManager
 from config import config
 
+try:
+    from models.embeddings import SparseEncoder
+except ImportError:
+    SparseEncoder = None
+
 
 NOT_FOUND_PATTERNS = [
     r"não encontrei",
@@ -158,21 +163,45 @@ class GenerationEvaluator:
         query_texts = [self.queries[qid] for qid in query_ids]
         logger.info(f"Evaluating {len(query_ids)} queries (k={k})")
 
+        use_dense = getattr(config, 'SEARCH_DENSE_ENABLED', True)
+        use_sparse = getattr(config, 'SEARCH_SPARSE_ENABLED', False)
+
+        if use_sparse and SparseEncoder is None:
+            logger.warning("SparseEncoder not available — falling back to dense-only")
+            use_sparse = False
+            use_dense = True
+
+        hybrid_mode = use_dense and use_sparse
+        sparse_mode = use_sparse and not use_dense
+        mode_label = "hybrid" if hybrid_mode else ("sparse" if sparse_mode else "dense")
+
         embed_model = EmbeddingModel()
         qdrant = QdrantManager()
         llm = LlamaModel()
 
-        logger.info(f"Batch encoding {len(query_texts)} queries...")
-        embeddings = embed_model.encode(query_texts)
+        logger.info(f"Batch encoding {len(query_texts)} queries (mode={mode_label})...")
+        dense_embeddings = embed_model.encode(query_texts) if use_dense else None
+
+        sparse_embeddings = None
+        if use_sparse:
+            sparse_model = SparseEncoder()
+            sparse_embeddings = sparse_model.encode(query_texts)
 
         analyses = []
         for i, qid in enumerate(query_ids):
             search_start = time.time()
-            raw_results = qdrant.search(
-                query_vector=embeddings[i].tolist(),
-                limit=k,
-                score_threshold=config.SEARCH_SCORE_THRESHOLD,
-            )
+
+            search_kwargs = {"limit": k}
+            if hybrid_mode or sparse_mode:
+                if dense_embeddings is not None:
+                    search_kwargs["dense_vector"] = dense_embeddings[i].tolist()
+                if sparse_embeddings is not None:
+                    search_kwargs["sparse_vector"] = sparse_embeddings[i]
+            else:
+                search_kwargs["query_vector"] = dense_embeddings[i].tolist()
+                search_kwargs["score_threshold"] = config.SEARCH_SCORE_THRESHOLD
+
+            raw_results = qdrant.search(**search_kwargs)
             search_ms = int((time.time() - search_start) * 1000)
 
             doc_ids = [r.payload.get('regulation_id', '') for r in raw_results]

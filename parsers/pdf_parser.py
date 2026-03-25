@@ -27,6 +27,40 @@ from config import config
 from parsers.temporal_extractor import TemporalExtractor
 
 
+def extract_text_from_bytes(pdf_content: bytes) -> str | None:
+    """Extract text from in-memory PDF bytes (PyMuPDF -> pdfplumber -> OCR)."""
+    try:
+        import fitz
+        doc = fitz.open(stream=pdf_content, filetype="pdf")
+        text = "\n".join(page.get_text() for page in doc)
+        doc.close()
+        if len(text.strip()) > 100:
+            return text
+    except (ImportError, Exception):
+        pass
+
+    try:
+        import pdfplumber
+        import io
+        with pdfplumber.open(io.BytesIO(pdf_content)) as pdf:
+            text = "\n".join(p.extract_text() or "" for p in pdf.pages)
+        if len(text.strip()) > 100:
+            return text
+    except (ImportError, Exception):
+        pass
+
+    try:
+        from parsers.ocr_processor import OCRProcessor
+        ocr = OCRProcessor(use_gpu=False)
+        text = ocr.extract_text_from_pdf_bytes(pdf_content, resolution=300)
+        if text and len(text.strip()) > 50:
+            return text
+    except (ImportError, Exception):
+        pass
+
+    return None
+
+
 class PDFParser:
     """Parser for PDF documents (ICAs, regulations)."""
 
