@@ -1,0 +1,10 @@
+metric,value
+timestamp,2026-03-22T20:42:46.212498
+k,5
+total_queries,55
+elapsed_seconds,13495.49
+empty_rate,0.3273
+citation_rate,0.4364
+hedging_rate,0.0000
+mean_response_tokens,106.5
+median_response_tokens,68.0

@@ -161,11 +161,9 @@ async def get_stats(api_key: str = Depends(verify_api_key)):
         info = db.get_collection_info()
         logger.info(f"Stats retrieved: {info}")
         
-        # Get document counts
         try:
-            from parsers.document_counter import count_documents_by_type
-            doc_counts = count_documents_by_type()
-            info["documents"] = doc_counts
+            from pipeline.document_store import DocumentStore
+            info["documents"] = DocumentStore().stats()
         except Exception as e:
             logger.warning(f"Could not get document counts: {e}")
             info["documents"] = None
@@ -216,8 +214,13 @@ async def chat_stream(
             last_n=chat_request.context_window
         )
 
-        async def generate_stream():
-            """Generator that yields SSE events."""
+        def generate_stream():
+            """Sync generator that yields SSE events.
+
+            Must be a plain (non-async) generator so that Starlette runs it
+            via iterate_in_threadpool, keeping the event loop free to flush
+            each chunk to the client immediately.
+            """
             start_time = time.time()
             full_response = []
             sources = None
@@ -247,7 +250,7 @@ async def chat_stream(
                         {
                             "regulation_id": s.get("regulation_id"),
                             "score": s.get("score"),
-                            "text": s.get("text", "")[:2000]  # Limit text size for SSE
+                            "text": s.get("text", "")[:2000]
                         }
                         for s in search_results[:5]
                     ] if search_results else []
@@ -278,12 +281,10 @@ Cite sempre as fontes quando mencionar informações das normas."""
                             full_response.append(chunk)
                             yield f"data: {json.dumps({'type': 'token', 'content': chunk})}\n\n"
                     else:
-                        # No results, use regular chat
                         for chunk in _stream_without_rag(chat_request, context_messages):
                             full_response.append(chunk)
                             yield f"data: {json.dumps({'type': 'token', 'content': chunk})}\n\n"
                 else:
-                    # Stream without RAG
                     for chunk in _stream_without_rag(chat_request, context_messages):
                         full_response.append(chunk)
                         yield f"data: {json.dumps({'type': 'token', 'content': chunk})}\n\n"
@@ -587,178 +588,6 @@ async def get_session_stats(api_key: str = Depends(verify_api_key)):
     """Get statistics about active chat sessions."""
     stats = session_manager.get_stats()
     return SessionStatsResponse(**stats)
-
-
-@app.post("/api/chat/stream")
-@limiter.limit(f"{config.RATE_LIMIT}/minute")
-async def chat_stream(
-    request: Request,
-    chat_request: ChatRequest,
-    api_key: str = Depends(verify_api_key)
-):
-    """
-    Streaming chat endpoint for real-time responses.
-
-    Returns Server-Sent Events (SSE) stream with response chunks.
-    Ideal for better user experience with long responses.
-
-    Requires X-API-Key header for authentication.
-    """
-    try:
-        # Get or create session
-        if chat_request.session_id:
-            session = session_manager.get_session(chat_request.session_id)
-            if session is None:
-                session_id = session_manager.create_session(chat_request.session_id)
-            else:
-                session_id = chat_request.session_id
-        else:
-            session_id = session_manager.create_session()
-
-        # Add user message to session
-        session_manager.add_message(session_id, "user", chat_request.message)
-
-        # Get conversation context
-        context_messages = session_manager.get_context_window(
-            session_id,
-            last_n=chat_request.context_window
-        )
-
-        async def generate_stream():
-            """Generator for streaming response."""
-            try:
-                # Send session ID first
-                yield f"data: {{'session_id': '{session_id}', 'type': 'session'}}\n\n"
-
-                full_response = ""
-
-                if chat_request.use_rag:
-                    # For RAG, we need to fetch context first (non-streaming)
-                    # then stream the LLM response
-                    if chat_request.rag_date:
-                        search_results = rag.search.search_temporal(
-                            chat_request.message,
-                            chat_request.rag_date,
-                            limit=5
-                        )
-                    else:
-                        search_results = rag.search.search(
-                            chat_request.message,
-                            limit=5
-                        )
-
-                    if search_results:
-                        # Build context and prompt
-                        context_str = rag.llm._build_context_string(search_results)
-                        
-                        system_prompt = """Você é um assistente especializado em regulamentação de aviação civil brasileira.
-Use as normas fornecidas para responder, mas também mantenha o contexto da conversa anterior.
-Cite sempre as fontes quando mencionar informações das normas."""
-
-                        prompt = f"""=== HISTÓRICO DA CONVERSA ===
-"""
-                        for msg in context_messages[:-1]:
-                            prompt += f"{msg['role'].upper()}: {msg['content']}\n"
-
-                        prompt += f"""
-=== NORMAS REGULATÓRIAS ===
-{context_str}
-
-=== PERGUNTA ATUAL ===
-{chat_request.message}
-
-=== RESPOSTA ===
-Baseado nas normas fornecidas e no contexto da conversa:
-"""
-                        
-                        # Stream response
-                        for chunk in llm.generate(
-                            prompt=prompt,
-                            system_prompt=system_prompt,
-                            temperature=chat_request.temperature,
-                            max_tokens=chat_request.max_tokens,
-                            stream=True
-                        ):
-                            full_response += chunk
-                            yield f"data: {{'content': '{chunk}', 'type': 'chunk'}}\n\n"
-                        
-                        # Send sources at the end
-                        import json
-                        sources_json = json.dumps([{
-                            "regulation_id": s.get("regulation_id", ""),
-                            "score": s.get("score", 0.0),
-                            "text": s.get("text", "")[:2000]
-                        } for s in search_results])
-                        yield f"data: {{'sources': {sources_json}, 'type': 'sources'}}\n\n"
-                    else:
-                        # No results, use regular chat
-                        for chunk in _stream_without_rag(chat_request, context_messages):
-                            full_response += chunk
-                            yield f"data: {{'content': '{chunk}', 'type': 'chunk'}}\n\n"
-                else:
-                    # Regular chat streaming
-                    for chunk in _stream_without_rag(chat_request, context_messages):
-                        full_response += chunk
-                        yield f"data: {{'content': '{chunk}', 'type': 'chunk'}}\n\n"
-
-                # Add complete response to session
-                session_manager.add_message(session_id, "assistant", full_response)
-
-                # Send completion signal
-                yield f"data: {{'type': 'done'}}\n\n"
-
-            except Exception as e:
-                logger.error(f"Error in streaming: {e}")
-                yield f"data: {{'error': '{str(e)}', 'type': 'error'}}\n\n"
-
-        return StreamingResponse(
-            generate_stream(),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-                "X-Accel-Buffering": "no"  # Disable nginx buffering
-            }
-        )
-
-    except Exception as e:
-        logger.error(f"Error setting up streaming: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-def _stream_without_rag(request: ChatRequest, context_messages: list):
-    """
-    Helper to stream chat without RAG.
-
-    Args:
-        request: Chat request
-        context_messages: Previous messages
-
-    Yields:
-        Text chunks
-    """
-    system_prompt = """Você é um assistente especializado em aviação civil brasileira.
-Responda de forma clara e precisa. Se a pergunta for sobre regulamentações específicas,
-sugira ao usuário usar a funcionalidade de busca com RAG para obter informações precisas."""
-
-    messages = []
-    
-    if system_prompt:
-        messages.append({
-            "role": "system",
-            "content": system_prompt
-        })
-    
-    messages.extend(context_messages)
-
-    # Stream response
-    for chunk in llm.chat(
-        messages=messages,
-        temperature=request.temperature or 0.7,
-        max_tokens=request.max_tokens,
-        stream=True
-    ):
-        yield chunk
 
 
 # ========================================

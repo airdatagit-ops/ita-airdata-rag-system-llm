@@ -95,6 +95,9 @@ class TemporalExtractor:
             >>> dates["effective_date"]
             "2023-06-15"
         """
+        if publication_date:
+            publication_date = self._parse_date(publication_date) or publication_date
+
         result = {
             "publication_date": publication_date,
             "effective_date": None,
@@ -116,17 +119,6 @@ class TemporalExtractor:
             revocation_date = self._extract_revocation_date(text)
             if revocation_date:
                 result["expiry_date"] = revocation_date
-
-        # Fallback: if no effective date, use publication + default days
-        if not result["effective_date"] and result["publication_date"]:
-            result["effective_date"] = self._add_days_to_date(
-                result["publication_date"],
-                config.DEFAULT_EFFECTIVE_DAYS
-            )
-            logger.debug(
-                f"No explicit effective date found, using publication + "
-                f"{config.DEFAULT_EFFECTIVE_DAYS} days"
-            )
 
         logger.debug(f"Extracted dates: {result}")
         return result
@@ -158,16 +150,10 @@ class TemporalExtractor:
                         logger.debug(f"Found effective date: {parsed_date}")
                         return parsed_date
                 else:
-                    # Pattern like "após publicação" - use publication date
+                    # Pattern like "após publicação" - use publication date directly
                     if publication_date:
-                        effective = self._add_days_to_date(
-                            publication_date,
-                            config.DEFAULT_EFFECTIVE_DAYS
-                        )
-                        logger.debug(
-                            f"Effective date from 'após publicação': {effective}"
-                        )
-                        return effective
+                        logger.debug(f"Effective date from 'após publicação': {publication_date}")
+                        return publication_date
 
         return None
 

@@ -3,7 +3,7 @@
 {% block title %}Estatísticas - Aviation RAG System{% endblock %}
 
 {% block extra_styles %}
-<link rel="stylesheet" href="/ragweb/ragweb/static/css/stats.css">
+<link rel="stylesheet" href="{{ request.url_for('static', path='css/stats.css') }}">
 {% endblock %}
 
 {% block content %}

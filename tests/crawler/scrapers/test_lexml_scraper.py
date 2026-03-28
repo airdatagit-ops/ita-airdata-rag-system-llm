@@ -7,6 +7,7 @@ import aiohttp
 import pytest
 
 from crawler.scrapers.lexml_scraper import LexMLScraper
+from crawler.scrapers.base import BaseScraper, ScrapedDocument
 
 # ── HTML fixtures ─────────────────────────────────────────────────────────────
 
@@ -71,7 +72,6 @@ NO_CONTENT_HTML = "<html><body><p>Página não encontrada.</p></body></html>"
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def _make_response(status: int = 200, text: str = "") -> MagicMock:
-    """Build a minimal aiohttp response mock usable as async context manager."""
     resp = MagicMock()
     resp.__aenter__ = AsyncMock(return_value=resp)
     resp.__aexit__ = AsyncMock(return_value=False)
@@ -86,9 +86,25 @@ def _make_response(status: int = 200, text: str = "") -> MagicMock:
 
 @pytest.fixture
 async def scraper():
-    """Async scraper with duplicate-tracking disabled and a very high rate limit."""
     async with LexMLScraper(skip_duplicates=False, max_rate=1000) as s:
         yield s
+
+
+# ── inherits BaseScraper ────────────────────────────────────────────────────
+
+class TestInheritance:
+    async def test_is_base_scraper(self):
+        s = LexMLScraper(skip_duplicates=False, max_rate=1000)
+        assert isinstance(s, BaseScraper)
+
+    async def test_source_name(self):
+        s = LexMLScraper(skip_duplicates=False, max_rate=1000)
+        assert s.source_name == "lexml"
+
+    async def test_make_doc_id_with_urn(self):
+        s = LexMLScraper(skip_duplicates=False, max_rate=1000)
+        doc_id = s.make_doc_id({"urn": "urn:lex:br:federal:lei:2001-01-01;10000"})
+        assert doc_id == "urn_lex_br_federal_lei_2001-01-01_10000"
 
 
 # ── async context manager ─────────────────────────────────────────────────────
@@ -156,7 +172,6 @@ class TestParseSearchResults:
         assert doc["urn"] == "urn:lex:br:federal:lei:2001-01-01;10000"
         assert doc["date"] == "01/01/2001"
         assert doc["description"] == "Dispõe sobre aviação civil."
-        # authority comes from _parse_urn (URN part[3]) which is lowercase "federal"
         assert doc["authority"] == "federal"
 
     def test_urn_parsed_into_metadata(self, scraper):
@@ -178,15 +193,24 @@ class TestParseSearchResults:
 class TestBuildQuery:
     def test_keywords_only(self, scraper):
         q = scraper._build_query(["aviação", "ANAC"], None)
-        assert q == "keyword=aviação+ANAC"
+        assert q == "keyword=aviação+ANAC;f2-localidade=Brasil"
 
     def test_with_doc_type(self, scraper):
         q = scraper._build_query(["aviação"], "Legislação")
-        assert q == "keyword=aviação;f1-tipoDocumento=Legislação"
+        assert q == "keyword=aviação;f1-tipoDocumento=Legislação;f2-localidade=Brasil"
 
     def test_fallback_on_empty_keywords(self, scraper):
         q = scraper._build_query([], None)
-        assert q == "lei federal"
+        assert q == "lei federal;f2-localidade=Brasil"
+
+    def test_federal_only_false_omits_localidade(self, scraper):
+        q = scraper._build_query(["aviação"], "Legislação", federal_only=False)
+        assert q == "keyword=aviação;f1-tipoDocumento=Legislação"
+        assert "f2-localidade" not in q
+
+    def test_federal_only_true_adds_localidade(self, scraper):
+        q = scraper._build_query(["aviação"], None, federal_only=True)
+        assert q == "keyword=aviação;f2-localidade=Brasil"
 
 
 # ── _get_html (retry) ─────────────────────────────────────────────────────────
@@ -246,7 +270,6 @@ class TestSearch:
 
     async def test_respects_limit(self, scraper):
         resp = _make_response(200, SEARCH_HTML)
-        # second page returns nothing to stop pagination
         empty = _make_response(200, "<html><body></body></html>")
         scraper._session.get = MagicMock(side_effect=[resp, empty])
         docs = await scraper.search(keywords=["aviação"], limit=1)
@@ -270,9 +293,9 @@ class TestSearch:
 class TestGetDocumentText:
     async def test_follows_senado_link_and_extracts_text(self, scraper):
         responses = [
-            _make_response(200, LEXML_PAGE_HTML),   # LexML page
-            _make_response(200, SENADO_PAGE_HTML),   # Senado norma page
-            _make_response(200, SENADO_PUB_HTML),    # Senado publication
+            _make_response(200, LEXML_PAGE_HTML),
+            _make_response(200, SENADO_PAGE_HTML),
+            _make_response(200, SENADO_PUB_HTML),
         ]
         scraper._session.get = MagicMock(side_effect=responses)
         doc = {"url": "http://lexml.gov.br/urn/test", "title": "Lei 10000"}
@@ -315,71 +338,67 @@ class TestGetDocumentText:
         assert text is None
 
 
-# ── parallel downloads ────────────────────────────────────────────────────────
+# ── fetch_document (BaseScraper interface) ────────────────────────────────────
 
 
-class TestParallelDownloads:
-    async def test_gather_respects_semaphore(self, scraper):
-        """Semaphore with limit=1 should serialize coroutines without deadlock."""
-        call_order = []
+class TestFetchDocument:
+    async def test_returns_scraped_document(self, scraper):
+        async def mock_text(doc, save_original=True):
+            return "A" * 200
 
-        async def mock_get_text(doc, save_original=True):
-            call_order.append(doc["title"])
-            await asyncio.sleep(0)
-            return f"content of {doc['title']}"
+        scraper.get_document_text = mock_text
+        doc = {
+            "url": "http://example.com", "title": "Lei 10000",
+            "urn": "urn:lex:br:federal:lei:2001-01-01;10000",
+            "doc_type": "lei",
+        }
+        result = await scraper.fetch_document(doc, save_original=False)
+        assert isinstance(result, ScrapedDocument)
+        assert result.source == "lexml"
+        assert "urn_lex_br_federal_lei_2001-01-01_10000" in result.doc_id
 
-        scraper.get_document_text = mock_get_text
-        docs = [{"title": f"Doc {i}"} for i in range(5)]
-        sem = asyncio.Semaphore(1)
+    async def test_returns_none_on_short_content(self, scraper):
+        async def mock_text(doc, save_original=True):
+            return "short"
 
-        async def _one(doc):
-            async with sem:
-                return await scraper.get_document_text(doc)
+        scraper.get_document_text = mock_text
+        result = await scraper.fetch_document({"title": "T"}, save_original=False)
+        assert result is None
 
-        results = await asyncio.gather(*[_one(d) for d in docs])
-        assert len(results) == 5
-        assert all(r is not None for r in results)
 
-    async def test_gather_handles_individual_failures(self, scraper):
-        """One failing download should not cancel others."""
+# ── fetch_all (inherited from BaseScraper) ────────────────────────────────────
+
+
+class TestFetchAll:
+    async def test_fetch_all_returns_scraped_documents(self, scraper):
+        async def mock_text(doc, save_original=True):
+            return "content " * 50
+
+        scraper.get_document_text = mock_text
+        docs = [
+            {"title": f"Doc {i}", "urn": f"urn:lex:br:federal:lei:2001-01-01;{i}", "doc_type": "lei"}
+            for i in range(3)
+        ]
+        results = await scraper.fetch_all(docs, concurrency=2)
+        assert len(results) == 3
+        assert all(isinstance(r, ScrapedDocument) for r in results)
+
+    async def test_fetch_all_handles_failures(self, scraper):
         call_count = 0
 
-        async def mock_get_text(doc, save_original=True):
+        async def mock_text(doc, save_original=True):
             nonlocal call_count
             call_count += 1
             if doc.get("fail"):
                 raise aiohttp.ClientError("simulated failure")
-            return "content"
+            return "content " * 50
 
-        scraper.get_document_text = mock_get_text
-        docs = [{"title": "ok"}, {"title": "fail", "fail": True}, {"title": "ok2"}]
-
-        results = await asyncio.gather(
-            *[scraper.get_document_text(d) for d in docs],
-            return_exceptions=True,
-        )
+        scraper.get_document_text = mock_text
+        docs = [
+            {"title": "ok", "urn": "urn:lex:br:federal:lei:2001-01-01;1", "doc_type": "lei"},
+            {"title": "fail", "fail": True, "urn": "urn:lex:br:federal:lei:2001-01-01;2", "doc_type": "lei"},
+            {"title": "ok2", "urn": "urn:lex:br:federal:lei:2001-01-01;3", "doc_type": "lei"},
+        ]
+        results = await scraper.fetch_all(docs, concurrency=2)
         assert call_count == 3
-        assert results[0] == "content"
-        assert isinstance(results[1], aiohttp.ClientError)
-        assert results[2] == "content"
-
-
-# ── duplicate tracking ────────────────────────────────────────────────────────
-
-
-class TestDuplicateTracking:
-    def test_is_duplicate_returns_false_without_tracker(self):
-        scraper = LexMLScraper.__new__(LexMLScraper)
-        scraper.skip_duplicates = False
-        scraper.tracker = None
-        assert scraper.is_duplicate({"urn": "some-urn"}) is False
-
-    def test_delegates_to_tracker(self):
-        scraper = LexMLScraper.__new__(LexMLScraper)
-        scraper.skip_duplicates = True
-        scraper.tracker = MagicMock()
-        scraper.tracker.is_duplicate.return_value = True
-
-        doc = {"urn": "urn:lex:br:federal:lei:2001-01-01;10000"}
-        assert scraper.is_duplicate(doc) is True
-        scraper.tracker.is_duplicate.assert_called_once_with(doc, None)
+        assert len(results) == 2

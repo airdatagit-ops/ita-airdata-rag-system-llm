@@ -12,6 +12,9 @@ import pytest
 from evaluation.evaluate_retrieval import (
     RetrievalEvaluator,
     _compute_ndcg,
+    _extract_doc_id,
+    _matches_expected,
+    _normalize_id,
     print_report,
 )
 
@@ -34,6 +37,51 @@ def golden_set_file(tmp_path):
 @pytest.fixture
 def evaluator(golden_set_file):
     return RetrievalEvaluator(golden_set_path=golden_set_file)
+
+
+class TestNormalizeId:
+    def test_strips_decea_prefix(self):
+        assert _normalize_id("decea_ICA-96-1-art563") == "ICA-96-1-art563"
+
+    def test_strips_pdf_prefix(self):
+        assert _normalize_id("pdf_ICA-100-12") == "ICA-100-12"
+
+    def test_no_prefix_unchanged(self):
+        assert _normalize_id("ICA-96-1-art563") == "ICA-96-1-art563"
+
+    def test_empty_string(self):
+        assert _normalize_id("") == ""
+
+
+class TestExtractDocId:
+    def test_strips_article_and_prefix(self):
+        assert _extract_doc_id("decea_ICA-96-1-art563") == "ICA-96-1"
+
+    def test_strips_article_sub_index(self):
+        assert _extract_doc_id("decea_ICA-7-58-art2-0") == "ICA-7-58"
+
+    def test_no_article_strips_prefix(self):
+        assert _extract_doc_id("decea_ICA-7-58") == "ICA-7-58"
+
+    def test_unprefixed_article(self):
+        assert _extract_doc_id("ICA-96-1-art10") == "ICA-96-1"
+
+
+class TestMatchesExpected:
+    def test_article_exact_match_with_prefix(self):
+        assert _matches_expected("decea_ICA-96-1-art563", "ICA-96-1-art563") is True
+
+    def test_article_mismatch(self):
+        assert _matches_expected("decea_ICA-96-1-art999", "ICA-96-1-art563") is False
+
+    def test_doc_level_matches_any_chunk(self):
+        assert _matches_expected("decea_ICA-7-58-art2-0", "ICA-7-58") is True
+
+    def test_doc_level_mismatch(self):
+        assert _matches_expected("decea_ICA-100-47-art5", "ICA-7-58") is False
+
+    def test_both_unprefixed(self):
+        assert _matches_expected("DOC-1", "DOC-1") is True
 
 
 class TestComputeNDCG:
@@ -87,6 +135,26 @@ class TestRetrievalEvaluator:
         assert result.total_queries == 3
         assert result.retrieval_queries == 2
         assert result.coverage_queries == 1
+
+        q1 = next(r for r in result.query_results if r.query_id == "Q1")
+        assert q1.hit is True
+        assert q1.first_relevant_rank == 1
+
+    @patch("evaluation.evaluate_retrieval.QdrantManager")
+    @patch("evaluation.evaluate_retrieval.EmbeddingModel")
+    def test_evaluate_hit_with_source_prefix(self, MockEmbed, MockQdrant, evaluator):
+        """Retrieved IDs with source prefix should match unprefixed expected IDs."""
+        mock_embed = MockEmbed.return_value
+        mock_embed.encode.return_value = np.random.rand(3, 1024)
+
+        mock_point = MagicMock()
+        mock_point.payload = {"regulation_id": "decea_DOC-1"}
+        mock_point.score = 0.9
+
+        mock_qdrant = MockQdrant.return_value
+        mock_qdrant.search.return_value = [mock_point]
+
+        result = evaluator.evaluate(k=1, workers=1)
 
         q1 = next(r for r in result.query_results if r.query_id == "Q1")
         assert q1.hit is True

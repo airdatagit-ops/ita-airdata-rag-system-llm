@@ -148,6 +148,33 @@ class TestGenerationEvaluator:
         assert len(data["analyses"]) == 2
 
 
+    @patch("evaluation.evaluate_generation.config")
+    @patch("evaluation.evaluate_generation.SparseEncoder")
+    @patch("evaluation.evaluate_generation.LlamaModel")
+    @patch("evaluation.evaluate_generation.QdrantManager")
+    @patch("evaluation.evaluate_generation.EmbeddingModel")
+    def test_evaluate_hybrid_mode(self, MockEmbed, MockQdrant, MockLlm, MockSparse, mock_config, evaluator):
+        """When SEARCH_SPARSE_ENABLED=True, evaluation should use hybrid search."""
+        mock_config.SEARCH_DENSE_ENABLED = True
+        mock_config.SEARCH_SPARSE_ENABLED = True
+
+        MockEmbed.return_value.encode.return_value = np.random.rand(2, 1024)
+        MockSparse.return_value.encode.return_value = [{"indices": [0], "values": [1.0]}] * 2
+
+        mock_point = MagicMock()
+        mock_point.payload = {"regulation_id": "DOC-1", "text": "Artigo."}
+        mock_point.score = 0.9
+        MockQdrant.return_value.search.return_value = [mock_point]
+
+        MockLlm.return_value.generate_with_context.return_value = "Conforme ICA-96-1, regras."
+
+        result = evaluator.evaluate(k=5, sample=1)
+        assert result.total_queries == 1
+
+        call_kwargs = MockQdrant.return_value.search.call_args
+        assert "dense_vector" in call_kwargs.kwargs or "dense_vector" in (call_kwargs[1] if len(call_kwargs) > 1 else {})
+
+
 class TestPrintReport:
     @patch("evaluation.evaluate_generation.LlamaModel")
     @patch("evaluation.evaluate_generation.QdrantManager")

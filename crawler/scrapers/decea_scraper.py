@@ -2,31 +2,29 @@
 DECEA Publications Scraper for Aviation RAG System.
 
 Fetches documents from publicacoes.decea.mil.br using HTTP requests.
-Supports parallel download and text extraction via ThreadPoolExecutor.
+Sync I/O is wrapped with ``asyncio.to_thread`` to expose an async interface
+compatible with :class:`BaseScraper`.
 
 Usage:
-    from parsers.decea_scraper import DECEAScraper
+    from crawler.scrapers import get_scraper
 
-    scraper = DECEAScraper()
-    documents = scraper.search(doc_types=["ICA"], limit=50)
-    results = scraper.fetch_all(documents, workers=8)
+    scraper = get_scraper("decea")
+    docs = await scraper.search(limit=50, doc_types=["ICA"])
+    results = await scraper.fetch_all(docs, concurrency=8)
 """
 
+import asyncio
 import re
-import json
-import hashlib
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import requests
 from bs4 import BeautifulSoup
 from loguru import logger
 
-_PROJECT_ROOT = Path(__file__).parent.parent.parent
-DATA_DIR = _PROJECT_ROOT / "data" / "decea"
-ORIGINALS_DIR = _PROJECT_ROOT / "data" / "originals"
+from crawler.scrapers.base import BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT
+from crawler.scrapers import register_scraper
+from parsers.pdf_parser import extract_text_from_bytes
 
 _DOC_TYPE_RE = re.compile(r'^([A-Za-z]+(?:-[A-Za-z]+)*)(\d.*)$')
 _PDF_URL_RE = re.compile(r'https?://[^"\'>\s]+\.pdf[^"\'>\s]*')
@@ -38,28 +36,56 @@ _ORIGINALS_FOLDER = {
 }
 
 
-class DECEAScraper:
+@register_scraper
+class DECEAScraper(BaseScraper):
     """Scraper for DECEA Publications Portal (publicacoes.decea.mil.br)."""
 
     BASE_URL = "https://publicacoes.decea.mil.br"
     INDEX_URL = f"{BASE_URL}/publicacao/indice"
     PUBLICATION_URL = f"{BASE_URL}/publicacao"
 
+    source_name = "decea"
+
     def __init__(self, timeout: int = 30):
         self.timeout = timeout
         self.session = requests.Session()
-        self.session.headers["User-Agent"] = (
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        )
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        ORIGINALS_DIR.mkdir(parents=True, exist_ok=True)
+        self.session.headers["User-Agent"] = DEFAULT_USER_AGENT
         logger.info("DECEAScraper initialized (HTTP mode)")
 
-    # ── public API ──────────────────────────────────────────────
+    # ── BaseScraper interface ───────────────────────────────────
+
+    async def search(self, *, limit: int = 100, **kwargs) -> List[Dict]:
+        """Search for documents (async wrapper around sync HTTP).
+
+        Keyword Args:
+            doc_types: List of document type codes (default ``["ICA"]``).
+            keywords: Optional keyword filters.
+            slugs: Fetch specific publications by slug.
+        """
+        return await asyncio.to_thread(
+            self._search_sync,
+            doc_types=kwargs.get("doc_types"),
+            keywords=kwargs.get("keywords"),
+            slugs=kwargs.get("slugs"),
+            limit=limit,
+        )
+
+    async def fetch_document(
+        self, doc: Dict, save_original: bool = True
+    ) -> Optional[ScrapedDocument]:
+        """Fetch PDF and extract text for a single document."""
+        return await asyncio.to_thread(self._fetch_document_sync, doc, save_original)
+
+    def make_doc_id(self, doc: Dict) -> str:
+        slug = doc.get("slug", "")
+        if slug:
+            return f"decea_{slug}"
+        return super().make_doc_id(doc)
+
+    # ── sync implementation ────────────────────────────────────
 
     def get_publications_index(self) -> List[Dict]:
-        """Fetch all active publications from the index page (single HTTP call)."""
+        """Fetch all active publications from the index page."""
         logger.info(f"Fetching index: {self.INDEX_URL}")
         resp = self.session.get(self.INDEX_URL, timeout=self.timeout)
         resp.raise_for_status()
@@ -67,14 +93,13 @@ class DECEAScraper:
         logger.success(f"Found {len(docs)} publications in index")
         return docs
 
-    def search(
+    def _search_sync(
         self,
         doc_types: List[str] = None,
         keywords: List[str] = None,
         limit: int = 100,
         slugs: List[str] = None,
     ) -> List[Dict]:
-        """Search for documents, filtering by type, keywords, or specific slugs."""
         if slugs:
             docs = [d for s in slugs if (d := self._fetch_by_slug(s))]
             return docs[:limit]
@@ -140,74 +165,45 @@ class DECEAScraper:
             return fallback
 
         if save_original:
-            self._save_original(doc, pdf_bytes, pdf_url)
+            folder_name = _ORIGINALS_FOLDER.get(doc.get("doc_type", ""), "outros")
+            safe_slug = slug.replace("/", "-")
+            meta = {
+                "slug": slug, "type": doc.get("type"), "title": doc.get("title"),
+                "source_url": doc.get("source_url"), "pdf_url": pdf_url,
+            }
+            self.save_original_file(
+                pdf_bytes, folder_name=folder_name, stem=safe_slug,
+                extension=".pdf", meta=meta,
+            )
 
-        text = self._extract_pdf_text(pdf_bytes)
+        text = extract_text_from_bytes(pdf_bytes)
         return text if text and len(text) > 100 else fallback
 
-    def fetch_all(
-        self,
-        documents: List[Dict],
-        workers: int = 8,
-        extract_text: bool = True,
-        save_original: bool = True,
-    ) -> List[Tuple[Dict, Optional[str]]]:
-        """Fetch PDF content for multiple documents in parallel."""
-        n = len(documents)
-        logger.info(f"Fetching {n} documents with {workers} workers")
-        results: List[Optional[Tuple[Dict, Optional[str]]]] = [None] * n
+    def _fetch_document_sync(
+        self, doc: Dict, save_original: bool = True
+    ) -> Optional[ScrapedDocument]:
+        try:
+            content = self.get_document_text(doc, save_original)
+            if not content or len(content.strip()) < 50:
+                return None
 
-        def _process(idx: int, doc: Dict):
-            try:
-                if extract_text:
-                    text = self.get_document_text(doc, save_original)
-                else:
-                    text = doc.get("description") or doc.get("title", "")
-            except Exception as e:
-                logger.error(f"Error processing {doc.get('slug')}: {e}")
-                text = doc.get("title", "")
-            return idx, doc, text
+            exclude = {"content"}
+            metadata = {k: v for k, v in doc.items() if k not in exclude}
 
-        with ThreadPoolExecutor(max_workers=workers) as pool:
-            futures = {pool.submit(_process, i, d): i for i, d in enumerate(documents)}
-            done = 0
-            for future in as_completed(futures):
-                idx, doc, text = future.result()
-                results[idx] = (doc, text)
-                done += 1
-                if done % 10 == 0 or done == n:
-                    logger.info(f"Progress: {done}/{n}")
+            return ScrapedDocument(
+                doc_id=self.make_doc_id(doc),
+                source=self.source_name,
+                title=doc.get("title", ""),
+                content=content,
+                metadata=metadata,
+                url=doc.get("source_url"),
+                doc_type=doc.get("doc_type"),
+            )
+        except Exception as exc:
+            logger.error(f"Error processing {doc.get('slug', '?')}: {exc}")
+            return None
 
-        return results
-
-    def save_document_json(self, doc: Dict, text: str) -> Path:
-        """Save document as JSON for the ingestion pipeline."""
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        slug = doc.get("slug", "unknown")
-        file_slug = slug.replace("/", "-")
-        path = DATA_DIR / f"{file_slug}.json"
-
-        data = {
-            "id": hashlib.md5(slug.encode()).hexdigest(),
-            "slug": slug,
-            "type": doc.get("type", ""),
-            "number": doc.get("number", ""),
-            "title": doc.get("title", ""),
-            "description": doc.get("title", ""),
-            "date_published": doc.get("date_published", ""),
-            "source_url": doc.get("source_url", ""),
-            "pdf_link": doc.get("pdf_link", ""),
-            "content": text,
-            "doc_type": doc.get("doc_type", "ica"),
-            "scraped_at": datetime.now().isoformat(),
-        }
-
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        logger.debug(f"Saved JSON: {path}")
-        return path
-
-    # ── internal ────────────────────────────────────────────────
+    # ── HTML parsing helpers ────────────────────────────────────
 
     def _parse_index_html(self, html: str) -> List[Dict]:
         soup = BeautifulSoup(html, "html.parser")
@@ -248,7 +244,7 @@ class DECEAScraper:
 
     @staticmethod
     def _build_slug(numero: str, doc_type: str) -> str:
-        """Insert dash between type prefix and number: ICA96-1 → ICA-96-1."""
+        """Insert dash between type prefix and number: ICA96-1 -> ICA-96-1."""
         suffix = numero[len(doc_type):]
         if suffix and suffix[0].isdigit():
             return f"{doc_type}-{suffix}".replace(" ", "-")
@@ -281,58 +277,3 @@ class DECEAScraper:
             }
         except requests.RequestException:
             return None
-
-    def _save_original(self, doc: Dict, content: bytes, url: str):
-        try:
-            folder_name = _ORIGINALS_FOLDER.get(doc.get("doc_type", ""), "outros")
-            folder = ORIGINALS_DIR / folder_name
-            folder.mkdir(parents=True, exist_ok=True)
-
-            slug = doc.get("slug", "unknown").replace("/", "-")
-            (folder / f"{slug}.pdf").write_bytes(content)
-
-            meta = {
-                "slug": doc.get("slug"),
-                "type": doc.get("type"),
-                "title": doc.get("title"),
-                "source_url": doc.get("source_url"),
-                "pdf_url": url,
-                "downloaded_at": datetime.now().isoformat(),
-            }
-            with open(folder / f"{slug}.json", "w", encoding="utf-8") as f:
-                json.dump(meta, f, ensure_ascii=False, indent=2)
-        except Exception as e:
-            logger.error(f"Error saving original: {e}")
-
-    def _extract_pdf_text(self, pdf_content: bytes) -> Optional[str]:
-        """Extract text: PyMuPDF → pdfplumber → OCR fallback."""
-        try:
-            import fitz
-            doc = fitz.open(stream=pdf_content, filetype="pdf")
-            text = "\n".join(page.get_text() for page in doc)
-            doc.close()
-            if len(text.strip()) > 100:
-                return text
-        except (ImportError, Exception):
-            pass
-
-        try:
-            import pdfplumber
-            import io
-            with pdfplumber.open(io.BytesIO(pdf_content)) as pdf:
-                text = "\n".join(p.extract_text() or "" for p in pdf.pages)
-            if len(text.strip()) > 100:
-                return text
-        except (ImportError, Exception):
-            pass
-
-        try:
-            from parsers.ocr_processor import OCRProcessor  # noqa: still in parsers/
-            ocr = OCRProcessor(use_gpu=False)
-            text = ocr.extract_text_from_pdf_bytes(pdf_content, resolution=300)
-            if text and len(text.strip()) > 50:
-                return text
-        except (ImportError, Exception):
-            pass
-
-        return None

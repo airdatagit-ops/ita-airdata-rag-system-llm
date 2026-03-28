@@ -66,9 +66,12 @@ Pergunta do usuário
 | Embeddings | Legal-BERTimbau (sentence-transformers) | `models/embeddings.py` |
 | LLM | Ollama (llama3, phi3, etc.) | `models/llm.py` |
 | Banco vetorial | Qdrant | `database/qdrant_manager.py` |
-| Scraper DECEA | Requests + BeautifulSoup | `crawler/scrapers/decea_scraper.py` |
+| Scraper base (ABC) | Interface async + registry | `crawler/scrapers/base.py` |
+| Scraper DECEA | Requests + BeautifulSoup (async via to_thread) | `crawler/scrapers/decea_scraper.py` |
 | Scraper LexML | aiohttp (async) + BeautifulSoup | `crawler/scrapers/lexml_scraper.py` |
-| Ingestão | Chunking + Embedding + Upload | `pipeline/ingestion.py` |
+| Scraper PDF (local) | PDFParser (pdfplumber/PyMuPDF) | `crawler/scrapers/pdf_scraper.py` |
+| Document Store | SQLite registry + change detection | `pipeline/document_store.py` |
+| Embedding Store | Parquet-backed vector storage | `pipeline/embedding_store.py` |
 | Avaliação (retrieval) | Golden Set + Métricas IR | `evaluation/evaluate_retrieval.py` |
 | Avaliação (geração) | Heurísticas de qualidade LLM | `evaluation/evaluate_generation.py` |
 | Interface Web | FastAPI + Jinja2 | `web/main.py` |
@@ -180,7 +183,7 @@ cp env.example .env
 | `HNSW_EF_CONSTRUCT` | int | `100` | Parâmetro ef_construct do HNSW |
 | `HNSW_EF_SEARCH` | int | `64` | Parâmetro ef para busca no HNSW |
 
-> **Busca híbrida:** Quando ambos `SEARCH_DENSE_ENABLED` e `SEARCH_SPARSE_ENABLED` estão habilitados, o sistema combina os resultados usando Reciprocal Rank Fusion (RRF) via Qdrant Query API. Isso melhora a recuperação de termos exatos (siglas, artigos, nomes de ICAs) que a busca semântica pura pode perder. A coleção deve ser recriada ao habilitar sparse pela primeira vez (`python -m scripts.setup_qdrant --recreate`).
+> **Busca híbrida:** Quando ambos `SEARCH_DENSE_ENABLED` e `SEARCH_SPARSE_ENABLED` estão habilitados, o sistema combina os resultados usando Reciprocal Rank Fusion (RRF) via Qdrant Query API. Isso melhora a recuperação de termos exatos (siglas, artigos, nomes de ICAs) que a busca semântica pura pode perder. A coleção deve ser recriada ao habilitar sparse pela primeira vez (`make index RECREATE=1`).
 
 #### Chunking
 
@@ -224,10 +227,10 @@ docker run -d --name qdrant \
 
 ### 4.2. Criação da coleção
 
-O script `setup_qdrant.py` cria a coleção com a configuração correta:
+A coleção é criada automaticamente pela fase de indexação:
 
 ```bash
-python -m scripts.setup_qdrant
+make index RECREATE=1
 ```
 
 Isso cria a coleção `aviation_regulations` com:
@@ -267,23 +270,15 @@ Este script mostra:
 Para apagar todos os dados e recriar a coleção:
 
 ```bash
-python -m scripts.reset_database --confirm
+make index RECREATE=1
 ```
 
-Opções adicionais:
+Para forçar re-coleta e reconstrução completa:
 
 ```bash
-# Resetar e re-ingerir apenas documentos DECEA
-python -m scripts.reset_database --confirm --only-decea
-
-# Resetar e re-ingerir apenas documentos LexML
-python -m scripts.reset_database --confirm --only-lexml
-
-# Resetar sem re-ingerir (apenas limpa o banco)
-python -m scripts.reset_database --confirm --skip-ingest
-
-# Limpar também o rastreador de documentos
-python -m scripts.reset_database --confirm --clear-tracker
+make collect FORCE=1    # apaga docs da store e re-coleta
+make embed FORCE=1      # re-gera todos os embeddings
+make index RECREATE=1   # recria a coleção no Qdrant
 ```
 
 ---
@@ -386,154 +381,266 @@ O sistema extrai documentos de duas fontes principais:
 ### 7.1. DECEA (Instruções de Comando da Aeronáutica)
 
 **Scraper:** `crawler/scrapers/decea_scraper.py`
-**Script de ingestão:** `scripts/ingest_decea.py`
 
-O scraper DECEA usa **HTTP direto** (`requests` + `BeautifulSoup`) para acessar o portal de publicações do DECEA (`publicacoes.decea.mil.br`). O portal usa Next.js com Server-Side Rendering, o que permite extrair todo o conteúdo sem navegador. Ele:
+O scraper DECEA herda de `BaseScraper` e usa **HTTP direto** (`requests` + `BeautifulSoup`) para acessar o portal de publicações do DECEA (`publicacoes.decea.mil.br`). O portal usa Next.js com Server-Side Rendering, o que permite extrair todo o conteúdo sem navegador. Ele:
 
 1. Parseia o índice de publicações via HTML estático
 2. Filtra por tipo de documento (ICA, MCA, PCA, DCA, CIRCEA, NSCA, etc.)
 3. Extrai URLs de PDFs assinadas (S3) de cada página de publicação
-4. Baixa os PDFs originais em paralelo (`ThreadPoolExecutor`)
+4. Baixa os PDFs originais em paralelo (via `asyncio.Semaphore` + `to_thread`)
 5. Extrai texto dos PDFs (PyMuPDF, pdfplumber, OCR fallback)
-6. Salva JSONs em `data/decea/` e PDFs originais em `data/originals/ica/`
+6. Armazena conteúdo e metadados no SQLite (`data/store.db`)
 
 **Como executar:**
 
 ```bash
-# Via Makefile (recomendado)
-make collect-decea                          # Padrão: 100 ICAs, 8 workers
-make collect-decea LIMIT=200 WORKERS=8      # Custom
-make collect-decea DOC_TYPES=ICA,MCA        # Múltiplos tipos
-
-# Via script direto
-python -m scripts.ingest_decea --doc-types ICA --limit 50
-python -m scripts.ingest_decea --doc-types ICA,MCA --limit 100 --workers 8
-python -m scripts.ingest_decea --slugs ICA-63-47,ICA-100-12,ICA-100-37
-python -m scripts.ingest_decea --skip-download    # Usar JSONs existentes
-python -m scripts.ingest_decea --no-text           # Apenas descrição
+make collect SOURCES=decea                     # Coleta todos os tipos
+make collect SOURCES=decea LIMIT=50            # Limita a 50 docs
+make collect SOURCES=decea DOC_TYPES=ICA,MCA   # Apenas ICA e MCA
+make collect SOURCES=decea CHECK=1             # Verifica alterações
+make collect SOURCES=decea FORCE=1             # Re-coleta do zero
 ```
-
-**Parâmetros disponíveis:**
-
-| Parâmetro | Descrição |
-|-----------|-----------|
-| `--doc-types` | Tipos de documento separados por vírgula (ICA, MCA, PCA, DCA, TCA, CIRCEA, NSCA) |
-| `--slugs` | Slugs específicos separados por vírgula |
-| `--keywords` | Palavras-chave para filtro |
-| `--limit` | Máximo de documentos (padrão: 100) |
-| `--workers` | Workers paralelos para download (padrão: 8) |
-| `--download-dir` | Diretório de saída (padrão: `./data/decea`) |
-| `--skip-download` | Usar apenas JSONs já existentes |
-| `--no-text` | Não extrair texto dos PDFs |
 
 ### 7.2. LexML (Legislação Federal)
 
 **Scraper:** `crawler/scrapers/lexml_scraper.py`
-**Script de ingestão:** `scripts/ingest_lexml.py`
 
-O scraper LexML usa **aiohttp (assíncrono)** + BeautifulSoup para buscar documentos no portal LexML Brasil com downloads paralelos. Ele:
+O scraper LexML herda de `BaseScraper` e usa **aiohttp (assíncrono)** + BeautifulSoup para buscar documentos no portal LexML Brasil com downloads paralelos. Ele:
 
-1. Busca documentos por palavras-chave na interface web do LexML (paginação automática)
+1. Busca documentos por palavras-chave individualmente na interface web do LexML (paginação automática)
 2. Extrai metadados (título, URN, tipo, data, autoria)
 3. Segue links para Senado ou Planalto e extrai o texto integral
 4. Baixa múltiplos documentos em paralelo (semáforo configurável)
-5. Salva como JSON em `data/lexml/` e registra no rastreador
+5. Deduplica resultados por URN entre keywords
+6. Armazena conteúdo e metadados no SQLite (`data/store.db`)
+
+Por padrão, apenas legislação **federal** é coletada (`f2-localidade=Brasil`), evitando documentos estaduais/municipais cujos portais não são suportados para extração de texto integral. Para incluir todas as localidades, use `ALL_LOCALITIES=1`.
 
 **Como executar:**
 
 ```bash
-# Via Makefile (recomendado)
-make collect-lexml                              # Padrão: 100 docs, 5 downloads paralelos
-make collect-lexml LIMIT=50 CONCURRENCY=3      # Custom
-make collect-lexml KEYWORDS="ANAC,portaria"    # Palavras-chave específicas
-
-# Via script direto
-python -m scripts.ingest_lexml --limit 100
-python -m scripts.ingest_lexml --keywords "aviação,ANAC,aeroporto" --limit 50
-python -m scripts.ingest_lexml --concurrency 3 --limit 50
-python -m scripts.ingest_lexml --force-download --limit 50
-python -m scripts.ingest_lexml --skip-download
+make collect SOURCES=lexml                             # Coleta legislação federal (padrão)
+make collect SOURCES=lexml ALL_LOCALITIES=1             # Inclui estadual/municipal
+make collect SOURCES=lexml LIMIT=50                    # Limita a 50 docs por keyword
+make collect SOURCES=lexml KEYWORDS="ANAC,portaria"    # Keywords específicas
+make collect SOURCES=lexml CHECK=1                     # Verifica alterações
+make collect SOURCES=lexml FORCE=1                     # Re-coleta do zero
 ```
-
-**Parâmetros disponíveis:**
-
-| Parâmetro | Descrição |
-|-----------|-----------|
-| `--keywords` | Palavras-chave separadas por vírgula (padrão: `LEXML_KEYWORDS` do `.env`) |
-| `--limit` | Máximo de documentos a buscar (padrão: 100) |
-| `--concurrency` | Downloads paralelos simultâneos (padrão: 5) |
-| `--download-dir` | Diretório de saída (padrão: `./data/lexml`) |
-| `--skip-download` | Usar apenas JSONs já existentes |
-| `--force-download` | Re-baixar mesmo que já exista no rastreador |
 
 ### 7.3. PDFs Locais
 
-**Script:** `scripts/ingest_pdfs.py`
-
-Para ingerir PDFs que já estejam em um diretório local:
+Para coletar PDFs que já estejam em um diretório local:
 
 ```bash
-# Ingerir PDFs de um diretório
-python -m scripts.ingest_pdfs --source ./meus-pdfs/
-
-# Buscar recursivamente em subdiretórios
-python -m scripts.ingest_pdfs --source ./meus-pdfs/ --recursive
+make collect SOURCES=pdf                           # PDFs do diretório padrão (./data/pdfs)
+make collect SOURCES=pdf PDF_DIR=./meus-pdfs/      # Diretório customizado
 ```
 
-### 7.4. Rastreamento de Documentos
+### 7.4. Arquitetura de Scrapers
 
-O `DocumentTracker` (`parsers/document_tracker.py`) mantém um registro em `data/document_tracker.json` com:
+Todos os scrapers herdam de `BaseScraper` (`crawler/scrapers/base.py`), que define uma interface async unificada:
 
-- URNs de documentos já baixados
-- URLs já visitadas
-- Hashes de conteúdo (para detectar duplicatas)
-- Timestamps de download
+| Método | Descrição |
+|--------|-----------|
+| `search(**kwargs)` | Busca documentos e retorna metadados |
+| `fetch_document(doc)` | Extrai conteúdo completo de um documento, retorna `ScrapedDocument` |
+| `fetch_all(docs, concurrency)` | Fetch paralelo com `asyncio.Semaphore` (herdado, pode ser sobrescrito) |
+| `make_doc_id(doc)` | Gera ID estável e filesystem-safe |
+| `save_original_file(...)` | Salva arquivo original (PDF/HTML) + metadata JSON |
+
+Os scrapers são registrados automaticamente via decorator `@register_scraper` e descobertos pelo registry em `crawler/scrapers/__init__.py`:
+
+```python
+from crawler.scrapers import get_scraper, list_scrapers
+
+scraper = get_scraper("decea")  # instancia DECEAScraper
+names = list_scrapers()          # ["decea", "lexml", "pdf"]
+```
+
+Para adicionar um novo scraper, basta criar uma classe em `crawler/scrapers/` que herde de `BaseScraper` e use `@register_scraper`.
+
+### 7.5. Rastreamento de Documentos
+
+O `DocumentStore` (`pipeline/document_store.py`) mantém um registro em SQLite (`data/store.db`) com:
+
+- Conteúdo completo de cada documento
+- Hash SHA256 do conteúdo (para detectar alterações)
+- Metadados (título, URL, URN, tipo, source)
+- Timestamps de coleta e atualização
+- Log de embeddings gerados
 
 Isso evita re-downloads desnecessários em execuções subsequentes.
 
 ---
 
-## 8. Pipeline de Ingestão
+## 8. Pipeline de Ingestão (Arquitetura 3 Fases)
 
-O pipeline de ingestão (`pipeline/ingestion.py`) é responsável por processar documentos e armazená-los no Qdrant.
+O pipeline de ingestão foi reestruturado em **3 fases independentes e idempotentes**, cada uma executável separadamente via Makefile. Apenas documentos/embeddings cujo conteúdo mudou são reprocessados (detecção via hash SHA256).
 
-### Etapas do pipeline:
+### Armazenamento
 
-```
-Documento JSON/XML/PDF
-        │
-        ▼
-  1. Parsing (extrair texto e metadados)
-        │
-        ▼
-  2. Quality Gate (QualityValidator)
-        │    - Rejeita documentos GARBAGE (OCR falho, ratio alfabético < 15%)
-        │    - Classifica em GARBAGE / LOW / MEDIUM / GOOD
-        ▼
-  3. Text Cleaning (TextCleaner)
-        │    - Normalização Unicode (NFKC)
-        │    - Remoção de control chars (\x03 → espaço, demais removidos)
-        │    - Remoção de texto garbled (ROT-3 / fontes sem ToUnicode CMap)
-        │    - Remoção de headers institucionais repetidos
-        │    - Remoção de page numbers (ex: "10/26")
-        │    - Remoção de linhas TOC com reticências
-        │    - Correção de hifenização de quebra de linha
-        │    - Padronização de aspas e travessões
-        │    - Normalização de whitespace
-        ▼
-  4. Chunking (dividir em trechos de ~512 tokens)
-        │    - ArticleChunker: para legislação (divide por artigos)
-        │    - ICAChunker: para ICAs (divide por seções/capítulos)
-        ▼
-  5. Embedding (gerar vetor de 1024 dimensões para cada chunk)
-        │
-        ▼
-  6. Upload (upsert no Qdrant com metadados)
+| Componente | Tecnologia | Caminho |
+|------------|-----------|---------|
+| Registro de documentos | SQLite | `data/store.db` |
+| Embeddings densos | Parquet (Snappy) | `data/embeddings/dense/` |
+| Embeddings esparsos | Parquet (Snappy) | `data/embeddings/sparse/` |
+| Busca vetorial | Qdrant | `localhost:6333` |
+
+### Fase 1: Collect (`make collect`)
+
+Executa os scrapers (LexML, DECEA, PDFs locais) e persiste documentos no SQLite. Três modos de coleta controlam o comportamento em re-runs:
+
+| Modo | Comando | Comportamento |
+|---|---|---|
+| **Default** | `make collect` | Pula documentos que já existem no SQLite (sem HTTP). Apenas novos são baixados. Re-runs instantâneos. |
+| **Check** | `make collect CHECK=1` | Re-baixa todos os documentos e recalcula hash. Atualiza apenas os que mudaram na fonte. |
+| **Force** | `make collect FORCE=1` | Apaga todos os documentos da fonte no SQLite e re-coleta do zero. |
+
+```bash
+make collect                              # re-run rápido (pula existentes)
+make collect CHECK=1                      # verificar mudanças nas fontes
+make collect FORCE=1                      # apagar e re-coletar tudo
+make collect SOURCES=lexml LIMIT=50       # apenas LexML, 50 docs
+make collect SOURCES=decea                # apenas DECEA (todos os tipos)
+make collect SOURCES=pdf PDF_DIR=./data/pdfs  # PDFs locais
+make collect SOURCES=lexml,decea,pdf      # todas as fontes
 ```
 
-> **Nota:** Os dados brutos em `data/decea/` nunca são modificados. A limpeza é
-> aplicada em memória durante a ingestão, antes do embedding. O script
-> `validate_data.py` permite gerar snapshots limpos para inspeção e comparação.
+### Fase 2: Embed (`make embed`)
+
+Lê documentos do SQLite, aplica validação/limpeza/chunking, gera embeddings e salva em Parquet. Suporta modos `dense`, `sparse` ou `hybrid`.
+
+```bash
+make embed                    # Incremental, modo do config
+make embed MODE=dense         # Apenas dense
+make embed MODE=hybrid        # Dense + sparse
+make embed FORCE=1            # Re-gerar tudo
+```
+
+### Fase 3: Index (`make index`)
+
+Carrega embeddings do Parquet e faz bulk-upsert no Qdrant. Nenhum modelo de embedding é carregado, fase puramente I/O.
+
+```bash
+make index                    # Push para Qdrant
+make index RECREATE=1         # Recriar coleção antes
+```
+
+### Pipeline completo
+
+```bash
+make pipeline                          # collect + embed + index
+make pipeline MODE=hybrid RECREATE=1   # Full rebuild com busca híbrida
+```
+
+### Analytics (`make query` / `make explore`)
+
+Duas interfaces para explorar os documentos coletados no SQLite:
+
+#### Console SQL (`make query`)
+
+```bash
+make query                                           # Console SQL interativo (REPL)
+make query SQL="SELECT source, doc_type, COUNT(*) FROM documents GROUP BY source, doc_type"
+```
+
+O console SQL suporta comandos especiais: `\tables`, `\schema`, `\sources`, `\types`, `\counts`.
+
+Exemplo de consulta:
+
+```bash
+make query SQL="SELECT source, COUNT(*) AS total, ROUND(AVG(LENGTH(content))) AS avg_chars FROM documents GROUP BY source ORDER BY total DESC"
+```
+
+```
++--------+-------+-----------+
+| source | total | avg_chars |
++--------+-------+-----------+
+| lexml  | 3029  | 12450.0   |
+| decea  | 447   | 38721.0   |
++--------+-------+-----------+
+```
+
+#### Interface Web (`make explore`)
+
+```bash
+make explore    # Abre o Datasette no navegador (http://localhost:8001)
+```
+
+O Datasette oferece uma interface web completa para navegar tabelas, aplicar filtros visuais, executar SQL arbitrário e exportar resultados em JSON/CSV. O banco abre em **modo read-only** (`--immutable`).
+
+**Autenticação:** O acesso requer login. Ao abrir, você será redirecionado para a página de login. Usuários configurados:
+
+| Usuário | Descrição |
+|---------|-----------|
+| `admin` | Administrador |
+| `berg`  | Usuário padrão |
+
+**Adicionando novos usuários:**
+
+1. Gere o hash da senha:
+
+```bash
+python -c "from datasette_auth_passwords import hash_password; print(hash_password('minha_senha'))"
+```
+
+2. Adicione ao `metadata.yml`:
+
+```yaml
+plugins:
+  datasette-auth-passwords:
+    novousuario_password_hash: "pbkdf2_sha256$480000$..."
+```
+
+3. Autorize o acesso na seção `allow`:
+
+```yaml
+allow:
+  id:
+    - admin
+    - berg
+    - novousuario
+```
+
+**Deploy em produção (Nginx):**
+
+```bash
+python -m datasette serve --immutable data/store.db --metadata metadata.yml \
+  --host 127.0.0.1 --port 8001 --setting base_url /datasette/ --cors
+```
+
+```nginx
+location /datasette/ {
+    proxy_pass http://127.0.0.1:8001/datasette/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+```
+
+### Fluxo detalhado:
+
+```
+  FASE 1: COLLECT                    FASE 2: EMBED                    FASE 3: INDEX
+  ─────────────────                  ────────────────                  ────────────────
+  Web Scrapers                       SQLite → Chunking                Parquet → Qdrant
+  (DECEA, LexML)                     → Embedding → Parquet
+        │                                  │                                │
+        ▼                                  ▼                                ▼
+  SHA256 hash check              Quality Gate + TextCleaner          Bulk upsert com
+        │                                  │                          indexação desativada
+        ▼                                  ▼                                │
+  SQLite (store.db)              ArticleChunker/ICAChunker                  ▼
+  INSERT/UPDATE/SKIP                       │                          Qdrant collection
+                                           ▼                          (dense/sparse/hybrid)
+                                  EmbeddingModel (GPU)
+                                  + SparseEncoder (BM25)
+                                           │
+                                           ▼
+                                  Parquet (data/embeddings/)
+                                  + embedding_log (SQLite)
+```
+
+> **Nota:** A limpeza de texto é aplicada em memória durante a Fase 2 (embed), antes do chunking e embedding. Os dados brutos nunca são modificados.
 
 ### Chunkers disponíveis:
 
@@ -690,14 +797,20 @@ python main.py
 
 ### Resumo dos scripts:
 
+**Pipeline 3 fases (recomendado):**
+
 | Script | Comando | Descrição |
 |--------|---------|-----------|
-| `setup_qdrant.py` | `python -m scripts.setup_qdrant` | Inicializa a coleção no Qdrant |
-| `ingest_decea.py` | `python -m scripts.ingest_decea` | Baixa e ingere documentos DECEA (alternativa: `make collect-decea`) |
-| `ingest_lexml.py` | `python -m scripts.ingest_lexml` | Baixa e ingere documentos LexML (alternativa: `make collect-lexml`) |
-| `ingest_pdfs.py` | `python -m scripts.ingest_pdfs --source DIR` | Ingere PDFs de um diretório |
-| `validate_data.py` | `python -m scripts.validate_data` | Valida qualidade e limpeza dos documentos (alternativa: `make validate-data`) |
-| `reset_database.py` | `python -m scripts.reset_database --confirm` | Reseta o banco vetorial |
+| `collect.py` | `python -m scripts.collect` | Fase 1: coleta documentos de todas as fontes no SQLite (`make collect`). Modos: default (skip), --check, --force |
+| `embed.py` | `python -m scripts.embed` | Fase 2: gera embeddings incrementais em Parquet (`make embed`) |
+| `index.py` | `python -m scripts.index` | Fase 3: carrega embeddings no Qdrant (`make index`) |
+| `query.py` | `python -m scripts.query` | Console SQL interativo para explorar o SQLite (`make query`) |
+
+**Utilitários:**
+
+| Script | Comando | Descrição |
+|--------|---------|-----------|
+| `validate_data.py` | `python -m scripts.validate_data` | Valida qualidade e limpeza dos documentos (`make validate-data`) |
 | `inspect_qdrant.py` | `python -m scripts.inspect_qdrant` | Inspeciona dados do Qdrant |
 | `test_system.py` | `python -m scripts.test_system` | Testa todos os componentes |
 | `test_chatbot.py` | `python -m scripts.test_chatbot` | Testa os endpoints do chatbot |
@@ -711,39 +824,39 @@ python main.py
 cd aviation-rag-system/
 source venv/bin/activate
 
-# 1. Criar a coleção no Qdrant
-python -m scripts.setup_qdrant
+# 1. Coletar documentos (Fase 1)
+make collect                                  # Coleta DECEA + LexML
+make collect SOURCES=decea LIMIT=50           # Apenas DECEA, 50 docs
+make collect SOURCES=pdf PDF_DIR=./meus-pdfs  # PDFs locais
 
-# 2. Ingerir documentos DECEA
-python -m scripts.ingest_decea --doc-types ICA,MCA --limit 100 --workers 8
-# Alternativa via Makefile: make collect-decea DOC_TYPES=ICA,MCA LIMIT=100 WORKERS=8
+# 2. Gerar embeddings (Fase 2)
+make embed MODE=sparse                        # Apenas sparse (sem GPU)
+make embed MODE=hybrid                        # Dense + sparse (GPU)
 
-# 3. Ingerir documentos LexML
-python -m scripts.ingest_lexml --keywords "aviação,ANAC" --limit 200
+# 3. Indexar no Qdrant (Fase 3)
+make index                                    # Upsert incremental
+make index RECREATE=1                         # Recria a coleção
 
-# 4. Ingerir PDFs locais
-python -m scripts.ingest_pdfs --source ./data/originals --recursive
+# 4. Pipeline completo (3 fases em sequência)
+make pipeline
 
 # 5. Verificar o que foi indexado
 python -m scripts.inspect_qdrant
 
-# 6. Testar todo o sistema
+# 6. Consultar documentos coletados
+make query SQL="SELECT source, COUNT(*) n FROM documents GROUP BY source"
+make explore                                  # Web UI (Datasette)
+
+# 7. Testar todo o sistema
 python -m scripts.test_system
 
-# 7. Testar o chatbot (precisa da API rodando)
-python -m scripts.test_chatbot
+# 8. Resetar tudo e re-coletar
+make collect FORCE=1                          # Apaga e re-coleta
+make embed FORCE=1                            # Re-gera embeddings
+make index RECREATE=1                         # Recria Qdrant
 
-# 8. Resetar tudo e re-ingerir
-python -m scripts.reset_database --confirm --clear-tracker
-
-# 9. Validar qualidade dos documentos (relatório no terminal)
+# 9. Validar qualidade dos documentos
 python -m scripts.validate_data --report-only
-
-# 10. Validar + limpar e salvar snapshot para comparação
-python -m scripts.validate_data --clean --output-dir data/cleaned/v1
-
-# 11. Apenas relatório com limpeza aplicada (sem salvar arquivos)
-python -m scripts.validate_data --clean --report-only
 ```
 
 ---
@@ -908,10 +1021,19 @@ Os testes unitários ficam em `tests/`, organizados por domínio:
 ```
 tests/
 ├── __init__.py
-└── evaluation/
-    ├── __init__.py
-    ├── test_evaluate_retrieval.py
-    └── test_evaluate_generation.py
+├── crawler/
+│   └── scrapers/
+│       ├── test_base_scraper.py     # BaseScraper ABC, registry, ScrapedDocument
+│       ├── test_decea_scraper.py    # DECEAScraper (sync + async)
+│       └── test_lexml_scraper.py    # LexMLScraper (async)
+├── evaluation/
+│   ├── test_evaluate_retrieval.py
+│   └── test_evaluate_generation.py
+├── pipeline/
+│   ├── test_document_store.py
+│   ├── test_embedding_store.py
+│   └── test_text_cleaner.py
+└── ...
 ```
 
 Todos os testes usam **mocks** para isolar dependências externas (Qdrant, Ollama, modelo de embeddings), garantindo execução rápida e sem necessidade de serviços rodando.
@@ -934,13 +1056,26 @@ python -m pytest tests/ -v --tb=short
 
 ### 13.3. Comandos do Makefile
 
+**Pipeline 3 fases:**
+
+| Comando | Descrição |
+|---------|-----------|
+| `make collect` | Fase 1: coleta novos documentos (pula existentes, re-run instantâneo) |
+| `make collect CHECK=1` | Fase 1: re-baixa tudo e verifica hashes (detecta mudanças na fonte) |
+| `make collect FORCE=1` | Fase 1: apaga docs da fonte e re-coleta do zero |
+| `make embed` | Fase 2: gera embeddings incrementais em Parquet |
+| `make index` | Fase 3: carrega embeddings no Qdrant |
+| `make pipeline` | Executa as 3 fases em sequência |
+| `make query` | Console SQL interativo para explorar documentos |
+| `make explore` | Interface web (datasette) para explorar o SQLite |
+
+**Avaliação e utilitários:**
+
 | Comando | Descrição |
 |---------|-----------|
 | `make help` | Lista todos os comandos disponíveis |
 | `make test` | Executa todos os testes unitários |
 | `make test FILE=<path>` | Executa testes de um arquivo ou diretório |
-| `make collect-decea` | Coleta documentos DECEA |
-| `make collect-lexml` | Coleta documentos LexML (async, paralelo) |
 | `make eval` | Executa ambas as avaliações (retrieval + geração) |
 | `make eval-retrieval` | Avaliação de retrieval |
 | `make eval-generation` | Avaliação de geração |
@@ -950,13 +1085,21 @@ python -m pytest tests/ -v --tb=short
 
 | Parâmetro | Padrão | Uso |
 |-----------|--------|-----|
+| `SOURCES` | `lexml,decea` | `make collect SOURCES=lexml` |
+| `CHECK` | — | `make collect CHECK=1` (verificar hashes) |
+| `FORCE` | — | `make collect FORCE=1` (re-coletar) / `make embed FORCE=1` |
+| `MODE` | config | `make embed MODE=hybrid` |
+| `RECREATE` | — | `make index RECREATE=1` |
+| `SQL` | — | `make query SQL='SELECT ...'` |
 | `K` | `5` | `make eval-retrieval K=10` |
 | `WORKERS` | `4` | `make eval-retrieval WORKERS=8` |
 | `SAMPLE` | todos | `make eval-generation SAMPLE=10` |
 | `FILE` | `tests/` | `make test FILE=tests/evaluation/` |
-| `LIMIT` | `100` | `make collect-lexml LIMIT=50` |
-| `CONCURRENCY` | `5` | `make collect-lexml CONCURRENCY=3` |
-| `KEYWORDS` | — | `make collect-lexml KEYWORDS='ANAC,portaria'` |
+| `LIMIT` | `0` (sem limite) | `make collect LIMIT=50` |
+| `CONCURRENCY` | `10` | `make collect CONCURRENCY=3` |
+| `KEYWORDS` | — | `make collect KEYWORDS='ANAC,portaria'` |
+| `PDF_DIR` | `./data/pdfs` | `make collect SOURCES=pdf PDF_DIR=./meus_pdfs` |
+| `BATCH_SIZE` | config | `make embed BATCH_SIZE=64` |
 
 ---
 
@@ -1178,7 +1321,7 @@ ModuleNotFoundError: No module named 'config'
 ```bash
 cd aviation-rag-system/
 source venv/bin/activate
-python -m scripts.setup_qdrant  # ✅ Correto
+python -m scripts.collect  # ✅ Correto
 ```
 
 ### Qdrant não conecta

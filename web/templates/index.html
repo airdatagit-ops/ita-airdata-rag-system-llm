@@ -3,7 +3,7 @@
 {% block title %}Início - Aviation RAG System{% endblock %}
 
 {% block extra_styles %}
-<link rel="stylesheet" href="/ragweb/ragweb/static/css/home.css">
+<link rel="stylesheet" href="{{ request.url_for('static', path='css/home.css') }}">
 {% endblock %}
 
 {% block content %}

@@ -6,7 +6,7 @@
   <title>{% block title %}Sistema RAG AirData{% endblock %}</title>
   
   <!-- Base CSS -->
-  <link rel="stylesheet" href="/ragweb/ragweb/static/css/base.css">
+  <link rel="stylesheet" href="{{ request.url_for('static', path='css/base.css') }}">
   
   {% block extra_styles %}{% endblock %}
   <style>
@@ -33,7 +33,7 @@
   <!-- Header -->
   <header class="airdata-header">
     <a href="{{ request.url_for('home') }}" class="logo-container">
-      <img src="/ragweb/ragweb/static/images/airdata-logo.png" alt="AirData Logo" class="logo-image" style="height: 50px;">
+      <img src="{{ request.url_for('static', path='images/airdata-logo.png') }}" alt="AirData Logo" class="logo-image" style="height: 50px;">
       <span class="logo-text">RAG System</span>
     </a>
 
