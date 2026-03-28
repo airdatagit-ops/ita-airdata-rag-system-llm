@@ -7,7 +7,7 @@ SAMPLE ?=
 LIMIT ?= 0
 FILE ?=
 SEARCH_MODE ?= auto
-DOC_TYPES ?= ICA,MCA,PCA,DCA,TCA,CIRCEA,NSCA,FCA
+DOC_TYPES ?=
 KEYWORDS ?=
 CONCURRENCY ?= 10
 SOURCES ?= sislaer,lexml
@@ -88,13 +88,13 @@ else
 endif
 
 collect:
-	$(PYTHON) -m scripts.collect --sources $(SOURCES) --limit $(LIMIT) --concurrency $(CONCURRENCY) --doc-types $(DOC_TYPES) --pdf-dir $(PDF_DIR) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,) $(if $(ALL_LOCALITIES),--no-federal-only,)
+	$(PYTHON) -m scripts.collect --sources $(SOURCES) --limit $(LIMIT) --concurrency $(CONCURRENCY) $(if $(DOC_TYPES),--doc-types $(DOC_TYPES),) --pdf-dir $(PDF_DIR) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,) $(if $(ALL_LOCALITIES),--no-federal-only,)
 
 collect-sislaer:
-	$(PYTHON) -m scripts.collect --sources sislaer --limit $(LIMIT) --concurrency $(CONCURRENCY) --doc-types $(DOC_TYPES) $(if $(CHECK),--check,) $(if $(FORCE),--force,)
+	$(PYTHON) -m scripts.collect --sources sislaer --limit $(LIMIT) --concurrency $(CONCURRENCY) $(if $(DOC_TYPES),--doc-types $(DOC_TYPES),) $(if $(CHECK),--check,) $(if $(FORCE),--force,)
 
 collect-legacy:
-	$(PYTHON) -m scripts.collect --sources decea,lexml --limit $(LIMIT) --concurrency $(CONCURRENCY) --doc-types $(DOC_TYPES) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,) $(if $(ALL_LOCALITIES),--no-federal-only,)
+	$(PYTHON) -m scripts.collect --sources decea,lexml --limit $(LIMIT) --concurrency $(CONCURRENCY) $(if $(DOC_TYPES),--doc-types $(DOC_TYPES),) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,) $(if $(ALL_LOCALITIES),--no-federal-only,)
 
 embed:
 	$(PYTHON) -m scripts.embed $(if $(MODE),--mode $(MODE),) $(if $(FORCE),--force,) $(if $(BATCH_SIZE),--batch-size $(BATCH_SIZE),) $(if $(EMBED_BATCH),--embed-batch $(EMBED_BATCH),)
