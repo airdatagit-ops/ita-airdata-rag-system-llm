@@ -418,7 +418,7 @@ make collect-sislaer                                  # Atalho: apenas SISLAER
 | `SISLAER_TIMEOUT` | `30` | Timeout HTTP em segundos |
 | `SISLAER_START_ID` | `1` | ID inicial para varredura (apenas `strategy=ids`) |
 | `SISLAER_END_ID` | `0` (auto) | ID final para varredura (apenas `strategy=ids`) |
-| `SISLAER_DOC_TYPES` | `ICA,DCA,...` | Tipos de documento a coletar (mapeados para norma codes) |
+| `SISLAER_DOC_TYPES` | `ICA,DCA,...` (36 tipos) | Tipos de documento a coletar. PORTARIA e PORTARIA CONJUNTA excluídas por default (20K+ docs administrativos) |
 
 ### 7.2. DECEA (Fallback — Instruções de Comando da Aeronáutica)
 

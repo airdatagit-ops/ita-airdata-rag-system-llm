@@ -147,14 +147,15 @@ class SISLAERScraper(BaseScraper):
     _DEFAULT_DOC_TYPES = {
         "ICA", "DCA", "FCA", "MCA", "NSCA", "PCA", "RCA", "TCA",
         "OCA", "ROCA", "RICA", "RIMA", "RMA", "NPA", "PTA",
-        "LEI", "DECRETO", "DECRETO-LEI",
-        "PORTARIA", "PORTARIA CONJUNTA",
+        "LEI", "DECRETO", "DECRETO - LEI",
         "RESOLUÇÃO", "INSTRUÇÃO NORMATIVA",
         "MEDIDA PROVISÓRIA", "LEI COMPLEMENTAR",
         "CONSTITUIÇÃO FEDERAL",
         "ORDEM TÉCNICA", "ORIENTAÇÃO NORMATIVA",
         "MANUAL ELETRÔNICO", "MANUAL - OUTROS",
         "AVISO", "COMUNICADO", "NOTA",
+        "BCA", "BMA", "IMA", "BOLETIM EXTERNO",
+        "NOPREP", "NORMAS DO COMPREP",
     }
 
     def __init__(
