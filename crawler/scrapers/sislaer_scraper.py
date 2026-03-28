@@ -405,9 +405,24 @@ class SISLAERScraper(BaseScraper):
     def _extract_result_ids(
         html: str, guid: str = None,
     ) -> List[Dict]:
-        """Extract codigoRegistro + title from a results page HTML."""
-        pattern = r'acervo/detalhe/(\d+)\?[^"]*"[^>]*title="([^"]*)"'
-        matches = re.findall(pattern, html)
+        """Extract codigoRegistro + title from a results page HTML.
+
+        Handles two HTML layouts:
+          - Full page (page 1): ``<a ... title="ICA ...">``
+          - XHR fragment (page 2+): ``<img alt="ICA ..." class="capa-ficha">``
+        Falls back to pairing href IDs with img alt values.
+        """
+        # Strategy 1: title attribute on the <a> tag (full-page results)
+        pattern_title = r'acervo/detalhe/(\d+)\?[^"]*"[^>]*title="([^"]*)"'
+        matches = re.findall(pattern_title, html)
+
+        if not matches:
+            # Strategy 2: pair detalhe IDs with <img alt="..."> (XHR pages)
+            ids = re.findall(r'acervo/detalhe/(\d+)', html)
+            alts = re.findall(r'alt="([^"]+)"[^>]*class="capa-ficha"', html)
+            unique_ids = list(dict.fromkeys(ids))
+            matches = list(zip(unique_ids, alts))
+
         seen: Set[int] = set()
         results: List[Dict] = []
         for code_str, title in matches:

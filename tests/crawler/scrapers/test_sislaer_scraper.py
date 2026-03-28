@@ -153,7 +153,7 @@ class TestParseResultMeta:
 
 class TestExtractResultIds:
 
-    def test_extracts_ids_and_titles(self):
+    def test_extracts_ids_and_titles_from_title_attr(self):
         html = '''
         <a href="acervo/detalhe/4087?guid=abc" title="ICA 100-1/2018">link</a>
         <a href="acervo/detalhe/3289?guid=abc" title="ICA 100-1/2017">link</a>
@@ -163,6 +163,21 @@ class TestExtractResultIds:
         assert results[0]["codigoRegistro"] == 4087
         assert results[0]["title"] == "ICA 100-1/2018"
         assert results[1]["codigoRegistro"] == 3289
+
+    def test_extracts_ids_from_img_alt_fallback(self):
+        html = '''
+        <a href="acervo/detalhe/3239?guid=x&amp;i=21" class="link-detalhe">
+            <img alt="ICA 100-13/2006" class="capa-ficha" src="/capa" />
+        </a>
+        <a href="acervo/detalhe/19774?guid=x&amp;i=22" class="link-detalhe">
+            <img alt="ICA 100-15/2012" class="capa-ficha" src="/capa" />
+        </a>
+        '''
+        results = SISLAERScraper._extract_result_ids(html)
+        assert len(results) == 2
+        assert results[0]["codigoRegistro"] == 3239
+        assert results[0]["title"] == "ICA 100-13/2006"
+        assert results[1]["codigoRegistro"] == 19774
 
     def test_deduplicates(self):
         html = '''
