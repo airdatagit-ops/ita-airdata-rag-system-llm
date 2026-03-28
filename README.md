@@ -67,6 +67,7 @@ Pergunta do usuário
 | LLM | Ollama (llama3, phi3, etc.) | `models/llm.py` |
 | Banco vetorial | Qdrant | `database/qdrant_manager.py` |
 | Scraper base (ABC) | Interface async + registry | `crawler/scrapers/base.py` |
+| Scraper SISLAER | aiohttp (async) + Search API + BeautifulSoup | `crawler/scrapers/sislaer_scraper.py` |
 | Scraper DECEA | Requests + BeautifulSoup (async via to_thread) | `crawler/scrapers/decea_scraper.py` |
 | Scraper LexML | aiohttp (async) + BeautifulSoup | `crawler/scrapers/lexml_scraper.py` |
 | Scraper PDF (local) | PDFParser (pdfplumber/PyMuPDF) | `crawler/scrapers/pdf_scraper.py` |
@@ -382,15 +383,18 @@ O sistema extrai documentos de três fontes, com SISLAER como primária:
 
 **Scraper:** `crawler/scrapers/sislaer_scraper.py`
 
-O scraper SISLAER é a fonte primária de documentos legislativos aeronáuticos. Usa **aiohttp (assíncrono)** + BeautifulSoup para iterar pelo acervo legislativo do portal CENDOC/Sophia (`sislaer.fab.mil.br/TerminalWebCENDOC`). Ele:
+O scraper SISLAER é a fonte primária de documentos legislativos aeronáuticos. Usa a **Search API interna** do portal CENDOC/Sophia (`sislaer.fab.mil.br/TerminalWebCENDOC`) para descoberta rápida de documentos, com **aiohttp (assíncrono)** + BeautifulSoup para extração de conteúdo. Ele:
 
-1. Itera por `codigoRegistro` IDs (1 a 55.000) em paralelo com rate limiting configurável
-2. Filtra por tipo de documento (ICA, DCA, Portaria, Lei, Decreto, etc.)
-3. Extrai metadados ricos: situação (Em vigor/Revogado), portaria de aprovação, autoridade, publicação
-4. Captura relacionamentos entre documentos (alterações, correlações, revogações)
-5. Extrai conteúdo em prioridade: texto integral inline > VisualizadorHtml > PDF (fallback)
-6. Gera `canonical_id` para deduplicação cross-source (ex: `ica_100-12`)
-7. Armazena conteúdo, metadados e relações no SQLite (`data/store.db`)
+1. Consulta a Search API (`POST Busca/RapidaLegislacao`) por tipo de norma, com paginação automática (`Resultado/CarregarPaginaLayoutDetalhe`)
+2. Cobre 38 tipos de documento (ICA, DCA, Portaria, Lei, Decreto, NSCA, etc.)
+3. Gerencia sessão CSRF automaticamente (token + cookies), com renovação em caso de expiração
+4. Extrai metadados ricos: situação (Em vigor/Revogado), portaria de aprovação, autoridade, publicação
+5. Captura relacionamentos entre documentos (alterações, correlações, revogações) como grafo
+6. Extrai conteúdo em prioridade: texto integral inline > VisualizadorHtml > PDF (fallback)
+7. Gera `canonical_id` para deduplicação cross-source (ex: `ica_100-12`)
+8. Armazena conteúdo, metadados e relações no SQLite (`data/store.db`)
+
+Um fallback via varredura de `codigoRegistro` IDs está disponível para debugging via `strategy="ids"`.
 
 **Como executar:**
 
@@ -398,6 +402,7 @@ O scraper SISLAER é a fonte primária de documentos legislativos aeronáuticos.
 make collect                                          # SISLAER + LexML (padrão)
 make collect SOURCES=sislaer                          # Apenas SISLAER
 make collect SOURCES=sislaer DOC_TYPES=ICA            # Apenas ICAs do SISLAER
+make collect SOURCES=sislaer DOC_TYPES=ICA,DCA,NSCA   # Múltiplos tipos
 make collect SOURCES=sislaer LIMIT=50                 # Limita a 50 docs
 make collect SOURCES=sislaer CHECK=1                  # Verifica alterações
 make collect SOURCES=sislaer FORCE=1                  # Re-coleta do zero
@@ -411,9 +416,9 @@ make collect-sislaer                                  # Atalho: apenas SISLAER
 | `SISLAER_MAX_RATE` | `10` | Requisições por segundo |
 | `SISLAER_CONCURRENCY` | `10` | Conexões simultâneas |
 | `SISLAER_TIMEOUT` | `30` | Timeout HTTP em segundos |
-| `SISLAER_START_ID` | `1` | ID inicial para varredura |
-| `SISLAER_END_ID` | `0` (auto) | ID final para varredura (0 = descobre automaticamente) |
-| `SISLAER_DOC_TYPES` | `ICA,DCA,...` | Tipos de documento a coletar |
+| `SISLAER_START_ID` | `1` | ID inicial para varredura (apenas `strategy=ids`) |
+| `SISLAER_END_ID` | `0` (auto) | ID final para varredura (apenas `strategy=ids`) |
+| `SISLAER_DOC_TYPES` | `ICA,DCA,...` | Tipos de documento a coletar (mapeados para norma codes) |
 
 ### 7.2. DECEA (Fallback — Instruções de Comando da Aeronáutica)
 
@@ -490,8 +495,8 @@ Os scrapers são registrados automaticamente via decorator `@register_scraper` e
 ```python
 from crawler.scrapers import get_scraper, list_scrapers
 
-scraper = get_scraper("decea")  # instancia DECEAScraper
-names = list_scrapers()          # ["decea", "lexml", "pdf"]
+scraper = get_scraper("sislaer")  # instancia SISLAERScraper
+names = list_scrapers()            # ["sislaer", "decea", "lexml", "pdf"]
 ```
 
 Para adicionar um novo scraper, basta criar uma classe em `crawler/scrapers/` que herde de `BaseScraper` e use `@register_scraper`.
@@ -660,7 +665,7 @@ location /datasette/ {
   FASE 1: COLLECT                    FASE 2: EMBED                    FASE 3: INDEX
   ─────────────────                  ────────────────                  ────────────────
   Web Scrapers                       SQLite → Chunking                Parquet → Qdrant
-  (DECEA, LexML)                     → Embedding → Parquet
+  (SISLAER, LexML, DECEA)           → Embedding → Parquet
         │                                  │                                │
         ▼                                  ▼                                ▼
   SHA256 hash check              Quality Gate + TextCleaner          Bulk upsert com
@@ -838,7 +843,7 @@ python main.py
 
 | Script | Comando | Descrição |
 |--------|---------|-----------|
-| `collect.py` | `python -m scripts.collect` | Fase 1: coleta documentos no SQLite. Fontes: SISLAER (primária), LexML, DECEA, PDF. Modos: default (skip), --check, --force |
+| `collect.py` | `python -m scripts.collect` | Fase 1: coleta documentos no SQLite. Fontes: SISLAER (primária, via Search API), LexML, DECEA, PDF. Modos: default (skip), --check, --force |
 | `embed.py` | `python -m scripts.embed` | Fase 2: gera embeddings incrementais em Parquet (`make embed`) |
 | `index.py` | `python -m scripts.index` | Fase 3: carrega embeddings no Qdrant (`make index`) |
 | `query.py` | `python -m scripts.query` | Console SQL interativo para explorar o SQLite (`make query`) |
@@ -1062,6 +1067,7 @@ tests/
 ├── crawler/
 │   └── scrapers/
 │       ├── test_base_scraper.py     # BaseScraper ABC, registry, ScrapedDocument
+│       ├── test_sislaer_scraper.py  # SISLAERScraper (Search API, parsing, norma codes)
 │       ├── test_decea_scraper.py    # DECEAScraper (sync + async)
 │       └── test_lexml_scraper.py    # LexMLScraper (async)
 ├── evaluation/

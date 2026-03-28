@@ -1,9 +1,13 @@
 """
 SISLAER Scraper — Primary source for aviation legislation.
 
-Iterates through codigoRegistro IDs on the SISLAER TerminalWebCENDOC
-portal, extracting legislative documents with metadata, relationships,
-and full text content.
+Document discovery uses the SISLAER search API
+(``Busca/RapidaLegislacao``), querying per norma type and paginating
+results.  This is vastly faster than scanning codigoRegistro IDs and
+avoids the 20 K global cap by issuing one query per type.
+
+An explicit ``strategy="ids"`` kwarg on ``search()`` falls back to ID
+range scanning (kept for emergency / debugging use only).
 
 Content priority: inline "Texto integral" > VisualizadorHtml > PDF download.
 
@@ -16,8 +20,11 @@ Usage:
 """
 
 import asyncio
+import json
 import re
-from typing import Dict, List, Optional
+import uuid
+from pathlib import Path
+from typing import Dict, List, Optional, Set
 
 import aiohttp
 from aiolimiter import AsyncLimiter
@@ -26,8 +33,11 @@ from loguru import logger
 
 from config import config
 from crawler.scrapers.base import (
-    BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, compute_canonical_id,
+    BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, ORIGINALS_DIR,
+    compute_canonical_id,
 )
+
+_FRONTIER_FILE = Path(config.DATA_DIR) / ".sislaer_frontier.json"
 from crawler.scrapers import register_scraper
 from parsers.pdf_parser import extract_text_from_bytes
 
@@ -41,6 +51,46 @@ _TITLE_RE = re.compile(
 )
 
 _DETAIL_LINK_RE = re.compile(r"tw\.irParaDetalheComVoltar\((\d+)\)")
+
+# Maps SISLAER norma codes to human-readable type labels (from /norma/ListarNormaSet).
+NORMA_CODE_MAP: Dict[str, int] = {
+    "AVISO": 20, "BCA": 17, "BMA": 24, "BOLETIM EXTERNO": 44,
+    "COMUNICADO": 38, "CONSTITUIÇÃO FEDERAL": 39, "DCA": 3,
+    "DECRETO": 18, "DECRETO - LEI": 25, "FCA": 4, "ICA": 5,
+    "IMA": 31, "INSTRUÇÃO NORMATIVA": 43, "LEI": 22,
+    "LEI COMPLEMENTAR": 41, "MANUAL - OUTROS": 40,
+    "MANUAL ELETRÔNICO": 21, "MCA": 6, "MEDIDA PROVISÓRIA": 42,
+    "NOPREP": 30, "NORMAS DO COMPREP": 29, "NOTA": 33,
+    "NPA": 36, "NSCA": 1, "OCA": 7, "ORDEM TÉCNICA": 34,
+    "ORIENTAÇÃO NORMATIVA": 35, "PCA": 8, "PORTARIA": 19,
+    "PORTARIA CONJUNTA": 37, "PTA": 28, "RCA": 16,
+    "RESOLUÇÃO": 32, "RICA": 14, "RIMA": 45, "RMA": 26,
+    "ROCA": 15, "TCA": 9,
+}
+
+
+class _SessionExpired(Exception):
+    """Raised when the SISLAER search session (CSRF token) has expired."""
+
+
+def _resolve_norma_codes(type_names: Set[str]) -> List[int]:
+    """Map human-readable type names to SISLAER norma codes.
+
+    Returns the list of codes that could be resolved. Types not found in
+    ``NORMA_CODE_MAP`` are silently skipped (they'll be caught by the ID
+    scan fallback if needed).
+    """
+    codes: List[int] = []
+    for name in type_names:
+        key = name.strip().upper()
+        if key in NORMA_CODE_MAP:
+            codes.append(NORMA_CODE_MAP[key])
+        else:
+            for map_key, code in NORMA_CODE_MAP.items():
+                if map_key.startswith(key) or key.startswith(map_key):
+                    codes.append(code)
+                    break
+    return sorted(set(codes))
 
 
 def _parse_title(raw: str) -> Dict[str, Optional[str]]:
@@ -79,7 +129,12 @@ def _normalize_doc_type(raw: Optional[str]) -> Optional[str]:
 
 @register_scraper
 class SISLAERScraper(BaseScraper):
-    """Async scraper for SISLAER TerminalWebCENDOC legislation portal."""
+    """Async scraper for SISLAER TerminalWebCENDOC legislation portal.
+
+    Default discovery uses the Search API (``Busca/RapidaLegislacao``),
+    querying per norma type for fast, complete results.  Pass
+    ``strategy="ids"`` to ``search()`` for the legacy ID-scan fallback.
+    """
 
     source_name = "sislaer"
 
@@ -114,10 +169,13 @@ class SISLAERScraper(BaseScraper):
         self._concurrency = concurrency or config.SISLAER_CONCURRENCY
         self._timeout_sec = timeout or config.SISLAER_TIMEOUT
         self._start_id = start_id or config.SISLAER_START_ID
-        self._end_id = end_id or config.SISLAER_END_ID or None  # 0/None = auto-discover
+        self._end_id = end_id or config.SISLAER_END_ID or None
         self._limiter = AsyncLimiter(rate, 1.0)
         self._session: Optional[aiohttp.ClientSession] = None
         self._base_url = config.SISLAER_BASE_URL
+
+        # Search API session state (cookie + anti-forgery token)
+        self._csrf_token: Optional[str] = None
 
         logger.info(
             f"SISLAERScraper initialized (rate={rate}/s, concurrency={self._concurrency}, "
@@ -137,68 +195,330 @@ class SISLAERScraper(BaseScraper):
             await self._session.close()
             self._session = None
 
-    # ── auto-discovery ──────────────────────────────────────────
+    # ── Search API session management ─────────────────────────
+
+    async def _ensure_search_session(self) -> str:
+        """GET the search page to obtain cookie + CSRF token.
+
+        Returns the anti-forgery token for subsequent POST requests.
+        Reuses existing token if available.
+        """
+        if self._csrf_token:
+            return self._csrf_token
+
+        url = f"{self._base_url}/Busca/Legislacao"
+        async with self._limiter:
+            async with self._session.get(url) as resp:
+                if resp.status != 200:
+                    raise RuntimeError(f"Failed to load search page: HTTP {resp.status}")
+                html = await resp.text()
+
+        m = re.search(
+            r'name="__RequestVerificationToken"[^>]*value="([^"]+)"', html,
+        )
+        if not m:
+            raise RuntimeError("Could not extract CSRF token from search page")
+
+        self._csrf_token = m.group(1)
+        logger.debug("[sislaer] Search session established (CSRF token obtained)")
+        return self._csrf_token
+
+    async def _refresh_search_session(self) -> str:
+        """Force a new search session (e.g. after token expiry)."""
+        self._csrf_token = None
+        return await self._ensure_search_session()
+
+    # ── Search API: paginated query by norma type ─────────────
+
+    async def _search_by_api(
+        self, *, norma_codes: List[int], limit: int,
+    ) -> List[Dict]:
+        """Discover documents via the SISLAER search API.
+
+        Performs one ``POST Busca/RapidaLegislacao`` per norma code, then
+        paginates through ``POST Resultado/CarregarPaginaLayoutDetalhe``
+        to collect all ``codigoRegistro`` values.
+        """
+        token = await self._ensure_search_session()
+        all_found: List[Dict] = []
+        seen_ids: Set[int] = set()
+
+        for code in norma_codes:
+            if len(all_found) >= limit:
+                break
+
+            guid = str(uuid.uuid4())
+            form_data = {
+                "__RequestVerificationToken": token,
+                "Guid": guid,
+                "TipoBuscaRapida": "0",
+                "IniciadoCom": "false",
+                "PalavraChave": "",
+                "CodigosNorma": str(code),
+                "Numero": "",
+                "Ano": "",
+                "CodigosOrgao": "",
+            }
+
+            try:
+                page1_html = await self._post_search(
+                    f"{self._base_url}/Busca/RapidaLegislacao?bibliotecas=",
+                    form_data,
+                )
+            except _SessionExpired:
+                token = await self._refresh_search_session()
+                form_data["__RequestVerificationToken"] = token
+                page1_html = await self._post_search(
+                    f"{self._base_url}/Busca/RapidaLegislacao?bibliotecas=",
+                    form_data,
+                )
+
+            if not page1_html:
+                continue
+
+            # Update CSRF token from the response page
+            new_tok = re.search(
+                r'name="__RequestVerificationToken"[^>]*value="([^"]+)"',
+                page1_html,
+            )
+            if new_tok:
+                token = new_tok.group(1)
+                self._csrf_token = token
+
+            total, per_page, total_pages = self._parse_result_meta(page1_html)
+            page_docs = self._extract_result_ids(page1_html, guid)
+
+            norma_label = next(
+                (k for k, v in NORMA_CODE_MAP.items() if v == code), str(code)
+            )
+            logger.info(
+                f"[sislaer] search API: {norma_label} → {total} docs "
+                f"({total_pages} pages)"
+            )
+
+            for doc in page_docs:
+                rid = doc["codigoRegistro"]
+                if rid not in seen_ids:
+                    seen_ids.add(rid)
+                    all_found.append(doc)
+
+            remaining_pages = min(total_pages, (limit - len(all_found)) // per_page + 2)
+            for page_num in range(2, remaining_pages + 1):
+                if len(all_found) >= limit:
+                    break
+
+                page_url = (
+                    f"{self._base_url}/Resultado/CarregarPaginaLayoutDetalhe"
+                    f"?paginaInicial={page_num}&guid={guid}"
+                )
+                try:
+                    page_html = await self._post_search(
+                        page_url,
+                        {"__RequestVerificationToken": token},
+                        xhr=True,
+                    )
+                except _SessionExpired:
+                    token = await self._refresh_search_session()
+                    page_html = await self._post_search(
+                        page_url,
+                        {"__RequestVerificationToken": token},
+                        xhr=True,
+                    )
+
+                if not page_html:
+                    break
+
+                page_docs = self._extract_result_ids(page_html)
+                if not page_docs:
+                    break
+
+                for doc in page_docs:
+                    rid = doc["codigoRegistro"]
+                    if rid not in seen_ids:
+                        seen_ids.add(rid)
+                        all_found.append(doc)
+
+                if page_num % 20 == 0:
+                    logger.info(
+                        f"[sislaer] {norma_label}: page {page_num}/{total_pages}, "
+                        f"{len(all_found)} total docs so far"
+                    )
+
+        result = all_found[:limit]
+        logger.info(f"[sislaer] Search API complete: {len(result)} documents found")
+        return result
+
+    async def _post_search(
+        self, url: str, data: Dict, *, xhr: bool = False,
+    ) -> Optional[str]:
+        """POST to a search/pagination endpoint with rate limiting and retry."""
+        headers = {}
+        if xhr:
+            headers["X-Requested-With"] = "XMLHttpRequest"
+
+        for attempt in range(1, _MAX_RETRIES + 1):
+            try:
+                async with self._limiter:
+                    async with self._session.post(
+                        url, data=data, headers=headers,
+                    ) as resp:
+                        if resp.status == 200:
+                            return await resp.text()
+                        if resp.status in (400, 403):
+                            raise _SessionExpired()
+                        if resp.status in _RETRYABLE_STATUSES:
+                            raise aiohttp.ClientResponseError(
+                                resp.request_info, resp.history,
+                                status=resp.status,
+                            )
+                        return None
+            except _SessionExpired:
+                raise
+            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+                delay = _RETRY_BASE_DELAY * (2 ** (attempt - 1))
+                if attempt < _MAX_RETRIES:
+                    logger.warning(
+                        f"[sislaer] POST attempt {attempt}/{_MAX_RETRIES} "
+                        f"failed ({exc}), retrying in {delay:.0f}s"
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    logger.error(f"[sislaer] POST all attempts failed: {url}")
+        return None
+
+    @staticmethod
+    def _parse_result_meta(html: str) -> tuple:
+        """Extract (total_registros, tamanho_pagina, total_paginas) from results page."""
+        total = per_page = pages = 0
+        m = re.search(r'data-total-registros="(\d+)"', html)
+        if m:
+            total = int(m.group(1))
+        m = re.search(r'data-tamanho-pagina="(\d+)"', html)
+        if m:
+            per_page = int(m.group(1))
+        m = re.search(r'data-total-paginas="(\d+)"', html)
+        if m:
+            pages = int(m.group(1))
+        return total, per_page or 20, pages
+
+    @staticmethod
+    def _extract_result_ids(
+        html: str, guid: str = None,
+    ) -> List[Dict]:
+        """Extract codigoRegistro + title from a results page HTML."""
+        pattern = r'acervo/detalhe/(\d+)\?[^"]*"[^>]*title="([^"]*)"'
+        matches = re.findall(pattern, html)
+        seen: Set[int] = set()
+        results: List[Dict] = []
+        for code_str, title in matches:
+            code = int(code_str)
+            if code in seen:
+                continue
+            seen.add(code)
+            parsed = _parse_title(title)
+            results.append({
+                "codigoRegistro": code,
+                "title": title,
+                "doc_type": parsed.get("doc_type"),
+                "number": parsed.get("number"),
+            })
+        return results
+
+    # ── auto-discovery (ID scan) ──────────────────────────────
+
+    @staticmethod
+    def _find_doc_title(soup: BeautifulSoup) -> Optional[str]:
+        """Return the document title h1 (the second one), or None."""
+        h1s = soup.find_all("h1")
+        if len(h1s) >= 2:
+            text = h1s[1].get_text(strip=True)
+            if text and len(text) > 3:
+                return text
+        return None
 
     async def _id_exists(self, reg_id: int) -> bool:
-        """Check whether a codigoRegistro returns a valid page."""
+        """Check whether a codigoRegistro returns a page with actual document content."""
         html = await self._get_html(f"{self._base_url}/acervo/detalhe/{reg_id}")
-        return bool(html and len(html) > 500)
+        if not html or len(html) < 500:
+            return False
+        soup = BeautifulSoup(html, "html.parser")
+        return self._find_doc_title(soup) is not None
+
+    @staticmethod
+    def _load_frontier() -> Optional[int]:
+        """Load cached end_id from disk."""
+        try:
+            if _FRONTIER_FILE.exists():
+                data = json.loads(_FRONTIER_FILE.read_text())
+                end_id = data.get("end_id")
+                if end_id and isinstance(end_id, int):
+                    logger.info(f"[sislaer] Loaded cached frontier: {end_id}")
+                    return end_id
+        except Exception:
+            pass
+        return None
+
+    @staticmethod
+    def _save_frontier(end_id: int) -> None:
+        """Persist discovered end_id to disk for future runs."""
+        try:
+            _FRONTIER_FILE.parent.mkdir(parents=True, exist_ok=True)
+            _FRONTIER_FILE.write_text(json.dumps({"end_id": end_id}))
+            logger.info(f"[sislaer] Saved frontier to {_FRONTIER_FILE}: {end_id}")
+        except Exception as exc:
+            logger.warning(f"[sislaer] Could not save frontier: {exc}")
 
     async def _discover_end_id(self) -> int:
         """Find the highest valid codigoRegistro via binary search.
 
-        Starts from ``SISLAER_END_ID`` as a hint.  If IDs beyond that
-        hint exist, the upper bound doubles until a gap is found.  Then a
-        standard binary search narrows down to the last valid ID.
-
-        After the binary search, a short linear scan forward confirms
-        there are no sparse IDs just above the boundary (the portal may
-        have small gaps).
+        First checks a cached frontier file. If not found, runs a binary
+        search starting from 55,000. The result is saved for future runs.
         """
-        hint = config.SISLAER_END_ID or 55_000
+        cached = self._load_frontier()
+        if cached:
+            return cached
+
+        hint = 55_000
         lo, hi = self._start_id, hint
 
+        max_upper = hint * 4
         if await self._id_exists(hi):
-            while await self._id_exists(hi):
+            while await self._id_exists(hi) and hi < max_upper:
                 lo = hi
-                hi *= 2
-                logger.debug(f"[sislaer] auto-discover: expanding upper bound to {hi}")
+                hi = min(hi * 2, max_upper)
+                logger.debug(f"[sislaer] auto-discover: expanding to {hi}")
 
+        logger.info(f"[sislaer] auto-discover: binary search in [{lo}, {hi}]")
         while lo < hi - 1:
             mid = (lo + hi) // 2
-            if await self._id_exists(mid):
+            exists = await self._id_exists(mid)
+            logger.debug(f"[sislaer] binary search: id={mid} exists={exists}")
+            if exists:
                 lo = mid
             else:
                 hi = mid
 
-        # Linear scan forward to catch sparse gaps (check next 200 IDs)
         max_id = lo
         gap = 0
-        for probe_id in range(lo + 1, lo + 201):
+        for probe_id in range(lo + 1, lo + 101):
             if await self._id_exists(probe_id):
                 max_id = probe_id
                 gap = 0
             else:
                 gap += 1
-                if gap >= 50:
+                if gap >= 20:
                     break
 
         logger.info(f"[sislaer] Auto-discovered end ID: {max_id}")
+        self._save_frontier(max_id)
         return max_id
 
-    # ── BaseScraper interface ────────────────────────────────────
-
-    async def search(self, *, limit: int = 100, **kwargs) -> List[Dict]:
-        """Discover documents by iterating codigoRegistro IDs.
-
-        Keyword Args:
-            doc_types: List of type codes to include (e.g. ``["ICA", "DCA"]``).
-        """
+    async def _search_by_ids(
+        self, *, allowed: Set[str], limit: int,
+    ) -> List[Dict]:
+        """Discover documents by scanning codigoRegistro IDs."""
         if self._end_id is None:
             self._end_id = await self._discover_end_id()
-
-        raw_types = kwargs.get("doc_types") or config.SISLAER_DOC_TYPES.split(",")
-        allowed = {t.strip().upper() for t in raw_types}
 
         sem = asyncio.Semaphore(self._concurrency)
         found: List[Dict] = []
@@ -215,16 +535,15 @@ class SISLAERScraper(BaseScraper):
                 return
 
             soup = BeautifulSoup(html, "html.parser")
-            h1 = soup.find("h1")
-            if not h1:
+            title = self._find_doc_title(soup)
+            if not title:
                 return
 
-            title = h1.get_text(strip=True)
             parsed = _parse_title(title)
             doc_type_raw = parsed["doc_type"]
             if not doc_type_raw:
                 return
-            if doc_type_raw.upper() not in allowed:
+            if allowed and doc_type_raw.upper() not in allowed:
                 return
 
             found.append({
@@ -244,13 +563,45 @@ class SISLAERScraper(BaseScraper):
 
             progress = min(batch_end - self._start_id, total_ids)
             logger.info(
-                f"[sislaer] search progress: {progress}/{total_ids} IDs scanned, "
+                f"[sislaer] ID scan progress: {progress}/{total_ids} IDs, "
                 f"{len(found)} docs found"
             )
 
         result = found[:limit]
-        logger.info(f"[sislaer] Search complete: {len(result)} documents matched")
+        logger.info(f"[sislaer] ID scan complete: {len(result)} documents matched")
         return result
+
+    # ── BaseScraper interface ────────────────────────────────────
+
+    async def search(self, *, limit: int = 100, **kwargs) -> List[Dict]:
+        """Discover documents via the SISLAER search API.
+
+        By default, queries the Search API per norma type — fast and
+        complete.  Pass ``strategy="ids"`` for the legacy ID-scan
+        fallback (slower, kept for debugging).
+
+        Keyword Args:
+            doc_types: List of type names to include (e.g. ``["ICA", "DCA"]``).
+                       Defaults to ``config.SISLAER_DOC_TYPES``.
+            strategy:  ``"api"`` (default) or ``"ids"`` (legacy fallback).
+        """
+        strategy = kwargs.get("strategy", "api")
+        raw_types = kwargs.get("doc_types") or config.SISLAER_DOC_TYPES.split(",")
+        allowed = {t.strip().upper() for t in raw_types}
+
+        if strategy == "ids":
+            logger.info(f"[sislaer] Using ID scan (explicit strategy, limit={limit})")
+            return await self._search_by_ids(allowed=allowed, limit=limit)
+
+        norma_codes = _resolve_norma_codes(allowed)
+        if not norma_codes:
+            norma_codes = sorted(NORMA_CODE_MAP.values())
+
+        logger.info(
+            f"[sislaer] Using Search API for {len(norma_codes)} norma types "
+            f"(limit={limit})"
+        )
+        return await self._search_by_api(norma_codes=norma_codes, limit=limit)
 
     async def fetch_document(
         self, doc: Dict, save_original: bool = True
@@ -347,12 +698,8 @@ class SISLAERScraper(BaseScraper):
     # ── detail page parsing ──────────────────────────────────────
 
     def _parse_detail(self, soup: BeautifulSoup, reg_id: int) -> Optional[Dict]:
-        h1 = soup.find("h1")
-        if not h1:
-            return None
-
-        title = h1.get_text(strip=True)
-        if not title or len(title) < 3:
+        title = self._find_doc_title(soup)
+        if not title:
             return None
 
         detail: Dict = {"title": title}

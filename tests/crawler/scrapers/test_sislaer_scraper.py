@@ -6,6 +6,8 @@ from crawler.scrapers.base import compute_canonical_id, ScrapedDocument
 from crawler.scrapers.sislaer_scraper import (
     _parse_title,
     _normalize_doc_type,
+    _resolve_norma_codes,
+    NORMA_CODE_MAP,
     SISLAERScraper,
 )
 
@@ -67,6 +69,45 @@ class TestNormalizeDocType:
         assert _normalize_doc_type(None) is None
 
 
+class TestResolveNormaCodes:
+
+    def test_single_exact_match(self):
+        codes = _resolve_norma_codes({"ICA"})
+        assert codes == [NORMA_CODE_MAP["ICA"]]
+
+    def test_multiple_exact_matches(self):
+        codes = _resolve_norma_codes({"ICA", "DCA", "MCA"})
+        assert sorted(codes) == sorted([
+            NORMA_CODE_MAP["ICA"],
+            NORMA_CODE_MAP["DCA"],
+            NORMA_CODE_MAP["MCA"],
+        ])
+
+    def test_case_insensitive_resolves(self):
+        codes = _resolve_norma_codes({"ica"})
+        assert codes == [NORMA_CODE_MAP["ICA"]]
+
+    def test_unknown_type_returns_empty(self):
+        codes = _resolve_norma_codes({"UNKNOWN_TYPE"})
+        assert codes == []
+
+    def test_empty_set(self):
+        codes = _resolve_norma_codes(set())
+        assert codes == []
+
+    def test_all_default_types_resolve(self):
+        default_types = {
+            "ICA", "DCA", "FCA", "MCA", "NSCA", "PCA", "RCA", "TCA",
+            "PORTARIA", "LEI", "DECRETO", "RESOLUÇÃO", "INSTRUÇÃO NORMATIVA",
+        }
+        codes = _resolve_norma_codes(default_types)
+        assert len(codes) >= 10
+
+    def test_decreto_lei_variant(self):
+        codes = _resolve_norma_codes({"DECRETO - LEI"})
+        assert NORMA_CODE_MAP["DECRETO - LEI"] in codes
+
+
 class TestComputeCanonicalId:
 
     def test_basic(self):
@@ -89,6 +130,50 @@ class TestComputeCanonicalId:
 
     def test_empty_strings(self):
         assert compute_canonical_id("", "") is None
+
+
+class TestParseResultMeta:
+
+    def test_full_meta(self):
+        html = (
+            '<div data-pagina-atual="1" data-total-registros="3454" '
+            'data-tamanho-pagina="20" data-total-paginas="173">'
+        )
+        total, per_page, pages = SISLAERScraper._parse_result_meta(html)
+        assert total == 3454
+        assert per_page == 20
+        assert pages == 173
+
+    def test_missing_meta_defaults(self):
+        total, per_page, pages = SISLAERScraper._parse_result_meta("<div></div>")
+        assert total == 0
+        assert per_page == 20
+        assert pages == 0
+
+
+class TestExtractResultIds:
+
+    def test_extracts_ids_and_titles(self):
+        html = '''
+        <a href="acervo/detalhe/4087?guid=abc" title="ICA 100-1/2018">link</a>
+        <a href="acervo/detalhe/3289?guid=abc" title="ICA 100-1/2017">link</a>
+        '''
+        results = SISLAERScraper._extract_result_ids(html)
+        assert len(results) == 2
+        assert results[0]["codigoRegistro"] == 4087
+        assert results[0]["title"] == "ICA 100-1/2018"
+        assert results[1]["codigoRegistro"] == 3289
+
+    def test_deduplicates(self):
+        html = '''
+        <a href="acervo/detalhe/4087?guid=a" title="ICA 100-1/2018">l1</a>
+        <a href="acervo/detalhe/4087?guid=a" title="ICA 100-1/2018">l2</a>
+        '''
+        results = SISLAERScraper._extract_result_ids(html)
+        assert len(results) == 1
+
+    def test_empty_html(self):
+        assert SISLAERScraper._extract_result_ids("") == []
 
 
 class TestSISLAERScrapedDocument:
