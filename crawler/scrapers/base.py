@@ -34,6 +34,19 @@ DEFAULT_USER_AGENT = (
 )
 
 
+def compute_canonical_id(doc_type: Optional[str], number: Optional[str]) -> Optional[str]:
+    """Build a source-agnostic ID for cross-source deduplication.
+
+    Examples: ``("ICA", "100-12")`` -> ``"ica_100-12"``,
+              ``("Lei", "8666")``   -> ``"lei_8666"``
+    """
+    if not doc_type or not number:
+        return None
+    dtype = re.sub(r"[^a-z0-9]", "", doc_type.lower())
+    num = re.sub(r"[^0-9a-z./-]", "", number.lower()).strip("-./")
+    return f"{dtype}_{num}" if dtype and num else None
+
+
 @dataclass
 class ScrapedDocument:
     """Standardised output produced by every scraper."""
@@ -46,6 +59,7 @@ class ScrapedDocument:
     url: Optional[str] = None
     urn: Optional[str] = None
     doc_type: Optional[str] = None
+    canonical_id: Optional[str] = None
 
 
 class BaseScraper(ABC):

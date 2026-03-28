@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect embed index pipeline query explore
+.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore
 
 PYTHON ?= python
 K ?= 5
@@ -10,7 +10,7 @@ SEARCH_MODE ?= auto
 DOC_TYPES ?= ICA,MCA,PCA,DCA,TCA,CIRCEA,NSCA,FCA
 KEYWORDS ?=
 CONCURRENCY ?= 10
-SOURCES ?= lexml,decea
+SOURCES ?= sislaer,lexml
 PDF_DIR ?= ./data/pdfs
 MODE ?=
 BATCH_SIZE ?=
@@ -24,10 +24,12 @@ help:
 	@echo "  make collect                                      Phase 1: collect new documents into SQLite"
 	@echo "  make collect CHECK=1                              Re-download all and verify content hashes"
 	@echo "  make collect FORCE=1                              Wipe source docs and re-collect from scratch"
-	@echo "  make collect SOURCES=lexml                        Collect only LexML (all docs)"
+	@echo "  make collect SOURCES=sislaer                       Collect only SISLAER (primary source)"
+	@echo "  make collect SOURCES=lexml                        Collect only LexML"
 	@echo "  make collect SOURCES=decea LIMIT=50               Collect only DECEA, limit to 50 docs"
+	@echo "  make collect-sislaer                              Shortcut: SISLAER only"
+	@echo "  make collect-legacy                               Shortcut: DECEA + LexML (fallback)"
 	@echo "  make collect SOURCES=pdf PDF_DIR=./data/pdfs      Collect local PDFs from directory"
-	@echo "  make collect SOURCES=lexml,decea,pdf              Collect from all sources (incl. PDFs)"
 	@echo "  make collect ALL_LOCALITIES=1                     Include state/municipal docs (default: federal only)"
 	@echo "  make embed                                        Phase 2: generate embeddings (incremental)"
 	@echo "  make embed MODE=dense                             Dense embeddings only"
@@ -87,6 +89,12 @@ endif
 
 collect:
 	$(PYTHON) -m scripts.collect --sources $(SOURCES) --limit $(LIMIT) --concurrency $(CONCURRENCY) --doc-types $(DOC_TYPES) --pdf-dir $(PDF_DIR) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,) $(if $(ALL_LOCALITIES),--no-federal-only,)
+
+collect-sislaer:
+	$(PYTHON) -m scripts.collect --sources sislaer --limit $(LIMIT) --concurrency $(CONCURRENCY) --doc-types $(DOC_TYPES) $(if $(CHECK),--check,) $(if $(FORCE),--force,)
+
+collect-legacy:
+	$(PYTHON) -m scripts.collect --sources decea,lexml --limit $(LIMIT) --concurrency $(CONCURRENCY) --doc-types $(DOC_TYPES) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,) $(if $(ALL_LOCALITIES),--no-federal-only,)
 
 embed:
 	$(PYTHON) -m scripts.embed $(if $(MODE),--mode $(MODE),) $(if $(FORCE),--force,) $(if $(BATCH_SIZE),--batch-size $(BATCH_SIZE),) $(if $(EMBED_BATCH),--embed-batch $(EMBED_BATCH),)

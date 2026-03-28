@@ -40,7 +40,7 @@ def list_scrapers() -> list[str]:
 def _auto_discover() -> None:
     """Import concrete scraper modules so their @register_scraper runs."""
     import importlib
-    for mod_name in ("decea_scraper", "lexml_scraper", "pdf_scraper"):
+    for mod_name in ("decea_scraper", "lexml_scraper", "pdf_scraper", "sislaer_scraper"):
         try:
             importlib.import_module(f"crawler.scrapers.{mod_name}")
         except ImportError:

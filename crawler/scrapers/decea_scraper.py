@@ -22,7 +22,7 @@ import requests
 from bs4 import BeautifulSoup
 from loguru import logger
 
-from crawler.scrapers.base import BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT
+from crawler.scrapers.base import BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, compute_canonical_id
 from crawler.scrapers import register_scraper
 from parsers.pdf_parser import extract_text_from_bytes
 
@@ -190,14 +190,18 @@ class DECEAScraper(BaseScraper):
             exclude = {"content"}
             metadata = {k: v for k, v in doc.items() if k not in exclude}
 
+            number = doc.get("number", "")
+            doc_type = doc.get("doc_type", "")
+
             return ScrapedDocument(
                 doc_id=self.make_doc_id(doc),
                 source=self.source_name,
                 title=doc.get("title", ""),
                 content=content,
-                metadata=metadata,
+                metadata={**metadata, "number": number, "authority": doc.get("origin", "DECEA")},
                 url=doc.get("source_url"),
-                doc_type=doc.get("doc_type"),
+                doc_type=doc_type,
+                canonical_id=compute_canonical_id(doc_type, number),
             )
         except Exception as exc:
             logger.error(f"Error processing {doc.get('slug', '?')}: {exc}")

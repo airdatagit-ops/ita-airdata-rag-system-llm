@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS documents (
     effective_date TEXT,
     expiry_date    TEXT,
     status         TEXT DEFAULT 'active',
+    number         TEXT,
+    authority      TEXT,
+    canonical_id   TEXT,
     scraped_at     TEXT NOT NULL,
     updated_at     TEXT NOT NULL
 );
@@ -48,6 +51,22 @@ CREATE INDEX IF NOT EXISTS idx_content_hash ON documents(content_hash);
 CREATE INDEX IF NOT EXISTS idx_source       ON documents(source);
 CREATE INDEX IF NOT EXISTS idx_doc_type     ON documents(doc_type);
 CREATE INDEX IF NOT EXISTS idx_status       ON documents(status);
+CREATE INDEX IF NOT EXISTS idx_number       ON documents(number);
+CREATE INDEX IF NOT EXISTS idx_authority    ON documents(authority);
+CREATE INDEX IF NOT EXISTS idx_canonical    ON documents(canonical_id);
+
+CREATE TABLE IF NOT EXISTS document_relations (
+    source_doc_id  TEXT NOT NULL,
+    target_doc_id  TEXT,
+    target_ref     TEXT NOT NULL,
+    relation_type  TEXT NOT NULL CHECK(relation_type IN (
+        'amends', 'amended_by', 'correlates', 'revokes', 'revoked_by'
+    )),
+    UNIQUE(source_doc_id, target_ref, relation_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_rel_source ON document_relations(source_doc_id);
+CREATE INDEX IF NOT EXISTS idx_rel_target ON document_relations(target_doc_id);
 
 CREATE TABLE IF NOT EXISTS embedding_log (
     doc_id         TEXT PRIMARY KEY,
@@ -121,6 +140,9 @@ class DocumentStore:
         effective_date: str = None,
         expiry_date: str = None,
         status: str = "active",
+        number: str = None,
+        authority: str = None,
+        canonical_id: str = None,
     ) -> Action:
         content_hash = self.compute_content_hash(content)
         meta_json = json.dumps(metadata, ensure_ascii=False) if metadata else None
@@ -137,11 +159,13 @@ class DocumentStore:
                        (doc_id, source, urn, url, title, content,
                         content_hash, doc_type, metadata,
                         effective_date, expiry_date, status,
+                        number, authority, canonical_id,
                         scraped_at, updated_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (doc_id, source, urn, url, title, content,
                      content_hash, doc_type, meta_json,
                      effective_date, expiry_date, status,
+                     number, authority, canonical_id,
                      now, now),
                 )
                 return "inserted"
@@ -154,11 +178,15 @@ class DocumentStore:
                    SET content = ?, content_hash = ?, title = ?,
                        url = ?, urn = ?, doc_type = ?,
                        metadata = ?, effective_date = ?,
-                       expiry_date = ?, status = ?, updated_at = ?
+                       expiry_date = ?, status = ?,
+                       number = ?, authority = ?, canonical_id = ?,
+                       updated_at = ?
                    WHERE doc_id = ?""",
                 (content, content_hash, title, url, urn,
                  doc_type, meta_json, effective_date,
-                 expiry_date, status, now, doc_id),
+                 expiry_date, status,
+                 number, authority, canonical_id,
+                 now, doc_id),
             )
             return "updated"
 
@@ -282,6 +310,68 @@ class DocumentStore:
                 f"DELETE FROM embedding_log WHERE doc_id IN ({placeholders})",
                 doc_ids,
             )
+
+    # ── canonical dedup ────────────────────────────────────────
+
+    def exists_canonical(self, canonical_id: str) -> bool:
+        """Check if any document with this canonical_id already exists."""
+        if not canonical_id:
+            return False
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM documents WHERE canonical_id = ? LIMIT 1",
+                (canonical_id,),
+            ).fetchone()
+            return row is not None
+
+    # ── document relations ───────────────────────────────────
+
+    def upsert_relation(
+        self,
+        source_doc_id: str,
+        target_ref: str,
+        relation_type: str,
+        target_doc_id: str = None,
+    ) -> None:
+        """Insert or update a relationship between documents."""
+        with self._conn() as conn:
+            conn.execute(
+                """INSERT OR REPLACE INTO document_relations
+                   (source_doc_id, target_doc_id, target_ref, relation_type)
+                   VALUES (?, ?, ?, ?)""",
+                (source_doc_id, target_doc_id, target_ref, relation_type),
+            )
+
+    def get_relations(self, doc_id: str) -> List[Dict]:
+        """Get all relations where doc_id is source or target."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                """SELECT * FROM document_relations
+                   WHERE source_doc_id = ? OR target_doc_id = ?""",
+                (doc_id, doc_id),
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+    def resolve_relations(self) -> int:
+        """Resolve target_ref -> target_doc_id for SISLAER relations.
+
+        Matches target_ref (a codigoRegistro) against doc_ids like
+        'sislaer_{ref}'. Returns the number of resolved relations.
+        """
+        with self._conn() as conn:
+            result = conn.execute(
+                """UPDATE document_relations
+                   SET target_doc_id = 'sislaer_' || target_ref
+                   WHERE target_doc_id IS NULL
+                     AND EXISTS (
+                       SELECT 1 FROM documents
+                       WHERE doc_id = 'sislaer_' || document_relations.target_ref
+                     )""",
+            )
+            resolved = result.rowcount
+            if resolved:
+                logger.info(f"Resolved {resolved} document relations")
+            return resolved
 
     # ── stats ───────────────────────────────────────────────────
 

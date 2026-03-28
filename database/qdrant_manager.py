@@ -104,6 +104,9 @@ class QdrantManager:
             ("status", PayloadSchemaType.KEYWORD),
             ("regulation_id", PayloadSchemaType.KEYWORD),
             ("metadata.category", PayloadSchemaType.KEYWORD),
+            ("metadata.source", PayloadSchemaType.KEYWORD),
+            ("metadata.authority", PayloadSchemaType.KEYWORD),
+            ("metadata.number", PayloadSchemaType.KEYWORD),
         ]
 
         for field_name, schema_type in indexes:
@@ -223,6 +226,11 @@ class QdrantManager:
 
         if dense_vector is None and sparse_vector is None:
             raise ValueError("At least one of dense_vector or sparse_vector is required")
+
+        if filters is None:
+            filters = Filter(must=[
+                FieldCondition(key="status", match=MatchValue(value="active")),
+            ])
 
         limit = limit or config.SEARCH_TOP_K
         has_dense = dense_vector is not None

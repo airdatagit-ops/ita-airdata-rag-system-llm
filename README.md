@@ -376,9 +376,46 @@ A classe `LlamaModel` (`models/llm.py`) oferece:
 
 ## 7. Extração de Documentos Normativos
 
-O sistema extrai documentos de duas fontes principais:
+O sistema extrai documentos de três fontes, com SISLAER como primária:
 
-### 7.1. DECEA (Instruções de Comando da Aeronáutica)
+### 7.1. SISLAER (Fonte Primária)
+
+**Scraper:** `crawler/scrapers/sislaer_scraper.py`
+
+O scraper SISLAER é a fonte primária de documentos legislativos aeronáuticos. Usa **aiohttp (assíncrono)** + BeautifulSoup para iterar pelo acervo legislativo do portal CENDOC/Sophia (`sislaer.fab.mil.br/TerminalWebCENDOC`). Ele:
+
+1. Itera por `codigoRegistro` IDs (1 a 55.000) em paralelo com rate limiting configurável
+2. Filtra por tipo de documento (ICA, DCA, Portaria, Lei, Decreto, etc.)
+3. Extrai metadados ricos: situação (Em vigor/Revogado), portaria de aprovação, autoridade, publicação
+4. Captura relacionamentos entre documentos (alterações, correlações, revogações)
+5. Extrai conteúdo em prioridade: texto integral inline > VisualizadorHtml > PDF (fallback)
+6. Gera `canonical_id` para deduplicação cross-source (ex: `ica_100-12`)
+7. Armazena conteúdo, metadados e relações no SQLite (`data/store.db`)
+
+**Como executar:**
+
+```bash
+make collect                                          # SISLAER + LexML (padrão)
+make collect SOURCES=sislaer                          # Apenas SISLAER
+make collect SOURCES=sislaer DOC_TYPES=ICA            # Apenas ICAs do SISLAER
+make collect SOURCES=sislaer LIMIT=50                 # Limita a 50 docs
+make collect SOURCES=sislaer CHECK=1                  # Verifica alterações
+make collect SOURCES=sislaer FORCE=1                  # Re-coleta do zero
+make collect-sislaer                                  # Atalho: apenas SISLAER
+```
+
+**Configuração (`env.example`):**
+
+| Variável | Default | Descrição |
+|----------|---------|-----------|
+| `SISLAER_MAX_RATE` | `10` | Requisições por segundo |
+| `SISLAER_CONCURRENCY` | `10` | Conexões simultâneas |
+| `SISLAER_TIMEOUT` | `30` | Timeout HTTP em segundos |
+| `SISLAER_START_ID` | `1` | ID inicial para varredura |
+| `SISLAER_END_ID` | `0` (auto) | ID final para varredura (0 = descobre automaticamente) |
+| `SISLAER_DOC_TYPES` | `ICA,DCA,...` | Tipos de documento a coletar |
+
+### 7.2. DECEA (Fallback — Instruções de Comando da Aeronáutica)
 
 **Scraper:** `crawler/scrapers/decea_scraper.py`
 
@@ -401,7 +438,7 @@ make collect SOURCES=decea CHECK=1             # Verifica alterações
 make collect SOURCES=decea FORCE=1             # Re-coleta do zero
 ```
 
-### 7.2. LexML (Legislação Federal)
+### 7.3. LexML (Legislação Federal — Complemento)
 
 **Scraper:** `crawler/scrapers/lexml_scraper.py`
 
@@ -427,7 +464,7 @@ make collect SOURCES=lexml CHECK=1                     # Verifica alterações
 make collect SOURCES=lexml FORCE=1                     # Re-coleta do zero
 ```
 
-### 7.3. PDFs Locais
+### 7.4. PDFs Locais
 
 Para coletar PDFs que já estejam em um diretório local:
 
@@ -436,7 +473,7 @@ make collect SOURCES=pdf                           # PDFs do diretório padrão 
 make collect SOURCES=pdf PDF_DIR=./meus-pdfs/      # Diretório customizado
 ```
 
-### 7.4. Arquitetura de Scrapers
+### 7.5. Arquitetura de Scrapers
 
 Todos os scrapers herdam de `BaseScraper` (`crawler/scrapers/base.py`), que define uma interface async unificada:
 
@@ -488,7 +525,7 @@ O pipeline de ingestão foi reestruturado em **3 fases independentes e idempoten
 
 ### Fase 1: Collect (`make collect`)
 
-Executa os scrapers (LexML, DECEA, PDFs locais) e persiste documentos no SQLite. Três modos de coleta controlam o comportamento em re-runs:
+Executa os scrapers (SISLAER, LexML, DECEA, PDFs locais) e persiste documentos no SQLite. SISLAER é a fonte primária; LexML complementa com o que não existe no SISLAER (deduplicação cross-source via `canonical_id`). Três modos de coleta controlam o comportamento em re-runs:
 
 | Modo | Comando | Comportamento |
 |---|---|---|
@@ -497,13 +534,13 @@ Executa os scrapers (LexML, DECEA, PDFs locais) e persiste documentos no SQLite.
 | **Force** | `make collect FORCE=1` | Apaga todos os documentos da fonte no SQLite e re-coleta do zero. |
 
 ```bash
-make collect                              # re-run rápido (pula existentes)
+make collect                              # re-run rápido (SISLAER + LexML, pula existentes)
 make collect CHECK=1                      # verificar mudanças nas fontes
 make collect FORCE=1                      # apagar e re-coletar tudo
-make collect SOURCES=lexml LIMIT=50       # apenas LexML, 50 docs
-make collect SOURCES=decea                # apenas DECEA (todos os tipos)
+make collect-sislaer                      # apenas SISLAER (fonte primária)
+make collect-legacy                       # DECEA + LexML (fontes fallback)
+make collect SOURCES=sislaer DOC_TYPES=ICA  # apenas ICAs do SISLAER
 make collect SOURCES=pdf PDF_DIR=./data/pdfs  # PDFs locais
-make collect SOURCES=lexml,decea,pdf      # todas as fontes
 ```
 
 ### Fase 2: Embed (`make embed`)
@@ -801,7 +838,7 @@ python main.py
 
 | Script | Comando | Descrição |
 |--------|---------|-----------|
-| `collect.py` | `python -m scripts.collect` | Fase 1: coleta documentos de todas as fontes no SQLite (`make collect`). Modos: default (skip), --check, --force |
+| `collect.py` | `python -m scripts.collect` | Fase 1: coleta documentos no SQLite. Fontes: SISLAER (primária), LexML, DECEA, PDF. Modos: default (skip), --check, --force |
 | `embed.py` | `python -m scripts.embed` | Fase 2: gera embeddings incrementais em Parquet (`make embed`) |
 | `index.py` | `python -m scripts.index` | Fase 3: carrega embeddings no Qdrant (`make index`) |
 | `query.py` | `python -m scripts.query` | Console SQL interativo para explorar o SQLite (`make query`) |
@@ -825,9 +862,10 @@ cd aviation-rag-system/
 source venv/bin/activate
 
 # 1. Coletar documentos (Fase 1)
-make collect                                  # Coleta DECEA + LexML
-make collect SOURCES=decea LIMIT=50           # Apenas DECEA, 50 docs
-make collect SOURCES=pdf PDF_DIR=./meus-pdfs  # PDFs locais
+make collect                                  # Coleta SISLAER + LexML (padrão)
+make collect-sislaer                          # Apenas SISLAER
+make collect-legacy                           # DECEA + LexML (fallback)
+make collect SOURCES=sislaer DOC_TYPES=ICA    # Apenas ICAs do SISLAER
 
 # 2. Gerar embeddings (Fase 2)
 make embed MODE=sparse                        # Apenas sparse (sem GPU)
@@ -1060,7 +1098,9 @@ python -m pytest tests/ -v --tb=short
 
 | Comando | Descrição |
 |---------|-----------|
-| `make collect` | Fase 1: coleta novos documentos (pula existentes, re-run instantâneo) |
+| `make collect` | Fase 1: coleta SISLAER + LexML (pula existentes, re-run instantâneo) |
+| `make collect-sislaer` | Fase 1: apenas SISLAER (fonte primária) |
+| `make collect-legacy` | Fase 1: DECEA + LexML (fontes fallback) |
 | `make collect CHECK=1` | Fase 1: re-baixa tudo e verifica hashes (detecta mudanças na fonte) |
 | `make collect FORCE=1` | Fase 1: apaga docs da fonte e re-coleta do zero |
 | `make embed` | Fase 2: gera embeddings incrementais em Parquet |
@@ -1085,7 +1125,7 @@ python -m pytest tests/ -v --tb=short
 
 | Parâmetro | Padrão | Uso |
 |-----------|--------|-----|
-| `SOURCES` | `lexml,decea` | `make collect SOURCES=lexml` |
+| `SOURCES` | `sislaer,lexml` | `make collect SOURCES=sislaer` |
 | `CHECK` | — | `make collect CHECK=1` (verificar hashes) |
 | `FORCE` | — | `make collect FORCE=1` (re-coletar) / `make embed FORCE=1` |
 | `MODE` | config | `make embed MODE=hybrid` |

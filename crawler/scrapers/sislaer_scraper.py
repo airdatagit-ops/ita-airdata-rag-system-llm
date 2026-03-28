@@ -1,0 +1,492 @@
+"""
+SISLAER Scraper — Primary source for aviation legislation.
+
+Iterates through codigoRegistro IDs on the SISLAER TerminalWebCENDOC
+portal, extracting legislative documents with metadata, relationships,
+and full text content.
+
+Content priority: inline "Texto integral" > VisualizadorHtml > PDF download.
+
+Usage:
+    from crawler.scrapers import get_scraper
+
+    async with get_scraper("sislaer") as scraper:
+        docs = await scraper.search(limit=100, doc_types=["ICA"])
+        results = await scraper.fetch_all(docs)
+"""
+
+import asyncio
+import re
+from typing import Dict, List, Optional
+
+import aiohttp
+from aiolimiter import AsyncLimiter
+from bs4 import BeautifulSoup, Tag
+from loguru import logger
+
+from config import config
+from crawler.scrapers.base import (
+    BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, compute_canonical_id,
+)
+from crawler.scrapers import register_scraper
+from parsers.pdf_parser import extract_text_from_bytes
+
+_RETRYABLE_STATUSES = {429, 500, 502, 503, 504}
+_RETRY_BASE_DELAY = 1.0
+_MAX_RETRIES = 3
+
+_TITLE_RE = re.compile(
+    r"^(?P<type>[A-ZÇÃa-zçã][A-Za-zÇÃçã\s-]*?)\s+"
+    r"(?:Nº\s+)?(?P<number>[\d][\d./-]*[\w/]*\d+)",
+)
+
+_DETAIL_LINK_RE = re.compile(r"tw\.irParaDetalheComVoltar\((\d+)\)")
+
+
+def _parse_title(raw: str) -> Dict[str, Optional[str]]:
+    """Extract doc_type and number from a SISLAER title."""
+    m = _TITLE_RE.match(raw.strip())
+    if not m:
+        return {"doc_type": None, "number": None}
+    return {"doc_type": m.group("type").strip(), "number": m.group("number").strip()}
+
+
+def _normalize_doc_type(raw: Optional[str]) -> Optional[str]:
+    """Normalize common type variations to uppercase canonical form."""
+    if not raw:
+        return None
+    t = raw.strip().upper()
+    mapping = {
+        "PORTARIA": "Portaria",
+        "PORTARIA CONJUNTA": "Portaria Conjunta",
+        "INSTRUÇÃO NORMATIVA": "Instrução Normativa",
+        "INSTRUCAO NORMATIVA": "Instrução Normativa",
+        "LEI": "Lei",
+        "LEI COMPLEMENTAR": "Lei Complementar",
+        "DECRETO": "Decreto",
+        "DECRETO - LEI": "Decreto-Lei",
+        "DECRETO-LEI": "Decreto-Lei",
+        "MEDIDA PROVISÓRIA": "Medida Provisória",
+        "RESOLUÇÃO": "Resolução",
+        "RESOLUCAO": "Resolução",
+        "CONSTITUIÇÃO FEDERAL": "Constituição Federal",
+        "ORDEM TÉCNICA": "Ordem técnica",
+        "ORIENTAÇÃO NORMATIVA": "Orientação normativa",
+        "MANUAL ELETRÔNICO": "Manual Eletrônico",
+    }
+    return mapping.get(t, t)
+
+
+@register_scraper
+class SISLAERScraper(BaseScraper):
+    """Async scraper for SISLAER TerminalWebCENDOC legislation portal."""
+
+    source_name = "sislaer"
+
+    _HEADERS = {
+        "User-Agent": DEFAULT_USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
+        "Accept-Language": "pt-BR,pt;q=0.9",
+    }
+
+    _DEFAULT_DOC_TYPES = {
+        "ICA", "DCA", "FCA", "MCA", "NSCA", "PCA", "RCA", "TCA",
+        "OCA", "ROCA", "RICA", "RIMA", "RMA", "NPA", "PTA",
+        "LEI", "DECRETO", "DECRETO-LEI",
+        "PORTARIA", "PORTARIA CONJUNTA",
+        "RESOLUÇÃO", "INSTRUÇÃO NORMATIVA",
+        "MEDIDA PROVISÓRIA", "LEI COMPLEMENTAR",
+        "CONSTITUIÇÃO FEDERAL",
+        "ORDEM TÉCNICA", "ORIENTAÇÃO NORMATIVA",
+        "MANUAL ELETRÔNICO", "MANUAL - OUTROS",
+        "AVISO", "COMUNICADO", "NOTA",
+    }
+
+    def __init__(
+        self,
+        max_rate: float = None,
+        concurrency: int = None,
+        timeout: int = None,
+        start_id: int = None,
+        end_id: int = None,
+    ):
+        rate = max_rate or config.SISLAER_MAX_RATE
+        self._concurrency = concurrency or config.SISLAER_CONCURRENCY
+        self._timeout_sec = timeout or config.SISLAER_TIMEOUT
+        self._start_id = start_id or config.SISLAER_START_ID
+        self._end_id = end_id or config.SISLAER_END_ID or None  # 0/None = auto-discover
+        self._limiter = AsyncLimiter(rate, 1.0)
+        self._session: Optional[aiohttp.ClientSession] = None
+        self._base_url = config.SISLAER_BASE_URL
+
+        logger.info(
+            f"SISLAERScraper initialized (rate={rate}/s, concurrency={self._concurrency}, "
+            f"ids={self._start_id}-{self._end_id or 'auto'})"
+        )
+
+    async def __aenter__(self) -> "SISLAERScraper":
+        self._session = aiohttp.ClientSession(
+            headers=self._HEADERS,
+            connector=aiohttp.TCPConnector(limit=self._concurrency),
+            timeout=aiohttp.ClientTimeout(total=self._timeout_sec),
+        )
+        return self
+
+    async def __aexit__(self, *_) -> None:
+        if self._session:
+            await self._session.close()
+            self._session = None
+
+    # ── auto-discovery ──────────────────────────────────────────
+
+    async def _id_exists(self, reg_id: int) -> bool:
+        """Check whether a codigoRegistro returns a valid page."""
+        html = await self._get_html(f"{self._base_url}/acervo/detalhe/{reg_id}")
+        return bool(html and len(html) > 500)
+
+    async def _discover_end_id(self) -> int:
+        """Find the highest valid codigoRegistro via binary search.
+
+        Starts from ``SISLAER_END_ID`` as a hint.  If IDs beyond that
+        hint exist, the upper bound doubles until a gap is found.  Then a
+        standard binary search narrows down to the last valid ID.
+
+        After the binary search, a short linear scan forward confirms
+        there are no sparse IDs just above the boundary (the portal may
+        have small gaps).
+        """
+        hint = config.SISLAER_END_ID or 55_000
+        lo, hi = self._start_id, hint
+
+        if await self._id_exists(hi):
+            while await self._id_exists(hi):
+                lo = hi
+                hi *= 2
+                logger.debug(f"[sislaer] auto-discover: expanding upper bound to {hi}")
+
+        while lo < hi - 1:
+            mid = (lo + hi) // 2
+            if await self._id_exists(mid):
+                lo = mid
+            else:
+                hi = mid
+
+        # Linear scan forward to catch sparse gaps (check next 200 IDs)
+        max_id = lo
+        gap = 0
+        for probe_id in range(lo + 1, lo + 201):
+            if await self._id_exists(probe_id):
+                max_id = probe_id
+                gap = 0
+            else:
+                gap += 1
+                if gap >= 50:
+                    break
+
+        logger.info(f"[sislaer] Auto-discovered end ID: {max_id}")
+        return max_id
+
+    # ── BaseScraper interface ────────────────────────────────────
+
+    async def search(self, *, limit: int = 100, **kwargs) -> List[Dict]:
+        """Discover documents by iterating codigoRegistro IDs.
+
+        Keyword Args:
+            doc_types: List of type codes to include (e.g. ``["ICA", "DCA"]``).
+        """
+        if self._end_id is None:
+            self._end_id = await self._discover_end_id()
+
+        raw_types = kwargs.get("doc_types") or config.SISLAER_DOC_TYPES.split(",")
+        allowed = {t.strip().upper() for t in raw_types}
+
+        sem = asyncio.Semaphore(self._concurrency)
+        found: List[Dict] = []
+        total_ids = self._end_id - self._start_id + 1
+
+        async def _probe(reg_id: int):
+            if len(found) >= limit:
+                return
+            async with sem:
+                html = await self._get_html(
+                    f"{self._base_url}/acervo/detalhe/{reg_id}"
+                )
+            if not html or len(html) < 500:
+                return
+
+            soup = BeautifulSoup(html, "html.parser")
+            h1 = soup.find("h1")
+            if not h1:
+                return
+
+            title = h1.get_text(strip=True)
+            parsed = _parse_title(title)
+            doc_type_raw = parsed["doc_type"]
+            if not doc_type_raw:
+                return
+            if doc_type_raw.upper() not in allowed:
+                return
+
+            found.append({
+                "codigoRegistro": reg_id,
+                "title": title,
+                "doc_type": doc_type_raw,
+                "number": parsed["number"],
+            })
+
+        batch_size = 500
+        for batch_start in range(self._start_id, self._end_id + 1, batch_size):
+            if len(found) >= limit:
+                break
+            batch_end = min(batch_start + batch_size, self._end_id + 1)
+            tasks = [_probe(i) for i in range(batch_start, batch_end)]
+            await asyncio.gather(*tasks)
+
+            progress = min(batch_end - self._start_id, total_ids)
+            logger.info(
+                f"[sislaer] search progress: {progress}/{total_ids} IDs scanned, "
+                f"{len(found)} docs found"
+            )
+
+        result = found[:limit]
+        logger.info(f"[sislaer] Search complete: {len(result)} documents matched")
+        return result
+
+    async def fetch_document(
+        self, doc: Dict, save_original: bool = True
+    ) -> Optional[ScrapedDocument]:
+        """Fetch and parse a full document detail page."""
+        reg_id = doc["codigoRegistro"]
+        url = f"{self._base_url}/acervo/detalhe/{reg_id}"
+
+        html = await self._get_html(url)
+        if not html or len(html) < 500:
+            return None
+
+        soup = BeautifulSoup(html, "html.parser")
+        detail = self._parse_detail(soup, reg_id)
+        if not detail:
+            return None
+
+        content = await self._get_content(soup, reg_id, save_original)
+        if not content or len(content.strip()) < 50:
+            return None
+
+        parsed = _parse_title(detail["title"])
+        doc_type = _normalize_doc_type(parsed["doc_type"]) or doc.get("doc_type")
+        number = parsed["number"] or doc.get("number")
+        canonical = compute_canonical_id(doc_type, number)
+
+        status = "active"
+        situacao = (detail.get("situacao") or "").lower()
+        if "revogado" in situacao:
+            status = "revoked"
+
+        relations = detail.get("relations", [])
+        metadata = {
+            "codigoRegistro": reg_id,
+            "situacao": detail.get("situacao"),
+            "portaria_aprovacao": detail.get("portaria_aprovacao"),
+            "ato_publicacao": detail.get("ato_publicacao"),
+            "publicacao": detail.get("publicacao"),
+            "ementa": detail.get("ementa"),
+            "observacoes": detail.get("observacoes"),
+            "natureza": detail.get("natureza"),
+            "relations": relations,
+        }
+
+        if save_original:
+            self.save_original_file(
+                html,
+                folder_name="sislaer",
+                stem=f"sislaer_{reg_id}",
+                extension=".html",
+                meta={"codigoRegistro": reg_id, "title": detail["title"], "url": url},
+            )
+
+        return ScrapedDocument(
+            doc_id=f"sislaer_{reg_id}",
+            source=self.source_name,
+            title=detail["title"],
+            content=content,
+            metadata=metadata,
+            url=url,
+            doc_type=doc_type,
+            canonical_id=canonical,
+        )
+
+    def make_doc_id(self, doc: Dict) -> str:
+        return f"sislaer_{doc['codigoRegistro']}"
+
+    # ── HTTP with retry ──────────────────────────────────────────
+
+    async def _get_html(self, url: str) -> Optional[str]:
+        for attempt in range(1, _MAX_RETRIES + 1):
+            try:
+                async with self._limiter:
+                    async with self._session.get(url) as resp:
+                        if resp.status == 200:
+                            return await resp.text()
+                        if resp.status in _RETRYABLE_STATUSES:
+                            raise aiohttp.ClientResponseError(
+                                resp.request_info, resp.history, status=resp.status
+                            )
+                        return None
+            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+                delay = _RETRY_BASE_DELAY * (2 ** (attempt - 1))
+                if attempt < _MAX_RETRIES:
+                    logger.warning(
+                        f"[sislaer] Attempt {attempt}/{_MAX_RETRIES} failed ({exc}), "
+                        f"retrying in {delay:.0f}s: {url}"
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    logger.error(f"[sislaer] All {_MAX_RETRIES} attempts failed: {url}")
+        return None
+
+    # ── detail page parsing ──────────────────────────────────────
+
+    def _parse_detail(self, soup: BeautifulSoup, reg_id: int) -> Optional[Dict]:
+        h1 = soup.find("h1")
+        if not h1:
+            return None
+
+        title = h1.get_text(strip=True)
+        if not title or len(title) < 3:
+            return None
+
+        detail: Dict = {"title": title}
+
+        authority_link = soup.find("a", href=re.compile(r"autoresClick"))
+        if authority_link:
+            detail["authority"] = authority_link.get_text(strip=True)
+
+        field_map = {
+            "situação": "situacao",
+            "situacao": "situacao",
+            "portaria de aprovação": "portaria_aprovacao",
+            "portaria de aprovacao": "portaria_aprovacao",
+            "ato de publicação": "ato_publicacao",
+            "ato de publicacao": "ato_publicacao",
+            "publicação": "publicacao",
+            "publicacao": "publicacao",
+            "natureza / esfera": "natureza",
+            "observações": "observacoes",
+            "observacoes": "observacoes",
+        }
+
+        for text_node in soup.find_all(string=True):
+            label = text_node.strip().lower().rstrip(":")
+            if label in field_map:
+                parent = text_node.parent
+                if parent:
+                    sibling = parent.find_next_sibling()
+                    if sibling:
+                        detail[field_map[label]] = sibling.get_text(strip=True)
+
+        ementa_divs = soup.find_all("div", id=re.compile(r"Ementa.*html", re.I))
+        if ementa_divs:
+            detail["ementa"] = ementa_divs[-1].get_text(strip=True)
+        else:
+            for text_node in soup.find_all(string=re.compile(r"Portaria\s*/\s*Ementa", re.I)):
+                parent = text_node.parent
+                if parent:
+                    sibling = parent.find_next_sibling()
+                    if sibling:
+                        detail["ementa"] = sibling.get_text(strip=True)
+                        break
+
+        relations = []
+        for section_label, rel_type in [
+            ("Alterações", "amends"),
+            ("Correlações", "correlates"),
+        ]:
+            for text_node in soup.find_all(string=re.compile(rf"^\s*{section_label}\s*$", re.I)):
+                container = text_node.parent
+                if not container:
+                    continue
+                sibling = container.find_next_sibling()
+                if not sibling:
+                    continue
+                for link in sibling.find_all("a", href=True):
+                    href = link.get("href", "")
+                    m = _DETAIL_LINK_RE.search(href)
+                    if m:
+                        target_text = link.get_text(strip=True)
+                        actual_type = rel_type
+                        if "Revogad" in target_text:
+                            actual_type = "revoked_by" if "por" in target_text.lower() else "revokes"
+                        relations.append({
+                            "target_ref": m.group(1),
+                            "type": actual_type,
+                            "label": target_text,
+                        })
+
+        detail["relations"] = relations
+        return detail
+
+    # ── content extraction ───────────────────────────────────────
+
+    async def _get_content(
+        self, soup: BeautifulSoup, reg_id: int, save_original: bool
+    ) -> Optional[str]:
+        """Extract content in priority order: inline text > HTML viewer > PDF."""
+
+        # 1) Inline "Texto integral" expanded div
+        for div in soup.find_all("div", id=re.compile(r"TextoIntegral.*html", re.I)):
+            text = div.get_text(separator="\n", strip=True)
+            if text and len(text) > 100:
+                logger.debug(f"[sislaer] {reg_id}: inline text ({len(text)} chars)")
+                return text
+
+        # 2) VisualizadorHtml link
+        for a in soup.find_all("a", href=re.compile(r"VisualizadorHtml")):
+            html_url = a.get("href", "")
+            if not html_url.startswith("http"):
+                html_url = f"https://www.sislaer.fab.mil.br{html_url}"
+            viewer_html = await self._get_html(html_url)
+            if viewer_html and len(viewer_html) > 200:
+                viewer_soup = BeautifulSoup(viewer_html, "html.parser")
+                for tag in viewer_soup(["script", "style", "nav", "header", "footer"]):
+                    tag.decompose()
+                body = viewer_soup.find("body") or viewer_soup
+                text = body.get_text(separator="\n", strip=True)
+                if text and len(text) > 100:
+                    logger.debug(f"[sislaer] {reg_id}: viewer HTML ({len(text)} chars)")
+                    return text
+
+        # 3) PDF download
+        for a in soup.find_all("a", href=re.compile(r"Busca/Download")):
+            pdf_url = a.get("href", "")
+            if not pdf_url.startswith("http"):
+                pdf_url = f"https://www.sislaer.fab.mil.br{pdf_url}"
+            try:
+                async with self._limiter:
+                    async with self._session.get(pdf_url) as resp:
+                        if resp.status != 200:
+                            continue
+                        pdf_bytes = await resp.read()
+                if pdf_bytes and pdf_bytes[:4] == b"%PDF":
+                    if save_original:
+                        self.save_original_file(
+                            pdf_bytes,
+                            folder_name="sislaer",
+                            stem=f"sislaer_{reg_id}",
+                            extension=".pdf",
+                        )
+                    text = extract_text_from_bytes(pdf_bytes)
+                    if text and len(text) > 100:
+                        logger.debug(f"[sislaer] {reg_id}: PDF ({len(text)} chars)")
+                        return text
+            except Exception as exc:
+                logger.warning(f"[sislaer] PDF download failed for {reg_id}: {exc}")
+
+        # 4) Fallback: ementa text from detail page
+        ementa_divs = soup.find_all("div", id=re.compile(r"Ementa.*html", re.I))
+        if ementa_divs:
+            text = ementa_divs[-1].get_text(separator="\n", strip=True)
+            if text and len(text) > 50:
+                logger.debug(f"[sislaer] {reg_id}: ementa fallback ({len(text)} chars)")
+                return text
+
+        return None

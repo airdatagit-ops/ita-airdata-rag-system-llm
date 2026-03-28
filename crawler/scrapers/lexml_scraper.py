@@ -27,7 +27,7 @@ from bs4 import BeautifulSoup
 from loguru import logger
 
 from config import config
-from crawler.scrapers.base import BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT
+from crawler.scrapers.base import BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, compute_canonical_id
 from crawler.scrapers import register_scraper
 
 _RETRYABLE_STATUSES = {429, 500, 502, 503, 504}
@@ -156,15 +156,19 @@ class LexMLScraper(BaseScraper):
         exclude = {"content"}
         metadata = {k: v for k, v in doc.items() if k not in exclude}
 
+        doc_type = doc.get("doc_type", "")
+        number = doc.get("number", "")
+
         return ScrapedDocument(
             doc_id=self.make_doc_id(doc),
             source=self.source_name,
             title=doc.get("title", ""),
             content=content,
-            metadata=metadata,
+            metadata={**metadata, "number": number, "authority": doc.get("authority", "")},
             url=doc.get("url"),
             urn=doc.get("urn"),
-            doc_type=doc.get("doc_type"),
+            doc_type=doc_type,
+            canonical_id=compute_canonical_id(doc_type, number),
         )
 
     def make_doc_id(self, doc: Dict) -> str:

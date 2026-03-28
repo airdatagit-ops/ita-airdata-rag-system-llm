@@ -222,6 +222,88 @@ class TestTemporalFields:
         assert doc["expiry_date"] is None
 
 
+class TestCanonicalDedup:
+
+    def test_exists_canonical_false(self, store):
+        assert store.exists_canonical("ica_100-12") is False
+
+    def test_exists_canonical_true(self, store):
+        store.upsert_document(
+            "doc1", "sislaer", "content",
+            canonical_id="ica_100-12",
+        )
+        assert store.exists_canonical("ica_100-12") is True
+
+    def test_exists_canonical_none(self, store):
+        assert store.exists_canonical(None) is False
+        assert store.exists_canonical("") is False
+
+    def test_new_columns_stored(self, store):
+        store.upsert_document(
+            "doc1", "sislaer", "content",
+            number="100-12", authority="DECEA", canonical_id="ica_100-12",
+        )
+        doc = store.get_document("doc1")
+        assert doc["number"] == "100-12"
+        assert doc["authority"] == "DECEA"
+        assert doc["canonical_id"] == "ica_100-12"
+
+
+class TestDocumentRelations:
+
+    def test_upsert_and_get_relation(self, store):
+        store.upsert_document("doc1", "sislaer", "c1")
+        store.upsert_relation("doc1", "2000", "amends")
+        rels = store.get_relations("doc1")
+        assert len(rels) == 1
+        assert rels[0]["target_ref"] == "2000"
+        assert rels[0]["relation_type"] == "amends"
+
+    def test_upsert_relation_idempotent(self, store):
+        store.upsert_document("doc1", "sislaer", "c1")
+        store.upsert_relation("doc1", "2000", "amends")
+        store.upsert_relation("doc1", "2000", "amends")
+        rels = store.get_relations("doc1")
+        assert len(rels) == 1
+
+    def test_multiple_relations(self, store):
+        store.upsert_document("doc1", "sislaer", "c1")
+        store.upsert_relation("doc1", "2000", "amends")
+        store.upsert_relation("doc1", "3000", "correlates")
+        rels = store.get_relations("doc1")
+        assert len(rels) == 2
+
+    def test_resolve_relations(self, store):
+        store.upsert_document("sislaer_100", "sislaer", "c1")
+        store.upsert_document("sislaer_200", "sislaer", "c2")
+        store.upsert_relation("sislaer_100", "200", "amends")
+
+        resolved = store.resolve_relations()
+        assert resolved == 1
+
+        rels = store.get_relations("sislaer_100")
+        assert rels[0]["target_doc_id"] == "sislaer_200"
+
+    def test_resolve_relations_unresolvable(self, store):
+        store.upsert_document("sislaer_100", "sislaer", "c1")
+        store.upsert_relation("sislaer_100", "999", "correlates")
+
+        resolved = store.resolve_relations()
+        assert resolved == 0
+
+        rels = store.get_relations("sislaer_100")
+        assert rels[0]["target_doc_id"] is None
+
+    def test_get_relations_as_target(self, store):
+        store.upsert_document("sislaer_100", "sislaer", "c1")
+        store.upsert_document("sislaer_200", "sislaer", "c2")
+        store.upsert_relation("sislaer_100", "200", "amends", target_doc_id="sislaer_200")
+
+        rels = store.get_relations("sislaer_200")
+        assert len(rels) == 1
+        assert rels[0]["source_doc_id"] == "sislaer_100"
+
+
 class TestStats:
 
     def test_stats_structure(self, store):

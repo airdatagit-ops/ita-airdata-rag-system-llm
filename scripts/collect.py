@@ -25,7 +25,7 @@ from loguru import logger
 
 from config import config
 from crawler.scrapers import get_scraper, list_scrapers
-from crawler.scrapers.base import BaseScraper, ScrapedDocument
+from crawler.scrapers.base import BaseScraper, ScrapedDocument, compute_canonical_id
 from parsers.temporal_extractor import TemporalExtractor
 from pipeline.document_store import DocumentStore
 
@@ -102,6 +102,11 @@ async def _collect_source(
     for doc in results:
         try:
             temporal = _extract_temporal(doc.content, _publication_date(doc))
+            meta = doc.metadata or {}
+            number = meta.get("number")
+            authority = meta.get("authority")
+            canonical = doc.canonical_id or compute_canonical_id(doc.doc_type, number)
+
             action = store.upsert_document(
                 doc_id=doc.doc_id,
                 source=doc.source,
@@ -111,11 +116,21 @@ async def _collect_source(
                 url=doc.url,
                 title=doc.title,
                 doc_type=doc.doc_type,
+                number=number,
+                authority=authority,
+                canonical_id=canonical,
                 **temporal,
             )
             stats[action] += 1
             if action != "unchanged":
                 logger.info(f"[{source}] {action}: {doc.title[:60]}")
+
+            for rel in meta.get("relations", []):
+                store.upsert_relation(
+                    source_doc_id=doc.doc_id,
+                    target_ref=rel["target_ref"],
+                    relation_type=rel["type"],
+                )
         except Exception as exc:
             logger.error(f"[{source}] Error persisting {doc.doc_id}: {exc}")
             stats["errors"] += 1
@@ -189,6 +204,15 @@ async def _collect_lexml(
         try:
             pub_date = _publication_date(doc)
             temporal = _extract_temporal(doc.content, pub_date)
+            meta = doc.metadata or {}
+            number = meta.get("number")
+            authority = meta.get("authority")
+            canonical = doc.canonical_id or compute_canonical_id(doc.doc_type, number)
+
+            if canonical and store.exists_canonical(canonical):
+                stats["unchanged"] += 1
+                continue
+
             action = store.upsert_document(
                 doc_id=doc.doc_id,
                 source=doc.source,
@@ -198,6 +222,9 @@ async def _collect_lexml(
                 url=doc.url,
                 title=doc.title,
                 doc_type=doc.doc_type,
+                number=number,
+                authority=authority,
+                canonical_id=canonical,
                 **temporal,
             )
             stats[action] += 1
@@ -237,6 +264,9 @@ async def _run_async(args: argparse.Namespace) -> int:
                 types_list = [t.strip() for t in args.doc_types.split(",")]
                 kw_list = [k.strip() for k in args.keywords.split(",")] if args.keywords else None
                 search_kwargs = {"doc_types": types_list, "keywords": kw_list}
+            elif source == "sislaer":
+                types_list = [t.strip() for t in args.doc_types.split(",")]
+                search_kwargs = {"doc_types": types_list}
             elif source == "pdf":
                 search_kwargs = {"pdf_dir": args.pdf_dir}
 
@@ -254,6 +284,10 @@ async def _run_async(args: argparse.Namespace) -> int:
             continue
 
         grand_stats[source] = stats
+
+    resolved = store.resolve_relations()
+    if resolved:
+        logger.info(f"Post-collection: resolved {resolved} document relations")
 
     logger.info("=" * 60)
     logger.info("Collection Summary")
@@ -284,14 +318,14 @@ def run(args: argparse.Namespace) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Phase 1 -- Collect documents into store")
     parser.add_argument(
-        "--sources", type=str, default="lexml,decea",
-        help="Comma-separated sources to collect (lexml, decea, pdf)",
+        "--sources", type=str, default="sislaer,lexml",
+        help="Comma-separated sources to collect (sislaer, lexml, decea, pdf)",
     )
     parser.add_argument("--limit", type=int, default=0, help="Max documents per source (0 = unlimited)")
     parser.add_argument("--concurrency", type=int, default=10, help="Parallel downloads")
     parser.add_argument(
-        "--doc-types", type=str, default="ICA,MCA,PCA,DCA,TCA,CIRCEA,NSCA,FCA",
-        help="DECEA doc types (comma-separated)",
+        "--doc-types", type=str, default=config.SISLAER_DOC_TYPES,
+        help="Document type filter (comma-separated, used by SISLAER and DECEA)",
     )
     parser.add_argument("--keywords", type=str, default=None, help="Custom keywords")
     parser.add_argument(
