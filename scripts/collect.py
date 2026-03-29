@@ -116,6 +116,10 @@ async def _collect_source(
             # Scraper-provided status (e.g. SISLAER situacao) is authoritative
             if doc.status:
                 temporal["status"] = doc.status
+            # Scraper-provided revocation date (e.g. SISLAER BCA link)
+            revocation_date = (doc.metadata or {}).get("revocation_date")
+            if revocation_date and not temporal.get("expiry_date"):
+                temporal["expiry_date"] = revocation_date
 
             number = doc.number or (doc.metadata or {}).get("number")
             authority = doc.authority or (doc.metadata or {}).get("authority")

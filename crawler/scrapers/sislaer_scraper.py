@@ -707,6 +707,7 @@ class SISLAERScraper(BaseScraper):
             "source_ref": f"sislaer:{reg_id}",
             "situacao": detail.get("situacao"),
             "publication_date": pub_date,
+            "revocation_date": detail.get("revocation_date"),
             "portaria_aprovacao": detail.get("portaria_aprovacao"),
             "ato_publicacao": detail.get("ato_publicacao"),
             "publicacao": detail.get("publicacao"),
@@ -844,6 +845,19 @@ class SISLAERScraper(BaseScraper):
                         })
 
         detail["relations"] = relations
+
+        # BCA revocation date (from <span class="rotulo" title="BCA - REVOGAÇÃO">)
+        for span in soup.find_all("span", class_="rotulo"):
+            if "REVOGA" in (span.get("title") or "").upper():
+                parent_p = span.find_parent("p")
+                if parent_p:
+                    for a in parent_p.find_all("a", href=True):
+                        m = re.search(r"(\d{2})-(\d{2})-(\d{4})", a["href"])
+                        if m:
+                            detail["revocation_date"] = f"{m.group(1)}/{m.group(2)}/{m.group(3)}"
+                            break
+                break
+
         return detail
 
     # ── content extraction ───────────────────────────────────────

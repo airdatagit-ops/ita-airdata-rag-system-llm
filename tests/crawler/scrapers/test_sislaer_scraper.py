@@ -247,6 +247,43 @@ class TestSISLAERScrapedDocument:
         assert doc.canonical_id is None
 
 
+class TestParseDetailRevocationDate:
+
+    def _make_soup(self, bca_html=""):
+        html = f"""<html><body>
+        <h1>nav</h1>
+        <h1>ICA 100-1/2007</h1>
+        {bca_html}
+        </body></html>"""
+        from bs4 import BeautifulSoup
+        return BeautifulSoup(html, "html.parser")
+
+    def test_extracts_revocation_date_from_bca_pdf_url(self):
+        bca = '''<div class="col-xs-12"><p class="sites">
+        <span class="rotulo" title="BCA - REVOGAÇÃO">BCA - REVOGAÇÃO:</span>
+        <span><a href="http://cendoc/sisbca/bca_pdf/2012/bca_177_28-09-2012.pdf">link</a></span>
+        </p></div>'''
+        scraper = SISLAERScraper.__new__(SISLAERScraper)
+        detail = scraper._parse_detail(self._make_soup(bca), 999)
+        assert detail is not None
+        assert detail["revocation_date"] == "28/09/2012"
+
+    def test_extracts_revocation_date_from_download_url(self):
+        bca = '''<div class="col-xs-12"><p class="sites">
+        <span class="rotulo" title="BCA - REVOGAÇÃO">BCA - REVOGAÇÃO:</span>
+        <span><a href="http://cendoc/sisbca/consulta_bca/download.php?ano=2023&amp;bca=bca_158_28-08-2023">link</a></span>
+        </p></div>'''
+        scraper = SISLAERScraper.__new__(SISLAERScraper)
+        detail = scraper._parse_detail(self._make_soup(bca), 999)
+        assert detail["revocation_date"] == "28/08/2023"
+
+    def test_no_revocation_section_returns_none(self):
+        scraper = SISLAERScraper.__new__(SISLAERScraper)
+        detail = scraper._parse_detail(self._make_soup(), 999)
+        assert detail is not None
+        assert detail.get("revocation_date") is None
+
+
 class TestMakeDocId:
 
     def test_generates_sislaer_prefix(self):
