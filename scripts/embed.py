@@ -355,7 +355,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--source", type=str, default="all",
-        help="Source to embed (lexml, decea, or 'all')",
+        help="Source to embed (sislaer, lexml, decea, or 'all')",
     )
     parser.add_argument(
         "--force", action="store_true",

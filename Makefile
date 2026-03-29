@@ -108,7 +108,7 @@ query:
 	$(PYTHON) -m scripts.query $(if $(SQL),--sql "$(SQL)",)
 
 explore:
-	$(PYTHON) -m datasette serve --immutable $(STORE_DB) --metadata metadata.yml --open
+	$(PYTHON) -m datasette serve --immutable $(STORE_DB) --metadata metadata.yml --open --setting sql_time_limit_ms 30000
 
 clean:
 	rm -f evaluation/results/*.csv evaluation/results/*.json
