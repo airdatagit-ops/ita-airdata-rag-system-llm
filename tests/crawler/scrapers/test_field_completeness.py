@@ -392,7 +392,12 @@ class TestLexmlFieldCompleteness:
 
 
 class TestPublicationDateExtraction:
-    """_publication_date in collect.py must find dates from all scraper metadata formats."""
+    """_publication_date in collect.py must find dates from all scraper metadata formats.
+
+    Raw ``publicacao`` is excluded from the fallback chain because it can
+    contain free text.  The SISLAER scraper extracts the date from it into
+    ``publication_date``.
+    """
 
     @staticmethod
     def _publication_date(doc: ScrapedDocument) -> str | None:
@@ -403,7 +408,6 @@ class TestPublicationDateExtraction:
             or meta.get("publication_date")
             or meta.get("date_published")
             or meta.get("ato_publicacao")
-            or meta.get("publicacao")
             or meta.get("portaria_aprovacao")
         )
 
@@ -442,3 +446,43 @@ class TestPublicationDateExtraction:
             },
         )
         assert self._publication_date(doc) is None
+
+    def test_raw_publicacao_not_used_directly(self):
+        """Free-text publicacao should NOT leak into the date chain."""
+        doc = ScrapedDocument(
+            doc_id="test", source="sislaer", title="T", content="x" * 100,
+            metadata={
+                "ato_publicacao": None,
+                "publicacao": "PUB BCA de 20/11/2019 página 016749",
+                "portaria_aprovacao": None,
+            },
+        )
+        assert self._publication_date(doc) is None
+
+
+# ── SISLAER publicacao date extraction ───────────────────────────────────────
+
+
+class TestSislaerPublicacaoDateExtraction:
+    """The scraper should extract clean dates from free-text publicacao."""
+
+    def test_extracts_date_from_pub_bca(self):
+        from crawler.scrapers.sislaer_scraper import _DATE_IN_TEXT_RE
+        m = _DATE_IN_TEXT_RE.search("PUB BCA de 20/11/2019 página 016749")
+        assert m is not None
+        assert m.group(1) == "20/11/2019"
+
+    def test_extracts_date_from_bca_format(self):
+        from crawler.scrapers.sislaer_scraper import _DATE_IN_TEXT_RE
+        m = _DATE_IN_TEXT_RE.search("BCA Nº 072 DE 02 DE MAIO DE 2019")
+        assert m is None  # no dd/mm/yyyy pattern in this format
+
+    def test_no_date_returns_none(self):
+        from crawler.scrapers.sislaer_scraper import _DATE_IN_TEXT_RE
+        m = _DATE_IN_TEXT_RE.search("texto sem data")
+        assert m is None
+
+    def test_empty_string(self):
+        from crawler.scrapers.sislaer_scraper import _DATE_IN_TEXT_RE
+        m = _DATE_IN_TEXT_RE.search("")
+        assert m is None

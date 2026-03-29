@@ -44,14 +44,18 @@ def _extract_temporal(content: str, publication_date: str = None) -> Dict:
 
 
 def _publication_date(doc: ScrapedDocument) -> str | None:
-    """Best-effort publication date from metadata (handles all sources)."""
+    """Best-effort publication date from metadata (handles all sources).
+
+    Note: raw ``publicacao`` is excluded because it can contain free text
+    (e.g. "PUB BCA de 20/11/2019 página 016749").  The SISLAER scraper
+    already extracts the date from it into ``publication_date``.
+    """
     meta = doc.metadata or {}
     return (
         meta.get("date")
         or meta.get("publication_date")
         or meta.get("date_published")
         or meta.get("ato_publicacao")
-        or meta.get("publicacao")
         or meta.get("portaria_aprovacao")
     )
 

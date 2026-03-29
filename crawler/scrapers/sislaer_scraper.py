@@ -45,6 +45,8 @@ _RETRYABLE_STATUSES = {429, 500, 502, 503, 504}
 _RETRY_BASE_DELAY = 1.0
 _MAX_RETRIES = 3
 
+_DATE_IN_TEXT_RE = re.compile(r"\b(\d{2}/\d{2}/\d{4})\b")
+
 _TITLE_RE = re.compile(
     r"^(?P<type>[A-ZÇÃa-zçã][A-Za-zÇÃçã\s-]*?)\s+"
     r"(?:Nº\s+)?(?P<number>[\d][\d./-]*[\w/]*\d+)",
@@ -669,9 +671,11 @@ class SISLAERScraper(BaseScraper):
         authority = detail.get("authority")
         relations = detail.get("relations", [])
 
+        raw_pub = detail.get("publicacao") or ""
+        _m = _DATE_IN_TEXT_RE.search(raw_pub)
         pub_date = (
             detail.get("ato_publicacao")
-            or detail.get("publicacao")
+            or (_m.group(1) if _m else None)
             or detail.get("portaria_aprovacao")
         )
         metadata = {
