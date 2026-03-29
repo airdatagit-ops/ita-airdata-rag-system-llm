@@ -45,7 +45,34 @@ _RETRYABLE_STATUSES = {429, 500, 502, 503, 504}
 _RETRY_BASE_DELAY = 1.0
 _MAX_RETRIES = 3
 
-_DATE_IN_TEXT_RE = re.compile(r"\b(\d{2}/\d{2}/\d{4})\b")
+_PT_MONTHS = {
+    "janeiro": "01", "fevereiro": "02", "março": "03", "marco": "03",
+    "abril": "04", "maio": "05", "junho": "06", "julho": "07",
+    "agosto": "08", "setembro": "09", "outubro": "10",
+    "novembro": "11", "dezembro": "12",
+}
+_DATE_NUMERIC_RE = re.compile(r"\b(\d{1,2}/\d{1,2}/\d{4})\b")
+_DATE_SPELLED_RE = re.compile(
+    r"\b(\d{1,2})\s+[dD][eE]\s+("
+    + "|".join(_PT_MONTHS)
+    + r")\s+[dD][eE]\s+(\d{4})\b",
+    re.IGNORECASE,
+)
+
+
+def _extract_date_from_text(text: str | None) -> str | None:
+    """Extract a ``dd/mm/yyyy`` date from free text like publicacao references."""
+    if not text:
+        return None
+    m = _DATE_NUMERIC_RE.search(text)
+    if m:
+        return m.group(1)
+    m = _DATE_SPELLED_RE.search(text)
+    if m:
+        day = m.group(1).zfill(2)
+        month = _PT_MONTHS[m.group(2).lower()]
+        return f"{day}/{month}/{m.group(3)}"
+    return None
 
 _TITLE_RE = re.compile(
     r"^(?P<type>[A-ZÇÃa-zçã][A-Za-zÇÃçã\s-]*?)\s+"
@@ -671,11 +698,9 @@ class SISLAERScraper(BaseScraper):
         authority = detail.get("authority")
         relations = detail.get("relations", [])
 
-        raw_pub = detail.get("publicacao") or ""
-        _m = _DATE_IN_TEXT_RE.search(raw_pub)
         pub_date = (
             detail.get("ato_publicacao")
-            or (_m.group(1) if _m else None)
+            or _extract_date_from_text(detail.get("publicacao"))
             or detail.get("portaria_aprovacao")
         )
         metadata = {

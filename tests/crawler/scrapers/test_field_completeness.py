@@ -466,23 +466,32 @@ class TestPublicationDateExtraction:
 class TestSislaerPublicacaoDateExtraction:
     """The scraper should extract clean dates from free-text publicacao."""
 
-    def test_extracts_date_from_pub_bca(self):
-        from crawler.scrapers.sislaer_scraper import _DATE_IN_TEXT_RE
-        m = _DATE_IN_TEXT_RE.search("PUB BCA de 20/11/2019 página 016749")
-        assert m is not None
-        assert m.group(1) == "20/11/2019"
-
-    def test_extracts_date_from_bca_format(self):
-        from crawler.scrapers.sislaer_scraper import _DATE_IN_TEXT_RE
-        m = _DATE_IN_TEXT_RE.search("BCA Nº 072 DE 02 DE MAIO DE 2019")
-        assert m is None  # no dd/mm/yyyy pattern in this format
+    @pytest.mark.parametrize("text,expected", [
+        ("PUB BCA de 20/11/2019 página 016749", "20/11/2019"),
+        ("PUB BCA de 22/09/2016", "22/09/2016"),
+        ("PUB 03, 01/03/2002.", "01/03/2002"),
+        ("PUB BCA de 14/12/2022 página 017797", "14/12/2022"),
+        ("BCA Nº 072 DE 02 DE MAIO DE 2019", "02/05/2019"),
+        ("BCA N° 214, DE 24 DE NOVEMBRO DE 2025.", "24/11/2025"),
+        ("BCA Nº 124, de 7 de julho de 2021", "07/07/2021"),
+        ("PUB  BCA no 110, de 5 de julho de 2016.", "05/07/2016"),
+        ("Publicada no BCA nº 153, de 19 de agosto de 2021", "19/08/2021"),
+        ("BCA 171, de 22 de setembro de 2020.", "22/09/2020"),
+        ("BCA Nº 036, de 24 de fevereiro de 2023.", "24/02/2023"),
+        ("BCA N° 159, DE 29 DE AGOSTO DE 2023", "29/08/2023"),
+    ])
+    def test_extracts_date(self, text, expected):
+        from crawler.scrapers.sislaer_scraper import _extract_date_from_text
+        assert _extract_date_from_text(text) == expected
 
     def test_no_date_returns_none(self):
-        from crawler.scrapers.sislaer_scraper import _DATE_IN_TEXT_RE
-        m = _DATE_IN_TEXT_RE.search("texto sem data")
-        assert m is None
+        from crawler.scrapers.sislaer_scraper import _extract_date_from_text
+        assert _extract_date_from_text("texto sem data") is None
 
     def test_empty_string(self):
-        from crawler.scrapers.sislaer_scraper import _DATE_IN_TEXT_RE
-        m = _DATE_IN_TEXT_RE.search("")
-        assert m is None
+        from crawler.scrapers.sislaer_scraper import _extract_date_from_text
+        assert _extract_date_from_text("") is None
+
+    def test_none_input(self):
+        from crawler.scrapers.sislaer_scraper import _extract_date_from_text
+        assert _extract_date_from_text(None) is None
