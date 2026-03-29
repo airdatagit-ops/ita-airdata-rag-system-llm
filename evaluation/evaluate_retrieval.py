@@ -87,11 +87,11 @@ class EvaluationResult:
     query_results: List[QueryResult] = field(default_factory=list)
 
 
-_SOURCE_PREFIX_RE = re.compile(r'^(?:decea|pdf)_')
+_SOURCE_PREFIX_RE = re.compile(r'^(?:sislaer|decea|pdf)_')
 
 
 def _normalize_id(regulation_id: str) -> str:
-    """Strip source prefix (decea_, pdf_) so golden-set IDs match stored IDs."""
+    """Strip source prefix (sislaer_, decea_, pdf_) so golden-set IDs match stored IDs."""
     return _SOURCE_PREFIX_RE.sub('', regulation_id)
 
 

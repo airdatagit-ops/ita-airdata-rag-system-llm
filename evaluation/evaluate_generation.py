@@ -61,7 +61,11 @@ HEDGING_PATTERNS = [
     r"de modo geral",
 ]
 
-CITATION_PATTERN = re.compile(r"ICA[- ]?\d+[- ]?\d*(?:-art\d+)?", re.IGNORECASE)
+CITATION_PATTERN = re.compile(
+    r"(?:ICA|DCA|MCA|PCA|TCA|FCA|OCA|NSCA|RCA|ROCA|RICA|NPA|CIRCEA|BCA|BMA|IMA|RIMA|RMA)"
+    r"[- ]?\d+[- ]?\d*(?:-art\d+)?",
+    re.IGNORECASE,
+)
 
 
 @dataclass
