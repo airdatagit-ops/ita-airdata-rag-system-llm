@@ -41,5 +41,25 @@ def test_revocation_detection_perde_vigencia():
     assert dates["is_revoked"] is True
 
 
+@pytest.mark.parametrize("text,expected", [
+    ("entra em vigor em 1º de dezembro de 2021", "2021-12-01"),
+    ("entra em vigor em 15 de janeiro de 2024", "2024-01-15"),
+    ("entra em vigor a partir de 1° de março de 2020", "2020-03-01"),
+    ("entra em vigor em 30 de AGOSTO de 2023", "2023-08-30"),
+    ("entra em vigor em 15/06/2023", "2023-06-15"),
+])
+def test_effective_date_portuguese_spelled(text, expected):
+    extractor = TemporalExtractor()
+    dates = extractor.extract_dates(text)
+    assert dates["effective_date"] == expected
+
+
+def test_effective_date_na_data_publicacao():
+    extractor = TemporalExtractor()
+    text = "Esta Portaria entra em vigor na data de sua publicação."
+    dates = extractor.extract_dates(text, publication_date="2021-12-09")
+    assert dates["effective_date"] == "2021-12-09"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

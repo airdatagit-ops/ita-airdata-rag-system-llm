@@ -23,6 +23,20 @@ from loguru import logger
 
 from config import config
 
+_PT_MONTHS = {
+    "janeiro": 1, "fevereiro": 2, "março": 3, "marco": 3,
+    "abril": 4, "maio": 5, "junho": 6, "julho": 7,
+    "agosto": 8, "setembro": 9, "outubro": 10,
+    "novembro": 11, "dezembro": 12,
+}
+
+_PT_DATE_RE = re.compile(
+    r"(\d{1,2})[ºª°]?\s+de\s+("
+    + "|".join(_PT_MONTHS)
+    + r")\s+de\s+(\d{4})",
+    re.IGNORECASE,
+)
+
 
 class TemporalExtractor:
     """
@@ -35,17 +49,24 @@ class TemporalExtractor:
     def __init__(self):
         """Initialize temporal extractor with regex patterns."""
         # Patterns for effective dates
+        _num_date = r"\d{1,2}[/-]\d{1,2}[/-]\d{2,4}"
+        _pt_date = (
+            r"\d{1,2}[ºª°]?\s+de\s+"
+            r"(?:" + "|".join(_PT_MONTHS) + r")"
+            r"\s+de\s+\d{4}"
+        )
+        _any_date = rf"(?:{_num_date}|{_pt_date})"
         self.effective_patterns = [
-            # "entra em vigor em 15/06/2023"
-            r"entra(?:rá)?\s+em\s+vigor\s+(?:em|na data de|a partir de)?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",
+            # "entra em vigor em 15/06/2023" or "entra em vigor em 1º de dezembro de 2021"
+            rf"entra(?:rá)?\s+em\s+vigor\s+(?:em|na data de|a partir de)?\s*({_any_date})",
             # "vigência a partir de 01/01/2024"
-            r"vigência\s+a\s+partir\s+de\s+(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",
+            rf"vigência\s+a\s+partir\s+de\s+({_any_date})",
             # "produzirá efeitos a partir de"
-            r"produzirá\s+efeitos?\s+(?:a\s+partir\s+de)?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",
+            rf"produzirá\s+efeitos?\s+(?:a\s+partir\s+de)?\s*({_any_date})",
             # "passa a vigorar em"
-            r"passa\s+a\s+vigorar\s+(?:em|na data de)?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",
-            # "publicação" (will add default days)
-            r"(?:após|da)\s+(?:sua\s+)?publicação",
+            rf"passa\s+a\s+vigorar\s+(?:em|na data de)?\s*({_any_date})",
+            # "publicação" / "na data de sua publicação" (uses publication date)
+            r"(?:após|da|na\s+data\s+de)\s+(?:sua\s+)?publicação",
         ]
 
         # Patterns that indicate THIS document is revoked (not that it revokes another).
@@ -205,14 +226,32 @@ class TemporalExtractor:
         """
         Parse date string to ISO format (YYYY-MM-DD).
 
+        Handles ISO (``2023-06-15``), numeric (``15/06/2023``), and
+        Portuguese spelled-out dates (``1º de dezembro de 2021``).
+
         Args:
             date_str: Date string in various formats
 
         Returns:
             Date in ISO format or None if parsing fails
         """
+        # Already ISO format — return as-is
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_str):
+            return date_str
+
+        # Portuguese spelled-out date
+        m = _PT_DATE_RE.search(date_str)
+        if m:
+            day = int(m.group(1))
+            month = _PT_MONTHS.get(m.group(2).lower())
+            year = int(m.group(3))
+            if month:
+                try:
+                    return datetime(year, month, day).strftime("%Y-%m-%d")
+                except ValueError:
+                    pass
+
         try:
-            # Try parsing with dateutil (handles many formats)
             dt = date_parser.parse(date_str, dayfirst=True)
             return dt.strftime("%Y-%m-%d")
         except Exception as e:
