@@ -48,12 +48,14 @@ class TemporalExtractor:
             r"(?:após|da)\s+(?:sua\s+)?publicação",
         ]
 
-        # Patterns for revocation dates
+        # Patterns that indicate THIS document is revoked (not that it revokes another).
+        # "revoga a Lei 1234" is intentionally excluded — it means the document
+        # is the revoking act, not the revoked one.
         self.revocation_patterns = [
-            # "revoga a Lei 1234"
-            r"revoga(?:da)?\s+(?:a|o)\s+(Lei|Decreto|Resolução|Portaria)\s+n?º?\s*(\d+)",
-            # "fica revogado"
-            r"(?:fica|são)\s+revogado?s?",
+            # "revogada pela Portaria 123" / "revogado por..."
+            r"revogad[ao]\s+(?:pela?|por)\b",
+            # "esta norma/instrução está revogada"
+            r"(?:esta|a\s+presente)\s+\S+\s+.*?\brevogad[ao]",
             # "perde vigência"
             r"perde(?:rá)?\s+(?:sua\s+)?vigência",
             # "deixa de vigorar"

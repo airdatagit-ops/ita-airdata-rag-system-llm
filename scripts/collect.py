@@ -44,9 +44,16 @@ def _extract_temporal(content: str, publication_date: str = None) -> Dict:
 
 
 def _publication_date(doc: ScrapedDocument) -> str | None:
-    """Best-effort publication date from metadata."""
+    """Best-effort publication date from metadata (handles all sources)."""
     meta = doc.metadata or {}
-    return meta.get("date") or meta.get("publication_date") or meta.get("date_published")
+    return (
+        meta.get("date")
+        or meta.get("publication_date")
+        or meta.get("date_published")
+        or meta.get("ato_publicacao")
+        or meta.get("publicacao")
+        or meta.get("portaria_aprovacao")
+    )
 
 
 # -- generic collector -------------------------------------------------------
@@ -102,9 +109,12 @@ async def _collect_source(
     for doc in results:
         try:
             temporal = _extract_temporal(doc.content, _publication_date(doc))
-            meta = doc.metadata or {}
-            number = meta.get("number")
-            authority = meta.get("authority")
+            # Scraper-provided status (e.g. SISLAER situacao) is authoritative
+            if doc.status:
+                temporal["status"] = doc.status
+
+            number = doc.number or (doc.metadata or {}).get("number")
+            authority = doc.authority or (doc.metadata or {}).get("authority")
             canonical = doc.canonical_id or compute_canonical_id(doc.doc_type, number)
 
             action = store.upsert_document(
@@ -119,13 +129,14 @@ async def _collect_source(
                 number=number,
                 authority=authority,
                 canonical_id=canonical,
+                version_year=doc.version_year,
                 **temporal,
             )
             stats[action] += 1
             if action != "unchanged":
                 logger.info(f"[{source}] {action}: {doc.title[:60]}")
 
-            for rel in meta.get("relations", []):
+            for rel in (doc.metadata or {}).get("relations", []):
                 store.upsert_relation(
                     source_doc_id=doc.doc_id,
                     target_ref=rel["target_ref"],
@@ -204,14 +215,12 @@ async def _collect_lexml(
         try:
             pub_date = _publication_date(doc)
             temporal = _extract_temporal(doc.content, pub_date)
-            meta = doc.metadata or {}
-            number = meta.get("number")
-            authority = meta.get("authority")
-            canonical = doc.canonical_id or compute_canonical_id(doc.doc_type, number)
+            if doc.status:
+                temporal["status"] = doc.status
 
-            if canonical and store.exists_canonical(canonical):
-                stats["unchanged"] += 1
-                continue
+            number = doc.number or (doc.metadata or {}).get("number")
+            authority = doc.authority or (doc.metadata or {}).get("authority")
+            canonical = doc.canonical_id or compute_canonical_id(doc.doc_type, number)
 
             action = store.upsert_document(
                 doc_id=doc.doc_id,
@@ -225,6 +234,7 @@ async def _collect_lexml(
                 number=number,
                 authority=authority,
                 canonical_id=canonical,
+                version_year=doc.version_year,
                 **temporal,
             )
             stats[action] += 1
@@ -288,6 +298,8 @@ async def _run_async(args: argparse.Namespace) -> int:
     resolved = store.resolve_relations()
     if resolved:
         logger.info(f"Post-collection: resolved {resolved} document relations")
+
+    store.compute_latest_versions()
 
     logger.info("=" * 60)
     logger.info("Collection Summary")

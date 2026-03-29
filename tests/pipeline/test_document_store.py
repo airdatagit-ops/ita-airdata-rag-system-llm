@@ -274,24 +274,33 @@ class TestDocumentRelations:
         assert len(rels) == 2
 
     def test_resolve_relations(self, store):
-        store.upsert_document("sislaer_100", "sislaer", "c1")
-        store.upsert_document("sislaer_200", "sislaer", "c2")
-        store.upsert_relation("sislaer_100", "200", "amends")
+        store.upsert_document(
+            "ica_100-1/2025", "sislaer", "c1",
+            metadata={"source_ref": "sislaer:100"},
+        )
+        store.upsert_document(
+            "ica_200-1/2025", "sislaer", "c2",
+            metadata={"source_ref": "sislaer:200"},
+        )
+        store.upsert_relation("ica_100-1/2025", "200", "amends")
 
         resolved = store.resolve_relations()
         assert resolved == 1
 
-        rels = store.get_relations("sislaer_100")
-        assert rels[0]["target_doc_id"] == "sislaer_200"
+        rels = store.get_relations("ica_100-1/2025")
+        assert rels[0]["target_doc_id"] == "ica_200-1/2025"
 
     def test_resolve_relations_unresolvable(self, store):
-        store.upsert_document("sislaer_100", "sislaer", "c1")
-        store.upsert_relation("sislaer_100", "999", "correlates")
+        store.upsert_document(
+            "ica_100-1/2025", "sislaer", "c1",
+            metadata={"source_ref": "sislaer:100"},
+        )
+        store.upsert_relation("ica_100-1/2025", "999", "correlates")
 
         resolved = store.resolve_relations()
         assert resolved == 0
 
-        rels = store.get_relations("sislaer_100")
+        rels = store.get_relations("ica_100-1/2025")
         assert rels[0]["target_doc_id"] is None
 
     def test_get_relations_as_target(self, store):

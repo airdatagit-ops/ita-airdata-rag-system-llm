@@ -34,7 +34,7 @@ from loguru import logger
 from config import config
 from crawler.scrapers.base import (
     BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, ORIGINALS_DIR,
-    compute_canonical_id,
+    compute_canonical_id, split_version_year,
 )
 
 _FRONTIER_FILE = Path(config.DATA_DIR) / ".sislaer_frontier.json"
@@ -641,18 +641,27 @@ class SISLAERScraper(BaseScraper):
 
         parsed = _parse_title(detail["title"])
         doc_type = _normalize_doc_type(parsed["doc_type"]) or doc.get("doc_type")
-        number = parsed["number"] or doc.get("number")
+        raw_number = parsed["number"] or doc.get("number") or ""
+
+        number, version_year = split_version_year(raw_number)
         canonical = compute_canonical_id(doc_type, number)
+        doc_id = f"{canonical}/{version_year}" if canonical and version_year else (canonical or f"sislaer_{reg_id}")
 
-        status = "active"
         situacao = (detail.get("situacao") or "").lower()
-        if "revogado" in situacao:
-            status = "revoked"
+        status = "revoked" if "revogado" in situacao else None
 
+        authority = detail.get("authority")
         relations = detail.get("relations", [])
+
+        pub_date = (
+            detail.get("ato_publicacao")
+            or detail.get("publicacao")
+            or detail.get("portaria_aprovacao")
+        )
         metadata = {
-            "codigoRegistro": reg_id,
+            "source_ref": f"sislaer:{reg_id}",
             "situacao": detail.get("situacao"),
+            "publication_date": pub_date,
             "portaria_aprovacao": detail.get("portaria_aprovacao"),
             "ato_publicacao": detail.get("ato_publicacao"),
             "publicacao": detail.get("publicacao"),
@@ -672,7 +681,7 @@ class SISLAERScraper(BaseScraper):
             )
 
         return ScrapedDocument(
-            doc_id=f"sislaer_{reg_id}",
+            doc_id=doc_id,
             source=self.source_name,
             title=detail["title"],
             content=content,
@@ -680,6 +689,10 @@ class SISLAERScraper(BaseScraper):
             url=url,
             doc_type=doc_type,
             canonical_id=canonical,
+            status=status,
+            number=number,
+            authority=authority,
+            version_year=version_year,
         )
 
     def make_doc_id(self, doc: Dict) -> str:

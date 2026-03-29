@@ -22,7 +22,7 @@ import requests
 from bs4 import BeautifulSoup
 from loguru import logger
 
-from crawler.scrapers.base import BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, compute_canonical_id
+from crawler.scrapers.base import BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, compute_canonical_id, split_version_year
 from crawler.scrapers import register_scraper
 from parsers.pdf_parser import extract_text_from_bytes
 
@@ -187,21 +187,36 @@ class DECEAScraper(BaseScraper):
             if not content or len(content.strip()) < 50:
                 return None
 
-            exclude = {"content"}
-            metadata = {k: v for k, v in doc.items() if k not in exclude}
-
-            number = doc.get("number", "")
+            slug = doc.get("slug", "")
+            raw_number = doc.get("number", "")
             doc_type = doc.get("doc_type", "")
+            authority = doc.get("origin", "DECEA")
+
+            number, version_year = split_version_year(raw_number)
+            canonical = compute_canonical_id(doc_type, number)
+            doc_id = (
+                (f"{canonical}/{version_year}" if version_year else canonical)
+                if canonical else f"decea_{slug}"
+            )
+
+            exclude = {"content"}
+            metadata = {
+                k: v for k, v in doc.items() if k not in exclude
+            }
+            metadata["source_ref"] = f"decea:{slug}"
 
             return ScrapedDocument(
-                doc_id=self.make_doc_id(doc),
+                doc_id=doc_id,
                 source=self.source_name,
                 title=doc.get("title", ""),
                 content=content,
-                metadata={**metadata, "number": number, "authority": doc.get("origin", "DECEA")},
+                metadata=metadata,
                 url=doc.get("source_url"),
                 doc_type=doc_type,
-                canonical_id=compute_canonical_id(doc_type, number),
+                canonical_id=canonical,
+                number=number,
+                authority=authority,
+                version_year=version_year,
             )
         except Exception as exc:
             logger.error(f"Error processing {doc.get('slug', '?')}: {exc}")

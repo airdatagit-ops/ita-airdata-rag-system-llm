@@ -103,6 +103,9 @@ class QdrantManager:
             ("expiry_date", PayloadSchemaType.DATETIME),
             ("status", PayloadSchemaType.KEYWORD),
             ("regulation_id", PayloadSchemaType.KEYWORD),
+            ("version_year", PayloadSchemaType.KEYWORD),
+            ("is_latest", PayloadSchemaType.BOOL),
+            ("canonical_id", PayloadSchemaType.KEYWORD),
             ("metadata.category", PayloadSchemaType.KEYWORD),
             ("metadata.source", PayloadSchemaType.KEYWORD),
             ("metadata.authority", PayloadSchemaType.KEYWORD),
@@ -230,6 +233,7 @@ class QdrantManager:
         if filters is None:
             filters = Filter(must=[
                 FieldCondition(key="status", match=MatchValue(value="active")),
+                FieldCondition(key="is_latest", match=MatchValue(value=True)),
             ])
 
         limit = limit or config.SEARCH_TOP_K

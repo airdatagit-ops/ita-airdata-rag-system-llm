@@ -27,7 +27,7 @@ from bs4 import BeautifulSoup
 from loguru import logger
 
 from config import config
-from crawler.scrapers.base import BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, compute_canonical_id
+from crawler.scrapers.base import BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, compute_canonical_id, split_version_year
 from crawler.scrapers import register_scraper
 
 _RETRYABLE_STATUSES = {429, 500, 502, 503, 504}
@@ -157,30 +157,49 @@ class LexMLScraper(BaseScraper):
         metadata = {k: v for k, v in doc.items() if k not in exclude}
 
         doc_type = doc.get("doc_type", "")
-        number = doc.get("number", "")
+        raw_number = doc.get("number", "")
+        authority = doc.get("authority", "")
+        urn = doc.get("urn", "")
+
+        number, version_year = split_version_year(raw_number)
+        canonical = compute_canonical_id(doc_type, number)
+        doc_id = (
+            (f"{canonical}/{version_year}" if version_year else canonical)
+            if canonical else self._urn_doc_id(urn)
+        )
+
+        metadata["source_ref"] = f"lexml:{urn}" if urn else None
 
         return ScrapedDocument(
-            doc_id=self.make_doc_id(doc),
+            doc_id=doc_id,
             source=self.source_name,
             title=doc.get("title", ""),
             content=content,
-            metadata={**metadata, "number": number, "authority": doc.get("authority", "")},
+            metadata=metadata,
             url=doc.get("url"),
-            urn=doc.get("urn"),
+            urn=urn,
             doc_type=doc_type,
-            canonical_id=compute_canonical_id(doc_type, number),
+            canonical_id=canonical,
+            number=number,
+            authority=authority,
+            version_year=version_year,
         )
 
     def make_doc_id(self, doc: Dict) -> str:
-        urn = doc.get("urn", "")
+        """Generate a doc_id for skip-existing checks during search phase."""
+        doc_type = doc.get("doc_type", "")
+        raw_number = doc.get("number", "")
+        number, version_year = split_version_year(raw_number)
+        canonical = compute_canonical_id(doc_type, number)
+        if canonical:
+            return f"{canonical}/{version_year}" if version_year else canonical
+        return self._urn_doc_id(doc.get("urn", ""))
+
+    @staticmethod
+    def _urn_doc_id(urn: str) -> str:
         if urn:
-            import re as _re
-            return _re.sub(r"[^a-zA-Z0-9._-]", "_", urn)
-        url = doc.get("url", "")
-        if url:
-            import re as _re
-            return _re.sub(r"[^a-zA-Z0-9._-]", "_", url)[-100:]
-        return super().make_doc_id(doc)
+            return re.sub(r"[^a-zA-Z0-9._-]", "_", urn)
+        return "unknown"
 
     # ── text extraction ──────────────────────────────────────────
 

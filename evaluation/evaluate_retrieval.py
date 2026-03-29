@@ -28,7 +28,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-import numpy as np
 from loguru import logger
 
 from models.embeddings import EmbeddingModel
@@ -87,96 +86,60 @@ class EvaluationResult:
     query_results: List[QueryResult] = field(default_factory=list)
 
 
-_SOURCE_PREFIX_RE = re.compile(r'^(?:sislaer|decea|pdf)_')
-_YEAR_SUFFIX_RE = re.compile(r'/\d{4}$')
-_EXPECTED_ID_RE = re.compile(
-    r'^(?P<type>[A-Za-z]+(?:\s+[A-Za-z]+)*)-(?P<number>.+?)(?:-art(?P<article>\d+)(?:-(?P<sub>\d+))?)?$',
+_GOLDEN_ID_RE = re.compile(
+    r'^(?P<type>[A-Za-z]+(?:\s+[A-Za-z]+)*)-(?P<rest>.+)$',
 )
+_VERSION_YEAR_RE = re.compile(r'/\d{4}(?=$|-art)')
 
 
-def _normalize_id(regulation_id: str) -> str:
-    """Strip source prefix (sislaer_, decea_, pdf_) so golden-set IDs match stored IDs."""
-    return _SOURCE_PREFIX_RE.sub('', regulation_id)
+def _normalize_id(raw_id: str) -> str:
+    """Normalize a golden-set or regulation_id to canonical form.
 
-
-def _extract_doc_id(regulation_id: str) -> str:
-    """Extract document-level ID by stripping the article suffix.
-
-    'decea_ICA-96-1-art563' -> 'ICA-96-1'
-    'ICA-7-58-art2-0'       -> 'ICA-7-58'
-    'ICA-7-58'              -> 'ICA-7-58'
+    Converts ``ICA-96-1-art563`` -> ``ica_96-1-art563`` (type_number format).
+    Handles both golden-set dash-separated IDs and already-canonical IDs.
     """
-    return _normalize_id(regulation_id).split("-art")[0]
+    m = _GOLDEN_ID_RE.match(raw_id)
+    if m:
+        dtype = re.sub(r'[^a-z0-9]', '', m.group('type').lower())
+        rest = m.group('rest')
+        return f"{dtype}_{rest}"
+    return raw_id
 
 
-def _is_doc_level_id(doc_id: str) -> bool:
-    """True when the expected ID has no article suffix."""
-    return "-art" not in doc_id
+def _strip_version(norm_id: str) -> str:
+    """Strip /YYYY version suffix for version-agnostic matching."""
+    return _VERSION_YEAR_RE.sub('', norm_id)
 
 
-def _canonical_base(doc_type: str, number: str) -> str:
-    """Compute canonical base ID (same logic as compute_canonical_id)."""
-    dtype = re.sub(r'[^a-z0-9]', '', doc_type.lower())
-    num = re.sub(r'[^0-9a-z./-]', '', number.lower()).strip('-./') 
-    return f'{dtype}_{num}' if dtype and num else ''
+def _extract_doc_id(raw_id: str) -> str:
+    """Normalize and strip the article suffix.
 
-
-def _expected_canonical(expected_id: str) -> Tuple[str, Optional[str]]:
-    """Convert golden-set ID to (canonical_base, article_number).
-
-    'ICA-96-1-art563' -> ('ica_96-1', '563')
-    'ICA-7-58'        -> ('ica_7-58', None)
+    ``ica_96-1/2025-art563`` -> ``ica_96-1/2025``
+    ``ICA-96-1-art10``       -> ``ica_96-1``
     """
-    m = _EXPECTED_ID_RE.match(expected_id)
-    if not m:
-        return ('', None)
-    base = _canonical_base(m.group('type'), m.group('number'))
-    return (base, m.group('article'))
+    return _normalize_id(raw_id).split("-art")[0]
 
 
-def _matches_expected(
-    retrieved_id: str,
-    expected_id: str,
-    canonical_map: Optional[Dict[str, str]] = None,
-) -> bool:
-    """Match a retrieved chunk against an expected ID.
+def _is_doc_level_id(norm_id: str) -> bool:
+    return "-art" not in norm_id
 
-    Strategy 1: regulation_id comparison (source prefix stripped).
-    Strategy 2: canonical_id comparison (year stripped, article matched).
+
+def _matches_expected(retrieved_id: str, expected_id: str) -> bool:
+    """Match a retrieved chunk against an expected golden-set ID.
+
+    Matching is version-agnostic: ``ica_96-1/2025-art563`` matches ``ICA-96-1-art563``.
+    Doc-level expected IDs (no ``-art``) match any article of that document.
     """
-    r = _normalize_id(retrieved_id)
-    e = _normalize_id(expected_id)
+    r = _strip_version(_normalize_id(retrieved_id))
+    e = _strip_version(_normalize_id(expected_id))
+
     if _is_doc_level_id(e):
-        if _extract_doc_id(r) == e:
-            return True
-    elif r == e:
-        return True
-
-    canonical_id = (canonical_map or {}).get(retrieved_id)
-    if canonical_id:
-        r_base = _YEAR_SUFFIX_RE.sub('', canonical_id)
-        r_art_m = re.search(r'-art(\d+)', retrieved_id)
-        r_art = r_art_m.group(1) if r_art_m else None
-
-        e_base, e_art = _expected_canonical(expected_id)
-        if e_base and r_base == e_base:
-            if e_art is None:
-                return True
-            return r_art == e_art
-
-    return False
+        return _extract_doc_id(r) == e
+    return r == e
 
 
-def _any_match(
-    retrieved_id: str,
-    expected_ids,
-    canonical_map: Optional[Dict[str, str]] = None,
-) -> bool:
-    """True if retrieved_id matches ANY of the expected IDs."""
-    return any(
-        _matches_expected(retrieved_id, eid, canonical_map)
-        for eid in expected_ids
-    )
+def _any_match(retrieved_id: str, expected_ids) -> bool:
+    return any(_matches_expected(retrieved_id, eid) for eid in expected_ids)
 
 
 def _compute_ndcg(
@@ -184,22 +147,18 @@ def _compute_ndcg(
     relevant: List[str],
     moderate: List[str],
     k: int,
-    canonical_map: Optional[Dict[str, str]] = None,
 ) -> float:
-    """Compute NDCG@K with graded relevance (relevant=2, moderate=1).
-
-    Each expected doc is counted at most once (first matching chunk wins).
-    """
-    matched_relevant = set()
-    matched_moderate = set()
+    """Compute NDCG@K with graded relevance (relevant=2, moderate=1)."""
+    matched_relevant: set = set()
+    matched_moderate: set = set()
     dcg = 0.0
     for i, doc_id in enumerate(retrieved_ids[:k]):
-        matched_exp = _first_unmatched(doc_id, relevant, matched_relevant, canonical_map)
+        matched_exp = _first_unmatched(doc_id, relevant, matched_relevant)
         if matched_exp:
             matched_relevant.add(matched_exp)
             dcg += 2.0 / math.log2(i + 2)
             continue
-        matched_exp = _first_unmatched(doc_id, moderate, matched_moderate, canonical_map)
+        matched_exp = _first_unmatched(doc_id, moderate, matched_moderate)
         if matched_exp:
             matched_moderate.add(matched_exp)
             dcg += 1.0 / math.log2(i + 2)
@@ -217,11 +176,10 @@ def _first_unmatched(
     retrieved_id: str,
     expected_ids: List[str],
     already_matched: set,
-    canonical_map: Optional[Dict[str, str]] = None,
 ) -> Optional[str]:
     """Return the first expected ID that matches and hasn't been matched yet."""
     for eid in expected_ids:
-        if eid not in already_matched and _matches_expected(retrieved_id, eid, canonical_map):
+        if eid not in already_matched and _matches_expected(retrieved_id, eid):
             return eid
     return None
 
@@ -295,19 +253,6 @@ class RetrievalEvaluator:
         retrieved_ids = [r.payload.get('regulation_id', '') for r in raw_results]
         retrieved_scores = [(r.payload.get('regulation_id', ''), r.score) for r in raw_results]
 
-        canonical_map: Dict[str, str] = {}
-        for r in raw_results:
-            reg_id = r.payload.get('regulation_id', '')
-            meta = r.payload.get('metadata', {})
-            if isinstance(meta, str):
-                try:
-                    meta = json.loads(meta)
-                except (json.JSONDecodeError, TypeError):
-                    meta = {}
-            can_id = meta.get('canonical_id', '')
-            if can_id:
-                canonical_map[reg_id] = can_id
-
         if 'NOT_IN_DB' in relevant_set:
             return QueryResult(
                 query_id=query_id, query=query, category=category,
@@ -320,22 +265,22 @@ class RetrievalEvaluator:
 
         relevant_found = []
         moderate_found = []
-        seen_relevant = set()
-        seen_moderate = set()
+        seen_relevant: set = set()
+        seen_moderate: set = set()
         for d in retrieved_ids:
-            exp = _first_unmatched(d, list(relevant_set), seen_relevant, canonical_map)
+            exp = _first_unmatched(d, list(relevant_set), seen_relevant)
             if exp:
                 relevant_found.append(d)
                 seen_relevant.add(exp)
                 continue
-            exp = _first_unmatched(d, list(moderate_set), seen_moderate, canonical_map)
+            exp = _first_unmatched(d, list(moderate_set), seen_moderate)
             if exp:
                 moderate_found.append(d)
                 seen_moderate.add(exp)
 
         first_relevant_rank = next(
             (i for i, d in enumerate(retrieved_ids, 1)
-             if _any_match(d, relevant_set, canonical_map)),
+             if _any_match(d, relevant_set)),
             None
         )
 
@@ -344,7 +289,7 @@ class RetrievalEvaluator:
         precision_at_k = matched / k if k > 0 else 0.0
         recall = matched / len(all_expected) if all_expected else 0.0
         ndcg = _compute_ndcg(
-            retrieved_ids, relevant_expected, moderate_expected, k, canonical_map,
+            retrieved_ids, relevant_expected, moderate_expected, k,
         )
         hit = bool(relevant_found or moderate_found)
 

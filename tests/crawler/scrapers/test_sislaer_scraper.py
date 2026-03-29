@@ -2,7 +2,7 @@
 
 import pytest
 
-from crawler.scrapers.base import compute_canonical_id, ScrapedDocument
+from crawler.scrapers.base import compute_canonical_id, split_version_year, ScrapedDocument
 from crawler.scrapers.sislaer_scraper import (
     _parse_title,
     _normalize_doc_type,
@@ -130,6 +130,37 @@ class TestComputeCanonicalId:
 
     def test_empty_strings(self):
         assert compute_canonical_id("", "") is None
+
+    def test_strips_type_prefix_from_number(self):
+        """DECEA passes number with type prefix (ICA96-1) — should match SISLAER."""
+        assert compute_canonical_id("ICA", "ICA96-1") == "ica_96-1"
+        assert compute_canonical_id("ICA", "ICA-96-1") == "ica_96-1"
+        assert compute_canonical_id("ica", "ICA-96-1") == "ica_96-1"
+
+    def test_cross_source_produces_same_id(self):
+        """Same regulation from SISLAER and DECEA produces identical canonical ID."""
+        sislaer = compute_canonical_id("ICA", "96-1")
+        decea = compute_canonical_id("ICA", "ICA96-1")
+        assert sislaer == decea == "ica_96-1"
+
+    def test_does_not_strip_partial_prefix(self):
+        """Number 'ICAO-123' should NOT strip 'ICA' prefix from 'ICAO'."""
+        assert compute_canonical_id("ICA", "ICAO-123") == "ica_o-123"
+
+
+class TestSplitVersionYear:
+
+    def test_with_year(self):
+        assert split_version_year("96-1/2025") == ("96-1", "2025")
+
+    def test_without_year(self):
+        assert split_version_year("8666") == ("8666", None)
+
+    def test_non_year_suffix(self):
+        assert split_version_year("1082/GM3") == ("1082/GM3", None)
+
+    def test_multiple_slashes_with_year(self):
+        assert split_version_year("552/3VP/2025") == ("552/3VP", "2025")
 
 
 class TestParseResultMeta:

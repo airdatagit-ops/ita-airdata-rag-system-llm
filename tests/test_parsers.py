@@ -15,14 +15,30 @@ def test_temporal_extractor():
     assert dates["is_revoked"] == False
 
 
-def test_revocation_detection():
-    """Test revocation detection."""
+def test_revocation_detection_revoking_act():
+    """A document that revokes ANOTHER law should NOT be marked as revoked itself."""
     extractor = TemporalExtractor()
 
     text = "Fica revogada a Lei nº 1234"
     dates = extractor.extract_dates(text)
+    assert dates["is_revoked"] is False
 
-    assert dates["is_revoked"] == True
+
+def test_revocation_detection_revoked_by():
+    """A document revoked by another regulation should be detected."""
+    extractor = TemporalExtractor()
+
+    text = "Esta instrução foi revogada pela Portaria nº 456/2024."
+    dates = extractor.extract_dates(text)
+    assert dates["is_revoked"] is True
+
+
+def test_revocation_detection_perde_vigencia():
+    extractor = TemporalExtractor()
+
+    text = "Esta norma perde sua vigência em 01/01/2025."
+    dates = extractor.extract_dates(text)
+    assert dates["is_revoked"] is True
 
 
 if __name__ == "__main__":
