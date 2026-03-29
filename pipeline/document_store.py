@@ -425,6 +425,19 @@ class DocumentStore:
             conn.execute(
                 "UPDATE documents SET is_latest = 1 WHERE canonical_id IS NULL"
             )
+            # Mark non-latest active versions as superseded
+            superseded = conn.execute("""
+                UPDATE documents SET status = 'superseded'
+                WHERE is_latest = 0
+                  AND status = 'active'
+                  AND canonical_id IS NOT NULL
+                  AND canonical_id IN (
+                      SELECT canonical_id FROM documents
+                      WHERE is_latest = 1 AND canonical_id IS NOT NULL
+                  )
+            """).rowcount
+            if superseded:
+                logger.info(f"Marked {superseded} older versions as superseded")
             row = conn.execute(
                 "SELECT COUNT(*) AS n FROM documents WHERE is_latest = 1"
             ).fetchone()
