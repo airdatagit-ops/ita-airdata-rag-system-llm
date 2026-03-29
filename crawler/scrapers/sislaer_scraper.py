@@ -93,12 +93,28 @@ def _resolve_norma_codes(type_names: Set[str]) -> List[int]:
     return sorted(set(codes))
 
 
+_KNOWN_TYPES_SORTED = sorted(NORMA_CODE_MAP.keys(), key=len, reverse=True)
+
+
 def _parse_title(raw: str) -> Dict[str, Optional[str]]:
-    """Extract doc_type and number from a SISLAER title."""
-    m = _TITLE_RE.match(raw.strip())
-    if not m:
-        return {"doc_type": None, "number": None}
-    return {"doc_type": m.group("type").strip(), "number": m.group("number").strip()}
+    """Extract doc_type and number from a SISLAER title.
+
+    Handles structured titles like ``ICA 96-1/2025`` as well as
+    type-only titles like ``NSCA`` or ``NSCA/2023``.
+    """
+    text = raw.strip()
+    m = _TITLE_RE.match(text)
+    if m:
+        return {"doc_type": m.group("type").strip(), "number": m.group("number").strip()}
+
+    upper = text.upper()
+    for norma_type in _KNOWN_TYPES_SORTED:
+        if upper.startswith(norma_type):
+            rest = text[len(norma_type):].strip().lstrip("/").strip()
+            number = rest if rest else None
+            return {"doc_type": norma_type, "number": number}
+
+    return {"doc_type": None, "number": None}
 
 
 def _normalize_doc_type(raw: Optional[str]) -> Optional[str]:

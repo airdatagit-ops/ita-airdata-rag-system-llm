@@ -159,6 +159,12 @@ class TestSplitVersionYear:
     def test_non_year_suffix(self):
         assert split_version_year("1082/GM3") == ("1082/GM3", None)
 
+    def test_none_input(self):
+        assert split_version_year(None) == ("", None)
+
+    def test_empty_string(self):
+        assert split_version_year("") == ("", None)
+
     def test_multiple_slashes_with_year(self):
         assert split_version_year("552/3VP/2025") == ("552/3VP", "2025")
 

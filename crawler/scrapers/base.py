@@ -60,15 +60,19 @@ def compute_canonical_id(doc_type: Optional[str], number: Optional[str]) -> Opti
     return f"{dtype}_{num}" if dtype and num else None
 
 
-def split_version_year(number: str) -> tuple[str, Optional[str]]:
+def split_version_year(number: str | None) -> tuple[str, Optional[str]]:
     """Split a trailing ``/YYYY`` year suffix from a document number.
 
     Returns ``(number_without_year, year_str_or_None)``.
+    Safely handles ``None`` / empty inputs.
 
         "96-1/2025"  -> ("96-1", "2025")
         "8666"       -> ("8666", None)
         "1082/GM3"   -> ("1082/GM3", None)  # not a 4-digit year
+        None         -> ("", None)
     """
+    if not number:
+        return ("", None)
     if "/" in number:
         base, maybe_year = number.rsplit("/", 1)
         if len(maybe_year) == 4 and maybe_year.isdigit():

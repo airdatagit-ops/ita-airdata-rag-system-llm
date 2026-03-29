@@ -156,10 +156,10 @@ class LexMLScraper(BaseScraper):
         exclude = {"content"}
         metadata = {k: v for k, v in doc.items() if k not in exclude}
 
-        doc_type = doc.get("doc_type", "")
-        raw_number = doc.get("number", "")
-        authority = doc.get("authority", "")
-        urn = doc.get("urn", "")
+        doc_type = doc.get("doc_type") or ""
+        raw_number = doc.get("number") or ""
+        authority = doc.get("authority") or ""
+        urn = doc.get("urn") or ""
 
         number, version_year = split_version_year(raw_number)
         canonical = compute_canonical_id(doc_type, number)
@@ -187,13 +187,13 @@ class LexMLScraper(BaseScraper):
 
     def make_doc_id(self, doc: Dict) -> str:
         """Generate a doc_id for skip-existing checks during search phase."""
-        doc_type = doc.get("doc_type", "")
-        raw_number = doc.get("number", "")
+        doc_type = doc.get("doc_type") or ""
+        raw_number = doc.get("number") or ""
         number, version_year = split_version_year(raw_number)
         canonical = compute_canonical_id(doc_type, number)
         if canonical:
             return f"{canonical}/{version_year}" if version_year else canonical
-        return self._urn_doc_id(doc.get("urn", ""))
+        return self._urn_doc_id(doc.get("urn") or "")
 
     @staticmethod
     def _urn_doc_id(urn: str) -> str:

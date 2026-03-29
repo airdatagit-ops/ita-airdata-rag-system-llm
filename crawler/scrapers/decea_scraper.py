@@ -187,10 +187,10 @@ class DECEAScraper(BaseScraper):
             if not content or len(content.strip()) < 50:
                 return None
 
-            slug = doc.get("slug", "")
-            raw_number = doc.get("number", "")
-            doc_type = doc.get("doc_type", "")
-            authority = doc.get("origin", "DECEA")
+            slug = doc.get("slug") or ""
+            raw_number = doc.get("number") or ""
+            doc_type = (doc.get("doc_type") or "").upper()
+            authority = doc.get("origin") or "DECEA"
 
             number, version_year = split_version_year(raw_number)
             canonical = compute_canonical_id(doc_type, number)
