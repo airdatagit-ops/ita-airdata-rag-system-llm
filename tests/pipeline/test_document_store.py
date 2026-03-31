@@ -312,6 +312,50 @@ class TestDocumentRelations:
         assert len(rels) == 1
         assert rels[0]["source_doc_id"] == "sislaer_100"
 
+    def test_upsert_relation_preserves_resolved_target(self, store):
+        store.upsert_document("doc_a", "sislaer", "c1")
+        store.upsert_document("doc_b", "sislaer", "c2")
+        store.upsert_relation("doc_a", "500", "amends", target_doc_id="doc_b")
+
+        store.upsert_relation("doc_a", "500", "amends")
+
+        rels = store.get_relations("doc_a")
+        assert len(rels) == 1
+        assert rels[0]["target_doc_id"] == "doc_b"
+
+    def test_upsert_relation_updates_target(self, store):
+        store.upsert_document("doc_a", "sislaer", "c1")
+        store.upsert_document("doc_b", "sislaer", "c2")
+        store.upsert_document("doc_c", "sislaer", "c3")
+        store.upsert_relation("doc_a", "500", "amends", target_doc_id="doc_b")
+
+        store.upsert_relation("doc_a", "500", "amends", target_doc_id="doc_c")
+
+        rels = store.get_relations("doc_a")
+        assert len(rels) == 1
+        assert rels[0]["target_doc_id"] == "doc_c"
+
+    def test_delete_by_source_cleans_relations(self, store):
+        store.upsert_document("doc1", "sislaer", "c1")
+        store.upsert_document("doc2", "lexml", "c2")
+        store.upsert_relation("doc1", "999", "amends")
+
+        store.delete_by_source("sislaer")
+
+        rels = store.get_relations("doc1")
+        assert len(rels) == 0
+
+    def test_delete_by_source_nullifies_target(self, store):
+        store.upsert_document("doc_src", "lexml", "c1")
+        store.upsert_document("doc_tgt", "sislaer", "c2")
+        store.upsert_relation("doc_src", "ref", "correlates", target_doc_id="doc_tgt")
+
+        store.delete_by_source("sislaer")
+
+        rels = store.get_relations("doc_src")
+        assert len(rels) == 1
+        assert rels[0]["target_doc_id"] is None
+
 
 class TestStats:
 

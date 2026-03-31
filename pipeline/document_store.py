@@ -256,6 +256,14 @@ class DocumentStore:
                     f"DELETE FROM embedding_log WHERE doc_id IN ({placeholders})",
                     doc_ids,
                 )
+                conn.execute(
+                    f"DELETE FROM document_relations WHERE source_doc_id IN ({placeholders})",
+                    doc_ids,
+                )
+                conn.execute(
+                    f"UPDATE document_relations SET target_doc_id = NULL WHERE target_doc_id IN ({placeholders})",
+                    doc_ids,
+                )
             n = conn.execute(
                 "DELETE FROM documents WHERE source = ?", (source,)
             ).rowcount
@@ -352,9 +360,13 @@ class DocumentStore:
         """Insert or update a relationship between documents."""
         with self._conn() as conn:
             conn.execute(
-                """INSERT OR REPLACE INTO document_relations
+                """INSERT INTO document_relations
                    (source_doc_id, target_doc_id, target_ref, relation_type)
-                   VALUES (?, ?, ?, ?)""",
+                   VALUES (?, ?, ?, ?)
+                   ON CONFLICT(source_doc_id, target_ref, relation_type)
+                   DO UPDATE SET target_doc_id =
+                       COALESCE(excluded.target_doc_id,
+                                document_relations.target_doc_id)""",
                 (source_doc_id, target_doc_id, target_ref, relation_type),
             )
 
