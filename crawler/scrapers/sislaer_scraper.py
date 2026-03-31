@@ -703,8 +703,8 @@ class SISLAERScraper(BaseScraper):
             or _extract_date_from_text(detail.get("publicacao"))
             or detail.get("portaria_aprovacao")
         )
+        source_ref = f"sislaer:{reg_id}"
         metadata = {
-            "source_ref": f"sislaer:{reg_id}",
             "situacao": detail.get("situacao"),
             "publication_date": pub_date,
             "revocation_date": detail.get("revocation_date"),
@@ -735,6 +735,7 @@ class SISLAERScraper(BaseScraper):
             url=url,
             doc_type=doc_type,
             canonical_id=canonical,
+            source_ref=source_ref,
             status=status,
             number=number,
             authority=authority,

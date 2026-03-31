@@ -93,6 +93,7 @@ class ScrapedDocument:
     urn: Optional[str] = None
     doc_type: Optional[str] = None
     canonical_id: Optional[str] = None
+    source_ref: Optional[str] = None
     status: Optional[str] = None
     number: Optional[str] = None
     authority: Optional[str] = None

@@ -203,8 +203,6 @@ class DECEAScraper(BaseScraper):
             metadata = {
                 k: v for k, v in doc.items() if k not in exclude
             }
-            metadata["source_ref"] = f"decea:{slug}"
-
             return ScrapedDocument(
                 doc_id=doc_id,
                 source=self.source_name,
@@ -214,6 +212,7 @@ class DECEAScraper(BaseScraper):
                 url=doc.get("source_url"),
                 doc_type=doc_type,
                 canonical_id=canonical,
+                source_ref=f"decea:{slug}",
                 number=number,
                 authority=authority,
                 version_year=version_year,

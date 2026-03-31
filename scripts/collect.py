@@ -137,6 +137,7 @@ async def _collect_source(
                 number=number,
                 authority=authority,
                 canonical_id=canonical,
+                source_ref=doc.source_ref,
                 version_year=doc.version_year,
                 **temporal,
             )
@@ -242,6 +243,7 @@ async def _collect_lexml(
                 number=number,
                 authority=authority,
                 canonical_id=canonical,
+                source_ref=doc.source_ref,
                 version_year=doc.version_year,
                 **temporal,
             )

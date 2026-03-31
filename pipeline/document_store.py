@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS documents (
     number         TEXT,
     authority      TEXT,
     canonical_id   TEXT,
+    source_ref     TEXT,
     version_year   TEXT,
     is_latest      INTEGER DEFAULT 1,
     scraped_at     TEXT NOT NULL,
@@ -56,6 +57,7 @@ CREATE INDEX IF NOT EXISTS idx_status       ON documents(status);
 CREATE INDEX IF NOT EXISTS idx_number       ON documents(number);
 CREATE INDEX IF NOT EXISTS idx_authority    ON documents(authority);
 CREATE INDEX IF NOT EXISTS idx_canonical    ON documents(canonical_id);
+CREATE INDEX IF NOT EXISTS idx_source_ref   ON documents(source_ref);
 
 CREATE TABLE IF NOT EXISTS document_relations (
     source_doc_id  TEXT NOT NULL,
@@ -112,10 +114,22 @@ class DocumentStore:
         for col, typedef in [
             ("version_year", "TEXT"),
             ("is_latest", "INTEGER DEFAULT 1"),
+            ("source_ref", "TEXT"),
         ]:
             if col not in existing:
                 conn.execute(f"ALTER TABLE documents ADD COLUMN {col} {typedef}")
                 logger.info(f"Migrated: added column '{col}' to documents")
+
+        if "source_ref" not in existing:
+            backfilled = conn.execute(
+                """UPDATE documents SET source_ref = json_extract(metadata, '$.source_ref')
+                   WHERE source_ref IS NULL AND metadata IS NOT NULL"""
+            ).rowcount
+            if backfilled:
+                logger.info(f"Migrated: backfilled {backfilled} source_ref values from metadata")
+
+        # Drop expression index superseded by the column index
+        conn.execute("DROP INDEX IF EXISTS idx_source_ref_json")
 
     def close(self) -> None:
         if self._connection:
@@ -158,6 +172,7 @@ class DocumentStore:
         number: str = None,
         authority: str = None,
         canonical_id: str = None,
+        source_ref: str = None,
         version_year: str = None,
     ) -> Action:
         content_hash = self.compute_content_hash(content)
@@ -176,13 +191,13 @@ class DocumentStore:
                         content_hash, doc_type, metadata,
                         effective_date, expiry_date, status,
                         number, authority, canonical_id,
-                        version_year, scraped_at, updated_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        source_ref, version_year, scraped_at, updated_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (doc_id, source, urn, url, title, content,
                      content_hash, doc_type, meta_json,
                      effective_date, expiry_date, status,
                      number, authority, canonical_id,
-                     version_year, now, now),
+                     source_ref, version_year, now, now),
                 )
                 return "inserted"
 
@@ -196,13 +211,13 @@ class DocumentStore:
                        metadata = ?, effective_date = ?,
                        expiry_date = ?, status = ?,
                        number = ?, authority = ?, canonical_id = ?,
-                       version_year = ?, updated_at = ?
+                       source_ref = ?, version_year = ?, updated_at = ?
                    WHERE doc_id = ?""",
                 (content, content_hash, title, url, urn,
                  doc_type, meta_json, effective_date,
                  expiry_date, status,
                  number, authority, canonical_id,
-                 version_year, now, doc_id),
+                 source_ref, version_year, now, doc_id),
             )
             return "updated"
 
@@ -384,24 +399,21 @@ class DocumentStore:
         """Resolve target_ref -> target_doc_id for SISLAER relations.
 
         Matches target_ref (a codigoRegistro) against documents whose
-        metadata contains a matching ``source_ref``. Returns the number
-        of resolved relations.
+        ``source_ref`` column contains a matching value. Returns the
+        number of resolved relations.
         """
         with self._conn() as conn:
-            # Try matching via metadata JSON source_ref (new canonical IDs)
             result = conn.execute(
                 """UPDATE document_relations
                    SET target_doc_id = (
                        SELECT doc_id FROM documents
-                       WHERE json_extract(metadata, '$.source_ref') =
-                             'sislaer:' || document_relations.target_ref
+                       WHERE source_ref = 'sislaer:' || document_relations.target_ref
                        LIMIT 1
                    )
                    WHERE target_doc_id IS NULL
                      AND EXISTS (
                        SELECT 1 FROM documents
-                       WHERE json_extract(metadata, '$.source_ref') =
-                             'sislaer:' || document_relations.target_ref
+                       WHERE source_ref = 'sislaer:' || document_relations.target_ref
                      )""",
             )
             resolved = result.rowcount

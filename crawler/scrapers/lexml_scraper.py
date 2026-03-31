@@ -168,8 +168,6 @@ class LexMLScraper(BaseScraper):
             if canonical else self._urn_doc_id(urn)
         )
 
-        metadata["source_ref"] = f"lexml:{urn}" if urn else None
-
         return ScrapedDocument(
             doc_id=doc_id,
             source=self.source_name,
@@ -180,6 +178,7 @@ class LexMLScraper(BaseScraper):
             urn=urn,
             doc_type=doc_type,
             canonical_id=canonical,
+            source_ref=f"lexml:{urn}" if urn else None,
             number=number,
             authority=authority,
             version_year=version_year,

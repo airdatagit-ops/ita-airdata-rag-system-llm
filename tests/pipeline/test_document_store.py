@@ -276,11 +276,11 @@ class TestDocumentRelations:
     def test_resolve_relations(self, store):
         store.upsert_document(
             "ica_100-1/2025", "sislaer", "c1",
-            metadata={"source_ref": "sislaer:100"},
+            source_ref="sislaer:100",
         )
         store.upsert_document(
             "ica_200-1/2025", "sislaer", "c2",
-            metadata={"source_ref": "sislaer:200"},
+            source_ref="sislaer:200",
         )
         store.upsert_relation("ica_100-1/2025", "200", "amends")
 
@@ -293,7 +293,7 @@ class TestDocumentRelations:
     def test_resolve_relations_unresolvable(self, store):
         store.upsert_document(
             "ica_100-1/2025", "sislaer", "c1",
-            metadata={"source_ref": "sislaer:100"},
+            source_ref="sislaer:100",
         )
         store.upsert_relation("ica_100-1/2025", "999", "correlates")
 
