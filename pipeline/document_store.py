@@ -127,9 +127,9 @@ class DocumentStore:
             ).rowcount
             if backfilled:
                 logger.info(f"Migrated: backfilled {backfilled} source_ref values from metadata")
-
-        # Drop expression index superseded by the column index
-        conn.execute("DROP INDEX IF EXISTS idx_source_ref_json")
+            # Replace any prior expression index with the column index
+            conn.execute("DROP INDEX IF EXISTS idx_source_ref")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_source_ref ON documents(source_ref)")
 
     def close(self) -> None:
         if self._connection:

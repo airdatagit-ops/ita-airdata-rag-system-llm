@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore
+.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate
 
 PYTHON ?= python
 K ?= 5
@@ -58,6 +58,7 @@ help:
 	@echo "  make explore                                      Open datasette web UI for the store"
 	@echo ""
 	@echo "  ── utilities ─────────────────────────────────────────────────────────"
+	@echo "  make migrate                                      Run database migrations"
 	@echo "  make test                                         Run all unit tests"
 	@echo "  make test FILE=tests/evaluation                   Run tests in a specific dir or file"
 	@echo "  make clean                                        Remove evaluation result files"
@@ -109,6 +110,9 @@ query:
 
 explore:
 	$(PYTHON) -m datasette serve --immutable $(STORE_DB) --metadata metadata.yml --open --setting sql_time_limit_ms 30000
+
+migrate:
+	@$(PYTHON) -c "from pipeline.document_store import DocumentStore; store = DocumentStore(); store.close()"
 
 clean:
 	rm -f evaluation/results/*.csv evaluation/results/*.json
