@@ -508,8 +508,33 @@ O `DocumentStore` (`pipeline/document_store.py`) mantém um registro em SQLite (
 - Conteúdo completo de cada documento
 - Hash SHA256 do conteúdo (para detectar alterações)
 - Metadados (título, URL, URN, tipo, source)
+- `source_ref` — referência canônica da fonte (ex: `sislaer:12345`, `lexml:urn:...`)
+- `canonical_id` — ID cross-source para deduplicação (ex: `ica_100-12`)
 - Timestamps de coleta e atualização
 - Log de embeddings gerados
+- Grafo de relacionamentos entre documentos (`document_relations`)
+
+#### Relacionamentos entre documentos
+
+A tabela `document_relations` captura vínculos extraídos das páginas do SISLAER:
+
+| Tipo | Significado |
+|------|-------------|
+| `amends` | Documento A altera documento B |
+| `amended_by` | Documento A é alterado por B |
+| `correlates` | Referência cruzada entre documentos |
+| `revokes` | Documento A revoga B |
+| `revoked_by` | Documento A é revogado por B |
+
+Após a coleta, `resolve_relations()` resolve as referências internas para `doc_id`s reais usando a coluna indexada `source_ref`. O status de revogação é usado para filtrar documentos inativos na busca vetorial.
+
+#### Migrações
+
+O schema evolui incrementalmente. Migrações são idempotentes e rodam automaticamente na inicialização, mas podem ser executadas explicitamente:
+
+```bash
+make migrate
+```
 
 Isso evita re-downloads desnecessários em execuções subsequentes.
 
@@ -1120,6 +1145,7 @@ python -m pytest tests/ -v --tb=short
 | Comando | Descrição |
 |---------|-----------|
 | `make help` | Lista todos os comandos disponíveis |
+| `make migrate` | Executa migrações do banco SQLite |
 | `make test` | Executa todos os testes unitários |
 | `make test FILE=<path>` | Executa testes de um arquivo ou diretório |
 | `make eval` | Executa ambas as avaliações (retrieval + geração) |
