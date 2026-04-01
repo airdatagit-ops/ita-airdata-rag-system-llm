@@ -163,7 +163,7 @@ sudo systemctl enable nginx
 | **Ollama** | 11434 | `ollama list` |
 | **API RAG** | 8083 | `curl http://127.0.0.1:8083/health` |
 | **Web App** | 8082 | `curl http://127.0.0.1:8082/health` |
-| **Datasette** | 8001 | `curl http://127.0.0.1:8001/datasette/` |
+| **Datasette** | 8001 | `curl http://127.0.0.1:8001/explore/` |
 | **nginx** | 80 | `curl http://localhost/ragweb/health` |
 
 ### 2.7. Verificação rápida de todos os pré-requisitos
@@ -739,12 +739,12 @@ allow:
 
 ```bash
 python -m datasette serve --immutable data/store.db --metadata metadata.yml \
-  --host 127.0.0.1 --port 8001 --setting base_url /datasette/ --cors
+  --host 127.0.0.1 --port 8001 --setting base_url /explore/ --cors
 ```
 
 ```nginx
-location /datasette/ {
-    proxy_pass http://127.0.0.1:8001/datasette/;
+location /explore/ {
+    proxy_pass http://127.0.0.1:8001/explore/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
 }
@@ -1317,7 +1317,7 @@ O deploy instala automaticamente a configuração em `/etc/nginx/sites-available
 
 - `/ragweb/` → proxy para a interface web (porta 8082)
 - `/ragapi/` → proxy para a API RAG (porta 8083) com suporte a SSE
-- `/datasette/` → proxy para o explorador de dados (porta 8001)
+- `/explore/` → proxy para o explorador de dados (porta 8001)
 
 Comandos manuais:
 
@@ -1333,7 +1333,7 @@ sudo tail -f /var/log/nginx/error.log
 |---------|-----|
 | Interface Web | `http://SEU_IP/ragweb/` |
 | API RAG | `http://SEU_IP/ragapi/` |
-| Datasette | `http://SEU_IP/datasette/` |
+| Datasette | `http://SEU_IP/explore/` |
 | Health (API) | `http://SEU_IP/ragapi/health` |
 | Health (Web) | `http://SEU_IP/ragweb/health` |
 | Estatísticas | `http://SEU_IP/ragapi/stats` (requer API Key) |

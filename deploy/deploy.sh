@@ -160,7 +160,7 @@ health_check() {
     local endpoints=(
         "http://127.0.0.1:8083/health|API"
         "http://127.0.0.1:8082/health|Web"
-        "http://127.0.0.1:8001/datasette/|Datasette"
+        "http://127.0.0.1:8001/explore/|Datasette"
     )
 
     for entry in "${endpoints[@]}"; do
@@ -380,5 +380,5 @@ echo "  Deploy complete!"
 echo "========================================"
 echo "  Web:       http://<IP>/ragweb/"
 echo "  API:       http://<IP>/ragapi/"
-echo "  Datasette: http://<IP>/datasette/"
+echo "  Explore:   http://<IP>/explore/"
 echo "========================================"
