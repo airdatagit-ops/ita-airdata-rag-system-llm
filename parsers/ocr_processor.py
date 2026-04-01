@@ -76,11 +76,13 @@ class OCRProcessor:
             return False
             
         try:
+            import logging
+            logging.getLogger('ppocr').setLevel(logging.WARNING)
+
             logger.info("Initializing PaddleOCR engine (this may take a moment)...")
             OCRProcessor._ocr = PaddleOCR(
-                use_angle_cls=True,  # Detect and correct text rotation
+                use_angle_cls=True,
                 lang=self.lang,
-                show_log=False
             )
             self._initialized = True
             logger.success("PaddleOCR initialized successfully")
