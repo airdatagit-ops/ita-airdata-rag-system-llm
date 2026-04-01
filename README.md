@@ -81,40 +81,106 @@ Pergunta do usuário
 
 ## 2. Pré-requisitos e Dependências Externas
 
-### 2.1. Serviços que precisam estar rodando
+### 2.1. Pacotes de sistema (Ubuntu/Debian)
 
-| Serviço | Porta Padrão | Instalação |
-|---------|-------------|------------|
-| **Qdrant** | 6333 | Docker: `docker run -d -p 6333:6333 qdrant/qdrant` |
-| **Ollama** | 11434 | `curl -fsSL https://ollama.com/install.sh \| sh` |
+```bash
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip build-essential git curl
+```
 
-### 2.2. Dependências Python do sistema principal
+### 2.2. Docker (para Qdrant)
 
-O arquivo `requirements.txt` na raiz contém todas as dependências. As principais são:
+```bash
+# Instalar Docker Engine
+sudo apt install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+  https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io
 
-| Biblioteca | Função |
-|-----------|--------|
-| `fastapi` | Framework web da API |
-| `uvicorn` | Servidor ASGI |
-| `qdrant-client` | Cliente Python para Qdrant |
-| `sentence-transformers` | Carregamento do modelo de embeddings |
-| `torch` | PyTorch (backend do modelo de embeddings) |
-| `ollama` | Cliente Python para Ollama |
-| `beautifulsoup4` | Parsing HTML dos scrapers |
-| `lxml` | Parser HTML rápido para scraper DECEA |
-| `requests` | Requisições HTTP |
-| `pydantic`, `pydantic-settings` | Validação de dados e configurações |
-| `loguru` | Logging estruturado |
-| `slowapi` | Rate limiting na API |
+# Permitir uso sem sudo (requer re-login)
+sudo usermod -aG docker $USER
 
-### 2.3. Dependências Python da interface web
+# Iniciar Qdrant
+docker run -d --name qdrant --restart always \
+  -p 6333:6333 -p 6334:6334 \
+  -v $(pwd)/qdrant_storage:/qdrant/storage \
+  qdrant/qdrant
 
-O `web/requirements.txt` é um conjunto menor e independente. Veja a documentação em `web/docs/`.
+# Verificar
+curl http://localhost:6333/healthz
+```
 
-### 2.4. Instalação
+### 2.3. GPU — NVIDIA Drivers + CUDA (para servidor com GPU)
+
+```bash
+# Instalar drivers NVIDIA (ajustar versão conforme hardware)
+sudo apt install -y nvidia-driver-535
+
+# Reiniciar e verificar
+sudo reboot
+nvidia-smi
+
+# Verificar modelo da GPU e memória
+nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
+```
+
+O PyTorch (incluído no `requirements.txt`) detecta CUDA automaticamente. Após instalar as dependências Python, confirme:
+
+```bash
+python3 -c "import torch; print(f'CUDA: {torch.cuda.is_available()}, GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"N/A\"}')"
+```
+
+### 2.4. Ollama (LLM local)
+
+```bash
+# Instalar
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Baixar modelo
+ollama pull llama3.2:3b
+
+# Verificar
+ollama list
+systemctl status ollama
+```
+
+### 2.5. nginx (reverse proxy)
+
+```bash
+sudo apt install -y nginx
+sudo systemctl enable nginx
+```
+
+### 2.6. Serviços em produção
+
+| Serviço | Porta | Verificação |
+|---------|-------|-------------|
+| **Qdrant** | 6333 | `curl http://localhost:6333/healthz` |
+| **Ollama** | 11434 | `ollama list` |
+| **API RAG** | 8083 | `curl http://127.0.0.1:8083/health` |
+| **Web App** | 8082 | `curl http://127.0.0.1:8082/health` |
+| **Datasette** | 8001 | `curl http://127.0.0.1:8001/datasette/` |
+| **nginx** | 80 | `curl http://localhost/ragweb/health` |
+
+### 2.7. Verificação rápida de todos os pré-requisitos
+
+```bash
+make check
+```
+
+### 2.8. Instalação das dependências Python
 
 ```bash
 cd aviation-rag-system/
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+cd web/
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -1175,205 +1241,114 @@ python -m pytest tests/ -v --tb=short
 
 ---
 
-## 14. Deploy em Produção (systemctl + Nginx)
+## 14. Deploy em Produção
 
-O sistema está configurado para rodar em produção usando **systemd** para gerenciamento de processos e **Nginx** como reverse proxy.
+O sistema usa **systemd** para gerenciamento de processos, **nginx** como reverse proxy e um **script automatizado** (`deploy/deploy.sh`) que configura tudo.
 
-### 14.1. Serviço da API RAG (`ragapi.service`)
+### 14.1. Deploy automatizado
 
-Este serviço roda o backend da API (busca vetorial + LLM).
+Os templates de configuração estão versionados em `deploy/`:
 
-Arquivo: `/etc/systemd/system/ragapi.service`
-
-```ini
-[Unit]
-Description=API - RAG (Uvicorn)
-After=network.target
-
-[Service]
-Type=simple
-User=jean
-Group=jean
-WorkingDirectory=/home/jean/RAGSystem/aviation-rag-system
-
-# Ativa o venv automaticamente
-Environment="PATH=/home/jean/RAGSystem/aviation-rag-system/venv/bin"
-
-# Comando de execução
-ExecStart=/home/jean/RAGSystem/aviation-rag-system/venv/bin/uvicorn api.server:app --host 127.0.0.1 --port 8083
-
-Restart=always
-RestartSec=5
-
-# Logs
-StandardOutput=journal
-StandardError=journal
+```
+deploy/
+  deploy.sh              # Script principal de deploy
+  ragapi.service         # systemd — API RAG (porta 8083)
+  ragweb.service         # systemd — Web UI (porta 8082)
+  ragexplore.service     # systemd — Datasette (porta 8001)
+  nginx-rag.conf         # nginx — reverse proxy
 ```
 
-### 14.2. Serviço da Interface Web (`ragweb.service`)
-
-Este serviço roda o frontend web.
-
-Arquivo: `/etc/systemd/system/ragweb.service`
-
-```ini
-[Unit]
-Description= RAG Web aplication(Uvicorn)
-After=network.target
-
-[Service]
-Type=simple
-User=jean
-Group=jean
-WorkingDirectory=/home/jean/RAGSystem/aviation-rag-system/web
-
-# Ativa o venv automaticamente
-Environment="PATH=/home/jean/RAGSystem/aviation-rag-system/web/venv/bin"
-
-# Comando de execução
-ExecStart=/home/jean/RAGSystem/aviation-rag-system/web/venv/bin/python main.py
-
-Restart=always
-RestartSec=5
-
-# Logs
-StandardOutput=journal
-StandardError=journal
-```
-
-### 14.3. Comandos de gerenciamento (systemctl)
+#### Primeiro deploy (servidor novo)
 
 ```bash
-# Habilitar os serviços (iniciar automaticamente no boot)
-sudo systemctl enable ragapi
-sudo systemctl enable ragweb
+# 1. Clonar o repositório
+git clone <repo-url> && cd aviation-rag-system
 
-# Iniciar os serviços
-sudo systemctl start ragapi
-sudo systemctl start ragweb
+# 2. Verificar pré-requisitos (ver seção 2)
+make check
 
+# 3. Deploy completo (cria .env, instala deps, configura serviços)
+make deploy-first
+
+# 4. Editar os arquivos .env com suas configurações
+nano .env          # API_KEY, OLLAMA_MODEL, etc.
+nano web/.env      # API_KEY (mesmo valor), API_BASE_URL
+
+# 5. Executar pipeline de ingestão (primeira vez)
+source venv/bin/activate
+make pipeline
+
+# 6. Reiniciar serviços para aplicar .env
+sudo systemctl restart ragapi ragweb
+```
+
+#### Deploys subsequentes (atualização de código)
+
+```bash
+make deploy
+```
+
+Este comando executa: `git pull` → atualiza dependências → reinstala serviços systemd → recarrega nginx → reinicia os 3 serviços → health checks.
+
+### 14.2. Comandos de gerenciamento
+
+```bash
 # Verificar status
-sudo systemctl status ragapi
-sudo systemctl status ragweb
+sudo systemctl status ragapi ragweb ragexplore
 
 # Ver logs em tempo real
 sudo journalctl -u ragapi -f
 sudo journalctl -u ragweb -f
+sudo journalctl -u ragexplore -f
 
-# Reiniciar após alterações no código
-sudo systemctl restart ragapi
-sudo systemctl restart ragweb
+# Reiniciar após alterações manuais
+sudo systemctl restart ragapi ragweb ragexplore
 
-# Parar os serviços
-sudo systemctl stop ragapi
-sudo systemctl stop ragweb
+# Parar todos os serviços
+sudo systemctl stop ragapi ragweb ragexplore
+
+# Verificar saúde do sistema
+make check
 ```
 
-### 14.4. Nginx (Reverse Proxy)
+### 14.3. Configuração nginx
 
-O Nginx atua como reverse proxy, recebendo as requisições na porta 80 e redirecionando para os serviços internos.
+O deploy instala automaticamente a configuração em `/etc/nginx/sites-available/rag`. O arquivo fonte está em `deploy/nginx-rag.conf` e contém:
 
-Arquivo: `/etc/nginx/sites-enabled/default`
+- `/ragweb/` → proxy para a interface web (porta 8082)
+- `/ragapi/` → proxy para a API RAG (porta 8083) com suporte a SSE
+- `/datasette/` → proxy para o explorador de dados (porta 8001)
 
-```nginx
-server {
-    listen 80 default_server;
-    server_name _;
-
-    # Redirect /ragweb to /ragweb/
-    location /ragweb {
-        return 302 /ragweb/;
-    }
-
-    # Interface Web (porta 8082)
-    location /ragweb/ {
-        proxy_pass http://127.0.0.1:8082/;
-
-        proxy_http_version 1.1;
-        proxy_set_header Host                   $host;
-        proxy_set_header X-Real-IP              $remote_addr;
-        proxy_set_header X-Forwarded-for        $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto      $scheme;
-        proxy_redirect off;
-
-        # Timeouts adequados para streaming e RAG
-        proxy_read_timeout 180s;
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 180s;
-    }
-
-    # Redirect /ragapi to /ragapi/
-    location /ragapi {
-        return 302 /ragapi/;
-    }
-
-    # API RAG (porta 8083)
-    location /ragapi/ {
-        proxy_pass http://127.0.0.1:8083/;
-
-        proxy_http_version 1.1;
-        proxy_set_header Host                   $host;
-        proxy_set_header X-Real-IP              $remote_addr;
-        proxy_set_header X-Forwarded-for        $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto      $scheme;
-        proxy_redirect off;
-
-        # Timeouts adequados para RAG + LLM
-        proxy_read_timeout 180s;
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 180s;
-    }
-}
-```
-
-### 14.5. Comandos Nginx
+Comandos manuais:
 
 ```bash
-# Testar configuração
-sudo nginx -t
-
-# Recarregar configuração (sem downtime)
-sudo systemctl reload nginx
-
-# Reiniciar Nginx
-sudo systemctl restart nginx
-
-# Ver logs
+sudo nginx -t                    # Testar configuração
+sudo systemctl reload nginx      # Recarregar sem downtime
 sudo tail -f /var/log/nginx/error.log
-sudo tail -f /var/log/nginx/access.log
 ```
 
-### 14.6. URLs de acesso em produção
-
-Com a configuração acima, os serviços ficam acessíveis em:
+### 14.4. URLs de acesso em produção
 
 | Serviço | URL |
 |---------|-----|
 | Interface Web | `http://SEU_IP/ragweb/` |
 | API RAG | `http://SEU_IP/ragapi/` |
-| Health (Web) | `http://SEU_IP/ragweb/health` |
+| Datasette | `http://SEU_IP/datasette/` |
 | Health (API) | `http://SEU_IP/ragapi/health` |
+| Health (Web) | `http://SEU_IP/ragweb/health` |
 | Estatísticas | `http://SEU_IP/ragapi/stats` (requer API Key) |
 
-### 14.7. Ordem de inicialização em produção
+### 14.5. Ordem de inicialização
 
-A ordem recomendada para inicializar todos os serviços é:
+Os serviços systemd são habilitados para iniciar automaticamente no boot. Se necessário iniciar manualmente:
 
 ```bash
-# 1. Qdrant (se não for Docker com restart: always)
-docker start qdrant
-
-# 2. Ollama (geralmente já roda como serviço)
-sudo systemctl start ollama
-
-# 3. API RAG
-sudo systemctl start ragapi
-
-# 4. Interface Web
-sudo systemctl start ragweb
-
-# 5. Nginx (geralmente já roda)
-sudo systemctl start nginx
+docker start qdrant              # 1. Qdrant
+sudo systemctl start ollama      # 2. Ollama
+sudo systemctl start ragapi      # 3. API RAG
+sudo systemctl start ragweb      # 4. Web UI
+sudo systemctl start ragexplore  # 5. Datasette
+sudo systemctl start nginx       # 6. nginx
 ```
 
 ---

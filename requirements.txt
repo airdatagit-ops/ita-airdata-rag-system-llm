@@ -35,9 +35,7 @@ qdrant-client>=1.6.0
 # ========================================
 # ML / Embeddings
 # ========================================
-# NOTA: PyTorch deve ser instalado ANTES deste arquivo.
-# - CPU:  pip install torch --index-url https://download.pytorch.org/whl/cpu
-# - GPU:  pip install torch
+torch>=2.0.0
 sentence-transformers>=2.2.0
 transformers>=4.30.0
 numpy>=1.24.0
@@ -56,11 +54,10 @@ pillow>=10.0.0
 PyMuPDF>=1.23.0
 
 # ========================================
-# OCR (Opcional - para PDFs escaneados)
+# OCR (PDFs escaneados)
 # ========================================
-# Descomente se precisar de OCR:
-# paddlepaddle>=2.5.0
-# paddleocr>=2.7.0
+paddlepaddle>=2.5.0
+paddleocr>=2.7.0
 
 # ========================================
 # Data Storage (Pipeline)

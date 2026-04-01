@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate
+.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first check
 
 PYTHON ?= python
 K ?= 5
@@ -62,6 +62,11 @@ help:
 	@echo "  make test                                         Run all unit tests"
 	@echo "  make test FILE=tests/evaluation                   Run tests in a specific dir or file"
 	@echo "  make clean                                        Remove evaluation result files"
+	@echo ""
+	@echo "  ── deploy ────────────────────────────────────────────────────────────"
+	@echo "  make check                                        Verify server prerequisites"
+	@echo "  make deploy                                       Deploy (git pull + deps + restart)"
+	@echo "  make deploy-first                                 First-time setup + deploy"
 
 test:
 	$(PYTHON) -m pytest $(or $(FILE),tests/) -v --tb=short
@@ -116,3 +121,12 @@ migrate:
 
 clean:
 	rm -f evaluation/results/*.csv evaluation/results/*.json
+
+deploy:
+	@sudo bash deploy/deploy.sh
+
+deploy-first:
+	@sudo bash deploy/deploy.sh --first-run
+
+check:
+	@bash deploy/deploy.sh --check-only
