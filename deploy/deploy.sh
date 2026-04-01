@@ -247,11 +247,35 @@ if $FIRST_RUN; then
     if [[ ! -f "$PROJECT_DIR/web/.env" ]]; then
         info "Creating web/.env from web/env.example..."
         cp "$PROJECT_DIR/web/env.example" "$PROJECT_DIR/web/.env"
-        sed -i 's/^ENVIRONMENT=development/ENVIRONMENT=production/' "$PROJECT_DIR/web/.env"
-        sed -i 's/^ROOT_PATH=$/ROOT_PATH=\/ragweb/' "$PROJECT_DIR/web/.env"
-        sed -i 's/^RELOAD=True/RELOAD=False/' "$PROJECT_DIR/web/.env"
         chown "$DEPLOY_USER:$DEPLOY_GROUP" "$PROJECT_DIR/web/.env"
         warn "Edit web/.env and set API_KEY (must match root .env)."
+    fi
+fi
+
+# Ensure web/.env has production values (idempotent)
+if [[ -f "$PROJECT_DIR/web/.env" ]]; then
+    _web_env="$PROJECT_DIR/web/.env"
+
+    if ! grep -q '^ENVIRONMENT=' "$_web_env"; then
+        echo 'ENVIRONMENT=production' >> "$_web_env"
+        info "Added ENVIRONMENT=production to web/.env"
+    else
+        sed -i 's/^ENVIRONMENT=.*/ENVIRONMENT=production/' "$_web_env"
+    fi
+
+    sed -i 's/^RELOAD=True/RELOAD=False/' "$_web_env"
+
+    if grep -q '^ROOT_PATH=$' "$_web_env"; then
+        sed -i 's|^ROOT_PATH=$|ROOT_PATH=/ragweb|' "$_web_env"
+    fi
+    if ! grep -q '^ROOT_PATH=' "$_web_env"; then
+        echo 'ROOT_PATH=/ragweb' >> "$_web_env"
+        info "Added ROOT_PATH=/ragweb to web/.env"
+    fi
+
+    if grep -q 'API_BASE_URL=http://161' "$_web_env"; then
+        sed -i 's|^API_BASE_URL=http://161.*|API_BASE_URL=http://127.0.0.1:8083|' "$_web_env"
+        info "Fixed API_BASE_URL to use direct local connection"
     fi
 fi
 
