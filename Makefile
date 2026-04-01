@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-skip-nginx check
+.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check
 
 PYTHON ?= python
 K ?= 5
@@ -67,7 +67,7 @@ help:
 	@echo "  make check                                        Verify server prerequisites"
 	@echo "  make deploy                                       Deploy (git pull + deps + restart)"
 	@echo "  make deploy-first                                 First-time setup + deploy"
-	@echo "  make deploy-skip-nginx                            Deploy without touching nginx config"
+	@echo "  make deploy-nginx                                 Deploy + update nginx snippet"
 
 test:
 	$(PYTHON) -m pytest $(or $(FILE),tests/) -v --tb=short
@@ -129,8 +129,8 @@ deploy:
 deploy-first:
 	@sudo bash deploy/deploy.sh --first-run
 
-deploy-skip-nginx:
-	@sudo bash deploy/deploy.sh --skip-nginx
+deploy-nginx:
+	@sudo bash deploy/deploy.sh --with-nginx
 
 check:
 	@bash deploy/deploy.sh --check-only

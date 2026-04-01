@@ -1288,7 +1288,7 @@ sudo systemctl restart ragapi ragweb
 make deploy
 ```
 
-Este comando executa: `git pull` → atualiza dependências → reinstala serviços systemd → recarrega nginx → reinicia os 3 serviços → health checks.
+Este comando executa: `git pull` → atualiza dependências → reinstala serviços systemd → reinicia os 3 serviços → health checks. O nginx **não é tocado** por padrão para evitar conflitos com outros serviços no servidor.
 
 ### 14.2. Comandos de gerenciamento
 
@@ -1313,24 +1313,55 @@ make check
 
 ### 14.3. Configuração nginx
 
-O `deploy/nginx-rag.conf` é um **snippet de locations** (não um server block completo), projetado para ser incluído dentro de um server block existente. O deploy copia o arquivo para `/etc/nginx/sites-available/rag` e adiciona um `include` no site default.
+O nginx é configurado **manualmente** no servidor (não é alterado pelo `make deploy`). O repositório contém apenas o snippet `deploy/nginx-rag.conf` com as locations da API e do Datasette.
 
-Locations disponibilizadas:
+#### Arquitetura
 
-- `/ragweb/` → proxy para a interface web (porta 8082)
-- `/ragapi/` → proxy para a API RAG (porta 8083) com suporte a SSE
-- `/explore/` → proxy para o explorador de dados (porta 8001)
-
-Se o deploy automático não conseguir injetar o include (ex: server block customizado), adicione manualmente:
+O arquivo `/etc/nginx/sites-available/rag` é um snippet com blocos `location` (não um server block completo). Ele é incluído dentro dos virtual hosts que precisam acessar a API e o explorador:
 
 ```nginx
-server {
-    # ... configuração existente ...
-    include /etc/nginx/sites-available/rag;
-}
+include /etc/nginx/sites-available/rag;
 ```
 
-Comandos manuais:
+Locations disponibilizadas pelo snippet:
+
+- `/ragapi/` → proxy para a API RAG (porta 8083) com suporte a SSE
+- `/explore/` → proxy para o explorador de dados Datasette (porta 8001)
+
+A interface web (ragweb) é proxied diretamente no virtual host do chatbot (porta 8082, raiz).
+
+#### Atualizar o snippet no servidor
+
+Quando `deploy/nginx-rag.conf` for alterado no repositório:
+
+```bash
+# Copiar o snippet atualizado
+sudo cp deploy/nginx-rag.conf /etc/nginx/sites-available/rag
+
+# Testar e recarregar
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Ou use `make deploy-nginx` para copiar automaticamente.
+
+#### Configuração dos virtual hosts (airdatasrv02)
+
+A configuração dos virtual hosts fica em `/etc/nginx/sites-available/airdata-site` e não é gerenciada pelo repositório. Ela contém:
+
+| Virtual Host | `server_name` | Conteúdo |
+|---|---|---|
+| OWL Ontologia | `owl.airdata.ita.br _` (default) | Arquivos estáticos de `/var/www/airdata-site` + snippet rag |
+| Data Portal | `data.airdata.ita.br` | Proxy para porta 9010 |
+| Chatbot RAG | `chatbot.airdata.ita.br` | Proxy para ragweb (porta 8082, raiz) + snippet rag |
+
+Para editar os virtual hosts:
+
+```bash
+sudo nano /etc/nginx/sites-available/airdata-site
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+#### Comandos úteis
 
 ```bash
 sudo nginx -t                    # Testar configuração
@@ -1342,12 +1373,14 @@ sudo tail -f /var/log/nginx/error.log
 
 | Serviço | URL |
 |---------|-----|
-| Interface Web | `http://SEU_IP/ragweb/` |
-| API RAG | `http://SEU_IP/ragapi/` |
-| Datasette | `http://SEU_IP/explore/` |
-| Health (API) | `http://SEU_IP/ragapi/health` |
-| Health (Web) | `http://SEU_IP/ragweb/health` |
-| Estatísticas | `http://SEU_IP/ragapi/stats` (requer API Key) |
+| Chatbot (Web) | `http://chatbot.airdata.ita.br/` |
+| API RAG | `http://chatbot.airdata.ita.br/ragapi/` |
+| Datasette | `http://chatbot.airdata.ita.br/explore/` |
+| Health (API) | `http://chatbot.airdata.ita.br/ragapi/health` |
+| Health (Web) | `http://chatbot.airdata.ita.br/health` |
+| Estatísticas | `http://chatbot.airdata.ita.br/ragapi/stats` (requer API Key) |
+| Ontologia OWL | `http://owl.airdata.ita.br/` |
+| Data Portal | `http://data.airdata.ita.br/` |
 
 ### 14.5. Ordem de inicialização
 

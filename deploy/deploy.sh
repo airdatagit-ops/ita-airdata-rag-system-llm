@@ -12,12 +12,12 @@ set -euo pipefail
 # Flags:
 #   --first-run    Create .env files from examples if missing
 #   --skip-pull    Skip git pull
-#   --skip-nginx   Skip nginx configuration (use on shared servers)
+#   --with-nginx   Update nginx snippet (skipped by default)
 #   --check-only   Run verification checks without deploying
 #
-# IMPORTANT: If this server hosts other services behind nginx,
-# use --skip-nginx to avoid overwriting their configurations.
-# Configure nginx manually instead (see deploy/nginx-rag.conf).
+# nginx is skipped by default to avoid conflicts on shared servers.
+# Use --with-nginx only to update the /ragapi/ and /explore/ snippet.
+# Virtual host configuration is managed manually (see README §14.3).
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -29,15 +29,15 @@ DEPLOY_GROUP="$(id -gn "$DEPLOY_USER")"
 
 FIRST_RUN=false
 SKIP_PULL=false
-SKIP_NGINX=false
+SKIP_NGINX=true
 CHECK_ONLY=false
 
 for arg in "$@"; do
     case "$arg" in
-        --first-run)  FIRST_RUN=true ;;
-        --skip-pull)  SKIP_PULL=true ;;
-        --skip-nginx) SKIP_NGINX=true ;;
-        --check-only) CHECK_ONLY=true ;;
+        --first-run)   FIRST_RUN=true ;;
+        --skip-pull)   SKIP_PULL=true ;;
+        --with-nginx)  SKIP_NGINX=false ;;
+        --check-only)  CHECK_ONLY=true ;;
         *) echo "Unknown flag: $arg"; exit 1 ;;
     esac
 done
