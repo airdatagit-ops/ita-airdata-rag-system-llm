@@ -2,12 +2,6 @@ name: Deploy
 
 on:
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to deploy'
-        required: true
-        default: 'main'
-        type: string
 
 jobs:
   deploy:
@@ -26,10 +20,11 @@ jobs:
           script_stop: true
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
-            BRANCH="${{ github.event.inputs.branch }}"
+            BRANCH="${{ github.ref_name }}"
             echo "========================================="
             echo "  Deploying branch: $BRANCH"
             echo "========================================="
             git fetch origin
             git checkout "$BRANCH"
+            git pull origin "$BRANCH"
             sudo bash deploy/deploy.sh
