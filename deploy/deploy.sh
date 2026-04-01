@@ -247,6 +247,9 @@ if $FIRST_RUN; then
     if [[ ! -f "$PROJECT_DIR/web/.env" ]]; then
         info "Creating web/.env from web/env.example..."
         cp "$PROJECT_DIR/web/env.example" "$PROJECT_DIR/web/.env"
+        sed -i 's/^ENVIRONMENT=development/ENVIRONMENT=production/' "$PROJECT_DIR/web/.env"
+        sed -i 's/^ROOT_PATH=$/ROOT_PATH=\/ragweb/' "$PROJECT_DIR/web/.env"
+        sed -i 's/^RELOAD=True/RELOAD=False/' "$PROJECT_DIR/web/.env"
         chown "$DEPLOY_USER:$DEPLOY_GROUP" "$PROJECT_DIR/web/.env"
         warn "Edit web/.env and set API_KEY (must match root .env)."
     fi

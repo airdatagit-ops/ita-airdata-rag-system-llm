@@ -27,8 +27,16 @@ _DEFAULTS = {
 }
 
 def _get(key: str, fallback: str = '') -> str:
-    """Read from env, falling back to environment-aware defaults."""
-    return getenv(key) or _DEFAULTS.get(_ENV, _DEFAULTS['development']).get(key, fallback)
+    """Read from env, falling back to environment-aware defaults.
+
+    Uses ``os.getenv(key)`` first (None means unset).  An explicit empty
+    value in .env (e.g. ``ROOT_PATH=``) is honoured as-is so that
+    development can deliberately clear ROOT_PATH.
+    """
+    val = getenv(key)
+    if val is not None:
+        return val
+    return _DEFAULTS.get(_ENV, _DEFAULTS['development']).get(key, fallback)
 
 
 class Settings(BaseSettings):
