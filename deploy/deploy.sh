@@ -262,10 +262,19 @@ if [[ ! -d venv ]]; then
     sudo -u "$DEPLOY_USER" python3 -m venv venv
 fi
 
-info "Installing backend dependencies..."
-sudo -u "$DEPLOY_USER" venv/bin/pip install --upgrade pip -q
-sudo -u "$DEPLOY_USER" venv/bin/pip install -r requirements.txt -q
-success "Backend dependencies installed."
+REQ_HASH="$(md5sum requirements.txt | awk '{print $1}')"
+REQ_STAMP="venv/.requirements.md5"
+
+if [[ ! -f "$REQ_STAMP" ]] || [[ "$(cat "$REQ_STAMP" 2>/dev/null)" != "$REQ_HASH" ]]; then
+    info "Installing backend dependencies (requirements changed)..."
+    sudo -u "$DEPLOY_USER" venv/bin/pip install --upgrade pip -q
+    sudo -u "$DEPLOY_USER" venv/bin/pip install -r requirements.txt -q
+    echo "$REQ_HASH" > "$REQ_STAMP"
+    chown "$DEPLOY_USER:$DEPLOY_GROUP" "$REQ_STAMP"
+    success "Backend dependencies installed."
+else
+    success "Backend dependencies up to date (skipped)."
+fi
 
 # ── Step 4: Web venv + dependencies ──────────────────────────
 
@@ -277,57 +286,75 @@ if [[ ! -d venv ]]; then
     sudo -u "$DEPLOY_USER" python3 -m venv venv
 fi
 
-info "Installing web dependencies..."
-sudo -u "$DEPLOY_USER" venv/bin/pip install --upgrade pip -q
-sudo -u "$DEPLOY_USER" venv/bin/pip install -r requirements.txt -q
-success "Web dependencies installed."
+WEB_REQ_HASH="$(md5sum requirements.txt | awk '{print $1}')"
+WEB_REQ_STAMP="venv/.requirements.md5"
+
+if [[ ! -f "$WEB_REQ_STAMP" ]] || [[ "$(cat "$WEB_REQ_STAMP" 2>/dev/null)" != "$WEB_REQ_HASH" ]]; then
+    info "Installing web dependencies (requirements changed)..."
+    sudo -u "$DEPLOY_USER" venv/bin/pip install --upgrade pip -q
+    sudo -u "$DEPLOY_USER" venv/bin/pip install -r requirements.txt -q
+    echo "$WEB_REQ_HASH" > "$WEB_REQ_STAMP"
+    chown "$DEPLOY_USER:$DEPLOY_GROUP" "$WEB_REQ_STAMP"
+    success "Web dependencies installed."
+else
+    success "Web dependencies up to date (skipped)."
+fi
 
 cd "$PROJECT_DIR"
 
 # ── Step 5: Install systemd services ─────────────────────────
 
-info "Installing systemd service files..."
+SERVICES_CHANGED=false
 
 for service_template in ragapi.service ragweb.service ragexplore.service; do
     local_file="$DEPLOY_DIR/$service_template"
     target_file="/etc/systemd/system/$service_template"
 
-    sed \
+    rendered="$(sed \
         -e "s|__PROJECT_DIR__|$PROJECT_DIR|g" \
         -e "s|__USER__|$DEPLOY_USER|g" \
         -e "s|__GROUP__|$DEPLOY_GROUP|g" \
-        "$local_file" > "$target_file"
+        "$local_file")"
+
+    if [[ ! -f "$target_file" ]] || [[ "$rendered" != "$(cat "$target_file")" ]]; then
+        echo "$rendered" > "$target_file"
+        info "Updated $service_template"
+        SERVICES_CHANGED=true
+    fi
 done
 
-success "Service files installed."
-
-systemctl daemon-reload
-success "systemd daemon reloaded."
+if $SERVICES_CHANGED; then
+    systemctl daemon-reload
+    success "Service files updated, daemon reloaded."
+else
+    success "Service files unchanged (skipped)."
+fi
 
 # Enable services to start on boot
 systemctl enable ragapi ragweb ragexplore --quiet 2>/dev/null || true
-success "Services enabled for boot."
 
 # ── Step 6: Install nginx configuration ──────────────────────
 
 if ! $SKIP_NGINX; then
-    info "Installing nginx configuration..."
+    if [[ ! -f /etc/nginx/sites-available/rag ]] || ! diff -q "$DEPLOY_DIR/nginx-rag.conf" /etc/nginx/sites-available/rag &>/dev/null; then
+        info "Installing nginx configuration..."
+        cp "$DEPLOY_DIR/nginx-rag.conf" /etc/nginx/sites-available/rag
+        ln -sf /etc/nginx/sites-available/rag /etc/nginx/sites-enabled/rag
 
-    cp "$DEPLOY_DIR/nginx-rag.conf" /etc/nginx/sites-available/rag
-    ln -sf /etc/nginx/sites-available/rag /etc/nginx/sites-enabled/rag
+        if [[ -f /etc/nginx/sites-enabled/default ]]; then
+            rm -f /etc/nginx/sites-enabled/default
+            info "Removed default nginx site to avoid conflicts."
+        fi
 
-    # Remove default config if it would conflict
-    if [[ -f /etc/nginx/sites-enabled/default ]]; then
-        rm -f /etc/nginx/sites-enabled/default
-        info "Removed default nginx site to avoid conflicts."
-    fi
-
-    if nginx -t 2>/dev/null; then
-        systemctl reload nginx
-        success "nginx configured and reloaded."
+        if nginx -t 2>/dev/null; then
+            systemctl reload nginx
+            success "nginx configured and reloaded."
+        else
+            error "nginx config test failed — check: nginx -t"
+            exit 1
+        fi
     else
-        error "nginx config test failed — check: nginx -t"
-        exit 1
+        success "nginx config unchanged (skipped)."
     fi
 else
     info "Skipping nginx (--skip-nginx)."
