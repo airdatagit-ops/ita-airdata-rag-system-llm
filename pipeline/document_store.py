@@ -473,17 +473,98 @@ class DocumentStore:
 
     def stats(self) -> Dict:
         with self._conn() as conn:
-            total = conn.execute("SELECT COUNT(*) AS n FROM documents").fetchone()["n"]
-            by_source = conn.execute(
-                "SELECT source, COUNT(*) AS n FROM documents GROUP BY source"
-            ).fetchall()
+            total = conn.execute(
+                "SELECT COUNT(*) AS n FROM documents"
+            ).fetchone()["n"]
+
+            by_source = {
+                r["source"]: r["n"]
+                for r in conn.execute(
+                    "SELECT source, COUNT(*) AS n FROM documents GROUP BY source"
+                ).fetchall()
+            }
+
+            by_type = {
+                r["doc_type"]: r["n"]
+                for r in conn.execute(
+                    "SELECT doc_type, COUNT(*) AS n FROM documents "
+                    "WHERE doc_type IS NOT NULL GROUP BY doc_type ORDER BY n DESC"
+                ).fetchall()
+            }
+
+            by_status = {
+                r["status"]: r["n"]
+                for r in conn.execute(
+                    "SELECT COALESCE(status, 'unknown') AS status, COUNT(*) AS n "
+                    "FROM documents GROUP BY status ORDER BY n DESC"
+                ).fetchall()
+            }
+
             embedded = conn.execute(
                 "SELECT COUNT(*) AS n FROM embedding_log"
             ).fetchone()["n"]
+
+            chunks_row = conn.execute(
+                "SELECT COALESCE(SUM(num_chunks), 0) AS n FROM embedding_log"
+            ).fetchone()
+            total_chunks = chunks_row["n"]
+
+            model_rows = conn.execute(
+                "SELECT DISTINCT model_name FROM embedding_log "
+                "WHERE model_name IS NOT NULL"
+            ).fetchall()
+            embedding_models = [r["model_name"] for r in model_rows]
+
+            last_updated_row = conn.execute(
+                "SELECT MAX(updated_at) AS ts FROM documents"
+            ).fetchone()
+            last_updated = last_updated_row["ts"] if last_updated_row else None
+
+            last_embedded_row = conn.execute(
+                "SELECT MAX(embedded_at) AS ts FROM embedding_log"
+            ).fetchone()
+            last_embedded = last_embedded_row["ts"] if last_embedded_row else None
+
+            total_relations = conn.execute(
+                "SELECT COUNT(*) AS n FROM document_relations"
+            ).fetchone()["n"]
+            relations_by_type = {
+                r["relation_type"]: r["n"]
+                for r in conn.execute(
+                    "SELECT relation_type, COUNT(*) AS n "
+                    "FROM document_relations GROUP BY relation_type"
+                ).fetchall()
+            }
+            resolved = conn.execute(
+                "SELECT COUNT(*) AS n FROM document_relations "
+                "WHERE target_doc_id IS NOT NULL"
+            ).fetchone()["n"]
+
+            originals_dir = Path(config.DATA_DIR) / "originals"
+            total_originals = 0
+            if originals_dir.exists():
+                total_originals = sum(
+                    1 for f in originals_dir.rglob("*")
+                    if f.is_file() and f.suffix != ".json"
+                )
+
             return {
-                "total_documents": total,
-                "by_source": {r["source"]: r["n"] for r in by_source},
+                "total_processed": total,
+                "by_source": by_source,
+                "by_type": by_type,
+                "by_status": by_status,
+                "total_originals": total_originals,
                 "embedded_documents": embedded,
+                "total_chunks": total_chunks,
+                "embedding_models": embedding_models,
+                "last_updated": last_updated,
+                "last_embedded": last_embedded,
+                "relations": {
+                    "total": total_relations,
+                    "by_type": relations_by_type,
+                    "resolved": resolved,
+                    "unresolved": total_relations - resolved,
+                },
             }
 
     # ── helpers ──────────────────────────────────────────────────

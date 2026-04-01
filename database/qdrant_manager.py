@@ -358,7 +358,7 @@ class QdrantManager:
             return {
                 "vectors_count": points_count,
                 "points_count": points_count,
-                "status": str(info.status),
+                "status": info.status.name.lower(),
                 "indexed_vectors_count": points_count,
             }
         except Exception as e:

@@ -18,6 +18,10 @@ from api.schemas import (
     VectorSearchRequest,
     VectorSearchResponse,
     StatsResponse,
+    DocumentStats,
+    DocumentTypeCount,
+    RelationStats,
+    ModelInfo,
     ChatRequest,
     ChatResponse,
     SessionInfo,
@@ -160,15 +164,76 @@ async def get_stats(api_key: str = Depends(verify_api_key)):
     try:
         info = db.get_collection_info()
         logger.info(f"Stats retrieved: {info}")
-        
+
+        doc_stats = None
         try:
             from pipeline.document_store import DocumentStore
-            info["documents"] = DocumentStore().stats()
+            raw = DocumentStore().stats()
+
+            _TYPE_LABELS = {
+                "ICA": "ICA", "DCA": "DCA", "MCA": "MCA", "FCA": "FCA",
+                "NSCA": "NSCA", "PCA": "PCA", "RCA": "RCA", "TCA": "TCA",
+                "OCA": "OCA", "NPA": "NPA", "PTA": "PTA", "BCA": "BCA",
+                "BMA": "BMA", "IMA": "IMA", "ROCA": "ROCA", "RICA": "RICA",
+                "RIMA": "RIMA", "RMA": "RMA", "NOPREP": "NOPREP",
+                "Lei": "Leis", "Lei Complementar": "Leis Complementares",
+                "Decreto": "Decretos", "Decreto-Lei": "Decretos-Lei",
+                "Medida Provisória": "Medidas Provisórias",
+                "Portaria": "Portarias", "Portaria Conjunta": "Portarias Conjuntas",
+                "Resolução": "Resoluções",
+                "Instrução Normativa": "Instruções Normativas",
+                "Constituição Federal": "Constituição Federal",
+                "Ordem técnica": "Ordens Técnicas",
+                "Orientação normativa": "Orientações Normativas",
+                "Manual Eletrônico": "Manuais Eletrônicos",
+            }
+
+            by_type = {
+                key: DocumentTypeCount(
+                    count=count,
+                    label=_TYPE_LABELS.get(key, key),
+                )
+                for key, count in raw.get("by_type", {}).items()
+            }
+
+            relations_raw = raw.get("relations", {})
+            relations = RelationStats(
+                total=relations_raw.get("total", 0),
+                by_type=relations_raw.get("by_type", {}),
+                resolved=relations_raw.get("resolved", 0),
+                unresolved=relations_raw.get("unresolved", 0),
+            )
+
+            doc_stats = DocumentStats(
+                by_type=by_type,
+                by_status=raw.get("by_status", {}),
+                sources=raw.get("by_source", {}),
+                total_originals=raw.get("total_originals", 0),
+                total_processed=raw.get("total_processed", 0),
+                embedded_documents=raw.get("embedded_documents", 0),
+                total_chunks=raw.get("total_chunks", 0),
+                embedding_models=raw.get("embedding_models", []),
+                relations=relations,
+                last_updated=raw.get("last_updated"),
+                last_embedded=raw.get("last_embedded"),
+            )
         except Exception as e:
             logger.warning(f"Could not get document counts: {e}")
-            info["documents"] = None
-        
-        return StatsResponse(**info)
+
+        model_info = ModelInfo(
+            llm_model=config.OLLAMA_MODEL or "",
+            embedding_model=config.EMBEDDING_MODEL or "",
+            embedding_dimension=config.EMBEDDING_DIMENSION or 0,
+            sparse_model=config.SPARSE_EMBEDDING_MODEL or "",
+        )
+
+        return StatsResponse(
+            vectors_count=info.get("vectors_count", 0),
+            points_count=info.get("points_count", 0),
+            status=info.get("status", "unknown"),
+            documents=doc_stats,
+            model_info=model_info,
+        )
     except Exception as e:
         logger.error(f"Error getting stats: {e}")
         raise

@@ -20,34 +20,39 @@
   {% else %}
 
   {% if stats %}
+
+  {# ── Status ─────────────────────────────────────────────── #}
   <div style="margin: 1.5rem 0;">
-    <span class="status-indicator {% if stats.status == 'healthy' or stats.status == 'ok' or stats.status == 'green' %}status-healthy{% else %}status-error{% endif %}">
+    {% set st = stats.get('status', 'unknown') %}
+    <span class="status-indicator {% if st in ['healthy', 'ok', 'green'] %}status-healthy{% else %}status-error{% endif %}">
       <span class="status-dot"></span>
-      Status: {{ stats.status|upper }}
+      Status: {{ st|upper }}
     </span>
   </div>
 
-  <!-- Estatísticas de Vetores -->
-  <h2 style="margin-top: 2rem; color: var(--text-primary);">📊 Banco Vetorial</h2>
+  {# ── Banco Vetorial ────────────────────────────────────── #}
+  <h2 class="section-title">📊 Banco Vetorial</h2>
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon">📊</div>
       <div class="stat-label">Total de Vetores</div>
-      <p class="stat-value">{{ "{:,}".format(stats.vectors_count) }}</p>
+      <p class="stat-value">{{ "{:,}".format(stats.get('vectors_count', 0)|int) }}</p>
     </div>
 
     <div class="stat-card">
       <div class="stat-icon">🔢</div>
       <div class="stat-label">Total de Pontos</div>
-      <p class="stat-value">{{ "{:,}".format(stats.points_count) }}</p>
+      <p class="stat-value">{{ "{:,}".format(stats.get('points_count', 0)|int) }}</p>
     </div>
 
     <div class="stat-card">
       <div class="stat-icon">💾</div>
       <div class="stat-label">Taxa de Indexação</div>
       <p class="stat-value">
-        {% if stats.vectors_count > 0 %}
-          {{ "%.1f"|format((stats.points_count / stats.vectors_count) * 100) }}%
+        {% set vc = stats.get('vectors_count', 0)|int %}
+        {% set pc = stats.get('points_count', 0)|int %}
+        {% if vc > 0 %}
+          {{ "%.1f"|format((pc / vc) * 100) }}%
         {% else %}
           0%
         {% endif %}
@@ -55,184 +60,255 @@
     </div>
   </div>
 
-  <!-- Estatísticas de Documentos -->
-  {% if stats.documents %}
-  <h2 style="margin-top: 2rem; color: var(--text-primary);">📚 Documentos por Tipo</h2>
+  {% set docs = stats.get('documents') %}
+  {% if docs %}
+
+  {# ── Documentos: Resumo Geral ──────────────────────────── #}
+  <h2 class="section-title">📚 Documentos</h2>
   <div class="stats-grid">
-    {% for type_key, type_data in stats.documents.by_type.items() %}
-    {% if type_data.count > 0 %}
+    <div class="stat-card highlight">
+      <div class="stat-icon">📚</div>
+      <div class="stat-label">Total Processados</div>
+      <p class="stat-value">{{ "{:,}".format(docs.get('total_processed', 0)|int) }}</p>
+    </div>
+
     <div class="stat-card">
-      <div class="stat-icon">
-        {% if type_key == 'leis' %}⚖️
-        {% elif type_key == 'medidas_provisorias' %}📜
-        {% elif type_key == 'acordaos' %}⚖️
-        {% elif type_key == 'projetos_lei' %}📝
-        {% elif type_key == 'ica' %}✈️
-        {% elif type_key == 'mca' %}📘
-        {% elif type_key == 'rbac' %}📋
-        {% elif type_key == 'portarias' %}📄
-        {% elif type_key == 'resolucoes' %}📑
-        {% else %}📁
-        {% endif %}
-      </div>
-      <div class="stat-label">{{ type_data.label }}</div>
-      <p class="stat-value">{{ type_data.count }}</p>
+      <div class="stat-icon">🗂️</div>
+      <div class="stat-label">Originais Preservados</div>
+      <p class="stat-value">{{ "{:,}".format(docs.get('total_originals', 0)|int) }}</p>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🔗</div>
+      <div class="stat-label">Documentos Embeddados</div>
+      <p class="stat-value">{{ "{:,}".format(docs.get('embedded_documents', 0)|int) }}</p>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🧩</div>
+      <div class="stat-label">Total de Chunks</div>
+      <p class="stat-value">{{ "{:,}".format(docs.get('total_chunks', 0)|int) }}</p>
+    </div>
+  </div>
+
+  {# ── Documentos por Fonte ──────────────────────────────── #}
+  {% set sources = docs.get('sources', {}) %}
+  {% if sources %}
+  <h2 class="section-title">🌐 Documentos por Fonte</h2>
+  <div class="stats-grid">
+    {% set source_meta = {
+      'sislaer': {'icon': '🛩️', 'label': 'SISLAER (Legislação Aeronáutica)'},
+      'lexml':   {'icon': '⚖️', 'label': 'LexML (Legislação Federal)'},
+      'decea':   {'icon': '✈️', 'label': 'DECEA (Controle do Espaço Aéreo)'},
+      'pdf':     {'icon': '📄', 'label': 'PDF (Documentos Avulsos)'}
+    } %}
+    {% for source_key, count in sources.items() %}
+    {% if count|int > 0 %}
+    <div class="stat-card">
+      <div class="stat-icon">{{ source_meta[source_key].icon if source_key in source_meta else '📁' }}</div>
+      <div class="stat-label">{{ source_meta[source_key].label if source_key in source_meta else source_key|title }}</div>
+      <p class="stat-value">{{ "{:,}".format(count|int) }}</p>
     </div>
     {% endif %}
     {% endfor %}
-    
-    <div class="stat-card highlight">
-      <div class="stat-icon">📚</div>
-      <div class="stat-label">Total de Documentos</div>
-      <p class="stat-value">{{ stats.documents.total_processed }}</p>
-    </div>
   </div>
-  
-  <!-- Estatísticas por Fonte -->
-  {% if stats.documents.sources %}
-  <h2 style="margin-top: 2rem; color: var(--text-primary);">🌐 Documentos por Fonte</h2>
+  {% endif %}
+
+  {# ── Documentos por Tipo ───────────────────────────────── #}
+  {% set by_type = docs.get('by_type', {}) %}
+  {% if by_type %}
+  <h2 class="section-title">📋 Documentos por Tipo</h2>
   <div class="stats-grid">
-    {% if stats.documents.sources.lexml > 0 %}
+    {% set aero_types = ['ICA', 'DCA', 'MCA', 'FCA', 'NSCA', 'PCA', 'RCA', 'TCA', 'OCA',
+                         'NPA', 'PTA', 'BCA', 'BMA', 'IMA', 'ROCA', 'RICA', 'RIMA', 'RMA', 'NOPREP'] %}
+    {% set legal_types = ['Lei', 'Lei Complementar', 'Decreto', 'Decreto-Lei',
+                          'Medida Provisória', 'Constituição Federal'] %}
+    {% for type_key, type_data in by_type.items() %}
+    {% set tc = type_data.get('count', 0)|int if type_data is mapping else type_data|int %}
+    {% if tc > 0 %}
     <div class="stat-card">
-      <div class="stat-icon">⚖️</div>
-      <div class="stat-label">LexML (Legislação)</div>
-      <p class="stat-value">{{ stats.documents.sources.lexml }}</p>
+      <div class="stat-icon">
+        {% if type_key in aero_types %}✈️
+        {% elif type_key in legal_types %}⚖️
+        {% elif type_key in ['Portaria', 'Portaria Conjunta', 'Resolução', 'Instrução Normativa'] %}📄
+        {% elif type_key in ['Manual Eletrônico', 'Ordem técnica', 'Orientação normativa'] %}📘
+        {% else %}📁
+        {% endif %}
+      </div>
+      <div class="stat-label">{{ type_data.get('label', type_key) if type_data is mapping else type_key }}</div>
+      <p class="stat-value">{{ "{:,}".format(tc) }}</p>
     </div>
     {% endif %}
-    {% if stats.documents.sources.decea > 0 %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ── Documentos por Status ─────────────────────────────── #}
+  {% set by_status = docs.get('by_status', {}) %}
+  {% if by_status %}
+  <h2 class="section-title">🏷️ Documentos por Status</h2>
+  <div class="stats-grid">
+    {% set status_meta = {
+      'active':     {'icon': '✅', 'label': 'Ativos (Vigentes)'},
+      'revoked':    {'icon': '🚫', 'label': 'Revogados'},
+      'superseded': {'icon': '🔄', 'label': 'Substituídos'},
+      'unknown':    {'icon': '❓', 'label': 'Sem Status'}
+    } %}
+    {% for status_key, count in by_status.items() %}
+    {% if count|int > 0 %}
     <div class="stat-card">
-      <div class="stat-icon">✈️</div>
-      <div class="stat-label">DECEA (Aeronáutica)</div>
-      <p class="stat-value">{{ stats.documents.sources.decea }}</p>
+      <div class="stat-icon">{{ status_meta[status_key].icon if status_key in status_meta else '📌' }}</div>
+      <div class="stat-label">{{ status_meta[status_key].label if status_key in status_meta else status_key|title }}</div>
+      <p class="stat-value">{{ "{:,}".format(count|int) }}</p>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ── Relações entre Documentos ─────────────────────────── #}
+  {% set rels = docs.get('relations') %}
+  {% if rels and rels.get('total', 0)|int > 0 %}
+  <h2 class="section-title">🔗 Relações entre Documentos</h2>
+  <div class="stats-grid">
+    <div class="stat-card highlight">
+      <div class="stat-icon">🔗</div>
+      <div class="stat-label">Total de Relações</div>
+      <p class="stat-value">{{ "{:,}".format(rels.get('total', 0)|int) }}</p>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-label">Resolvidas</div>
+      <p class="stat-value">{{ "{:,}".format(rels.get('resolved', 0)|int) }}</p>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-label">Pendentes</div>
+      <p class="stat-value">{{ "{:,}".format(rels.get('unresolved', 0)|int) }}</p>
+    </div>
+
+    {% set relation_labels = {
+      'amends': 'Altera',
+      'amended_by': 'Alterado por',
+      'revokes': 'Revoga',
+      'revoked_by': 'Revogado por',
+      'correlates': 'Correlaciona'
+    } %}
+    {% for rel_type, count in rels.get('by_type', {}).items() %}
+    {% if count|int > 0 %}
+    <div class="stat-card">
+      <div class="stat-icon">📎</div>
+      <div class="stat-label">{{ relation_labels[rel_type] if rel_type in relation_labels else rel_type|title }}</div>
+      <p class="stat-value">{{ "{:,}".format(count|int) }}</p>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% endif %}{# end docs #}
+
+  {# ── Modelos em Uso ────────────────────────────────────── #}
+  {% set mi = stats.get('model_info') %}
+  {% if mi %}
+  <h2 class="section-title">🤖 Modelos em Uso</h2>
+  <div class="stats-grid">
+    {% if mi.get('llm_model') %}
+    <div class="stat-card">
+      <div class="stat-icon">🧠</div>
+      <div class="stat-label">Modelo LLM</div>
+      <p class="stat-value" style="font-size: 1.2rem;">{{ mi.llm_model }}</p>
+    </div>
+    {% endif %}
+
+    {% if mi.get('embedding_model') %}
+    <div class="stat-card">
+      <div class="stat-icon">📐</div>
+      <div class="stat-label">Modelo de Embeddings</div>
+      <p class="stat-value" style="font-size: 1rem;">{{ mi.embedding_model }}</p>
+    </div>
+    {% endif %}
+
+    {% if mi.get('embedding_dimension', 0)|int > 0 %}
+    <div class="stat-card">
+      <div class="stat-icon">📏</div>
+      <div class="stat-label">Dimensão dos Vetores</div>
+      <p class="stat-value">{{ "{:,}".format(mi.embedding_dimension|int) }}</p>
+    </div>
+    {% endif %}
+
+    {% if mi.get('sparse_model') %}
+    <div class="stat-card">
+      <div class="stat-icon">🔍</div>
+      <div class="stat-label">Modelo Esparso</div>
+      <p class="stat-value" style="font-size: 1.2rem;">{{ mi.sparse_model }}</p>
     </div>
     {% endif %}
   </div>
   {% endif %}
+
+  {# ── Timestamps ────────────────────────────────────────── #}
+  {% if docs %}
+  <div class="info-section" style="margin-top: 2rem;">
+    <h3>🕐 Atividade Recente</h3>
+    <ul class="info-list">
+      {% if docs.get('last_updated') %}
+      <li>
+        <span class="info-label">Último documento atualizado</span>
+        <span class="info-value">{{ docs.last_updated }}</span>
+      </li>
+      {% endif %}
+      {% if docs.get('last_embedded') %}
+      <li>
+        <span class="info-label">Último embedding gerado</span>
+        <span class="info-value">{{ docs.last_embedded }}</span>
+      </li>
+      {% endif %}
+      {% if docs.get('embedding_models') %}
+      <li>
+        <span class="info-label">Modelos de embedding utilizados</span>
+        <span class="info-value">{{ docs.embedding_models|join(', ') }}</span>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
   {% endif %}
 
-  <!-- Seção Expandida: Sobre as Métricas -->
+  {# ── Seção Informativa ─────────────────────────────────── #}
   <div class="info-section">
-    <h3>📊 Compreendendo as Métricas do Sistema</h3>
-    
-    <h4 style="color: var(--primary-color); margin-top: 1.5rem;">🔢 Métricas de Capacidade e Indexação</h4>
-    
+    <h3>📊 Sobre as Métricas</h3>
+
     <p style="line-height: 1.8; margin-bottom: 1rem;">
-      <strong>Vetores (Embeddings):</strong> Representam a capacidade semântica do sistema. Atualmente com 
-      <strong>{{ "{:,}".format(stats.vectors_count) }} vetores</strong>, cada documento regulatório é dividido 
-      em trechos menores (chunks) e convertido em representação numérica multidimensional através de modelos 
-      de embedding especializados em linguagem jurídica brasileira (Legal-BERTimbau). Quanto maior o número de 
-      vetores, mais granular e precisa é a busca semântica, permitindo localizar informações específicas mesmo 
-      em regulamentações extensas.
-    </p>
-    
-    <p style="line-height: 1.8; margin-bottom: 1rem;">
-      <strong>Pontos no Banco Vetorial:</strong> Com <strong>{{ "{:,}".format(stats.points_count) }} pontos</strong> 
-      armazenados no Qdrant, esta métrica indica quantos vetores foram efetivamente processados, otimizados e 
-      persistidos no banco de dados vetorial. A arquitetura Qdrant organiza esses pontos em estruturas HNSW 
-      (Hierarchical Navigable Small World) que permitem buscas de similaridade em tempo próximo a O(log n), 
-      garantindo performance mesmo com milhões de documentos.
-    </p>
-    
-    <p style="line-height: 1.8; margin-bottom: 1rem;">
-      <strong>Taxa de Indexação:</strong> A taxa de 
-      {% if stats.vectors_count > 0 %}
-        <strong>{{ "%.1f"|format((stats.points_count / stats.vectors_count) * 100) }}%</strong>
-      {% else %}
-        <strong>0%</strong>
-      {% endif %}
-      reflete a eficiência da pipeline de processamento. Uma taxa próxima a 100% indica que todo o conteúdo 
-      vetorizado foi corretamente indexado no banco. Taxas inferiores podem indicar processamento em andamento 
-      ou necessidade de reindexação. O sistema monitora esta métrica para detectar anomalias no fluxo de ingestão.
+      <strong>Vetores e Pontos:</strong> Cada documento regulatório é dividido em trechos menores (chunks)
+      e convertido em representação numérica multidimensional. Os vetores são armazenados no Qdrant com
+      estruturas HNSW para buscas de similaridade eficientes. A taxa de indexação reflete a proporção de
+      vetores efetivamente persistidos no banco.
     </p>
 
-    <h4 style="color: var(--primary-color); margin-top: 1.5rem;">📚 Métricas de Cobertura Documental</h4>
-    
     <p style="line-height: 1.8; margin-bottom: 1rem;">
-      <strong>Documentos por Tipo:</strong> O sistema categoriza automaticamente as regulamentações em tipos 
-      normativos específicos. Atualmente processados <strong>{{ stats.documents.total_processed if stats.documents else 0 }} documentos</strong> 
-      distribuídos entre Leis e Decretos Federais, Instruções de Comando da Aeronáutica (ICA), Manuais de Comando 
-      (MCA), Regulamentos Brasileiros da Aviação Civil (RBAC), Portarias, Resoluções e outros instrumentos regulatórios. 
-      Esta categorização permite filtragem semântica e priorização de fontes com base na hierarquia normativa brasileira.
-    </p>
-    
-    <p style="line-height: 1.8; margin-bottom: 1rem;">
-      <strong>Documentos por Fonte:</strong> A rastreabilidade das origens é fundamental para confiabilidade. 
-      O sistema integra duas bases primárias:
-    </p>
-    <ul style="line-height: 1.8; margin-left: 1.5rem; margin-bottom: 1rem;">
-      <li>
-        <strong>LexML (Legislação Federal):</strong> 
-        {% if stats.documents and stats.documents.sources %}
-          {{ stats.documents.sources.lexml if stats.documents.sources.lexml else 0 }} documentos
-        {% else %}
-          0 documentos
-        {% endif %}
-        extraídos do portal oficial do Senado Federal e Planalto, incluindo leis, decretos e medidas provisórias 
-        relacionadas à aviação civil brasileira.
-      </li>
-      <li>
-        <strong>DECEA (Departamento de Controle do Espaço Aéreo):</strong> 
-        {% if stats.documents and stats.documents.sources %}
-          {{ stats.documents.sources.decea if stats.documents.sources.decea else 0 }} documentos
-        {% else %}
-          0 documentos
-        {% endif %}
-        técnicos e operacionais da aeronáutica, abrangendo ICAs, MCAs, circulares e instruções específicas 
-        do comando da aeronáutica.
-      </li>
-    </ul>
-    
-    <p style="line-height: 1.8; margin-bottom: 1rem;">
-      <strong>Documentos Originais Preservados:</strong> Além dos vetores processados, o sistema mantém 
-      {% if stats.documents %}
-        <strong>{{ stats.documents.total_originals }} arquivos HTML originais</strong>
-      {% else %}
-        arquivos HTML originais
-      {% endif %}
-      baixados diretamente das fontes governamentais. Esta camada de preservação garante auditabilidade, 
-      permite reprocessamento com novos modelos de embedding, e serve como backup caso as fontes oficiais 
-      sofram alterações ou indisponibilidade.
+      <strong>Fontes de Dados:</strong> O sistema integra três bases primárias:
+      <strong>SISLAER</strong> (principal — legislação aeronáutica via portal do CENDOC/DECEA),
+      <strong>LexML</strong> (legislação federal via portal do Senado) e
+      <strong>DECEA</strong> (documentos técnicos do Controle do Espaço Aéreo).
+      Documentos originais são preservados para auditabilidade e reprocessamento.
     </p>
 
-    <h4 style="color: var(--primary-color); margin-top: 1.5rem;">🔍 Status e Monitoramento</h4>
-    
     <p style="line-height: 1.8; margin-bottom: 1rem;">
-      <strong>Status do Sistema:</strong> O indicador 
-      <span class="status-indicator {% if stats.status == 'healthy' or stats.status == 'ok' or stats.status == 'green' %}status-healthy{% else %}status-error{% endif %}" 
-            style="display: inline-flex; font-size: 0.9rem; padding: 4px 10px;">
-        <span class="status-dot"></span>
-        {{ stats.status|upper }}
-      </span>
-      reflete a saúde operacional do banco vetorial Qdrant. Status "HEALTHY" ou "OK" confirma que o serviço 
-      está respondendo adequadamente, com latências normais e sem erros de indexação. Monitoramento contínuo 
-      24/7 detecta degradações de performance ou falhas de conectividade.
-    </p>
-
-    <h4 style="color: var(--primary-color); margin-top: 1.5rem;">🔄 Processo de Atualização e Versionamento</h4>
-    
-    <p style="line-height: 1.8; margin-bottom: 1rem;">
-      <strong>Ciclo de Ingestão:</strong> O sistema opera em modo híbrido com ingestão incremental automatizada. 
-      Scrapers monitoram periodicamente as fontes oficiais (LexML via API e DECEA via web scraping) detectando 
-      novas publicações e atualizações de regulamentações existentes. Documentos modificados passam por 
-      extração temporal de metadados (datas de vigência, revogação e alteração) garantindo que consultas 
-      temporais retornem versões corretas das normas para cada período histórico.
-    </p>
-    
-    <p style="line-height: 1.8; margin-bottom: 1rem;">
-      <strong>Versionamento Regulatório:</strong> Cada documento mantém histórico completo de versões através 
-      de campos de metadados temporais (effective_date, expiration_date, modification_date). Esta arquitetura 
-      permite consultas do tipo "Qual era a regulamentação sobre X em janeiro de 2023?" - essencial para 
-      análises retrospectivas de conformidade e investigações de incidentes aeronáuticos.
+      <strong>Relações:</strong> O sistema rastreia relações normativas (alterações, revogações,
+      correlações) entre documentos. Relações resolvidas possuem ambos os documentos identificados no banco;
+      pendentes aguardam ingestão do documento referenciado.
     </p>
 
     <p style="line-height: 1.8; margin-bottom: 0.5rem;">
-      <strong>Última Atualização:</strong> {{ timestamp }}
+      <strong>Consulta realizada em:</strong> {{ timestamp|default('--') }}
     </p>
   </div>
 
-  <p class="timestamp">⏰ Dados atualizados em: {{ timestamp }}</p>
+  <p class="timestamp">⏰ Dados atualizados em: {{ timestamp|default('--') }}</p>
 
-  {% endif %}
-  {% endif %}
+  {% endif %}{# end stats #}
+  {% endif %}{# end error #}
 </div>
 {% endblock %}

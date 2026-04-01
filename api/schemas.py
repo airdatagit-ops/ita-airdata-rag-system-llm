@@ -55,11 +55,35 @@ class DocumentTypeCount(BaseModel):
     label: str
 
 
+class RelationStats(BaseModel):
+    """Document relation statistics."""
+    total: int = 0
+    by_type: Dict[str, int] = {}
+    resolved: int = 0
+    unresolved: int = 0
+
+
 class DocumentStats(BaseModel):
     """Document statistics."""
     by_type: Dict[str, DocumentTypeCount] = {}
+    by_status: Dict[str, int] = {}
+    sources: Dict[str, int] = {}
     total_originals: int = 0
     total_processed: int = 0
+    embedded_documents: int = 0
+    total_chunks: int = 0
+    embedding_models: List[str] = []
+    relations: Optional[RelationStats] = None
+    last_updated: Optional[str] = None
+    last_embedded: Optional[str] = None
+
+
+class ModelInfo(BaseModel):
+    """Information about models in use."""
+    llm_model: str = ""
+    embedding_model: str = ""
+    embedding_dimension: int = 0
+    sparse_model: str = ""
 
 
 class StatsResponse(BaseModel):
@@ -68,6 +92,7 @@ class StatsResponse(BaseModel):
     points_count: int
     status: str
     documents: Optional[DocumentStats] = None
+    model_info: Optional[ModelInfo] = None
 
 
 # ========================================
