@@ -4,24 +4,51 @@ from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 from os import getenv
 
+load_dotenv()
+
+_ENV = getenv('ENVIRONMENT', 'development').lower()
+_IS_PROD = _ENV == 'production'
+
+_DEFAULTS = {
+    'development': {
+        'HOST': '127.0.0.1',
+        'PORT': '8082',
+        'RELOAD': 'True',
+        'ROOT_PATH': '',
+        'API_BASE_URL': 'http://127.0.0.1:8083',
+    },
+    'production': {
+        'HOST': '127.0.0.1',
+        'PORT': '8082',
+        'RELOAD': 'False',
+        'ROOT_PATH': '/ragweb',
+        'API_BASE_URL': 'http://127.0.0.1:8083',
+    },
+}
+
+def _get(key: str, fallback: str = '') -> str:
+    """Read from env, falling back to environment-aware defaults."""
+    return getenv(key) or _DEFAULTS.get(_ENV, _DEFAULTS['development']).get(key, fallback)
+
 
 class Settings(BaseSettings):
     """Application settings."""
-    load_dotenv()
+    ENVIRONMENT: str = _ENV
+
     # Web Server
-    HOST: str = getenv('HOST')
-    PORT: int = int(getenv('PORT'))
-    RELOAD: bool = bool(getenv('RELOAD'))
-    ROOT_PATH: str = getenv('ROOT_PATH', '')
-    
+    HOST: str = _get('HOST')
+    PORT: int = int(_get('PORT', '8082'))
+    RELOAD: bool = _get('RELOAD', 'False').lower() in ('true', '1', 'yes')
+    ROOT_PATH: str = _get('ROOT_PATH')
+
     # API Configuration
-    API_BASE_URL: str = getenv('API_BASE_URL')
-    API_KEY: str = getenv('API_KEY')
-    
+    API_BASE_URL: str = _get('API_BASE_URL')
+    API_KEY: str = _get('API_KEY')
+
     # Application
-    APP_NAME: str = getenv('APP_NAME')
-    APP_VERSION: str = getenv('APP_VERSION')
-    
+    APP_NAME: str = _get('APP_NAME', 'Aviation RAG Web Interface')
+    APP_VERSION: str = _get('APP_VERSION', '1.0.0')
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
