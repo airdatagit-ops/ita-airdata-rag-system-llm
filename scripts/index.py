@@ -153,7 +153,10 @@ def run(args: argparse.Namespace) -> int:
         logger.info("Recreating Qdrant collection …")
         if use_named:
             config.SEARCH_SPARSE_ENABLED = True
-        db.create_collection(recreate=True)
+        sparse_only = mode == "sparse"
+        if not db.create_collection(recreate=True, sparse_only=sparse_only):
+            logger.error("Failed to create Qdrant collection — aborting.")
+            return 1
 
     dense_table = emb_store.load_dense() if mode in ("dense", "hybrid") else None
     sparse_table = emb_store.load_sparse() if mode in ("sparse", "hybrid") else None

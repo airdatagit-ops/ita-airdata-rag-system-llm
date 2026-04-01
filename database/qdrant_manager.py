@@ -39,9 +39,15 @@ class QdrantManager:
         self.api_key = api_key or config.QDRANT_API_KEY
 
         if self.api_key:
-            self.client = QdrantClient(url=self.host, api_key=self.api_key, prefer_grpc=True)
+            self.client = QdrantClient(
+                url=self.host, api_key=self.api_key,
+                prefer_grpc=True, timeout=120,
+            )
         else:
-            self.client = QdrantClient(host=self.host, port=self.port, prefer_grpc=True)
+            self.client = QdrantClient(
+                host=self.host, port=self.port,
+                prefer_grpc=True, timeout=120,
+            )
 
         logger.info(f"QdrantManager initialized ({self.host}:{self.port})")
 
@@ -49,52 +55,55 @@ class QdrantManager:
         self,
         vector_size: int = None,
         distance: Distance = Distance.COSINE,
-        recreate: bool = False
+        recreate: bool = False,
+        sparse_only: bool = False,
     ) -> bool:
         """
         Create collection.
 
-        When SEARCH_SPARSE_ENABLED=false (default), creates a standard collection
-        with a single unnamed dense vector (backward compatible).
-        When SEARCH_SPARSE_ENABLED=true, creates named vectors ("dense" + "sparse")
-        for hybrid search. Requires collection recreation.
+        When sparse_only=True, creates a collection with only sparse vectors
+        (no dense vector config needed). Otherwise creates named vectors
+        ("dense" + "sparse") for hybrid search.
         """
+        import time
+
         vector_size = vector_size or config.EMBEDDING_DIMENSION
 
-        try:
-            collections = self.client.get_collections().collections
-            exists = any(c.name == self.collection_name for c in collections)
+        collections = self.client.get_collections().collections
+        exists = any(c.name == self.collection_name for c in collections)
 
-            if exists and not recreate:
-                logger.info(f"Collection '{self.collection_name}' already exists")
-                return True
-
-            if exists and recreate:
-                self.client.delete_collection(self.collection_name)
-                logger.warning(f"Deleted existing collection '{self.collection_name}'")
-
-            self.client.create_collection(
-                collection_name=self.collection_name,
-                vectors_config={
-                    "dense": VectorParams(
-                        size=vector_size,
-                        distance=distance,
-                        hnsw_config=HnswConfigDiff(
-                            m=config.HNSW_M,
-                            ef_construct=config.HNSW_EF_CONSTRUCT,
-                        ),
-                    ),
-                },
-                sparse_vectors_config={"sparse": SparseVectorParams()},
-            )
-            logger.success(f"Created collection '{self.collection_name}' (dense+sparse)")
-
-            self._create_payload_indexes()
+        if exists and not recreate:
+            logger.info(f"Collection '{self.collection_name}' already exists")
             return True
 
-        except Exception as e:
-            logger.error(f"Error creating collection: {e}")
-            return False
+        if exists and recreate:
+            self.client.delete_collection(self.collection_name)
+            logger.warning(f"Deleted existing collection '{self.collection_name}'")
+            time.sleep(2)
+
+        vectors_config = {}
+        if not sparse_only:
+            vectors_config["dense"] = VectorParams(
+                size=vector_size,
+                distance=distance,
+                hnsw_config=HnswConfigDiff(
+                    m=config.HNSW_M,
+                    ef_construct=config.HNSW_EF_CONSTRUCT,
+                ),
+            )
+
+        self.client.create_collection(
+            collection_name=self.collection_name,
+            vectors_config=vectors_config or None,
+            sparse_vectors_config={"sparse": SparseVectorParams()},
+        )
+        logger.success(
+            f"Created collection '{self.collection_name}' "
+            f"({'sparse-only' if sparse_only else 'dense+sparse'})"
+        )
+
+        self._create_payload_indexes()
+        return True
 
     def _create_payload_indexes(self):
         """Create indexes on payload fields for fast filtering."""
