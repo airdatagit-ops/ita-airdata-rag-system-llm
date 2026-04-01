@@ -1,0 +1,20 @@
+[Unit]
+Description=AirData RAG API (Uvicorn)
+After=network.target
+Wants=ollama.service
+
+[Service]
+Type=simple
+User=__USER__
+Group=__GROUP__
+WorkingDirectory=__PROJECT_DIR__
+Environment="PATH=__PROJECT_DIR__/venv/bin"
+ExecStart=__PROJECT_DIR__/venv/bin/uvicorn api.server:app --host 127.0.0.1 --port 8083
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ragapi
+
+[Install]
+WantedBy=multi-user.target

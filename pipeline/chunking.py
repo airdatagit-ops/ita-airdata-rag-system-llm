@@ -471,6 +471,18 @@ class ICAChunker:
         return chunk
 
 
+_ICA_CHUNKER_TYPES = frozenset([
+    'ica', 'mca', 'pca', 'nsca', 'dca', 'tca', 'fca', 'oca',
+    'rca', 'roca', 'rica', 'rima', 'rma', 'npa', 'bca', 'bma',
+    'ima', 'circea', 'decea',
+])
+
+_ICA_TYPE_RE = re.compile(
+    r'\b(?:' + '|'.join(sorted(_ICA_CHUNKER_TYPES, key=len, reverse=True)) + r')\b',
+    re.IGNORECASE,
+)
+
+
 def get_chunker(doc_type: str = None) -> ArticleChunker:
     """
     Get appropriate chunker based on document type.
@@ -481,12 +493,8 @@ def get_chunker(doc_type: str = None) -> ArticleChunker:
     Returns:
         Appropriate chunker instance
     """
-    if doc_type:
-        doc_type_lower = doc_type.lower()
-        
-        # Use ICAChunker for DECEA documents
-        if any(t in doc_type_lower for t in ['ica', 'mca', 'pca', 'nsca', 'dca', 'tca', 'circea', 'decea']):
-            return ICAChunker()
+    if doc_type and _ICA_TYPE_RE.search(doc_type):
+        return ICAChunker()
     
     return ArticleChunker()
 

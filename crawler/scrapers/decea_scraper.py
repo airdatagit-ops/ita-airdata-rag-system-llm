@@ -22,7 +22,7 @@ import requests
 from bs4 import BeautifulSoup
 from loguru import logger
 
-from crawler.scrapers.base import BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT
+from crawler.scrapers.base import BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, compute_canonical_id, split_version_year
 from crawler.scrapers import register_scraper
 from parsers.pdf_parser import extract_text_from_bytes
 
@@ -187,17 +187,35 @@ class DECEAScraper(BaseScraper):
             if not content or len(content.strip()) < 50:
                 return None
 
-            exclude = {"content"}
-            metadata = {k: v for k, v in doc.items() if k not in exclude}
+            slug = doc.get("slug") or ""
+            raw_number = doc.get("number") or ""
+            doc_type = (doc.get("doc_type") or "").upper()
+            authority = doc.get("origin") or "DECEA"
 
+            number, version_year = split_version_year(raw_number)
+            canonical = compute_canonical_id(doc_type, number)
+            doc_id = (
+                (f"{canonical}/{version_year}" if version_year else canonical)
+                if canonical else f"decea_{slug}"
+            )
+
+            exclude = {"content"}
+            metadata = {
+                k: v for k, v in doc.items() if k not in exclude
+            }
             return ScrapedDocument(
-                doc_id=self.make_doc_id(doc),
+                doc_id=doc_id,
                 source=self.source_name,
                 title=doc.get("title", ""),
                 content=content,
                 metadata=metadata,
                 url=doc.get("source_url"),
-                doc_type=doc.get("doc_type"),
+                doc_type=doc_type,
+                canonical_id=canonical,
+                source_ref=f"decea:{slug}",
+                number=number,
+                authority=authority,
+                version_year=version_year,
             )
         except Exception as exc:
             logger.error(f"Error processing {doc.get('slug', '?')}: {exc}")

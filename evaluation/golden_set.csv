@@ -29,8 +29,8 @@ Q020,Como é calculado o conceito operacional de instrução?,ICA-100-47-art24,r
 Q021,Quem tem competência para conceder a HT para instrutor de IFCTA?,ICA-100-47-art9,relevant,retrieval,Art. 9 competência do Comandante/Diretor
 Q022,Como funciona o comitê de segurança da informação no DECEA?,ICA-7-58,relevant,retrieval,ICA 7-58 sobre comitês de segurança da informação
 Q023,O que é prestação de tarefa por tempo certo no Comando da Aeronáutica?,ICA-35-13,relevant,retrieval,ICA 35-13 sobre PTTC
-Q024,Como funciona a gestão de cópias de segurança de sistemas no SISCEAB?,ICA-07-29,relevant,retrieval,ICA 07-29 sobre backup
-Q025,Quais são as regras sobre gestão de mudanças em sistemas do SISCEAB?,ICA-07-24-art1,relevant,retrieval,Art. 1 da ICA 07-24 sobre gestão de mudanças
+Q024,Como funciona a gestão de cópias de segurança de sistemas no SISCEAB?,ICA-7-29,relevant,retrieval,ICA 7-29 sobre backup
+Q025,Quais são as regras sobre gestão de mudanças em sistemas do SISCEAB?,ICA-7-24-art1,relevant,retrieval,Art. 1 da ICA 7-24 sobre gestão de mudanças
 Q026,Como funciona o uso especial do espaço aéreo?,ICA-100-36,relevant,retrieval,ICA 100-36 sobre uso especial do espaço aéreo
 Q027,Quais são as regras para operações VFR e IFR?,ICA-100-1-art1,relevant,retrieval,ICA 100-1 sobre regras de voo
 Q028,Como funciona o gerenciamento de fluxo de tráfego aéreo?,ICA-100-22-art1,relevant,retrieval,ICA 100-22 sobre gerenciamento de fluxo
@@ -45,6 +45,7 @@ Q036,Como funciona o sistema de informação NOTAM?,ICA-53-1-art1,relevant,retri
 Q037,Quais são as regras sobre informação aeronáutica digital?,ICA-53-7-art1,relevant,retrieval,ICA 53-7 sobre informação aeronáutica digital
 Q038,Como funciona a prevenção de incursão em pista?,ICA-81-4,relevant,retrieval,ICA 81-4 sobre prevenção de incursão em pista
 Q039,Quais são as regras sobre proteção contra incêndio?,ICA-92-19,relevant,retrieval,ICA 92-19 sobre proteção contra incêndio
+Q039,Quais são as regras sobre proteção contra incêndio?,DCA-92-1,moderate,retrieval,DCA 92-1 sobre serviços de contraincêndio (cross-type)
 Q040,Como funcionam as inspeções de segurança operacional?,ICA-121-13,relevant,retrieval,ICA 121-13 sobre inspeções de segurança
 Q041,O que são estações EPTA e como funcionam?,ICA-63-10-art1,relevant,retrieval,ICA 63-10 sobre estações EPTA
 Q042,Quais são os requisitos de saúde e certificado médico para controladores?,ICA-63-15-art1,relevant,retrieval,ICA 63-15 sobre exames médicos
@@ -63,8 +64,18 @@ Q053,O que diz a lei 7565 sobre o Código Brasileiro de Aeronáutica?,NOT_IN_DB,
 Q054,Quais são as regras da ANAC para licença de piloto comercial?,NOT_IN_DB,irrelevant,coverage,RBAC 61 não indexado
 Q055,Qual a resolução ANAC sobre transporte aéreo de passageiros?,NOT_IN_DB,irrelevant,coverage,Resolução ANAC não indexada
 Q056,Como funciona o programa de pesquisa do DECEA?,ICA-351-5,relevant,retrieval,ICA 351-5 sobre programa de pesquisa
-Q057,Quais são os requisitos para proficiência em inglês aeronáutico (EPLIS)?,ICA-37-924,relevant,retrieval,ICA 37-924 sobre EPLIS
-Q057,Quais são os requisitos para proficiência em inglês aeronáutico (EPLIS)?,ICA-37-937,moderate,retrieval,ICA 37-937 também sobre inglês
+Q057,Quais são os requisitos para proficiência em inglês aeronáutico (EPLIS)?,ICA-37-937,relevant,retrieval,ICA 37-937 sobre EPLIS
 Q058,Como funciona a doutrina operacional do controle de tráfego aéreo?,ICA-63-45-art1,relevant,retrieval,ICA 63-45 sobre doutrina operacional
 Q059,Quais são as regras sobre jornada de trabalho dos controladores de tráfego aéreo?,ICA-100-45-art1,relevant,retrieval,ICA 100-45 sobre fluxo de trabalho
 Q060,Qual o procedimento para representar auxílios à navegação nas cartas?,ICA-96-1-art62,relevant,retrieval,Art. 62 sobre representação de auxílios à navegação
+Q061,Como são confeccionadas as cartas de procedimentos IAC e SID?,MCA-96-3,relevant,retrieval,MCA 96-3 Manual de Confecção de Cartas de Procedimentos
+Q061,Como são confeccionadas as cartas de procedimentos IAC e SID?,ICA-96-1,moderate,retrieval,ICA 96-1 também trata de cartas aeronáuticas (cross-type)
+Q062,Quais são as normas de segurança da informação e defesa cibernética no COMAER?,NSCA-7-13,relevant,retrieval,NSCA 7-13 sobre Segurança da Informação e Defesa Cibernética
+Q062,Quais são as normas de segurança da informação e defesa cibernética no COMAER?,ICA-7-58,moderate,retrieval,ICA 7-58 sobre segurança da informação no DECEA (cross-type)
+Q063,Como funciona o regulamento de uniformes para militares da Aeronáutica?,RCA-35-2,relevant,retrieval,RCA 35-2 RUMAER - Regulamento de Uniformes
+Q064,Qual o regimento interno do Centro Integrado de Defesa Aérea e Controle de Tráfego Aéreo?,RICA-21-85,relevant,retrieval,RICA 21-85 Regimento Interno do CINDACTA II
+Q065,Quais são as diretrizes sobre gestão de riscos de segurança operacional no DECEA?,DCA-7-3,relevant,retrieval,DCA 7-3 Diretriz de Gestão de Riscos de Segurança Operacional
+Q065,Quais são as diretrizes sobre gestão de riscos de segurança operacional no DECEA?,ICA-16-6,moderate,retrieval,ICA 16-6 sobre gestão de risco no SISCEAB (cross-type)
+Q066,Como funciona o plano de prevenção e combate a incêndios florestais no COMAER?,PCA-92-2,relevant,retrieval,PCA 92-2 Plano de Prevenção e Combate a Incêndios Florestais
+Q067,Quais são as diretrizes de gerência de configuração de sistemas do DECEA?,DCA-7-4,relevant,retrieval,DCA 7-4 Diretriz de Gerência de Configuração de Sistemas
+Q068,Quais são as regras de jornada de trabalho de aeronautas?,Lei-7183,relevant,retrieval,Lei 7183/1984 sobre jornada de trabalho de aeronautas (LexML)

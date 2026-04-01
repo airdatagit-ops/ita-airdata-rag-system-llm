@@ -67,6 +67,7 @@ Pergunta do usuário
 | LLM | Ollama (llama3, phi3, etc.) | `models/llm.py` |
 | Banco vetorial | Qdrant | `database/qdrant_manager.py` |
 | Scraper base (ABC) | Interface async + registry | `crawler/scrapers/base.py` |
+| Scraper SISLAER | aiohttp (async) + Search API + BeautifulSoup | `crawler/scrapers/sislaer_scraper.py` |
 | Scraper DECEA | Requests + BeautifulSoup (async via to_thread) | `crawler/scrapers/decea_scraper.py` |
 | Scraper LexML | aiohttp (async) + BeautifulSoup | `crawler/scrapers/lexml_scraper.py` |
 | Scraper PDF (local) | PDFParser (pdfplumber/PyMuPDF) | `crawler/scrapers/pdf_scraper.py` |
@@ -80,40 +81,106 @@ Pergunta do usuário
 
 ## 2. Pré-requisitos e Dependências Externas
 
-### 2.1. Serviços que precisam estar rodando
+### 2.1. Pacotes de sistema (Ubuntu/Debian)
 
-| Serviço | Porta Padrão | Instalação |
-|---------|-------------|------------|
-| **Qdrant** | 6333 | Docker: `docker run -d -p 6333:6333 qdrant/qdrant` |
-| **Ollama** | 11434 | `curl -fsSL https://ollama.com/install.sh \| sh` |
+```bash
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip build-essential git curl
+```
 
-### 2.2. Dependências Python do sistema principal
+### 2.2. Docker (para Qdrant)
 
-O arquivo `requirements.txt` na raiz contém todas as dependências. As principais são:
+```bash
+# Instalar Docker Engine
+sudo apt install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+  https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io
 
-| Biblioteca | Função |
-|-----------|--------|
-| `fastapi` | Framework web da API |
-| `uvicorn` | Servidor ASGI |
-| `qdrant-client` | Cliente Python para Qdrant |
-| `sentence-transformers` | Carregamento do modelo de embeddings |
-| `torch` | PyTorch (backend do modelo de embeddings) |
-| `ollama` | Cliente Python para Ollama |
-| `beautifulsoup4` | Parsing HTML dos scrapers |
-| `lxml` | Parser HTML rápido para scraper DECEA |
-| `requests` | Requisições HTTP |
-| `pydantic`, `pydantic-settings` | Validação de dados e configurações |
-| `loguru` | Logging estruturado |
-| `slowapi` | Rate limiting na API |
+# Permitir uso sem sudo (requer re-login)
+sudo usermod -aG docker $USER
 
-### 2.3. Dependências Python da interface web
+# Iniciar Qdrant
+docker run -d --name qdrant --restart always \
+  -p 6333:6333 -p 6334:6334 \
+  -v $(pwd)/qdrant_storage:/qdrant/storage \
+  qdrant/qdrant
 
-O `web/requirements.txt` é um conjunto menor e independente. Veja a documentação em `web/docs/`.
+# Verificar
+curl http://localhost:6333/healthz
+```
 
-### 2.4. Instalação
+### 2.3. GPU — NVIDIA Drivers + CUDA (para servidor com GPU)
+
+```bash
+# Instalar drivers NVIDIA (ajustar versão conforme hardware)
+sudo apt install -y nvidia-driver-535
+
+# Reiniciar e verificar
+sudo reboot
+nvidia-smi
+
+# Verificar modelo da GPU e memória
+nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
+```
+
+O PyTorch (incluído no `requirements.txt`) detecta CUDA automaticamente. Após instalar as dependências Python, confirme:
+
+```bash
+python3 -c "import torch; print(f'CUDA: {torch.cuda.is_available()}, GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"N/A\"}')"
+```
+
+### 2.4. Ollama (LLM local)
+
+```bash
+# Instalar
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Baixar modelo
+ollama pull llama3.2:3b
+
+# Verificar
+ollama list
+systemctl status ollama
+```
+
+### 2.5. nginx (reverse proxy)
+
+```bash
+sudo apt install -y nginx
+sudo systemctl enable nginx
+```
+
+### 2.6. Serviços em produção
+
+| Serviço | Porta | Verificação |
+|---------|-------|-------------|
+| **Qdrant** | 6333 | `curl http://localhost:6333/healthz` |
+| **Ollama** | 11434 | `ollama list` |
+| **API RAG** | 8083 | `curl http://127.0.0.1:8083/health` |
+| **Web App** | 8082 | `curl http://127.0.0.1:8082/health` |
+| **Datasette** | 8001 | `curl http://127.0.0.1:8001/explore/` |
+| **nginx** | 80 | `curl http://localhost/ragweb/health` |
+
+### 2.7. Verificação rápida de todos os pré-requisitos
+
+```bash
+make check
+```
+
+### 2.8. Instalação das dependências Python
 
 ```bash
 cd aviation-rag-system/
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+cd web/
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -376,9 +443,50 @@ A classe `LlamaModel` (`models/llm.py`) oferece:
 
 ## 7. Extração de Documentos Normativos
 
-O sistema extrai documentos de duas fontes principais:
+O sistema extrai documentos de três fontes, com SISLAER como primária:
 
-### 7.1. DECEA (Instruções de Comando da Aeronáutica)
+### 7.1. SISLAER (Fonte Primária)
+
+**Scraper:** `crawler/scrapers/sislaer_scraper.py`
+
+O scraper SISLAER é a fonte primária de documentos legislativos aeronáuticos. Usa a **Search API interna** do portal CENDOC/Sophia (`sislaer.fab.mil.br/TerminalWebCENDOC`) para descoberta rápida de documentos, com **aiohttp (assíncrono)** + BeautifulSoup para extração de conteúdo. Ele:
+
+1. Consulta a Search API (`POST Busca/RapidaLegislacao`) por tipo de norma, com paginação automática (`Resultado/CarregarPaginaLayoutDetalhe`)
+2. Cobre 38 tipos de documento (ICA, DCA, Portaria, Lei, Decreto, NSCA, etc.)
+3. Gerencia sessão CSRF automaticamente (token + cookies), com renovação em caso de expiração
+4. Extrai metadados ricos: situação (Em vigor/Revogado), portaria de aprovação, autoridade, publicação
+5. Captura relacionamentos entre documentos (alterações, correlações, revogações) como grafo
+6. Extrai conteúdo em prioridade: texto integral inline > VisualizadorHtml > PDF (fallback)
+7. Gera `canonical_id` para deduplicação cross-source (ex: `ica_100-12`)
+8. Armazena conteúdo, metadados e relações no SQLite (`data/store.db`)
+
+Um fallback via varredura de `codigoRegistro` IDs está disponível para debugging via `strategy="ids"`.
+
+**Como executar:**
+
+```bash
+make collect                                          # SISLAER + LexML (padrão)
+make collect SOURCES=sislaer                          # Apenas SISLAER
+make collect SOURCES=sislaer DOC_TYPES=ICA            # Apenas ICAs do SISLAER
+make collect SOURCES=sislaer DOC_TYPES=ICA,DCA,NSCA   # Múltiplos tipos
+make collect SOURCES=sislaer LIMIT=50                 # Limita a 50 docs
+make collect SOURCES=sislaer CHECK=1                  # Verifica alterações
+make collect SOURCES=sislaer FORCE=1                  # Re-coleta do zero
+make collect-sislaer                                  # Atalho: apenas SISLAER
+```
+
+**Configuração (`env.example`):**
+
+| Variável | Default | Descrição |
+|----------|---------|-----------|
+| `SISLAER_MAX_RATE` | `10` | Requisições por segundo |
+| `SISLAER_CONCURRENCY` | `10` | Conexões simultâneas |
+| `SISLAER_TIMEOUT` | `30` | Timeout HTTP em segundos |
+| `SISLAER_START_ID` | `1` | ID inicial para varredura (apenas `strategy=ids`) |
+| `SISLAER_END_ID` | `0` (auto) | ID final para varredura (apenas `strategy=ids`) |
+| `SISLAER_DOC_TYPES` | `ICA,DCA,...` (36 tipos) | Tipos de documento a coletar. PORTARIA e PORTARIA CONJUNTA excluídas por default (20K+ docs administrativos) |
+
+### 7.2. DECEA (Fallback — Instruções de Comando da Aeronáutica)
 
 **Scraper:** `crawler/scrapers/decea_scraper.py`
 
@@ -401,7 +509,7 @@ make collect SOURCES=decea CHECK=1             # Verifica alterações
 make collect SOURCES=decea FORCE=1             # Re-coleta do zero
 ```
 
-### 7.2. LexML (Legislação Federal)
+### 7.3. LexML (Legislação Federal — Complemento)
 
 **Scraper:** `crawler/scrapers/lexml_scraper.py`
 
@@ -427,7 +535,7 @@ make collect SOURCES=lexml CHECK=1                     # Verifica alterações
 make collect SOURCES=lexml FORCE=1                     # Re-coleta do zero
 ```
 
-### 7.3. PDFs Locais
+### 7.4. PDFs Locais
 
 Para coletar PDFs que já estejam em um diretório local:
 
@@ -436,7 +544,7 @@ make collect SOURCES=pdf                           # PDFs do diretório padrão 
 make collect SOURCES=pdf PDF_DIR=./meus-pdfs/      # Diretório customizado
 ```
 
-### 7.4. Arquitetura de Scrapers
+### 7.5. Arquitetura de Scrapers
 
 Todos os scrapers herdam de `BaseScraper` (`crawler/scrapers/base.py`), que define uma interface async unificada:
 
@@ -453,8 +561,8 @@ Os scrapers são registrados automaticamente via decorator `@register_scraper` e
 ```python
 from crawler.scrapers import get_scraper, list_scrapers
 
-scraper = get_scraper("decea")  # instancia DECEAScraper
-names = list_scrapers()          # ["decea", "lexml", "pdf"]
+scraper = get_scraper("sislaer")  # instancia SISLAERScraper
+names = list_scrapers()            # ["sislaer", "decea", "lexml", "pdf"]
 ```
 
 Para adicionar um novo scraper, basta criar uma classe em `crawler/scrapers/` que herde de `BaseScraper` e use `@register_scraper`.
@@ -466,8 +574,33 @@ O `DocumentStore` (`pipeline/document_store.py`) mantém um registro em SQLite (
 - Conteúdo completo de cada documento
 - Hash SHA256 do conteúdo (para detectar alterações)
 - Metadados (título, URL, URN, tipo, source)
+- `source_ref` — referência canônica da fonte (ex: `sislaer:12345`, `lexml:urn:...`)
+- `canonical_id` — ID cross-source para deduplicação (ex: `ica_100-12`)
 - Timestamps de coleta e atualização
 - Log de embeddings gerados
+- Grafo de relacionamentos entre documentos (`document_relations`)
+
+#### Relacionamentos entre documentos
+
+A tabela `document_relations` captura vínculos extraídos das páginas do SISLAER:
+
+| Tipo | Significado |
+|------|-------------|
+| `amends` | Documento A altera documento B |
+| `amended_by` | Documento A é alterado por B |
+| `correlates` | Referência cruzada entre documentos |
+| `revokes` | Documento A revoga B |
+| `revoked_by` | Documento A é revogado por B |
+
+Após a coleta, `resolve_relations()` resolve as referências internas para `doc_id`s reais usando a coluna indexada `source_ref`. O status de revogação é usado para filtrar documentos inativos na busca vetorial.
+
+#### Migrações
+
+O schema evolui incrementalmente. Migrações são idempotentes e rodam automaticamente na inicialização, mas podem ser executadas explicitamente:
+
+```bash
+make migrate
+```
 
 Isso evita re-downloads desnecessários em execuções subsequentes.
 
@@ -488,7 +621,7 @@ O pipeline de ingestão foi reestruturado em **3 fases independentes e idempoten
 
 ### Fase 1: Collect (`make collect`)
 
-Executa os scrapers (LexML, DECEA, PDFs locais) e persiste documentos no SQLite. Três modos de coleta controlam o comportamento em re-runs:
+Executa os scrapers (SISLAER, LexML, DECEA, PDFs locais) e persiste documentos no SQLite. SISLAER é a fonte primária; LexML complementa com o que não existe no SISLAER (deduplicação cross-source via `canonical_id`). Três modos de coleta controlam o comportamento em re-runs:
 
 | Modo | Comando | Comportamento |
 |---|---|---|
@@ -497,13 +630,13 @@ Executa os scrapers (LexML, DECEA, PDFs locais) e persiste documentos no SQLite.
 | **Force** | `make collect FORCE=1` | Apaga todos os documentos da fonte no SQLite e re-coleta do zero. |
 
 ```bash
-make collect                              # re-run rápido (pula existentes)
+make collect                              # re-run rápido (SISLAER + LexML, pula existentes)
 make collect CHECK=1                      # verificar mudanças nas fontes
 make collect FORCE=1                      # apagar e re-coletar tudo
-make collect SOURCES=lexml LIMIT=50       # apenas LexML, 50 docs
-make collect SOURCES=decea                # apenas DECEA (todos os tipos)
+make collect-sislaer                      # apenas SISLAER (fonte primária)
+make collect-legacy                       # DECEA + LexML (fontes fallback)
+make collect SOURCES=sislaer DOC_TYPES=ICA  # apenas ICAs do SISLAER
 make collect SOURCES=pdf PDF_DIR=./data/pdfs  # PDFs locais
-make collect SOURCES=lexml,decea,pdf      # todas as fontes
 ```
 
 ### Fase 2: Embed (`make embed`)
@@ -606,12 +739,12 @@ allow:
 
 ```bash
 python -m datasette serve --immutable data/store.db --metadata metadata.yml \
-  --host 127.0.0.1 --port 8001 --setting base_url /datasette/ --cors
+  --host 127.0.0.1 --port 8001 --setting base_url /explore/ --cors
 ```
 
 ```nginx
-location /datasette/ {
-    proxy_pass http://127.0.0.1:8001/datasette/;
+location /explore/ {
+    proxy_pass http://127.0.0.1:8001/explore/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
 }
@@ -623,7 +756,7 @@ location /datasette/ {
   FASE 1: COLLECT                    FASE 2: EMBED                    FASE 3: INDEX
   ─────────────────                  ────────────────                  ────────────────
   Web Scrapers                       SQLite → Chunking                Parquet → Qdrant
-  (DECEA, LexML)                     → Embedding → Parquet
+  (SISLAER, LexML, DECEA)           → Embedding → Parquet
         │                                  │                                │
         ▼                                  ▼                                ▼
   SHA256 hash check              Quality Gate + TextCleaner          Bulk upsert com
@@ -801,7 +934,7 @@ python main.py
 
 | Script | Comando | Descrição |
 |--------|---------|-----------|
-| `collect.py` | `python -m scripts.collect` | Fase 1: coleta documentos de todas as fontes no SQLite (`make collect`). Modos: default (skip), --check, --force |
+| `collect.py` | `python -m scripts.collect` | Fase 1: coleta documentos no SQLite. Fontes: SISLAER (primária, via Search API), LexML, DECEA, PDF. Modos: default (skip), --check, --force |
 | `embed.py` | `python -m scripts.embed` | Fase 2: gera embeddings incrementais em Parquet (`make embed`) |
 | `index.py` | `python -m scripts.index` | Fase 3: carrega embeddings no Qdrant (`make index`) |
 | `query.py` | `python -m scripts.query` | Console SQL interativo para explorar o SQLite (`make query`) |
@@ -825,9 +958,10 @@ cd aviation-rag-system/
 source venv/bin/activate
 
 # 1. Coletar documentos (Fase 1)
-make collect                                  # Coleta DECEA + LexML
-make collect SOURCES=decea LIMIT=50           # Apenas DECEA, 50 docs
-make collect SOURCES=pdf PDF_DIR=./meus-pdfs  # PDFs locais
+make collect                                  # Coleta SISLAER + LexML (padrão)
+make collect-sislaer                          # Apenas SISLAER
+make collect-legacy                           # DECEA + LexML (fallback)
+make collect SOURCES=sislaer DOC_TYPES=ICA    # Apenas ICAs do SISLAER
 
 # 2. Gerar embeddings (Fase 2)
 make embed MODE=sparse                        # Apenas sparse (sem GPU)
@@ -1024,6 +1158,7 @@ tests/
 ├── crawler/
 │   └── scrapers/
 │       ├── test_base_scraper.py     # BaseScraper ABC, registry, ScrapedDocument
+│       ├── test_sislaer_scraper.py  # SISLAERScraper (Search API, parsing, norma codes)
 │       ├── test_decea_scraper.py    # DECEAScraper (sync + async)
 │       └── test_lexml_scraper.py    # LexMLScraper (async)
 ├── evaluation/
@@ -1060,7 +1195,9 @@ python -m pytest tests/ -v --tb=short
 
 | Comando | Descrição |
 |---------|-----------|
-| `make collect` | Fase 1: coleta novos documentos (pula existentes, re-run instantâneo) |
+| `make collect` | Fase 1: coleta SISLAER + LexML (pula existentes, re-run instantâneo) |
+| `make collect-sislaer` | Fase 1: apenas SISLAER (fonte primária) |
+| `make collect-legacy` | Fase 1: DECEA + LexML (fontes fallback) |
 | `make collect CHECK=1` | Fase 1: re-baixa tudo e verifica hashes (detecta mudanças na fonte) |
 | `make collect FORCE=1` | Fase 1: apaga docs da fonte e re-coleta do zero |
 | `make embed` | Fase 2: gera embeddings incrementais em Parquet |
@@ -1074,6 +1211,7 @@ python -m pytest tests/ -v --tb=short
 | Comando | Descrição |
 |---------|-----------|
 | `make help` | Lista todos os comandos disponíveis |
+| `make migrate` | Executa migrações do banco SQLite |
 | `make test` | Executa todos os testes unitários |
 | `make test FILE=<path>` | Executa testes de um arquivo ou diretório |
 | `make eval` | Executa ambas as avaliações (retrieval + geração) |
@@ -1085,7 +1223,7 @@ python -m pytest tests/ -v --tb=short
 
 | Parâmetro | Padrão | Uso |
 |-----------|--------|-----|
-| `SOURCES` | `lexml,decea` | `make collect SOURCES=lexml` |
+| `SOURCES` | `sislaer,lexml` | `make collect SOURCES=sislaer` |
 | `CHECK` | — | `make collect CHECK=1` (verificar hashes) |
 | `FORCE` | — | `make collect FORCE=1` (re-coletar) / `make embed FORCE=1` |
 | `MODE` | config | `make embed MODE=hybrid` |
@@ -1103,205 +1241,114 @@ python -m pytest tests/ -v --tb=short
 
 ---
 
-## 14. Deploy em Produção (systemctl + Nginx)
+## 14. Deploy em Produção
 
-O sistema está configurado para rodar em produção usando **systemd** para gerenciamento de processos e **Nginx** como reverse proxy.
+O sistema usa **systemd** para gerenciamento de processos, **nginx** como reverse proxy e um **script automatizado** (`deploy/deploy.sh`) que configura tudo.
 
-### 14.1. Serviço da API RAG (`ragapi.service`)
+### 14.1. Deploy automatizado
 
-Este serviço roda o backend da API (busca vetorial + LLM).
+Os templates de configuração estão versionados em `deploy/`:
 
-Arquivo: `/etc/systemd/system/ragapi.service`
-
-```ini
-[Unit]
-Description=API - RAG (Uvicorn)
-After=network.target
-
-[Service]
-Type=simple
-User=jean
-Group=jean
-WorkingDirectory=/home/jean/RAGSystem/aviation-rag-system
-
-# Ativa o venv automaticamente
-Environment="PATH=/home/jean/RAGSystem/aviation-rag-system/venv/bin"
-
-# Comando de execução
-ExecStart=/home/jean/RAGSystem/aviation-rag-system/venv/bin/uvicorn api.server:app --host 127.0.0.1 --port 8083
-
-Restart=always
-RestartSec=5
-
-# Logs
-StandardOutput=journal
-StandardError=journal
+```
+deploy/
+  deploy.sh              # Script principal de deploy
+  ragapi.service         # systemd — API RAG (porta 8083)
+  ragweb.service         # systemd — Web UI (porta 8082)
+  ragexplore.service     # systemd — Datasette (porta 8001)
+  nginx-rag.conf         # nginx — reverse proxy
 ```
 
-### 14.2. Serviço da Interface Web (`ragweb.service`)
-
-Este serviço roda o frontend web.
-
-Arquivo: `/etc/systemd/system/ragweb.service`
-
-```ini
-[Unit]
-Description= RAG Web aplication(Uvicorn)
-After=network.target
-
-[Service]
-Type=simple
-User=jean
-Group=jean
-WorkingDirectory=/home/jean/RAGSystem/aviation-rag-system/web
-
-# Ativa o venv automaticamente
-Environment="PATH=/home/jean/RAGSystem/aviation-rag-system/web/venv/bin"
-
-# Comando de execução
-ExecStart=/home/jean/RAGSystem/aviation-rag-system/web/venv/bin/python main.py
-
-Restart=always
-RestartSec=5
-
-# Logs
-StandardOutput=journal
-StandardError=journal
-```
-
-### 14.3. Comandos de gerenciamento (systemctl)
+#### Primeiro deploy (servidor novo)
 
 ```bash
-# Habilitar os serviços (iniciar automaticamente no boot)
-sudo systemctl enable ragapi
-sudo systemctl enable ragweb
+# 1. Clonar o repositório
+git clone <repo-url> && cd aviation-rag-system
 
-# Iniciar os serviços
-sudo systemctl start ragapi
-sudo systemctl start ragweb
+# 2. Verificar pré-requisitos (ver seção 2)
+make check
 
+# 3. Deploy completo (cria .env, instala deps, configura serviços)
+make deploy-first
+
+# 4. Editar os arquivos .env com suas configurações
+nano .env          # API_KEY, OLLAMA_MODEL, etc.
+nano web/.env      # API_KEY (mesmo valor), API_BASE_URL
+
+# 5. Executar pipeline de ingestão (primeira vez)
+source venv/bin/activate
+make pipeline
+
+# 6. Reiniciar serviços para aplicar .env
+sudo systemctl restart ragapi ragweb
+```
+
+#### Deploys subsequentes (atualização de código)
+
+```bash
+make deploy
+```
+
+Este comando executa: `git pull` → atualiza dependências → reinstala serviços systemd → recarrega nginx → reinicia os 3 serviços → health checks.
+
+### 14.2. Comandos de gerenciamento
+
+```bash
 # Verificar status
-sudo systemctl status ragapi
-sudo systemctl status ragweb
+sudo systemctl status ragapi ragweb ragexplore
 
 # Ver logs em tempo real
 sudo journalctl -u ragapi -f
 sudo journalctl -u ragweb -f
+sudo journalctl -u ragexplore -f
 
-# Reiniciar após alterações no código
-sudo systemctl restart ragapi
-sudo systemctl restart ragweb
+# Reiniciar após alterações manuais
+sudo systemctl restart ragapi ragweb ragexplore
 
-# Parar os serviços
-sudo systemctl stop ragapi
-sudo systemctl stop ragweb
+# Parar todos os serviços
+sudo systemctl stop ragapi ragweb ragexplore
+
+# Verificar saúde do sistema
+make check
 ```
 
-### 14.4. Nginx (Reverse Proxy)
+### 14.3. Configuração nginx
 
-O Nginx atua como reverse proxy, recebendo as requisições na porta 80 e redirecionando para os serviços internos.
+O deploy instala automaticamente a configuração em `/etc/nginx/sites-available/rag`. O arquivo fonte está em `deploy/nginx-rag.conf` e contém:
 
-Arquivo: `/etc/nginx/sites-enabled/default`
+- `/ragweb/` → proxy para a interface web (porta 8082)
+- `/ragapi/` → proxy para a API RAG (porta 8083) com suporte a SSE
+- `/explore/` → proxy para o explorador de dados (porta 8001)
 
-```nginx
-server {
-    listen 80 default_server;
-    server_name _;
-
-    # Redirect /ragweb to /ragweb/
-    location /ragweb {
-        return 302 /ragweb/;
-    }
-
-    # Interface Web (porta 8082)
-    location /ragweb/ {
-        proxy_pass http://127.0.0.1:8082/;
-
-        proxy_http_version 1.1;
-        proxy_set_header Host                   $host;
-        proxy_set_header X-Real-IP              $remote_addr;
-        proxy_set_header X-Forwarded-for        $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto      $scheme;
-        proxy_redirect off;
-
-        # Timeouts adequados para streaming e RAG
-        proxy_read_timeout 180s;
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 180s;
-    }
-
-    # Redirect /ragapi to /ragapi/
-    location /ragapi {
-        return 302 /ragapi/;
-    }
-
-    # API RAG (porta 8083)
-    location /ragapi/ {
-        proxy_pass http://127.0.0.1:8083/;
-
-        proxy_http_version 1.1;
-        proxy_set_header Host                   $host;
-        proxy_set_header X-Real-IP              $remote_addr;
-        proxy_set_header X-Forwarded-for        $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto      $scheme;
-        proxy_redirect off;
-
-        # Timeouts adequados para RAG + LLM
-        proxy_read_timeout 180s;
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 180s;
-    }
-}
-```
-
-### 14.5. Comandos Nginx
+Comandos manuais:
 
 ```bash
-# Testar configuração
-sudo nginx -t
-
-# Recarregar configuração (sem downtime)
-sudo systemctl reload nginx
-
-# Reiniciar Nginx
-sudo systemctl restart nginx
-
-# Ver logs
+sudo nginx -t                    # Testar configuração
+sudo systemctl reload nginx      # Recarregar sem downtime
 sudo tail -f /var/log/nginx/error.log
-sudo tail -f /var/log/nginx/access.log
 ```
 
-### 14.6. URLs de acesso em produção
-
-Com a configuração acima, os serviços ficam acessíveis em:
+### 14.4. URLs de acesso em produção
 
 | Serviço | URL |
 |---------|-----|
 | Interface Web | `http://SEU_IP/ragweb/` |
 | API RAG | `http://SEU_IP/ragapi/` |
-| Health (Web) | `http://SEU_IP/ragweb/health` |
+| Datasette | `http://SEU_IP/explore/` |
 | Health (API) | `http://SEU_IP/ragapi/health` |
+| Health (Web) | `http://SEU_IP/ragweb/health` |
 | Estatísticas | `http://SEU_IP/ragapi/stats` (requer API Key) |
 
-### 14.7. Ordem de inicialização em produção
+### 14.5. Ordem de inicialização
 
-A ordem recomendada para inicializar todos os serviços é:
+Os serviços systemd são habilitados para iniciar automaticamente no boot. Se necessário iniciar manualmente:
 
 ```bash
-# 1. Qdrant (se não for Docker com restart: always)
-docker start qdrant
-
-# 2. Ollama (geralmente já roda como serviço)
-sudo systemctl start ollama
-
-# 3. API RAG
-sudo systemctl start ragapi
-
-# 4. Interface Web
-sudo systemctl start ragweb
-
-# 5. Nginx (geralmente já roda)
-sudo systemctl start nginx
+docker start qdrant              # 1. Qdrant
+sudo systemctl start ollama      # 2. Ollama
+sudo systemctl start ragapi      # 3. API RAG
+sudo systemctl start ragweb      # 4. Web UI
+sudo systemctl start ragexplore  # 5. Datasette
+sudo systemctl start nginx       # 6. nginx
 ```
 
 ---

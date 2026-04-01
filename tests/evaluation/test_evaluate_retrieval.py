@@ -40,48 +40,53 @@ def evaluator(golden_set_file):
 
 
 class TestNormalizeId:
-    def test_strips_decea_prefix(self):
-        assert _normalize_id("decea_ICA-96-1-art563") == "ICA-96-1-art563"
+    def test_converts_golden_format_to_canonical(self):
+        assert _normalize_id("ICA-96-1-art563") == "ica_96-1-art563"
 
-    def test_strips_pdf_prefix(self):
-        assert _normalize_id("pdf_ICA-100-12") == "ICA-100-12"
+    def test_already_canonical_unchanged(self):
+        assert _normalize_id("ica_96-1/2025-art563") == "ica_96-1/2025-art563"
 
-    def test_no_prefix_unchanged(self):
-        assert _normalize_id("ICA-96-1-art563") == "ICA-96-1-art563"
+    def test_simple_doc_id(self):
+        assert _normalize_id("DOC-1") == "doc_1"
 
     def test_empty_string(self):
         assert _normalize_id("") == ""
 
 
 class TestExtractDocId:
-    def test_strips_article_and_prefix(self):
-        assert _extract_doc_id("decea_ICA-96-1-art563") == "ICA-96-1"
+    def test_strips_article(self):
+        assert _extract_doc_id("ica_96-1/2025-art563") == "ica_96-1/2025"
 
     def test_strips_article_sub_index(self):
-        assert _extract_doc_id("decea_ICA-7-58-art2-0") == "ICA-7-58"
+        assert _extract_doc_id("ica_7-58-art2-0") == "ica_7-58"
 
-    def test_no_article_strips_prefix(self):
-        assert _extract_doc_id("decea_ICA-7-58") == "ICA-7-58"
+    def test_no_article(self):
+        assert _extract_doc_id("ica_7-58") == "ica_7-58"
 
-    def test_unprefixed_article(self):
-        assert _extract_doc_id("ICA-96-1-art10") == "ICA-96-1"
+    def test_golden_format_strips_article(self):
+        assert _extract_doc_id("ICA-96-1-art10") == "ica_96-1"
 
 
 class TestMatchesExpected:
-    def test_article_exact_match_with_prefix(self):
-        assert _matches_expected("decea_ICA-96-1-art563", "ICA-96-1-art563") is True
+    def test_canonical_article_match(self):
+        assert _matches_expected("ica_96-1/2025-art563", "ICA-96-1-art563") is True
 
     def test_article_mismatch(self):
-        assert _matches_expected("decea_ICA-96-1-art999", "ICA-96-1-art563") is False
+        assert _matches_expected("ica_96-1/2025-art999", "ICA-96-1-art563") is False
 
     def test_doc_level_matches_any_chunk(self):
-        assert _matches_expected("decea_ICA-7-58-art2-0", "ICA-7-58") is True
+        assert _matches_expected("ica_7-58/2020-art2-0", "ICA-7-58") is True
 
     def test_doc_level_mismatch(self):
-        assert _matches_expected("decea_ICA-100-47-art5", "ICA-7-58") is False
+        assert _matches_expected("ica_100-47/2023-art5", "ICA-7-58") is False
 
-    def test_both_unprefixed(self):
+    def test_both_simple(self):
         assert _matches_expected("DOC-1", "DOC-1") is True
+
+    def test_version_agnostic(self):
+        """Different versions of the same document should match."""
+        assert _matches_expected("ica_96-1/2018-art563", "ICA-96-1-art563") is True
+        assert _matches_expected("ica_96-1/2025-art563", "ICA-96-1-art563") is True
 
 
 class TestComputeNDCG:
@@ -142,13 +147,13 @@ class TestRetrievalEvaluator:
 
     @patch("evaluation.evaluate_retrieval.QdrantManager")
     @patch("evaluation.evaluate_retrieval.EmbeddingModel")
-    def test_evaluate_hit_with_source_prefix(self, MockEmbed, MockQdrant, evaluator):
-        """Retrieved IDs with source prefix should match unprefixed expected IDs."""
+    def test_evaluate_hit_with_canonical_id(self, MockEmbed, MockQdrant, evaluator):
+        """Retrieved canonical IDs should match golden set IDs."""
         mock_embed = MockEmbed.return_value
         mock_embed.encode.return_value = np.random.rand(3, 1024)
 
         mock_point = MagicMock()
-        mock_point.payload = {"regulation_id": "decea_DOC-1"}
+        mock_point.payload = {"regulation_id": "doc_1"}
         mock_point.score = 0.9
 
         mock_qdrant = MockQdrant.return_value

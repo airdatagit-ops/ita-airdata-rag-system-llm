@@ -50,6 +50,19 @@ _LEGAL_DISCLAIMER_PATTERNS = [
         r'^[^\n]*Este\s+texto\s+não\s+substitui\s+o\s+original\s+publicado\s+no\s+Diário\s+Oficial[^\n]*$',
         re.MULTILINE | re.IGNORECASE,
     ),
+    # SISLAER Sophia portal chrome
+    re.compile(r'^\s*Terminal\s*-\s*Sophia\s+Biblioteca\s+Web\s*$', re.MULTILINE),
+    re.compile(r'^\s*Terminal\s+de\s+consulta\s+web\s*$', re.MULTILINE),
+    re.compile(r'^\s*Deseja\s+instalar\s+o\s+aplicativo\?\s*$', re.MULTILINE),
+    re.compile(r'^\s*Desenvolvido\s+por\s+Soluções\s+Sophia\s*$', re.MULTILINE),
+    re.compile(r'^\s*Selecionar\s+Favoritar\s+Link\s+do\s+t[ií]tulo\s*$', re.MULTILINE),
+    re.compile(r'^\s*Inclus[ãa]o\s+da\s+autoridade\s+no\s+perfil\s+de\s+interesse\s*$', re.MULTILINE),
+    re.compile(r'^\s*Controle\s+de\s+acesso\s*$', re.MULTILINE),
+    re.compile(r'^\s*Você\s+não\s+tem\s+acesso\s+a\s+este\s+arquivo\.\s*$', re.MULTILINE),
+    # Angular template placeholders
+    re.compile(r'\{\{\s*detalheLegislacaoCtrl\.[^}]+\}\}'),
+    re.compile(r'^\s*Sim\s+Não\s*$', re.MULTILINE),
+    re.compile(r'^\s*Ver\s+perfil\s+de\s+interesse\s+Fechar\s*$', re.MULTILINE),
 ]
 
 # Patterns for institutional headers found across DECEA ICA documents

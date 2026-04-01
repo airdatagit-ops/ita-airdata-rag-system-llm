@@ -34,6 +34,52 @@ DEFAULT_USER_AGENT = (
 )
 
 
+def compute_canonical_id(doc_type: Optional[str], number: Optional[str]) -> Optional[str]:
+    """Build a source-agnostic ID for cross-source deduplication.
+
+    Strips the type prefix from *number* when present so that inputs from
+    different sources produce the same canonical ID:
+
+        ("ICA", "96-1")      -> "ica_96-1"   (SISLAER)
+        ("ICA", "ICA96-1")   -> "ica_96-1"   (DECEA)
+        ("ICA", "ICA-96-1")  -> "ica_96-1"   (DECEA slug)
+        ("Lei", "8666")      -> "lei_8666"    (LexML)
+    """
+    if not doc_type or not number:
+        return None
+    dtype = re.sub(r"[^a-z0-9]", "", doc_type.lower())
+    # Strip type prefix from number (DECEA passes "ICA96-1" as number)
+    num_raw = number
+    dtype_compact = doc_type.upper().replace(" ", "")
+    num_upper = num_raw.upper().replace(" ", "")
+    if num_upper.startswith(dtype_compact) and len(num_raw) > len(dtype_compact):
+        num_raw = num_raw[len(dtype_compact):]
+        # Remove leading dash left after stripping (ICA-96-1 -> 96-1)
+        num_raw = num_raw.lstrip("-")
+    num = re.sub(r"[^0-9a-z./-]", "", num_raw.lower()).strip("-./")
+    return f"{dtype}_{num}" if dtype and num else None
+
+
+def split_version_year(number: str | None) -> tuple[str, Optional[str]]:
+    """Split a trailing ``/YYYY`` year suffix from a document number.
+
+    Returns ``(number_without_year, year_str_or_None)``.
+    Safely handles ``None`` / empty inputs.
+
+        "96-1/2025"  -> ("96-1", "2025")
+        "8666"       -> ("8666", None)
+        "1082/GM3"   -> ("1082/GM3", None)  # not a 4-digit year
+        None         -> ("", None)
+    """
+    if not number:
+        return ("", None)
+    if "/" in number:
+        base, maybe_year = number.rsplit("/", 1)
+        if len(maybe_year) == 4 and maybe_year.isdigit():
+            return base, maybe_year
+    return number, None
+
+
 @dataclass
 class ScrapedDocument:
     """Standardised output produced by every scraper."""
@@ -46,6 +92,12 @@ class ScrapedDocument:
     url: Optional[str] = None
     urn: Optional[str] = None
     doc_type: Optional[str] = None
+    canonical_id: Optional[str] = None
+    source_ref: Optional[str] = None
+    status: Optional[str] = None
+    number: Optional[str] = None
+    authority: Optional[str] = None
+    version_year: Optional[str] = None
 
 
 class BaseScraper(ABC):

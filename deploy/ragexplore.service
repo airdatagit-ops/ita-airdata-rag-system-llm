@@ -1,0 +1,19 @@
+[Unit]
+Description=AirData RAG Explorer (Datasette)
+After=network.target
+
+[Service]
+Type=simple
+User=__USER__
+Group=__GROUP__
+WorkingDirectory=__PROJECT_DIR__
+Environment="PATH=__PROJECT_DIR__/venv/bin"
+ExecStart=__PROJECT_DIR__/venv/bin/python -m datasette serve --immutable data/store.db --metadata metadata.yml --host 127.0.0.1 --port 8001 --setting base_url /explore/ --setting sql_time_limit_ms 30000 --cors
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ragexplore
+
+[Install]
+WantedBy=multi-user.target

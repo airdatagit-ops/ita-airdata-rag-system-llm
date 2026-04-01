@@ -66,12 +66,17 @@ def _build_article(doc: Dict, meta: Dict, cleaned_text: str) -> Dict:
         "effective_date": doc.get("effective_date") or meta.get("date") or meta.get("date_published"),
         "expiry_date": doc.get("expiry_date"),
         "status": doc.get("status") or meta.get("status", "active"),
+        "version_year": doc.get("version_year"),
+        "is_latest": bool(doc.get("is_latest", 1)),
+        "canonical_id": doc.get("canonical_id"),
         "metadata": {
             "title": doc.get("title") or meta.get("title"),
             "url": doc.get("url") or meta.get("source_url"),
             "urn": doc.get("urn") or meta.get("urn"),
             "type": doc_type,
-            "number": meta.get("number"),
+            "number": doc.get("number") or meta.get("number"),
+            "authority": doc.get("authority") or meta.get("authority"),
+            "canonical_id": doc.get("canonical_id"),
             "description": meta.get("description"),
             "source": doc.get("source"),
             "chunk_type": "document",
@@ -353,7 +358,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--source", type=str, default="all",
-        help="Source to embed (lexml, decea, or 'all')",
+        help="Source to embed (sislaer, lexml, decea, or 'all')",
     )
     parser.add_argument(
         "--force", action="store_true",

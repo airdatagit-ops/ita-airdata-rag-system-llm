@@ -92,6 +92,28 @@ class Settings(BaseSettings):
     LEXML_MAX_RATE: Optional[int] = getenv('LEXML_MAX_RATE')
 
     # ========================================
+    # SISLAER Scraper Configuration
+    # ========================================
+    SISLAER_BASE_URL: str = getenv(
+        'SISLAER_BASE_URL',
+        'https://www.sislaer.fab.mil.br/TerminalWebCENDOC',
+    )
+    SISLAER_MAX_RATE: float = float(getenv('SISLAER_MAX_RATE', '10'))
+    SISLAER_CONCURRENCY: int = int(getenv('SISLAER_CONCURRENCY', '10'))
+    SISLAER_TIMEOUT: int = int(getenv('SISLAER_TIMEOUT', '30'))
+    SISLAER_START_ID: int = int(getenv('SISLAER_START_ID', '1'))
+    SISLAER_END_ID: int = int(getenv('SISLAER_END_ID', '0'))
+    SISLAER_DOC_TYPES: str = getenv(
+        'SISLAER_DOC_TYPES',
+        'ICA,DCA,FCA,MCA,NSCA,PCA,RCA,TCA,OCA,ROCA,RICA,RIMA,RMA,NPA,PTA,'
+        'BCA,BMA,IMA,NOPREP,AVISO,COMUNICADO,NOTA,ORDEM TÉCNICA,'
+        'ORIENTAÇÃO NORMATIVA,NORMAS DO COMPREP,MANUAL ELETRÔNICO,MANUAL - OUTROS,'
+        'LEI,LEI COMPLEMENTAR,DECRETO,DECRETO - LEI,'
+        'RESOLUÇÃO,INSTRUÇÃO NORMATIVA,MEDIDA PROVISÓRIA,CONSTITUIÇÃO FEDERAL,'
+        'BOLETIM EXTERNO',
+    )
+
+    # ========================================
     # PDF Parser Configuration
     # ========================================
     ENABLE_OCR: bool = getenv('ENABLE_OCR')

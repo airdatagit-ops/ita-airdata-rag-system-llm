@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect embed index pipeline query explore
+.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first check
 
 PYTHON ?= python
 K ?= 5
@@ -7,10 +7,10 @@ SAMPLE ?=
 LIMIT ?= 0
 FILE ?=
 SEARCH_MODE ?= auto
-DOC_TYPES ?= ICA,MCA,PCA,DCA,TCA,CIRCEA,NSCA,FCA
+DOC_TYPES ?=
 KEYWORDS ?=
 CONCURRENCY ?= 10
-SOURCES ?= lexml,decea
+SOURCES ?= sislaer,lexml
 PDF_DIR ?= ./data/pdfs
 MODE ?=
 BATCH_SIZE ?=
@@ -24,10 +24,12 @@ help:
 	@echo "  make collect                                      Phase 1: collect new documents into SQLite"
 	@echo "  make collect CHECK=1                              Re-download all and verify content hashes"
 	@echo "  make collect FORCE=1                              Wipe source docs and re-collect from scratch"
-	@echo "  make collect SOURCES=lexml                        Collect only LexML (all docs)"
+	@echo "  make collect SOURCES=sislaer                       Collect only SISLAER (primary source)"
+	@echo "  make collect SOURCES=lexml                        Collect only LexML"
 	@echo "  make collect SOURCES=decea LIMIT=50               Collect only DECEA, limit to 50 docs"
+	@echo "  make collect-sislaer                              Shortcut: SISLAER only"
+	@echo "  make collect-legacy                               Shortcut: DECEA + LexML (fallback)"
 	@echo "  make collect SOURCES=pdf PDF_DIR=./data/pdfs      Collect local PDFs from directory"
-	@echo "  make collect SOURCES=lexml,decea,pdf              Collect from all sources (incl. PDFs)"
 	@echo "  make collect ALL_LOCALITIES=1                     Include state/municipal docs (default: federal only)"
 	@echo "  make embed                                        Phase 2: generate embeddings (incremental)"
 	@echo "  make embed MODE=dense                             Dense embeddings only"
@@ -56,9 +58,15 @@ help:
 	@echo "  make explore                                      Open datasette web UI for the store"
 	@echo ""
 	@echo "  ── utilities ─────────────────────────────────────────────────────────"
+	@echo "  make migrate                                      Run database migrations"
 	@echo "  make test                                         Run all unit tests"
 	@echo "  make test FILE=tests/evaluation                   Run tests in a specific dir or file"
 	@echo "  make clean                                        Remove evaluation result files"
+	@echo ""
+	@echo "  ── deploy ────────────────────────────────────────────────────────────"
+	@echo "  make check                                        Verify server prerequisites"
+	@echo "  make deploy                                       Deploy (git pull + deps + restart)"
+	@echo "  make deploy-first                                 First-time setup + deploy"
 
 test:
 	$(PYTHON) -m pytest $(or $(FILE),tests/) -v --tb=short
@@ -86,7 +94,13 @@ else
 endif
 
 collect:
-	$(PYTHON) -m scripts.collect --sources $(SOURCES) --limit $(LIMIT) --concurrency $(CONCURRENCY) --doc-types $(DOC_TYPES) --pdf-dir $(PDF_DIR) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,) $(if $(ALL_LOCALITIES),--no-federal-only,)
+	$(PYTHON) -m scripts.collect --sources $(SOURCES) --limit $(LIMIT) --concurrency $(CONCURRENCY) $(if $(DOC_TYPES),--doc-types $(DOC_TYPES),) --pdf-dir $(PDF_DIR) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,) $(if $(ALL_LOCALITIES),--no-federal-only,)
+
+collect-sislaer:
+	$(PYTHON) -m scripts.collect --sources sislaer --limit $(LIMIT) --concurrency $(CONCURRENCY) $(if $(DOC_TYPES),--doc-types $(DOC_TYPES),) $(if $(CHECK),--check,) $(if $(FORCE),--force,)
+
+collect-legacy:
+	$(PYTHON) -m scripts.collect --sources decea,lexml --limit $(LIMIT) --concurrency $(CONCURRENCY) $(if $(DOC_TYPES),--doc-types $(DOC_TYPES),) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,) $(if $(ALL_LOCALITIES),--no-federal-only,)
 
 embed:
 	$(PYTHON) -m scripts.embed $(if $(MODE),--mode $(MODE),) $(if $(FORCE),--force,) $(if $(BATCH_SIZE),--batch-size $(BATCH_SIZE),) $(if $(EMBED_BATCH),--embed-batch $(EMBED_BATCH),)
@@ -100,7 +114,19 @@ query:
 	$(PYTHON) -m scripts.query $(if $(SQL),--sql "$(SQL)",)
 
 explore:
-	$(PYTHON) -m datasette serve --immutable $(STORE_DB) --metadata metadata.yml --open
+	$(PYTHON) -m datasette serve --immutable $(STORE_DB) --metadata metadata.yml --open --setting sql_time_limit_ms 30000
+
+migrate:
+	@$(PYTHON) -c "from pipeline.document_store import DocumentStore; store = DocumentStore(); store.close()"
 
 clean:
 	rm -f evaluation/results/*.csv evaluation/results/*.json
+
+deploy:
+	@sudo bash deploy/deploy.sh
+
+deploy-first:
+	@sudo bash deploy/deploy.sh --first-run
+
+check:
+	@bash deploy/deploy.sh --check-only

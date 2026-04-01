@@ -173,6 +173,7 @@ class TestRegistry:
         assert "decea" in names
         assert "lexml" in names
         assert "pdf" in names
+        assert "sislaer" in names
 
     def test_get_scraper_decea(self):
         s = get_scraper("decea")

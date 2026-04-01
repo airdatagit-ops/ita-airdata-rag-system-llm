@@ -1,5 +1,5 @@
 title: "Aviation RAG - Document Store"
-description: "Explorador de documentos coletados (DECEA, LexML, PDFs)"
+description: "Explorador de documentos coletados (SISLAER, LexML, DECEA, PDFs)"
 
 allow:
   id:
