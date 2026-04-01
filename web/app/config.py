@@ -21,7 +21,7 @@ _DEFAULTS = {
         'HOST': '127.0.0.1',
         'PORT': '8082',
         'RELOAD': 'False',
-        'ROOT_PATH': '/ragweb',
+        'ROOT_PATH': '',
         'API_BASE_URL': 'http://127.0.0.1:8083',
     },
 }

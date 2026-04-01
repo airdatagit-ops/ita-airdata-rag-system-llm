@@ -269,14 +269,6 @@ if [[ -f "$PROJECT_DIR/web/.env" ]]; then
 
     sed -i 's/^RELOAD=True/RELOAD=False/' "$_web_env"
 
-    if grep -q '^ROOT_PATH=$' "$_web_env"; then
-        sed -i 's|^ROOT_PATH=$|ROOT_PATH=/ragweb|' "$_web_env"
-    fi
-    if ! grep -q '^ROOT_PATH=' "$_web_env"; then
-        echo 'ROOT_PATH=/ragweb' >> "$_web_env"
-        info "Added ROOT_PATH=/ragweb to web/.env"
-    fi
-
     if grep -q 'API_BASE_URL=http://161' "$_web_env"; then
         sed -i 's|^API_BASE_URL=http://161.*|API_BASE_URL=http://127.0.0.1:8083|' "$_web_env"
         info "Fixed API_BASE_URL to use direct local connection"
