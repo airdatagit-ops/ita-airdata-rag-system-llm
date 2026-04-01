@@ -1313,11 +1313,22 @@ make check
 
 ### 14.3. Configuração nginx
 
-O deploy instala automaticamente a configuração em `/etc/nginx/sites-available/rag`. O arquivo fonte está em `deploy/nginx-rag.conf` e contém:
+O `deploy/nginx-rag.conf` é um **snippet de locations** (não um server block completo), projetado para ser incluído dentro de um server block existente. O deploy copia o arquivo para `/etc/nginx/sites-available/rag` e adiciona um `include` no site default.
+
+Locations disponibilizadas:
 
 - `/ragweb/` → proxy para a interface web (porta 8082)
 - `/ragapi/` → proxy para a API RAG (porta 8083) com suporte a SSE
 - `/explore/` → proxy para o explorador de dados (porta 8001)
+
+Se o deploy automático não conseguir injetar o include (ex: server block customizado), adicione manualmente:
+
+```nginx
+server {
+    # ... configuração existente ...
+    include /etc/nginx/sites-available/rag;
+}
+```
 
 Comandos manuais:
 

@@ -12,8 +12,12 @@ set -euo pipefail
 # Flags:
 #   --first-run    Create .env files from examples if missing
 #   --skip-pull    Skip git pull
-#   --skip-nginx   Skip nginx configuration
+#   --skip-nginx   Skip nginx configuration (use on shared servers)
 #   --check-only   Run verification checks without deploying
+#
+# IMPORTANT: If this server hosts other services behind nginx,
+# use --skip-nginx to avoid overwriting their configurations.
+# Configure nginx manually instead (see deploy/nginx-rag.conf).
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -364,13 +368,21 @@ systemctl enable ragapi ragweb ragexplore --quiet 2>/dev/null || true
 
 if ! $SKIP_NGINX; then
     if [[ ! -f /etc/nginx/sites-available/rag ]] || ! diff -q "$DEPLOY_DIR/nginx-rag.conf" /etc/nginx/sites-available/rag &>/dev/null; then
-        info "Installing nginx configuration..."
+        info "Installing nginx RAG locations snippet..."
         cp "$DEPLOY_DIR/nginx-rag.conf" /etc/nginx/sites-available/rag
-        ln -sf /etc/nginx/sites-available/rag /etc/nginx/sites-enabled/rag
 
-        if [[ -f /etc/nginx/sites-enabled/default ]]; then
-            rm -f /etc/nginx/sites-enabled/default
-            info "Removed default nginx site to avoid conflicts."
+        # Remove legacy standalone site symlink (replaced by include approach)
+        if [[ -L /etc/nginx/sites-enabled/rag ]]; then
+            rm -f /etc/nginx/sites-enabled/rag
+            info "Removed legacy sites-enabled/rag symlink."
+        fi
+
+        # Inject include directive into default site if not already present
+        local _default="/etc/nginx/sites-available/default"
+        if [[ -f "$_default" ]] && ! grep -q 'include /etc/nginx/sites-available/rag' "$_default"; then
+            sed -i '/server_name/a\\n    include /etc/nginx/sites-available/rag;' "$_default"
+            ln -sf "$_default" /etc/nginx/sites-enabled/default
+            info "Added 'include rag' to default site."
         fi
 
         if nginx -t 2>/dev/null; then
@@ -378,6 +390,7 @@ if ! $SKIP_NGINX; then
             success "nginx configured and reloaded."
         else
             error "nginx config test failed — check: nginx -t"
+            error "You may need to manually add 'include /etc/nginx/sites-available/rag;' to your server block."
             exit 1
         fi
     else
