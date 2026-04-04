@@ -47,13 +47,16 @@ Do NOT add a Fontes/Referências section at the end."""
 
 def build_generator_context(
     documents: List[Dict[str, Any]],
-    scores: List[float] | None = None,
     max_doc_chars: int | None = None,
 ) -> str:
     """Format evaluated documents into a compact context string.
 
     Each document's text is truncated to *max_doc_chars* to keep the
     total prompt within a reasonable size for CPU inference.
+
+    Only ``metadata.type`` and ``metadata.number`` are included — they
+    form the citation label (e.g. ``[ICA 100-12]``).  Internal IDs and
+    evaluator scores are omitted because the LLM gains nothing from them.
     """
     from config import config
     limit = max_doc_chars or config.GENERATOR_MAX_DOC_CHARS
@@ -64,9 +67,8 @@ def build_generator_context(
         meta = doc.get("metadata", {})
         doc_type = meta.get("type", "")
         number = meta.get("number", "")
-        label = f"{doc_type} {number}".strip() if doc_type else doc.get("regulation_id", f"doc-{i+1}")
-        score_str = f" score={scores[i]:.0f}" if scores and i < len(scores) else ""
-        parts.append(f"[{label}{score_str}]\n{text}")
+        label = f"{doc_type} {number}".strip() if doc_type else f"Doc {i+1}"
+        parts.append(f"[{label}]\n{text}")
 
     return "\n---\n".join(parts)
 

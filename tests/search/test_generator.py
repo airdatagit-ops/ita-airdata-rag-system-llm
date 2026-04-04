@@ -92,12 +92,12 @@ class TestPromptBuilders:
                 "metadata": {"type": "ICA", "number": "100-12", "authority": "DECEA"},
             },
         ]
-        context = build_generator_context(docs, scores=[85.0])
+        context = build_generator_context(docs)
 
-        assert "ICA-1" in context
         assert "ICA 100-12" in context
-        assert "DECEA" in context
-        assert "Relevância: 85" in context
+        assert "Content" in context
+        assert "ICA-1" not in context
+        assert "DECEA" not in context
 
 class TestSystemPromptSelection:
     def test_grounded_no_history(self, generator):

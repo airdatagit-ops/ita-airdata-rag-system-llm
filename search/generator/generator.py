@@ -86,9 +86,8 @@ class ResponseGenerator:
         effective_max_tokens = max_tokens or self.max_tokens
 
         documents = [ed.document for ed in evaluated_docs]
-        scores = [ed.relevance_score for ed in evaluated_docs]
 
-        context = build_generator_context(documents, scores)
+        context = build_generator_context(documents)
         prompt = build_generator_prompt(
             original_query, context, history=history,
         )
