@@ -365,7 +365,7 @@ class TestStats:
         store.log_embedding("d1", "h", "dense", "m", 2)
 
         s = store.stats()
-        assert s["total_documents"] == 2
+        assert s["total_processed"] == 2
         assert s["by_source"]["lexml"] == 1
         assert s["by_source"]["decea"] == 1
         assert s["embedded_documents"] == 1
