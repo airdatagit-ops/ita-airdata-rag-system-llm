@@ -1,6 +1,5 @@
 """Search module for Aviation RAG System."""
 
-from search.vector_search import VectorSearch
-from search.rag import RAGPipeline
+from search.exceptions import SearchError, SearchBackendError
 
-__all__ = ["VectorSearch", "RAGPipeline"]
+__all__ = ["SearchError", "SearchBackendError"]

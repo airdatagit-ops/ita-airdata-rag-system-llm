@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch, PropertyMock
 import pytest
 
 from database.qdrant_manager import QdrantManager
+from search.exceptions import SearchBackendError
 
 
 @pytest.fixture
@@ -109,3 +110,12 @@ class TestUpsertPoints:
         manager.client.upload_points.side_effect = RuntimeError("fail")
         points = [{"id": "1", "vector": [0.1], "payload": {}}]
         assert manager.upsert_points(points) is False
+
+
+class TestSearchErrorHandling:
+
+    def test_raises_search_backend_error_on_failure(self, manager):
+        manager.client.query_points.side_effect = RuntimeError("connection lost")
+
+        with pytest.raises(SearchBackendError, match="Qdrant search failed"):
+            manager.search(dense_vector=[0.1, 0.2])

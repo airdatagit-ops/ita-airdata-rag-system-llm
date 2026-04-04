@@ -112,6 +112,7 @@ class ChatRequest(BaseModel):
     session_id: Optional[str] = Field(None, description="Session ID for conversation continuity")
     use_rag: bool = Field(False, description="Whether to use RAG for context")
     rag_date: Optional[str] = Field(None, description="Date for RAG temporal search (YYYY-MM-DD)")
+    rag_limit: Optional[int] = Field(None, ge=1, le=50, description="Number of RAG documents to retrieve")
     context_window: int = Field(10, ge=1, le=50, description="Number of previous messages to include")
     temperature: Optional[float] = Field(None, ge=0.0, le=2.0, description="LLM temperature override")
     max_tokens: Optional[int] = Field(None, ge=50, le=2000, description="Max tokens override")

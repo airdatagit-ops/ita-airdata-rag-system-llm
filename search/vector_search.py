@@ -1,20 +1,43 @@
 """Vector search with support for dense, sparse, or hybrid (RRF) modes."""
 
+from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Optional
+
 from loguru import logger
 
 from models.embeddings import EmbeddingModel, SparseEncoder
 from database.qdrant_manager import QdrantManager
 from config import config
 
+_SENTINEL = object()
+
 
 class VectorSearch:
-    """Vector search with temporal and semantic filtering."""
+    """Vector search with temporal and semantic filtering.
 
-    def __init__(self):
-        self.dense_model = EmbeddingModel() if config.SEARCH_DENSE_ENABLED else None
-        self.sparse_model = SparseEncoder() if config.SEARCH_SPARSE_ENABLED else None
-        self.db = QdrantManager()
+    Accepts pre-built instances via constructor (dependency injection).
+    When a dependency is not provided, a new instance is created based
+    on the current config flags.  Pass ``None`` explicitly to disable
+    a component (e.g. ``dense_model=None`` disables dense search).
+    """
+
+    def __init__(
+        self,
+        dense_model: Optional[EmbeddingModel] = _SENTINEL,
+        sparse_model: Optional[SparseEncoder] = _SENTINEL,
+        db: Optional[QdrantManager] = None,
+    ):
+        if dense_model is _SENTINEL:
+            self.dense_model = EmbeddingModel() if config.SEARCH_DENSE_ENABLED else None
+        else:
+            self.dense_model = dense_model
+
+        if sparse_model is _SENTINEL:
+            self.sparse_model = SparseEncoder() if config.SEARCH_SPARSE_ENABLED else None
+        else:
+            self.sparse_model = sparse_model
+
+        self.db = db or QdrantManager()
 
         modes = []
         if self.dense_model:
@@ -24,15 +47,18 @@ class VectorSearch:
         logger.info(f"VectorSearch initialized (modes: {'+'.join(modes)})")
 
     def _encode_query(self, query: str):
-        """Encode query into dense and/or sparse vectors based on config."""
-        dense_vector = None
-        sparse_vector = None
+        """Encode query into dense and/or sparse vectors.
 
-        if self.dense_model:
-            dense_vector = self.dense_model.encode(query).tolist()
-        if self.sparse_model:
-            sparse_vector = self.sparse_model.encode_single(query)
+        When both models are available the encodings run in parallel.
+        """
+        if self.dense_model and self.sparse_model:
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                dense_future = pool.submit(lambda: self.dense_model.encode(query).tolist())
+                sparse_future = pool.submit(self.sparse_model.encode_single, query)
+                return dense_future.result(), sparse_future.result()
 
+        dense_vector = self.dense_model.encode(query).tolist() if self.dense_model else None
+        sparse_vector = self.sparse_model.encode_single(query) if self.sparse_model else None
         return dense_vector, sparse_vector
 
     @staticmethod
@@ -60,10 +86,10 @@ class VectorSearch:
         score_threshold: float = None,
         filters: Dict = None
     ) -> List[Dict]:
-        """
-        Search for similar regulations using configured search modes.
+        """Search for similar regulations using configured search modes.
 
         When both dense and sparse are enabled, uses Reciprocal Rank Fusion.
+        Raises ``SearchBackendError`` on infrastructure failures.
         """
         dense_vector, sparse_vector = self._encode_query(query)
 

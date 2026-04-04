@@ -18,6 +18,7 @@ from ollama import Client
 from loguru import logger
 
 from config import config
+from search.prompts import SYSTEM_PROMPT, build_context_string, build_rag_prompt
 
 
 class LlamaModel:
@@ -271,108 +272,19 @@ class LlamaModel:
         Args:
             query: User query
             context_documents: List of context documents with text and metadata
-            system_prompt: Optional system prompt
+            system_prompt: Optional system prompt override
             **kwargs: Additional arguments for generate()
 
         Returns:
             Generated response
-
-        Example:
-            >>> llm = LlamaModel()
-            >>> docs = [
-            ...     {"text": "Art. 1º...", "regulation_id": "lei-8666-art-1"},
-            ...     {"text": "Art. 2º...", "regulation_id": "lei-8666-art-2"}
-            ... ]
-            >>> response = llm.generate_with_context(
-            ...     "O que diz a lei sobre licitações?",
-            ...     context_documents=docs
-            ... )
         """
-        # Build context string
-        context_str = self._build_context_string(context_documents)
+        context_str = build_context_string(context_documents)
+        prompt = build_rag_prompt(query, context_str)
 
-        # Build prompt
-        prompt = self._build_rag_prompt(query, context_str)
-
-        # Use default system prompt for RAG if none provided
-        if system_prompt is None:
-            system_prompt = self._get_default_rag_system_prompt()
-
-        # Generate
         return self.generate(
             prompt=prompt,
-            system_prompt=system_prompt,
+            system_prompt=system_prompt or SYSTEM_PROMPT,
             **kwargs
-        )
-
-    def _build_context_string(self, documents: List[Dict]) -> str:
-        """
-        Build formatted context string from documents.
-
-        Args:
-            documents: List of document dictionaries
-
-        Returns:
-            Formatted context string
-        """
-        context_parts = []
-
-        for i, doc in enumerate(documents, 1):
-            text = doc.get("text", "")
-            reg_id = doc.get("regulation_id", f"documento-{i}")
-            version = doc.get("version", "")
-
-            # Format document
-            doc_header = f"[{reg_id}"
-            if version:
-                doc_header += f" - Versão {version}"
-            doc_header += "]"
-
-            context_parts.append(f"{doc_header}\n{text}")
-
-        return "\n\n".join(context_parts)
-
-    def _build_rag_prompt(self, query: str, context: str) -> str:
-        """
-        Build RAG prompt from query and context.
-
-        Args:
-            query: User query
-            context: Context string
-
-        Returns:
-            Complete prompt
-        """
-        prompt = f"""Você é um assistente especializado em regulamentação de aviação civil brasileira.
-
-Sua tarefa é responder perguntas com base APENAS nas normas regulatórias fornecidas abaixo.
-Sempre cite a fonte (número da lei/regulamento e artigo) quando mencionar informações.
-
-Se a informação necessária para responder não estiver nas normas fornecidas, diga claramente
-que não encontrou a informação nos documentos disponíveis.
-
-=== NORMAS REGULATÓRIAS ===
-{context}
-
-=== PERGUNTA DO USUÁRIO ===
-{query}
-
-=== RESPOSTA ===
-Baseado nas normas fornecidas:
-"""
-        return prompt
-
-    def _get_default_rag_system_prompt(self) -> str:
-        """
-        Get default system prompt for RAG tasks.
-
-        Returns:
-            System prompt string
-        """
-        return (
-            "Você é um assistente especializado em regulamentação de aviação civil brasileira. "
-            "Responda sempre em português, de forma clara e precisa, citando as fontes. "
-            "Seja factual e baseie suas respostas apenas nas informações fornecidas."
         )
 
     def chat(

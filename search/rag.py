@@ -2,18 +2,28 @@
 
 import time
 from typing import Dict, List, Optional
+
 from loguru import logger
 
 from search.vector_search import VectorSearch
+from search.exceptions import SearchBackendError
 from models.llm import LlamaModel
 
 
 class RAGPipeline:
-    """Complete RAG pipeline: retrieve + generate."""
+    """Complete RAG pipeline: retrieve + generate.
 
-    def __init__(self):
-        self.search = VectorSearch()
-        self.llm = LlamaModel()
+    Accepts pre-built instances via constructor (dependency injection).
+    When not provided, creates its own instances.
+    """
+
+    def __init__(
+        self,
+        search: Optional[VectorSearch] = None,
+        llm: Optional[LlamaModel] = None,
+    ):
+        self.search = search or VectorSearch()
+        self.llm = llm or LlamaModel()
         logger.info("RAGPipeline initialized")
 
     def query(
@@ -37,11 +47,20 @@ class RAGPipeline:
         """
         start_time = time.time()
 
-        # Retrieve
-        if date:
-            results = self.search.search_temporal(question, date, limit=limit)
-        else:
-            results = self.search.search(question, limit=limit)
+        try:
+            if date:
+                results = self.search.search_temporal(question, date, limit=limit)
+            else:
+                results = self.search.search(question, limit=limit)
+        except SearchBackendError:
+            logger.error("Search backend unavailable during RAG query")
+            return {
+                "answer": "Serviço de busca temporariamente indisponível. Tente novamente.",
+                "sources": [],
+                "search_time_ms": int((time.time() - start_time) * 1000),
+                "llm_time_ms": 0,
+                "total_time_ms": int((time.time() - start_time) * 1000),
+            }
 
         search_time = time.time() - start_time
 
@@ -54,7 +73,6 @@ class RAGPipeline:
                 "total_time_ms": int(search_time * 1000)
             }
 
-        # Generate
         llm_start = time.time()
         answer = self.llm.generate_with_context(
             query=question,

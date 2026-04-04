@@ -19,6 +19,7 @@ from qdrant_client.models import (
 )
 
 from config import config
+from search.exceptions import SearchBackendError
 
 PREFETCH_MULTIPLIER = 3
 
@@ -262,8 +263,7 @@ class QdrantManager:
             return points
 
         except Exception as e:
-            logger.error(f"Error searching: {e}")
-            return []
+            raise SearchBackendError(f"Qdrant search failed: {e}") from e
 
     def _search_hybrid(self, dense_vector, sparse_vector, limit, filters, with_payload):
         """Hybrid search: prefetch from both branches, fuse with RRF."""
