@@ -978,6 +978,20 @@ a.citation-link:hover .citation-badge {
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Pipeline status indicator during search */
+.pipeline-status {
+  display: inline-block;
+  color: var(--text-secondary, #666);
+  font-style: italic;
+  font-size: 0.9rem;
+  animation: pulse-opacity 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
 /* Additional dark mode text improvements */
 html[data-theme="dark"] .chat-header h2 {
   color: #79c0ff !important;
@@ -1202,7 +1216,6 @@ html[data-theme="dark"] .empty-state p {
 .debug-timing-segment.rewriter { background: #6366f1; }
 .debug-timing-segment.searcher { background: #22c55e; }
 .debug-timing-segment.evaluator { background: #f59e0b; }
-.debug-timing-segment.generator { background: #ef4444; }
 
 .debug-timing-legend {
   display: flex;
@@ -1226,7 +1239,6 @@ html[data-theme="dark"] .empty-state p {
 .legend-item.rewriter::before { background: #6366f1; }
 .legend-item.searcher::before { background: #22c55e; }
 .legend-item.evaluator::before { background: #f59e0b; }
-.legend-item.generator::before { background: #ef4444; }
 
 /* Evaluation table */
 .debug-eval-table {

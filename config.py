@@ -194,7 +194,7 @@ class Settings(BaseSettings):
     REWRITER_MODEL: str = getenv('REWRITER_MODEL', 'llama3.2:3b')
     REWRITER_MAX_QUERIES: int = int(getenv('REWRITER_MAX_QUERIES', '3'))
     REWRITER_MAX_QUERY_LENGTH: int = int(getenv('REWRITER_MAX_QUERY_LENGTH', '500'))
-    REWRITER_TEMPERATURE: float = float(getenv('REWRITER_TEMPERATURE', '0.1'))
+    REWRITER_TEMPERATURE: float = float(getenv('REWRITER_TEMPERATURE', '0.3'))
     REWRITER_TIMEOUT: int = int(getenv('REWRITER_TIMEOUT', '60'))
 
     # ========================================
@@ -202,9 +202,9 @@ class Settings(BaseSettings):
     # ========================================
     EVALUATOR_ENABLED: bool = getenv('EVALUATOR_ENABLED', 'true').lower() in ('true', '1', 'yes')
     CROSS_ENCODER_MODEL: str = getenv(
-        'CROSS_ENCODER_MODEL', 'cross-encoder/ms-marco-MiniLM-L-6-v2',
+        'CROSS_ENCODER_MODEL', 'cross-encoder/mmarco-mMiniLMv2-L12-H384-v1',
     )
-    EVALUATOR_THRESHOLD: int = int(getenv('EVALUATOR_THRESHOLD', '30'))
+    EVALUATOR_THRESHOLD: int = int(getenv('EVALUATOR_THRESHOLD', '25'))
     EVALUATOR_BATCH_SIZE: int = int(getenv('EVALUATOR_BATCH_SIZE', '32'))
     EVALUATOR_MAX_TOKENS: int = int(getenv('EVALUATOR_MAX_TOKENS', '480'))
 
@@ -213,6 +213,7 @@ class Settings(BaseSettings):
     # ========================================
     GENERATOR_MODEL: str = getenv('GENERATOR_MODEL', '')
     GENERATOR_MAX_RESPONSE_TOKENS: int = int(getenv('GENERATOR_MAX_RESPONSE_TOKENS', '1024'))
+    GENERATOR_MAX_DOC_CHARS: int = int(getenv('GENERATOR_MAX_DOC_CHARS', '800'))
     GENERATOR_GROUNDED_ONLY: bool = getenv('GENERATOR_GROUNDED_ONLY', 'true').lower() in ('true', '1', 'yes')
     GENERATOR_TIMEOUT: int = int(getenv('GENERATOR_TIMEOUT', '120'))
 

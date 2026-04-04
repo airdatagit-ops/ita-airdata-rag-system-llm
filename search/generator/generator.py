@@ -127,6 +127,7 @@ class ResponseGenerator:
                 system_prompt=system_prompt,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                extra_options=self._REPEAT_OPTIONS,
             )
 
         answer, timed_out = with_timeout(
@@ -141,6 +142,8 @@ class ResponseGenerator:
 
         return answer
 
+    _REPEAT_OPTIONS = {"repeat_penalty": 1.3, "repeat_last_n": 128}
+
     def _generate_stream(
         self,
         prompt: str,
@@ -148,7 +151,7 @@ class ResponseGenerator:
         temperature: Optional[float],
         max_tokens: int,
     ) -> Generator[str, None, None]:
-        """Streaming generation — yields chunks then appends references."""
+        """Streaming generation — yields chunks."""
         try:
             stream = self.llm.generate(
                 prompt=prompt,
@@ -156,6 +159,7 @@ class ResponseGenerator:
                 temperature=temperature,
                 max_tokens=max_tokens,
                 stream=True,
+                extra_options=self._REPEAT_OPTIONS,
             )
             for chunk in stream:
                 yield chunk

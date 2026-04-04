@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 from typing import List, Optional
 
+from pydantic import BaseModel, Field
 from loguru import logger
 
 from config import config
@@ -25,6 +26,29 @@ from search.shared.schemas import (
 )
 from search.shared.timeouts import with_timeout
 from search.rewriter.prompts import build_system_prompt, build_user_prompt
+
+
+class _FilterSchema(BaseModel):
+    field: str = ""
+    operator: str = "eq"
+    value: str = ""
+
+
+class _SortSchema(BaseModel):
+    field: str = ""
+    order: str = "desc"
+
+
+class _QuerySchema(BaseModel):
+    text: str
+    filters: List[_FilterSchema] = Field(default_factory=list)
+    sorts: List[_SortSchema] = Field(default_factory=list)
+    facet_type: str = "general"
+
+
+class _RewriterOutput(BaseModel):
+    """Schema for Ollama structured output."""
+    queries: List[_QuerySchema]
 
 
 class QueryRewriter:
@@ -77,12 +101,14 @@ class QueryRewriter:
 
         system = build_system_prompt(effective_max)
         user = build_user_prompt(query)
+        output_schema = _RewriterOutput.model_json_schema()
 
         def _call_llm() -> str:
             return self.llm.generate(
                 prompt=user,
                 system_prompt=system,
                 temperature=self.temperature,
+                format=output_schema,
             )
 
         try:
@@ -169,7 +195,11 @@ class QueryRewriter:
         return text[start:]
 
     def _parse_response(self, raw: str, max_queries: int) -> List[RewrittenQuery]:
-        """Parse the LLM JSON response into ``RewrittenQuery`` objects."""
+        """Parse the LLM JSON response into ``RewrittenQuery`` objects.
+
+        Supports both the structured output format ``{"queries": [...]}``
+        and the legacy plain array ``[{...}]``.
+        """
         cleaned = self._extract_json(raw)
 
         try:
@@ -177,7 +207,9 @@ class QueryRewriter:
         except json.JSONDecodeError as exc:
             raise RewriterError(f"Invalid JSON from LLM: {exc}") from exc
 
-        if isinstance(data, dict):
+        if isinstance(data, dict) and "queries" in data:
+            data = data["queries"]
+        elif isinstance(data, dict):
             data = [data]
 
         if not isinstance(data, list):

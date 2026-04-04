@@ -143,7 +143,9 @@ class LlamaModel:
         temperature: Optional[float] = None,
         top_p: Optional[float] = None,
         max_tokens: Optional[int] = None,
-        stream: bool = False
+        stream: bool = False,
+        format: Optional[dict] = None,
+        extra_options: Optional[Dict] = None,
     ):
         """
         Generate text from prompt.
@@ -155,22 +157,16 @@ class LlamaModel:
             top_p: Override default top_p
             max_tokens: Override default max_tokens
             stream: If True, returns a generator that yields chunks
+            format: JSON schema dict for structured output (Ollama >= 0.4)
+            extra_options: Additional Ollama options (e.g. repeat_penalty)
 
         Returns:
             Generated text (str) or generator if stream=True
-
-        Example:
-            >>> llm = LlamaModel()
-            >>> response = llm.generate(
-            ...     "Explique o que é RAG",
-            ...     system_prompt="Você é um assistente especializado em IA"
-            ... )
-            >>> # Streaming example
-            >>> for chunk in llm.generate("Tell me a story", stream=True):
-            ...     print(chunk, end='', flush=True)
         """
         # Build options
         options = self.default_options.copy()
+        if extra_options:
+            options.update(extra_options)
         if temperature is not None:
             options["temperature"] = temperature
         if top_p is not None:
@@ -198,6 +194,14 @@ class LlamaModel:
             "content": prompt
         })
 
+        chat_kwargs: Dict = {
+            "model": self.model_name,
+            "messages": messages,
+            "options": options,
+        }
+        if format is not None:
+            chat_kwargs["format"] = format
+
         try:
             if stream:
                 # Return generator for streaming
@@ -207,10 +211,8 @@ class LlamaModel:
                 start_time = time.time()
                 
                 response = self.client.chat(
-                    model=self.model_name,
-                    messages=messages,
-                    options=options,
-                    stream=False
+                    **chat_kwargs,
+                    stream=False,
                 )
 
                 # Extract text

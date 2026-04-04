@@ -357,6 +357,7 @@ async def chat_stream(
                 yield f"data: {json.dumps({'type': 'session', 'session_id': session_id})}\n\n"
 
                 if chat_request.use_rag:
+                    yield f"data: {json.dumps({'type': 'status', 'stage': 'searching'})}\n\n"
                     result = rag.query(
                         chat_request.message,
                         history=context_messages[:-1],
@@ -380,16 +381,7 @@ async def chat_stream(
                     ] if result["sources"] else []
                     yield f"data: {json.dumps({'type': 'sources', 'sources': sources_data})}\n\n"
 
-                    if chat_request.debug and "trace" in result:
-                        try:
-                            trace_payload = json.dumps(
-                                {"type": "debug_trace", "trace": result["trace"]},
-                                default=str,
-                            )
-                            yield f"data: {trace_payload}\n\n"
-                        except Exception as trace_exc:
-                            logger.error(f"Failed to serialize debug trace: {trace_exc}")
-
+                    yield f"data: {json.dumps({'type': 'status', 'stage': 'generating'})}\n\n"
                     answer_stream = result.get("answer_stream")
                     if answer_stream:
                         for chunk in answer_stream:
@@ -402,6 +394,16 @@ async def chat_stream(
                         for chunk in _stream_without_rag(chat_request, context_messages):
                             full_response.append(chunk)
                             yield f"data: {json.dumps({'type': 'token', 'content': chunk})}\n\n"
+
+                    if chat_request.debug and "trace" in result:
+                        try:
+                            trace_payload = json.dumps(
+                                {"type": "debug_trace", "trace": result["trace"]},
+                                default=str,
+                            )
+                            yield f"data: {trace_payload}\n\n"
+                        except Exception as trace_exc:
+                            logger.error(f"Failed to serialize debug trace: {trace_exc}")
                 else:
                     for chunk in _stream_without_rag(chat_request, context_messages):
                         full_response.append(chunk)

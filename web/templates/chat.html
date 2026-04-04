@@ -290,7 +290,11 @@
                 console.warn('SSE JSON parse error (skipped):', parseErr.message);
                 continue;
               }
-              if (data.type === 'token') {
+              if (data.type === 'status') {
+                const stages = { searching: '🔍 Buscando documentos...', generating: '✍️ Gerando resposta...' };
+                textContainer.innerHTML = `<span class="pipeline-status">${stages[data.stage] || data.stage}</span>`;
+                this.scrollToBottom();
+              } else if (data.type === 'token') {
                 fullContent += data.content;
                 textContainer.innerHTML = this.formatMessage(fullContent);
                 this.scrollToBottom();
@@ -298,6 +302,7 @@
                 sources = data.sources;
               } else if (data.type === 'debug_trace') {
                 debugTrace = data.trace;
+                console.log('[SSE] debug_trace received, keys:', Object.keys(data.trace));
               } else if (data.type === 'done') {
                 finalData = data;
                 this.sessionId = data.session_id;
@@ -780,7 +785,6 @@
       const rewriterPct = Math.round((timings.rewriter_ms || 0) / totalMs * 100);
       const searcherPct = Math.round((timings.searcher_ms || 0) / totalMs * 100);
       const evaluatorPct = Math.round((timings.evaluator_ms || 0) / totalMs * 100);
-      const generatorPct = Math.round((timings.generator_ms || 0) / totalMs * 100);
       
       const queries = (trace.rewritten_queries || []).map(q => {
         const filtersStr = (q.filters || []).map(f => `${f.field} ${f.operator} ${JSON.stringify(f.value)}`).join(', ');
@@ -824,15 +828,11 @@
                 <div class="debug-timing-segment evaluator" style="width:${evaluatorPct}%" title="Evaluator: ${timings.evaluator_ms || 0}ms">
                   ${timings.evaluator_ms || 0}ms
                 </div>
-                <div class="debug-timing-segment generator" style="width:${generatorPct}%" title="Generator: ${timings.generator_ms || 0}ms">
-                  ${timings.generator_ms || 0}ms
-                </div>
               </div>
               <div class="debug-timing-legend">
                 <span class="legend-item rewriter">Rewriter</span>
                 <span class="legend-item searcher">Searcher</span>
                 <span class="legend-item evaluator">Evaluator</span>
-                <span class="legend-item generator">Generator</span>
               </div>
             </div>
             
@@ -862,15 +862,6 @@
                 <tbody>${evalScores}</tbody>
               </table>
             </div>` : ''}
-            
-            <div class="debug-section">
-              <div class="debug-section-title">🤖 Generator</div>
-              <div class="debug-stats">
-                Modelo: ${this.escapeHtml(trace.generator_model || '?')} |
-                Grounded: ${trace.generator_grounded_only ? 'Sim' : 'Não'} |
-                Contexto: ${trace.generator_context_length || 0} chars
-              </div>
-            </div>
             
             ${errors ? `
             <div class="debug-section debug-errors">

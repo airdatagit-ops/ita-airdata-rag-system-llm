@@ -320,23 +320,11 @@ class RAGPipeline:
         # --------------------------------------------------------
         gen_start = time.time()
 
-        if trace:
-            trace.generator_model = self.generator.llm.model_name
-            effective_grounded = (
-                grounded_only if grounded_only is not None
-                else self.generator.grounded_only
-            )
-            trace.generator_grounded_only = effective_grounded
-            trace.generator_context_length = sum(
-                len(ed.document.get("text", "")) for ed in evaluated
-            )
+        if trace and timings:
+            timings.total_ms = int((time.time() - pipeline_start) * 1000)
+            trace.timings = timings
 
         if stream:
-            if timings:
-                timings.total_ms = int((time.time() - pipeline_start) * 1000)
-            if trace:
-                trace.timings = timings or StageTimings()
-
             result = {
                 "sources": sources,
                 "search_time_ms": int(search_time * 1000),
@@ -375,11 +363,7 @@ class RAGPipeline:
         total_time = time.time() - pipeline_start
 
         if timings:
-            timings.generator_ms = int(llm_time * 1000)
             timings.total_ms = int(total_time * 1000)
-
-        if trace:
-            trace.timings = timings
 
         response = {
             "answer": answer,
