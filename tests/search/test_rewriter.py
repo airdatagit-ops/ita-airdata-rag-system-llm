@@ -25,7 +25,7 @@ def rewriter(mock_llm):
 VALID_LLM_RESPONSE = json.dumps([
     {
         "text": "normas sobre certificação de pilotos",
-        "filters": [{"field": "metadata.category", "operator": "eq", "value": "ICA"}],
+        "filters": [{"field": "metadata.type", "operator": "eq", "value": "ICA"}],
         "sorts": [],
         "facet_type": "document_type",
     },

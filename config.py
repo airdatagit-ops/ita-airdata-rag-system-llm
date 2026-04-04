@@ -196,7 +196,7 @@ class Settings(BaseSettings):
     REWRITER_MODEL: str = getenv('REWRITER_MODEL', 'llama3.2:1b')
     REWRITER_MAX_QUERIES: int = int(getenv('REWRITER_MAX_QUERIES', '3'))
     REWRITER_MAX_QUERY_LENGTH: int = int(getenv('REWRITER_MAX_QUERY_LENGTH', '500'))
-    REWRITER_TEMPERATURE: float = float(getenv('REWRITER_TEMPERATURE', '0.3'))
+    REWRITER_TEMPERATURE: float = float(getenv('REWRITER_TEMPERATURE', '0.1'))
     REWRITER_TIMEOUT: int = int(getenv('REWRITER_TIMEOUT', '60'))
 
     # ========================================

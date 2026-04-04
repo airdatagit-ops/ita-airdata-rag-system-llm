@@ -948,8 +948,43 @@ html[data-theme="dark"] .empty-state p {
 }
 
 /* ============================================
-   Debug Trace Panel
+   Debug Trace Button & Panel
    ============================================ */
+
+.debug-trace-actions {
+  margin-top: 0.5rem;
+}
+
+.debug-trace-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary, #555);
+  background: var(--bg-secondary, #f0f0f0);
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.debug-trace-btn:hover {
+  background: var(--bg-hover, #e0e0e0);
+  color: var(--text-primary, #333);
+}
+
+[data-theme="dark"] .debug-trace-btn {
+  background: var(--bg-tertiary, #1f3460);
+  color: var(--text-secondary, #aaa);
+  border-color: var(--border-color, #333);
+}
+
+[data-theme="dark"] .debug-trace-btn:hover {
+  background: var(--bg-hover, #2a4a80);
+  color: var(--text-primary, #ddd);
+}
 
 .debug-trace-panel {
   margin-top: 0.75rem;

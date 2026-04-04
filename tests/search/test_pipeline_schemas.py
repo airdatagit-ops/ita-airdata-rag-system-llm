@@ -33,7 +33,7 @@ class TestSearchFilter:
 
     def test_in_filter(self):
         f = SearchFilter(
-            field="metadata.category",
+            field="metadata.type",
             operator=FilterOperator.IN,
             value=["ICA", "DCA"],
         )

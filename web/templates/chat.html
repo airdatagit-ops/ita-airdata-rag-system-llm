@@ -267,19 +267,22 @@
         let finalData = null;
         let debugTrace = null;
         
-        // Read SSE stream
+        // Read SSE stream with proper line buffering
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let sseBuffer = '';
         
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           
-          const text = decoder.decode(value, { stream: true });
-          const lines = text.split('\n');
+          sseBuffer += decoder.decode(value, { stream: true });
+          const events = sseBuffer.split('\n\n');
+          sseBuffer = events.pop();
           
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
+          for (const event of events) {
+            for (const line of event.split('\n')) {
+              if (!line.startsWith('data: ')) continue;
               try {
                 const data = JSON.parse(line.slice(6));
                 
@@ -299,7 +302,6 @@
                   throw new Error(data.error);
                 }
               } catch (e) {
-                // Ignore parse errors for incomplete chunks
                 if (e.message && !e.message.includes('JSON')) {
                   throw e;
                 }
@@ -357,9 +359,29 @@
       const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       messageDiv.dataset.messageId = messageId;
       
-      // Add debug trace panel if available
+      // Add debug trace button if available
       if (debugTrace) {
-        contentDiv.insertAdjacentHTML('beforeend', this.renderDebugTrace(debugTrace));
+        const traceId = `trace_${messageId}`;
+        this.tracesData = this.tracesData || {};
+        this.tracesData[traceId] = debugTrace;
+        contentDiv.insertAdjacentHTML('beforeend', `
+          <div class="debug-trace-actions">
+            <button class="debug-trace-btn" data-trace-id="${traceId}">
+              🔍 Ver Pipeline Trace
+            </button>
+          </div>
+        `);
+        contentDiv.querySelector(`[data-trace-id="${traceId}"]`).addEventListener('click', (e) => {
+          const btn = e.currentTarget;
+          const panel = btn.closest('.debug-trace-actions').querySelector('.debug-trace-panel');
+          if (panel) {
+            panel.remove();
+            btn.textContent = '🔍 Ver Pipeline Trace';
+          } else {
+            btn.insertAdjacentHTML('afterend', this.renderDebugTrace(this.tracesData[traceId]));
+            btn.textContent = '🔍 Ocultar Pipeline Trace';
+          }
+        });
       }
       
       // Add sources if present
@@ -718,7 +740,7 @@
       ).join('');
       
       return `
-        <div class="debug-trace-panel">
+        <div class="debug-trace-panel expanded">
           <div class="debug-trace-header" onclick="this.parentElement.classList.toggle('expanded')">
             🔍 Pipeline Debug Trace
             <span class="debug-toggle-icon">▶</span>

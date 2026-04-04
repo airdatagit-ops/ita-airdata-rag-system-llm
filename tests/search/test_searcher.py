@@ -114,7 +114,7 @@ class TestFilterConversion:
             RewrittenQuery(
                 text="test",
                 filters=[
-                    SearchFilter(field="metadata.category", operator=FilterOperator.EQ, value="ICA"),
+                    SearchFilter(field="metadata.type", operator=FilterOperator.EQ, value="ICA"),
                 ],
             ),
         ]

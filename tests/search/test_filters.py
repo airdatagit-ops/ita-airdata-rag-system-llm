@@ -42,7 +42,7 @@ class TestBuildQdrantFilter:
             FieldCondition(key="status", match=MatchValue(value="active")),
         ])
         filters = [
-            SearchFilter(field="metadata.category", operator=FilterOperator.EQ, value="ICA"),
+            SearchFilter(field="metadata.type", operator=FilterOperator.EQ, value="ICA"),
         ]
         result = build_qdrant_filter(filters, base_filter=base)
 

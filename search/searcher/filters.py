@@ -26,7 +26,7 @@ _ALLOWED_FILTER_FIELDS = {
     "regulation_id",
     "status",
     "is_latest",
-    "metadata.category",
+    "metadata.type",
     "metadata.source",
     "metadata.authority",
     "metadata.number",

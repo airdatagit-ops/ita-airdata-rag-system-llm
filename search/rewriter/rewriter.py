@@ -24,6 +24,18 @@ from search.shared.schemas import (
 from search.shared.timeouts import with_timeout
 from search.rewriter.prompts import REWRITER_SYSTEM_PROMPT, REWRITER_USER_PROMPT
 
+_VALID_FILTER_FIELDS = {
+    "metadata.type",
+    "metadata.authority",
+    "effective_date",
+    "expiry_date",
+}
+
+_VALID_TYPE_VALUES = {
+    "ICA", "DCA", "MCA", "NSCA", "RCA", "PCA", "FCA",
+    "TCA", "BCA", "BMA", "IMA", "RICA", "ROCA", "decreto",
+}
+
 
 class QueryRewriter:
     """Rewrites a user query into 1..N optimised sub-queries.
@@ -160,12 +172,22 @@ class QueryRewriter:
         for f in raw_filters:
             if not isinstance(f, dict):
                 continue
+            field = str(f.get("field", ""))
+            if field not in _VALID_FILTER_FIELDS:
+                logger.debug(f"Rewriter: discarding hallucinated filter field '{field}'")
+                continue
+            value = f.get("value")
+            if value is None or value == "":
+                continue
+            if field == "metadata.type" and str(value) not in _VALID_TYPE_VALUES:
+                logger.debug(f"Rewriter: discarding invalid type value '{value}'")
+                continue
             try:
                 parsed.append(
                     SearchFilter(
-                        field=str(f.get("field", "")),
+                        field=field,
                         operator=FilterOperator(f.get("operator", "eq")),
-                        value=f.get("value"),
+                        value=value,
                     )
                 )
             except (ValueError, KeyError):
@@ -190,15 +212,22 @@ class QueryRewriter:
         return parsed
 
     def _validate_queries(self, queries: List[RewrittenQuery]) -> List[RewrittenQuery]:
-        """Enforce length limits and sanitise."""
+        """Enforce length limits, discard empty/broken queries, deduplicate."""
         valid: List[RewrittenQuery] = []
+        seen_texts: set[str] = set()
         for q in queries:
             text = q.text.strip()
-            if not text:
+            if not text or len(text) < 3:
+                logger.debug("Rewriter: discarding empty/tiny query")
                 continue
             if len(text) > self.max_query_length:
                 text = text[: self.max_query_length]
                 logger.debug(f"Truncated rewritten query to {self.max_query_length} chars")
+            norm = text.lower()
+            if norm in seen_texts:
+                logger.debug(f"Rewriter: discarding duplicate query '{text[:50]}'")
+                continue
+            seen_texts.add(norm)
             valid.append(q.model_copy(update={"text": text}))
         return valid
 
