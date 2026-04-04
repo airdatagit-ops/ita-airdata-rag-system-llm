@@ -19,7 +19,7 @@ from qdrant_client.models import (
 )
 
 from config import config
-from search.exceptions import SearchBackendError
+from search.shared.exceptions import SearchBackendError
 
 PREFETCH_MULTIPLIER = 3
 

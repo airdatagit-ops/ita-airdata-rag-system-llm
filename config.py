@@ -206,6 +206,7 @@ class Settings(BaseSettings):
     )
     EVALUATOR_THRESHOLD: int = int(getenv('EVALUATOR_THRESHOLD', '30'))
     EVALUATOR_BATCH_SIZE: int = int(getenv('EVALUATOR_BATCH_SIZE', '32'))
+    EVALUATOR_MAX_TOKENS: int = int(getenv('EVALUATOR_MAX_TOKENS', '480'))
 
     # ========================================
     # RAG Pipeline — Generator

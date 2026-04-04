@@ -96,6 +96,70 @@ class TestMultiQueryEvaluation:
         assert doc_2_score > 80
 
 
+class TestBuildEvalText:
+    def test_plain_text_only(self):
+        doc = {"text": "Art. 1 conteúdo do regulamento", "regulation_id": "doc-1"}
+        result = DocumentEvaluator._build_eval_text(doc)
+        assert "Art. 1 conteúdo do regulamento" in result
+
+    def test_includes_title_from_metadata(self):
+        doc = {
+            "text": "Art. 1 texto",
+            "regulation_id": "ICA-100-12",
+            "metadata": {
+                "title": "Instrução sobre Certificação de Pilotos",
+                "type": "ICA",
+                "number": "100-12",
+                "authority": "ANAC",
+            },
+        }
+        result = DocumentEvaluator._build_eval_text(doc)
+        assert "Instrução sobre Certificação de Pilotos" in result
+        assert "ICA" in result
+        assert "nº 100-12" in result
+        assert "ANAC" in result
+        assert "Art. 1 texto" in result
+
+    def test_falls_back_to_doc_title(self):
+        doc = {
+            "text": "corpo do texto",
+            "title": "Título no nível raiz",
+            "metadata": {},
+        }
+        result = DocumentEvaluator._build_eval_text(doc)
+        assert "Título no nível raiz" in result
+
+    def test_truncates_to_max_tokens(self):
+        long_text = " ".join(["palavra"] * 600)
+        doc = {"text": long_text}
+        result = DocumentEvaluator._build_eval_text(doc, max_tokens=100)
+        assert len(result.split()) <= 100
+
+    def test_empty_metadata_uses_text_only(self):
+        doc = {"text": "apenas texto", "metadata": {}}
+        result = DocumentEvaluator._build_eval_text(doc)
+        assert result == "apenas texto"
+
+    def test_no_text_with_metadata(self):
+        doc = {
+            "text": "",
+            "metadata": {"title": "Título", "authority": "ANAC"},
+        }
+        result = DocumentEvaluator._build_eval_text(doc)
+        assert "Título" in result
+        assert "ANAC" in result
+
+    def test_prefix_before_body(self):
+        doc = {
+            "text": "corpo do artigo",
+            "metadata": {"title": "Meu Título"},
+        }
+        result = DocumentEvaluator._build_eval_text(doc)
+        title_pos = result.index("Meu Título")
+        body_pos = result.index("corpo do artigo")
+        assert title_pos < body_pos
+
+
 class TestLazyLoading:
     def test_model_not_loaded_at_init(self):
         ev = DocumentEvaluator(threshold=50)

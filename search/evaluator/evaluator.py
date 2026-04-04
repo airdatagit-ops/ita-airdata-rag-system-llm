@@ -40,16 +40,19 @@ class DocumentEvaluator:
         model_name: Optional[str] = None,
         threshold: Optional[int] = None,
         batch_size: Optional[int] = None,
+        max_eval_tokens: Optional[int] = None,
         device: Optional[str] = None,
     ):
         self.model_name = model_name or config.CROSS_ENCODER_MODEL
         self.threshold = threshold if threshold is not None else config.EVALUATOR_THRESHOLD
         self.batch_size = batch_size or config.EVALUATOR_BATCH_SIZE
+        self.max_eval_tokens = max_eval_tokens or config.EVALUATOR_MAX_TOKENS
         self._model = None
         self._device = device
         logger.info(
             f"DocumentEvaluator initialized (model={self.model_name}, "
-            f"threshold={self.threshold}, batch_size={self.batch_size}) "
+            f"threshold={self.threshold}, batch_size={self.batch_size}, "
+            f"max_eval_tokens={self.max_eval_tokens}) "
             f"— model will be loaded on first use"
         )
 
@@ -181,14 +184,61 @@ class DocumentEvaluator:
     def _score_batch(
         self, documents: List[Dict[str, Any]], query: str,
     ) -> np.ndarray:
-        """Run cross-encoder prediction on (query, doc_text) pairs."""
+        """Run cross-encoder prediction on (query, enriched_text) pairs."""
         pairs = [
-            [query, doc.get("text", "")]
+            [query, self._build_eval_text(doc, self.max_eval_tokens)]
             for doc in documents
         ]
         return self.model.predict(
             pairs, batch_size=self.batch_size, show_progress_bar=False,
         )
+
+    @staticmethod
+    def _build_eval_text(doc: Dict[str, Any], max_tokens: int = 480) -> str:
+        """Build an enriched text for cross-encoder evaluation.
+
+        Prepends structured metadata (title, authority, type, number)
+        before the chunk text, then truncates the combined result to
+        *max_tokens* so it fits the model's 512-token window together
+        with the query.
+        """
+        meta = doc.get("metadata") or {}
+        prefix_parts: List[str] = []
+
+        title = meta.get("title") or doc.get("title") or ""
+        if title:
+            prefix_parts.append(title)
+
+        identifiers: List[str] = []
+        doc_type = meta.get("type") or meta.get("category") or ""
+        number = meta.get("number") or ""
+        authority = meta.get("authority") or ""
+        if doc_type:
+            identifiers.append(doc_type)
+        if number:
+            identifiers.append(f"nº {number}")
+        if authority:
+            identifiers.append(authority)
+        if identifiers:
+            prefix_parts.append(" — ".join(identifiers))
+
+        prefix = " | ".join(prefix_parts)
+        body = doc.get("text") or ""
+
+        if prefix:
+            combined = f"{prefix}\n{body}"
+        else:
+            combined = body
+
+        return DocumentEvaluator._truncate_to_tokens(combined, max_tokens)
+
+    @staticmethod
+    def _truncate_to_tokens(text: str, max_tokens: int) -> str:
+        """Truncate *text* to approximately *max_tokens* (whitespace split)."""
+        words = text.split()
+        if len(words) <= max_tokens:
+            return text
+        return " ".join(words[:max_tokens])
 
     @staticmethod
     def _normalise_scores(raw_scores: np.ndarray) -> np.ndarray:
