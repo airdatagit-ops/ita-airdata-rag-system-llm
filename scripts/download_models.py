@@ -66,12 +66,12 @@ def pull_ollama_models() -> None:
         try:
             result = subprocess.run(
                 ["ollama", "pull", model],
-                capture_output=True, text=True, timeout=600,
+                timeout=600,
             )
             if result.returncode == 0:
                 logger.success(f"Ollama model ready: {model}")
             else:
-                logger.warning(f"ollama pull {model} failed: {result.stderr.strip()}")
+                logger.warning(f"ollama pull {model} failed (exit code {result.returncode})")
         except FileNotFoundError:
             logger.warning("ollama CLI not found — skipping Ollama model pulls")
             break
