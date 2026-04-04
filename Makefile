@@ -132,7 +132,7 @@ start-api:
 	$(PYTHON) -m uvicorn api.server:app --host 127.0.0.1 --port 8083 --reload
 
 start-web:
-	cd web && $(PYTHON) -m uvicorn main:app --host 127.0.0.1 --port 8082 --reload
+	cd web && API_BASE_URL=http://127.0.0.1:8083 ROOT_PATH= $(PYTHON) -m uvicorn main:app --host 127.0.0.1 --port 8082 --reload
 
 start:
 	@echo "API  →  http://127.0.0.1:8083"
@@ -141,7 +141,7 @@ start:
 	@echo ""
 	@trap 'kill 0' EXIT; \
 	$(PYTHON) -m uvicorn api.server:app --host 127.0.0.1 --port 8083 --reload & \
-	cd web && $(PYTHON) -m uvicorn main:app --host 127.0.0.1 --port 8082 --reload & \
+	cd web && API_BASE_URL=http://127.0.0.1:8083 ROOT_PATH= $(PYTHON) -m uvicorn main:app --host 127.0.0.1 --port 8082 --reload & \
 	wait
 
 deploy:

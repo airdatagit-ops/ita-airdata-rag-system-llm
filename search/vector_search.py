@@ -29,17 +29,32 @@ class VectorSearch:
         db: Optional[QdrantManager] = None,
         embedding_cache: Optional[CacheBackend] = None,
     ):
+        self.db = db or QdrantManager()
+
         if dense_model is _SENTINEL:
-            self.dense_model = EmbeddingModel() if config.SEARCH_DENSE_ENABLED else None
+            want_dense = config.SEARCH_DENSE_ENABLED
+            if want_dense and not self.db.has_dense:
+                logger.warning(
+                    "SEARCH_DENSE_ENABLED=true but collection has no dense vectors "
+                    "— skipping dense model load"
+                )
+                want_dense = False
+            self.dense_model = EmbeddingModel() if want_dense else None
         else:
             self.dense_model = dense_model
 
         if sparse_model is _SENTINEL:
-            self.sparse_model = SparseEncoder() if config.SEARCH_SPARSE_ENABLED else None
+            want_sparse = config.SEARCH_SPARSE_ENABLED
+            if want_sparse and not self.db.has_sparse:
+                logger.warning(
+                    "SEARCH_SPARSE_ENABLED=true but collection has no sparse vectors "
+                    "— skipping sparse model load"
+                )
+                want_sparse = False
+            self.sparse_model = SparseEncoder() if want_sparse else None
         else:
             self.sparse_model = sparse_model
 
-        self.db = db or QdrantManager()
         self._embedding_cache = embedding_cache
 
         modes = []
@@ -47,7 +62,7 @@ class VectorSearch:
             modes.append("dense")
         if self.sparse_model:
             modes.append("sparse")
-        logger.info(f"VectorSearch initialized (modes: {'+'.join(modes)})")
+        logger.info(f"VectorSearch initialized (modes: {'+'.join(modes) or 'none'})")
 
     def _encode_query(self, query: str):
         """Encode query into dense and/or sparse vectors.
