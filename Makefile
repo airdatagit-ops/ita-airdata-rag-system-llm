@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check
+.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web
 
 PYTHON ?= python
 K ?= 5
@@ -56,6 +56,11 @@ help:
 	@echo "  make query                                        Open interactive SQL console"
 	@echo "  make query SQL='SELECT source, COUNT(*) ...'      Run a one-shot SQL query"
 	@echo "  make explore                                      Open datasette web UI for the store"
+	@echo ""
+	@echo "  ── development ──────────────────────────────────────────────────────"
+	@echo "  make start                                        Start API + Web (Ctrl+C to stop)"
+	@echo "  make start-api                                    Start only the API server"
+	@echo "  make start-web                                    Start only the Web server"
 	@echo ""
 	@echo "  ── utilities ─────────────────────────────────────────────────────────"
 	@echo "  make migrate                                      Run database migrations"
@@ -122,6 +127,22 @@ migrate:
 
 clean:
 	rm -f evaluation/results/*.csv evaluation/results/*.json
+
+start-api:
+	$(PYTHON) -m uvicorn api.server:app --host 127.0.0.1 --port 8083 --reload
+
+start-web:
+	cd web && $(PYTHON) -m uvicorn main:app --host 127.0.0.1 --port 8082 --reload
+
+start:
+	@echo "API  →  http://127.0.0.1:8083"
+	@echo "Web  →  http://127.0.0.1:8082"
+	@echo "Ctrl+C to stop both"
+	@echo ""
+	@trap 'kill 0' EXIT; \
+	$(PYTHON) -m uvicorn api.server:app --host 127.0.0.1 --port 8083 --reload & \
+	cd web && $(PYTHON) -m uvicorn main:app --host 127.0.0.1 --port 8082 --reload & \
+	wait
 
 deploy:
 	@sudo bash deploy/deploy.sh

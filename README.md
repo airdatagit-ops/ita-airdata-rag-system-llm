@@ -63,6 +63,8 @@ Pergunta do usuário
 | API RAG | FastAPI | `api/server.py` |
 | Busca vetorial | Qdrant Client | `search/vector_search.py` |
 | Pipeline RAG | VectorSearch + LLM | `search/rag.py` |
+| Prompts RAG | Templates centralizados | `search/prompts.py` |
+| Exceções de busca | Custom exceptions | `search/exceptions.py` |
 | Embeddings | Legal-BERTimbau (sentence-transformers) | `models/embeddings.py` |
 | LLM | Ollama (llama3, phi3, etc.) | `models/llm.py` |
 | Banco vetorial | Qdrant | `database/qdrant_manager.py` |
@@ -865,15 +867,23 @@ O `SessionManager` (`api/session_manager.py`) gerencia sessões de chat em memó
 - Cleanup automático em background
 - Context window configurável (quantas mensagens anteriores enviar ao LLM)
 
-### 9.5. Como executar a API
+### 9.5. Como executar (API + Web)
+
+A forma mais prática de iniciar todo o ambiente de desenvolvimento é via `make start`, que sobe a API e a interface Web no mesmo terminal:
 
 ```bash
-# Na raiz do projeto, com o venv ativado:
-python -m api.server
-
-# Ou com uvicorn diretamente:
-uvicorn api.server:app --host 127.0.0.1 --port 8083 --reload
+# Inicia API (porta 8083) e Web (porta 8082) — Ctrl+C para ambos
+make start
 ```
+
+Também é possível iniciar cada serviço individualmente (em terminais separados):
+
+```bash
+make start-api    # Apenas a API (porta 8083)
+make start-web    # Apenas a Web (porta 8082)
+```
+
+> **Pré-requisitos:** Qdrant rodando (padrão `localhost:6333`) e Ollama com o modelo configurado no `.env`.
 
 ### 9.6. Exemplo de uso via curl
 
@@ -913,10 +923,11 @@ Para documentação completa da interface web, consulte `web/`:
 ### Resumo de como executar:
 
 ```bash
+# Via Makefile (recomendado — sobe API + Web juntos):
+make start
+
+# Ou manualmente:
 cd web/
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
 cp env.example .env
 # Editar .env (configurar API_BASE_URL e API_KEY)
 python main.py
@@ -1157,10 +1168,13 @@ tests/
 ├── __init__.py
 ├── crawler/
 │   └── scrapers/
-│       ├── test_base_scraper.py     # BaseScraper ABC, registry, ScrapedDocument
-│       ├── test_sislaer_scraper.py  # SISLAERScraper (Search API, parsing, norma codes)
-│       ├── test_decea_scraper.py    # DECEAScraper (sync + async)
-│       └── test_lexml_scraper.py    # LexMLScraper (async)
+│       ├── test_base_scraper.py        # BaseScraper ABC, registry, ScrapedDocument
+│       ├── test_sislaer_scraper.py     # SISLAERScraper (Search API, parsing, norma codes)
+│       ├── test_decea_scraper.py       # DECEAScraper (sync + async)
+│       ├── test_lexml_scraper.py       # LexMLScraper (async)
+│       └── test_field_completeness.py  # Validação de campos obrigatórios
+├── database/
+│   └── test_qdrant_manager.py          # QdrantManager + SearchBackendError
 ├── evaluation/
 │   ├── test_evaluate_retrieval.py
 │   └── test_evaluate_generation.py
@@ -1168,7 +1182,12 @@ tests/
 │   ├── test_document_store.py
 │   ├── test_embedding_store.py
 │   └── test_text_cleaner.py
-└── ...
+├── search/
+│   ├── test_prompts.py                 # Templates e funções de prompt
+│   └── test_vector_search.py           # DI, encoding paralelo, error handling
+├── test_embeddings.py
+├── test_parsers.py
+└── test_rag.py                         # RAGPipeline com DI e SearchBackendError
 ```
 
 Todos os testes usam **mocks** para isolar dependências externas (Qdrant, Ollama, modelo de embeddings), garantindo execução rápida e sem necessidade de serviços rodando.
@@ -1205,6 +1224,14 @@ python -m pytest tests/ -v --tb=short
 | `make pipeline` | Executa as 3 fases em sequência |
 | `make query` | Console SQL interativo para explorar documentos |
 | `make explore` | Interface web (datasette) para explorar o SQLite |
+
+**Desenvolvimento:**
+
+| Comando | Descrição |
+|---------|-----------|
+| `make start` | Inicia API + Web (Ctrl+C para ambos) |
+| `make start-api` | Inicia apenas a API (porta 8083) |
+| `make start-web` | Inicia apenas a Web (porta 8082) |
 
 **Avaliação e utilitários:**
 
