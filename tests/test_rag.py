@@ -235,5 +235,135 @@ class TestGroundedOnlyPassthrough:
         assert kwargs["grounded_only"] is False
 
 
+class TestRewriterDisabled:
+    def test_skips_rewriter_when_disabled(
+        self, mock_rewriter, mock_searcher, mock_evaluator, mock_generator,
+    ):
+        rag = RAGPipeline(
+            rewriter=mock_rewriter,
+            searcher=mock_searcher,
+            evaluator=mock_evaluator,
+            generator=mock_generator,
+            rewriter_enabled=False,
+        )
+
+        result = rag.query("query original")
+
+        mock_rewriter.rewrite.assert_not_called()
+        queries = mock_searcher.search.call_args[0][0]
+        assert len(queries) == 1
+        assert queries[0].text == "query original"
+        assert queries[0].facet_type == "passthrough"
+        assert "answer" in result
+
+    def test_trace_shows_passthrough(
+        self, mock_rewriter, mock_searcher, mock_evaluator, mock_generator,
+    ):
+        rag = RAGPipeline(
+            rewriter=mock_rewriter,
+            searcher=mock_searcher,
+            evaluator=mock_evaluator,
+            generator=mock_generator,
+            rewriter_enabled=False,
+        )
+
+        result = rag.query("q", debug=True)
+        trace = result["trace"]
+        assert trace["rewritten_queries"][0]["facet_type"] == "passthrough"
+
+
+class TestEvaluatorDisabled:
+    def test_skips_evaluator_when_disabled(
+        self, mock_rewriter, mock_searcher, mock_evaluator, mock_generator,
+    ):
+        rag = RAGPipeline(
+            rewriter=mock_rewriter,
+            searcher=mock_searcher,
+            evaluator=mock_evaluator,
+            generator=mock_generator,
+            evaluator_enabled=False,
+        )
+
+        result = rag.query("pergunta")
+
+        mock_evaluator.evaluate.assert_not_called()
+        mock_evaluator.evaluate_multi_query.assert_not_called()
+        assert "answer" in result
+
+    def test_passes_all_docs_to_generator(
+        self, mock_rewriter, mock_searcher, mock_evaluator, mock_generator,
+    ):
+        mock_searcher.search.return_value = SearchResults(
+            documents=[
+                {"text": "doc 1", "regulation_id": "d1", "score": 0.9},
+                {"text": "doc 2", "regulation_id": "d2", "score": 0.7},
+            ],
+            results_per_query={"q": 2},
+            total_before_dedup=2,
+            total_after_dedup=2,
+        )
+
+        rag = RAGPipeline(
+            rewriter=mock_rewriter,
+            searcher=mock_searcher,
+            evaluator=mock_evaluator,
+            generator=mock_generator,
+            evaluator_enabled=False,
+        )
+
+        rag.query("pergunta")
+        args = mock_generator.generate.call_args[0]
+        evaluated = args[0]
+        assert len(evaluated) == 2
+
+    def test_uses_vector_score_when_disabled(
+        self, mock_rewriter, mock_searcher, mock_evaluator, mock_generator,
+    ):
+        mock_searcher.search.return_value = SearchResults(
+            documents=[
+                {"text": "doc 1", "regulation_id": "d1", "score": 0.85},
+            ],
+            results_per_query={"q": 1},
+            total_before_dedup=1,
+            total_after_dedup=1,
+        )
+
+        rag = RAGPipeline(
+            rewriter=mock_rewriter,
+            searcher=mock_searcher,
+            evaluator=mock_evaluator,
+            generator=mock_generator,
+            evaluator_enabled=False,
+        )
+
+        rag.query("pergunta")
+        args = mock_generator.generate.call_args[0]
+        evaluated = args[0]
+        assert evaluated[0].relevance_score == pytest.approx(85.0)
+
+
+class TestBothDisabled:
+    def test_pipeline_works_with_both_disabled(
+        self, mock_rewriter, mock_searcher, mock_evaluator, mock_generator,
+    ):
+        rag = RAGPipeline(
+            rewriter=mock_rewriter,
+            searcher=mock_searcher,
+            evaluator=mock_evaluator,
+            generator=mock_generator,
+            rewriter_enabled=False,
+            evaluator_enabled=False,
+        )
+
+        result = rag.query("pergunta direta")
+
+        mock_rewriter.rewrite.assert_not_called()
+        mock_evaluator.evaluate.assert_not_called()
+        assert "answer" in result
+
+        queries = mock_searcher.search.call_args[0][0]
+        assert queries[0].text == "pergunta direta"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

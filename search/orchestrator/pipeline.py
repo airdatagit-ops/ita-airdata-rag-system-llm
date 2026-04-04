@@ -38,6 +38,11 @@ class RAGPipeline:
     Accepts pre-built module instances via constructor (dependency
     injection).  When not provided, creates its own instances using
     the current configuration.
+
+    The Rewriter and Evaluator can be disabled via config flags
+    (``REWRITER_ENABLED``, ``EVALUATOR_ENABLED``) for CPU-constrained
+    environments.  When disabled, the original query is passed straight
+    to the Searcher and search results go directly to the Generator.
     """
 
     def __init__(
@@ -48,6 +53,8 @@ class RAGPipeline:
         generator: Optional[ResponseGenerator] = None,
         response_cache: Optional[CacheBackend] = None,
         *,
+        rewriter_enabled: Optional[bool] = None,
+        evaluator_enabled: Optional[bool] = None,
         search=None,
         llm=None,
     ):
@@ -56,18 +63,38 @@ class RAGPipeline:
                 "Legacy search/llm arguments detected — wrapping in new modules"
             )
 
-        self.rewriter = rewriter or QueryRewriter(
-            llm=llm,
+        self.rewriter_enabled = (
+            rewriter_enabled if rewriter_enabled is not None
+            else config.REWRITER_ENABLED
         )
+        self.evaluator_enabled = (
+            evaluator_enabled if evaluator_enabled is not None
+            else config.EVALUATOR_ENABLED
+        )
+
+        self.rewriter = rewriter if self.rewriter_enabled else None
+        if self.rewriter_enabled and rewriter is None:
+            self.rewriter = QueryRewriter(llm=llm)
+
         self.searcher = searcher or DocumentSearcher(
             vector_search=search,
         )
-        self.evaluator = evaluator or DocumentEvaluator()
+
+        self.evaluator = evaluator if self.evaluator_enabled else None
+        if self.evaluator_enabled and evaluator is None:
+            self.evaluator = DocumentEvaluator()
+
         self.generator = generator or ResponseGenerator(
             llm=llm,
         )
         self._response_cache = response_cache
-        logger.info("RAGPipeline initialized (modular)")
+
+        stages = ["Searcher", "Generator"]
+        if self.rewriter_enabled:
+            stages.insert(0, "Rewriter")
+        if self.evaluator_enabled:
+            stages.insert(-1, "Evaluator")
+        logger.info(f"RAGPipeline initialized — active stages: {' → '.join(stages)}")
 
     def query(
         self,
@@ -116,15 +143,18 @@ class RAGPipeline:
         # 1. REWRITE
         # --------------------------------------------------------
         rewrite_start = time.time()
-        try:
-            rewritten = self.rewriter.rewrite(
-                question, max_queries=max_queries,
-            )
-        except RewriterError as exc:
-            logger.warning(f"Rewriter failed: {exc} — using original query")
-            rewritten = [RewrittenQuery(text=question, facet_type="original")]
-            if trace:
-                trace.errors.append(f"Rewriter: {exc}")
+        if self.rewriter_enabled and self.rewriter is not None:
+            try:
+                rewritten = self.rewriter.rewrite(
+                    question, max_queries=max_queries,
+                )
+            except RewriterError as exc:
+                logger.warning(f"Rewriter failed: {exc} — using original query")
+                rewritten = [RewrittenQuery(text=question, facet_type="original")]
+                if trace:
+                    trace.errors.append(f"Rewriter: {exc}")
+        else:
+            rewritten = [RewrittenQuery(text=question, facet_type="passthrough")]
 
         if timings:
             timings.rewriter_ms = int((time.time() - rewrite_start) * 1000)
@@ -196,40 +226,51 @@ class RAGPipeline:
         # 3. EVALUATE
         # --------------------------------------------------------
         eval_start = time.time()
-        query_texts = [q.text for q in rewritten]
 
-        try:
-            if len(query_texts) == 1:
-                evaluated = self.evaluator.evaluate(
-                    search_results.documents,
-                    query_texts[0],
-                    threshold=evaluation_threshold,
-                )
-            else:
-                evaluated = self.evaluator.evaluate_multi_query(
-                    search_results.documents,
-                    query_texts,
-                    threshold=evaluation_threshold,
-                )
-        except EvaluatorError as exc:
-            logger.warning(f"Evaluator failed: {exc} — using all search results")
+        if self.evaluator_enabled and self.evaluator is not None:
+            query_texts = [q.text for q in rewritten]
+
+            try:
+                if len(query_texts) == 1:
+                    evaluated = self.evaluator.evaluate(
+                        search_results.documents,
+                        query_texts[0],
+                        threshold=evaluation_threshold,
+                    )
+                else:
+                    evaluated = self.evaluator.evaluate_multi_query(
+                        search_results.documents,
+                        query_texts,
+                        threshold=evaluation_threshold,
+                    )
+            except EvaluatorError as exc:
+                logger.warning(f"Evaluator failed: {exc} — using all search results")
+                evaluated = [
+                    EvaluatedDocument(
+                        document=doc,
+                        relevance_score=50.0,
+                        query_text=question,
+                    )
+                    for doc in search_results.documents
+                ]
+                if trace:
+                    trace.errors.append(f"Evaluator: {exc}")
+        else:
             evaluated = [
                 EvaluatedDocument(
                     document=doc,
-                    relevance_score=50.0,
+                    relevance_score=doc.get("score", 0) * 100,
                     query_text=question,
                 )
                 for doc in search_results.documents
             ]
-            if trace:
-                trace.errors.append(f"Evaluator: {exc}")
 
         if timings:
             timings.evaluator_ms = int((time.time() - eval_start) * 1000)
 
         effective_threshold = evaluation_threshold or config.EVALUATOR_THRESHOLD
         if trace:
-            trace.evaluation_threshold = effective_threshold
+            trace.evaluation_threshold = effective_threshold if self.evaluator_enabled else 0
             trace.evaluation_scores = [
                 {
                     "regulation_id": ed.document.get("regulation_id", ""),
@@ -238,16 +279,17 @@ class RAGPipeline:
                 }
                 for ed in evaluated
             ]
-            discarded_ids = {
-                d.get("regulation_id") for d in search_results.documents
-            } - {ed.document.get("regulation_id") for ed in evaluated}
-            for doc in search_results.documents:
-                if doc.get("regulation_id") in discarded_ids:
-                    trace.evaluation_scores.append({
-                        "regulation_id": doc.get("regulation_id", ""),
-                        "score": 0,
-                        "accepted": False,
-                    })
+            if self.evaluator_enabled:
+                discarded_ids = {
+                    d.get("regulation_id") for d in search_results.documents
+                } - {ed.document.get("regulation_id") for ed in evaluated}
+                for doc in search_results.documents:
+                    if doc.get("regulation_id") in discarded_ids:
+                        trace.evaluation_scores.append({
+                            "regulation_id": doc.get("regulation_id", ""),
+                            "score": 0,
+                            "accepted": False,
+                        })
             trace.documents_accepted = len(evaluated)
             trace.documents_discarded = len(search_results.documents) - len(evaluated)
 

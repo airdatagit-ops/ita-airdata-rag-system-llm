@@ -88,11 +88,24 @@ vector_search = VectorSearch(
     embedding_cache=embedding_cache,
 )
 
-rewriter = QueryRewriter(llm=LlamaModel(
-    model_name=config.REWRITER_MODEL or config.OLLAMA_MODEL,
-))
+rewriter = None
+if config.REWRITER_ENABLED:
+    rewriter_model_name = config.REWRITER_MODEL or config.OLLAMA_MODEL
+    rewriter = QueryRewriter(llm=LlamaModel(model_name=rewriter_model_name))
+    logger.info(f"Rewriter ENABLED (model={rewriter_model_name})")
+else:
+    logger.info("Rewriter DISABLED — queries pass through unchanged")
+
 searcher = DocumentSearcher(vector_search=vector_search)
-evaluator = DocumentEvaluator()
+
+evaluator = None
+if config.EVALUATOR_ENABLED:
+    evaluator = DocumentEvaluator()
+    evaluator.model  # force eager load so the model is ready before first request
+    logger.info(f"Evaluator ENABLED (model={config.CROSS_ENCODER_MODEL}) — pre-loaded")
+else:
+    logger.info("Evaluator DISABLED — search results go directly to generator")
+
 generator = ResponseGenerator(llm=llm)
 
 rag = RAGPipeline(
@@ -101,6 +114,8 @@ rag = RAGPipeline(
     evaluator=evaluator,
     generator=generator,
     response_cache=response_cache,
+    rewriter_enabled=config.REWRITER_ENABLED,
+    evaluator_enabled=config.EVALUATOR_ENABLED,
 )
 
 
