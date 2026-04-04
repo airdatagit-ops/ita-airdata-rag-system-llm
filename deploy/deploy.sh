@@ -325,6 +325,12 @@ fi
 
 cd "$PROJECT_DIR"
 
+# ── Step 4b: Pre-download ML models ──────────────────────────
+
+info "Pre-downloading ML models..."
+sudo -u "$DEPLOY_USER" venv/bin/python -m scripts.download_models
+success "ML models ready."
+
 # ── Step 5: Install systemd services ─────────────────────────
 
 SERVICES_CHANGED=false

@@ -193,7 +193,7 @@ class Settings(BaseSettings):
     # RAG Pipeline — Rewriter
     # ========================================
     REWRITER_ENABLED: bool = getenv('REWRITER_ENABLED', 'true').lower() in ('true', '1', 'yes')
-    REWRITER_MODEL: str = getenv('REWRITER_MODEL', '')
+    REWRITER_MODEL: str = getenv('REWRITER_MODEL', 'llama3.2:1b')
     REWRITER_MAX_QUERIES: int = int(getenv('REWRITER_MAX_QUERIES', '3'))
     REWRITER_MAX_QUERY_LENGTH: int = int(getenv('REWRITER_MAX_QUERY_LENGTH', '500'))
     REWRITER_TEMPERATURE: float = float(getenv('REWRITER_TEMPERATURE', '0.3'))

@@ -402,6 +402,8 @@ vectors = model.encode(["texto 1", "texto 2", "texto 3"])
 
 O cache do modelo é armazenado em `models_cache/`.
 
+> **Pré-download:** O modelo de embeddings é baixado automaticamente com `make download-models` (veja [seção abaixo](#pré-download-de-modelos)).
+
 ---
 
 ## 6. LLM (Ollama)
@@ -414,20 +416,24 @@ O sistema usa **Ollama** para rodar modelos de linguagem localmente. O Ollama ge
 # Instalar Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 
-# Baixar modelos
-ollama pull llama3.2:3b    # Modelo leve (3B parâmetros)
-ollama pull llama3.1:8b    # Modelo médio (8B parâmetros)
+# Baixar modelos (via Makefile — recomendado)
+make download-models
+
+# Ou manualmente:
+ollama pull llama3.2:3b    # Generator (modelo principal)
+ollama pull llama3.2:1b    # Rewriter (modelo menor, mais rápido)
 ```
 
 ### 6.2. Modelos suportados
 
 Qualquer modelo disponível no Ollama funciona. O modelo padrão é configurado em `OLLAMA_MODEL` no `.env`. Modelos testados:
 
-| Modelo | Tamanho | Observação |
-|--------|---------|------------|
-| `llama3.2:3b` | ~2GB | Rápido, bom para testes |
-| `llama3.1:8b` | ~4.7GB | Melhor qualidade, mais lento |
-| `phi3:3.8b` | ~2.3GB | Alternativa leve da Microsoft |
+| Modelo | Tamanho | Uso no pipeline | Observação |
+|--------|---------|-----------------|------------|
+| `llama3.2:1b` | ~1.3GB | Rewriter (padrão) | Ultra-leve, ideal para reescrita de queries |
+| `llama3.2:3b` | ~2GB | Generator (padrão) | Bom equilíbrio qualidade/velocidade |
+| `llama3.1:8b` | ~4.7GB | Generator (alternativa) | Melhor qualidade, mais lento |
+| `phi3:3.8b` | ~2.3GB | Alternativa | Modelo leve da Microsoft |
 
 ### 6.3. Troca de modelo em tempo real
 
@@ -450,6 +456,28 @@ A classe `LlamaModel` (`models/llm.py`) oferece:
 | `generate()` | Geração de texto com prompt simples (suporta streaming) |
 | `generate_with_context()` | Geração RAG (prompt + contexto de documentos) |
 | `chat()` | Chat com histórico de mensagens (suporta streaming) |
+
+### 6.5. Pré-download de modelos {#pré-download-de-modelos}
+
+Todos os modelos ML (embeddings, cross-encoder, Ollama) podem ser baixados de uma vez antes de iniciar o servidor:
+
+```bash
+make download-models                       # Baixa tudo (embeddings + cross-encoder + Ollama)
+make download-models SKIP_OLLAMA=1         # Apenas modelos HuggingFace
+make download-models SKIP_EMBEDDINGS=1     # Pula modelo de embeddings
+make download-models SKIP_CROSS_ENCODER=1  # Pula cross-encoder
+```
+
+O script `scripts/download_models.py` baixa:
+
+| Modelo | Tipo | Usado por |
+|--------|------|-----------|
+| `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Sentence-Transformer | Embedding (busca vetorial) |
+| `cross-encoder/ms-marco-MiniLM-L-6-v2` | Cross-Encoder | Evaluator (re-ranking) |
+| `llama3.2:1b` | Ollama LLM | Rewriter (reescrita de queries) |
+| `llama3.2:3b` | Ollama LLM | Generator (geração de respostas) |
+
+> **Dica:** Execute `make download-models` após clonar o repositório ou alterar modelos no `.env`. O deploy (`make deploy`) já faz o download automático dos modelos HuggingFace.
 
 ---
 
@@ -840,14 +868,17 @@ search/
 
 | Variável | Default | Descrição |
 |----------|---------|-----------|
-| `REWRITER_MODEL` | `OLLAMA_MODEL` | Modelo LLM para reescrita de queries |
+| `REWRITER_ENABLED` | `true` | Habilita o módulo Rewriter (desabilitar para pipeline mais leve) |
+| `REWRITER_MODEL` | `llama3.2:1b` | Modelo LLM para reescrita de queries (menor = mais rápido) |
 | `REWRITER_MAX_QUERIES` | `3` | Máximo de sub-queries geradas |
 | `REWRITER_MAX_QUERY_LENGTH` | `500` | Tamanho máximo por query reescrita (chars) |
 | `REWRITER_TEMPERATURE` | `0.3` | Temperatura do LLM no rewriter |
-| `REWRITER_TIMEOUT` | `30` | Timeout (s) para o LLM do rewriter |
+| `REWRITER_TIMEOUT` | `60` | Timeout (s) para o LLM do rewriter |
+| `EVALUATOR_ENABLED` | `true` | Habilita o módulo Evaluator (desabilitar para pipeline mais leve) |
 | `CROSS_ENCODER_MODEL` | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Modelo cross-encoder para avaliação |
 | `EVALUATOR_THRESHOLD` | `30` | Score mínimo (0-100) para aceitar documento |
 | `EVALUATOR_BATCH_SIZE` | `32` | Batch size do cross-encoder |
+| `EVALUATOR_MAX_TOKENS` | `480` | Máximo de tokens na entrada do cross-encoder |
 | `GENERATOR_MODEL` | `OLLAMA_MODEL` | Modelo LLM para geração de resposta |
 | `GENERATOR_MAX_RESPONSE_TOKENS` | `1024` | Máximo de tokens na resposta |
 | `GENERATOR_GROUNDED_ONLY` | `true` | Respostas apenas com base nos documentos |
@@ -1024,6 +1055,7 @@ python main.py
 
 | Script | Comando | Descrição |
 |--------|---------|-----------|
+| `download_models.py` | `python -m scripts.download_models` | Pré-baixa todos os modelos ML necessários (`make download-models`) |
 | `validate_data.py` | `python -m scripts.validate_data` | Valida qualidade e limpeza dos documentos (`make validate-data`) |
 | `inspect_qdrant.py` | `python -m scripts.inspect_qdrant` | Inspeciona dados do Qdrant |
 | `test_system.py` | `python -m scripts.test_system` | Testa todos os componentes |
@@ -1055,22 +1087,25 @@ make index RECREATE=1                         # Recria a coleção
 # 4. Pipeline completo (3 fases em sequência)
 make pipeline
 
-# 5. Verificar o que foi indexado
+# 5. Pré-baixar modelos ML (cross-encoder, embeddings, Ollama)
+make download-models
+
+# 6. Verificar o que foi indexado
 python -m scripts.inspect_qdrant
 
-# 6. Consultar documentos coletados
+# 7. Consultar documentos coletados
 make query SQL="SELECT source, COUNT(*) n FROM documents GROUP BY source"
 make explore                                  # Web UI (Datasette)
 
-# 7. Testar todo o sistema
+# 8. Testar todo o sistema
 python -m scripts.test_system
 
-# 8. Resetar tudo e re-coletar
+# 9. Resetar tudo e re-coletar
 make collect FORCE=1                          # Apaga e re-coleta
 make embed FORCE=1                            # Re-gera embeddings
 make index RECREATE=1                         # Recria Qdrant
 
-# 9. Validar qualidade dos documentos
+# 10. Validar qualidade dos documentos
 python -m scripts.validate_data --report-only
 ```
 
@@ -1299,6 +1334,8 @@ python -m pytest tests/ -v --tb=short
 
 | Comando | Descrição |
 |---------|-----------|
+| `make download-models` | Pré-baixa todos os modelos ML (embeddings, cross-encoder, Ollama) |
+| `make download-models SKIP_OLLAMA=1` | Pré-baixa apenas modelos HuggingFace (sem Ollama) |
 | `make start` | Inicia API + Web (Ctrl+C para ambos) |
 | `make start-api` | Inicia apenas a API (porta 8083) |
 | `make start-web` | Inicia apenas a Web (porta 8082) |

@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web
+.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models
 
 PYTHON ?= python
 K ?= 5
@@ -58,6 +58,8 @@ help:
 	@echo "  make explore                                      Open datasette web UI for the store"
 	@echo ""
 	@echo "  ── development ──────────────────────────────────────────────────────"
+	@echo "  make download-models                              Pre-download all ML models"
+	@echo "  make download-models SKIP_OLLAMA=1                Skip Ollama pulls"
 	@echo "  make start                                        Start API + Web (Ctrl+C to stop)"
 	@echo "  make start-api                                    Start only the API server"
 	@echo "  make start-web                                    Start only the Web server"
@@ -127,6 +129,9 @@ migrate:
 
 clean:
 	rm -f evaluation/results/*.csv evaluation/results/*.json
+
+download-models:
+	$(PYTHON) -m scripts.download_models $(if $(SKIP_OLLAMA),--skip-ollama,) $(if $(SKIP_EMBEDDINGS),--skip-embeddings,) $(if $(SKIP_CROSS_ENCODER),--skip-cross-encoder,)
 
 start-api:
 	$(PYTHON) -m uvicorn api.server:app --host 127.0.0.1 --port 8083 --reload
