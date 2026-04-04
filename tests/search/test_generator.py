@@ -101,12 +101,17 @@ class TestStreamingGeneration:
 class TestPromptBuilders:
     def test_build_context_includes_metadata(self):
         docs = [
-            {"text": "Content", "regulation_id": "ICA-1", "version": "2024"},
+            {
+                "text": "Content",
+                "regulation_id": "ICA-1",
+                "metadata": {"type": "ICA", "number": "100-12", "authority": "DECEA"},
+            },
         ]
         context = build_generator_context(docs, scores=[85.0])
 
         assert "ICA-1" in context
-        assert "Versão 2024" in context
+        assert "ICA 100-12" in context
+        assert "DECEA" in context
         assert "Relevância: 85" in context
 
     def test_build_references_deduplicates(self):
@@ -127,7 +132,7 @@ class TestPromptBuilders:
 class TestSystemPromptSelection:
     def test_grounded_no_history(self, generator):
         prompt = generator._select_system_prompt(grounded=True, has_history=False)
-        assert "APENAS" in prompt
+        assert "EXCLUSIVAMENTE" in prompt
 
     def test_ungrounded_no_history(self, generator):
         prompt = generator._select_system_prompt(grounded=False, has_history=False)
