@@ -233,15 +233,15 @@ class StageTimings(BaseModel):
     rewriter_ms: int = 0
     searcher_ms: int = 0
     evaluator_ms: int = 0
+    generator_ms: int = 0
     total_ms: int = 0
 
 
 class PipelineTrace(BaseModel):
-    """Debug trace for the retrieval stages (Rewriter, Searcher, Evaluator).
+    """Complete debug trace of a single RAG pipeline execution.
 
     Returned to the caller when ``debug=True``.  Designed to be
     JSON-serialisable so the web UI can render it directly.
-    Generator data is intentionally excluded.
     """
     original_query: str = ""
     rewritten_queries: List[RewrittenQuery] = Field(default_factory=list)
@@ -257,6 +257,10 @@ class PipelineTrace(BaseModel):
     documents_accepted: int = 0
     documents_discarded: int = 0
     evaluation_threshold: float = 0
+
+    generator_model: str = ""
+    generator_grounded_only: bool = True
+    generator_context_length: int = 0
 
     timings: StageTimings = Field(default_factory=StageTimings)
     errors: List[str] = Field(default_factory=list)

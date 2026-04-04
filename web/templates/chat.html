@@ -43,7 +43,7 @@
         
         <div class="form-group">
           <label class="checkbox-label">
-            <input type="checkbox" id="debugMode"/>
+            <input type="checkbox" id="debugMode" checked/>
             Modo Debug (pipeline)
           </label>
           <small>Exibe trace detalhado do pipeline RAG</small>
@@ -302,7 +302,6 @@
                 sources = data.sources;
               } else if (data.type === 'debug_trace') {
                 debugTrace = data.trace;
-                console.log('[SSE] debug_trace received, keys:', Object.keys(data.trace));
               } else if (data.type === 'done') {
                 finalData = data;
                 this.sessionId = data.session_id;
@@ -785,6 +784,7 @@
       const rewriterPct = Math.round((timings.rewriter_ms || 0) / totalMs * 100);
       const searcherPct = Math.round((timings.searcher_ms || 0) / totalMs * 100);
       const evaluatorPct = Math.round((timings.evaluator_ms || 0) / totalMs * 100);
+      const generatorPct = Math.round((timings.generator_ms || 0) / totalMs * 100);
       
       const queries = (trace.rewritten_queries || []).map(q => {
         const filtersStr = (q.filters || []).map(f => `${f.field} ${f.operator} ${JSON.stringify(f.value)}`).join(', ');
@@ -798,8 +798,12 @@
       const evalScores = (trace.evaluation_scores || []).map(e => {
         const statusClass = e.accepted ? 'debug-score-accepted' : 'debug-score-rejected';
         const statusIcon = e.accepted ? '✅' : '❌';
+        const docLabel = this.escapeHtml(e.regulation_id || '?');
+        const docCell = e.url
+          ? `<a href="${this.escapeHtml(e.url)}" target="_blank" rel="noopener" class="debug-doc-link">${docLabel}</a>`
+          : docLabel;
         return `<tr class="${statusClass}">
-          <td>${this.escapeHtml(e.regulation_id || '?')}</td>
+          <td>${docCell}</td>
           <td>${e.score?.toFixed(1) || '0'}</td>
           <td>${statusIcon}</td>
         </tr>`;
@@ -828,11 +832,15 @@
                 <div class="debug-timing-segment evaluator" style="width:${evaluatorPct}%" title="Evaluator: ${timings.evaluator_ms || 0}ms">
                   ${timings.evaluator_ms || 0}ms
                 </div>
+                <div class="debug-timing-segment generator" style="width:${generatorPct}%" title="Generator: ${timings.generator_ms || 0}ms">
+                  ${timings.generator_ms || 0}ms
+                </div>
               </div>
               <div class="debug-timing-legend">
                 <span class="legend-item rewriter">Rewriter</span>
                 <span class="legend-item searcher">Searcher</span>
                 <span class="legend-item evaluator">Evaluator</span>
+                <span class="legend-item generator">Generator</span>
               </div>
             </div>
             
@@ -862,6 +870,15 @@
                 <tbody>${evalScores}</tbody>
               </table>
             </div>` : ''}
+            
+            <div class="debug-section">
+              <div class="debug-section-title">🤖 Generator</div>
+              <div class="debug-stats">
+                Modelo: ${this.escapeHtml(trace.generator_model || '?')} |
+                Grounded: ${trace.generator_grounded_only ? 'Sim' : 'Não'} |
+                Contexto: ${trace.generator_context_length || 0} chars
+              </div>
+            </div>
             
             ${errors ? `
             <div class="debug-section debug-errors">

@@ -397,8 +397,17 @@ async def chat_stream(
 
                     if chat_request.debug and "trace" in result:
                         try:
+                            trace_dict = result["trace"]
+                            gen_start = result.get("_gen_start")
+                            p_start = result.get("_pipeline_start")
+                            if gen_start:
+                                now = time.time()
+                                trace_dict.setdefault("timings", {})
+                                trace_dict["timings"]["generator_ms"] = int((now - gen_start) * 1000)
+                                if p_start:
+                                    trace_dict["timings"]["total_ms"] = int((now - p_start) * 1000)
                             trace_payload = json.dumps(
-                                {"type": "debug_trace", "trace": result["trace"]},
+                                {"type": "debug_trace", "trace": trace_dict},
                                 default=str,
                             )
                             yield f"data: {trace_payload}\n\n"

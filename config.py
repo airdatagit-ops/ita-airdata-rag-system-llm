@@ -190,7 +190,7 @@ class Settings(BaseSettings):
     # ========================================
     # RAG Pipeline — Rewriter
     # ========================================
-    REWRITER_ENABLED: bool = getenv('REWRITER_ENABLED', 'true').lower() in ('true', '1', 'yes')
+    REWRITER_ENABLED: bool = getenv('REWRITER_ENABLED', 'false').lower() in ('true', '1', 'yes')
     REWRITER_MODEL: str = getenv('REWRITER_MODEL', 'llama3.2:3b')
     REWRITER_MAX_QUERIES: int = int(getenv('REWRITER_MAX_QUERIES', '3'))
     REWRITER_MAX_QUERY_LENGTH: int = int(getenv('REWRITER_MAX_QUERY_LENGTH', '500'))
@@ -213,7 +213,7 @@ class Settings(BaseSettings):
     # ========================================
     GENERATOR_MODEL: str = getenv('GENERATOR_MODEL', '')
     GENERATOR_MAX_RESPONSE_TOKENS: int = int(getenv('GENERATOR_MAX_RESPONSE_TOKENS', '1024'))
-    GENERATOR_MAX_DOC_CHARS: int = int(getenv('GENERATOR_MAX_DOC_CHARS', '800'))
+    GENERATOR_MAX_DOC_CHARS: int = int(getenv('GENERATOR_MAX_DOC_CHARS', '2000'))
     GENERATOR_GROUNDED_ONLY: bool = getenv('GENERATOR_GROUNDED_ONLY', 'true').lower() in ('true', '1', 'yes')
     GENERATOR_TIMEOUT: int = int(getenv('GENERATOR_TIMEOUT', '120'))
 

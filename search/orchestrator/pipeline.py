@@ -279,6 +279,7 @@ class RAGPipeline:
                     "regulation_id": ed.document.get("regulation_id", ""),
                     "score": ed.relevance_score,
                     "accepted": True,
+                    "url": (ed.document.get("metadata") or {}).get("url", ""),
                 }
                 for ed in evaluated
             ]
@@ -292,6 +293,7 @@ class RAGPipeline:
                             "regulation_id": doc.get("regulation_id", ""),
                             "score": 0,
                             "accepted": False,
+                            "url": (doc.get("metadata") or {}).get("url", ""),
                         })
             trace.documents_accepted = len(evaluated)
             trace.documents_discarded = len(search_results.documents) - len(evaluated)
@@ -320,6 +322,18 @@ class RAGPipeline:
         # --------------------------------------------------------
         gen_start = time.time()
 
+        effective_grounded = (
+            grounded_only if grounded_only is not None
+            else self.generator.grounded_only
+        )
+
+        if trace:
+            trace.generator_model = self.generator.llm.model_name
+            trace.generator_grounded_only = effective_grounded
+            from search.generator.prompts import build_generator_context
+            ctx = build_generator_context([ed.document for ed in evaluated])
+            trace.generator_context_length = len(ctx)
+
         if trace and timings:
             timings.total_ms = int((time.time() - pipeline_start) * 1000)
             trace.timings = timings
@@ -341,6 +355,8 @@ class RAGPipeline:
             }
             if trace:
                 result["trace"] = trace.to_dict()
+                result["_gen_start"] = time.time()
+                result["_pipeline_start"] = pipeline_start
             return result
 
         try:
@@ -363,6 +379,7 @@ class RAGPipeline:
         total_time = time.time() - pipeline_start
 
         if timings:
+            timings.generator_ms = int(llm_time * 1000)
             timings.total_ms = int(total_time * 1000)
 
         response = {
