@@ -22,19 +22,15 @@ from search.shared.schemas import (
     SortOrder,
 )
 from search.shared.timeouts import with_timeout
-from search.rewriter.prompts import REWRITER_SYSTEM_PROMPT, REWRITER_USER_PROMPT
+from search.rewriter.prompts import (
+    build_system_prompt,
+    build_user_prompt,
+    VALID_FILTER_FIELDS,
+)
 
-_VALID_FILTER_FIELDS = {
-    "metadata.type",
-    "metadata.authority",
-    "effective_date",
-    "expiry_date",
-}
+_VALID_FILTER_FIELDS = set(VALID_FILTER_FIELDS.keys())
 
-_VALID_TYPE_VALUES = {
-    "ICA", "DCA", "MCA", "NSCA", "RCA", "PCA", "FCA",
-    "TCA", "BCA", "BMA", "IMA", "RICA", "ROCA", "decreto",
-}
+_VALID_TYPE_VALUES = set(VALID_FILTER_FIELDS["metadata.type"]["values"])
 
 
 class QueryRewriter:
@@ -85,8 +81,8 @@ class QueryRewriter:
         """
         effective_max = max_queries or self.max_queries
 
-        system = REWRITER_SYSTEM_PROMPT.format(max_queries=effective_max)
-        user = REWRITER_USER_PROMPT.format(query=query)
+        system = build_system_prompt(effective_max)
+        user = build_user_prompt(query)
 
         def _call_llm() -> str:
             return self.llm.generate(
