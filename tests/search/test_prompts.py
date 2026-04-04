@@ -7,6 +7,7 @@ from search.prompts import (
     build_context_string,
     build_rag_prompt,
     build_chat_prompt,
+    build_search_query,
 )
 
 
@@ -91,3 +92,38 @@ class TestBuildChatPrompt:
         result = build_chat_prompt("Pergunta?", None, [])
         assert "PERGUNTA ATUAL" in result
         assert "RESPOSTA" in result
+
+
+class TestBuildSearchQuery:
+    def test_no_history_returns_message_as_is(self):
+        assert build_search_query("idade mínima?", []) == "idade mínima?"
+
+    def test_prepends_recent_user_messages(self):
+        history = [
+            {"role": "user", "content": "requisitos para pilotos"},
+            {"role": "assistant", "content": "Os requisitos são..."},
+            {"role": "user", "content": "e para comerciais?"},
+            {"role": "assistant", "content": "Para comerciais..."},
+        ]
+        result = build_search_query("qual a idade mínima?", history)
+        assert "requisitos para pilotos" in result
+        assert "e para comerciais?" in result
+        assert "qual a idade mínima?" in result
+        assert "Os requisitos são" not in result
+
+    def test_limits_history_messages(self):
+        history = [
+            {"role": "user", "content": f"msg-{i}"}
+            for i in range(10)
+        ]
+        result = build_search_query("atual", history, max_history_messages=2)
+        assert "msg-8" in result
+        assert "msg-9" in result
+        assert "msg-7" not in result
+        assert "atual" in result
+
+    def test_only_assistant_messages_returns_current(self):
+        history = [
+            {"role": "assistant", "content": "Oi!"},
+        ]
+        assert build_search_query("pergunta", history) == "pergunta"

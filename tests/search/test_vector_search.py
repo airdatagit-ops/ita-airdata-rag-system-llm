@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from search.vector_search import VectorSearch
+from search.cache import InMemoryCache
 from search.exceptions import SearchBackendError
 
 
@@ -81,6 +82,45 @@ class TestEncodeQuery:
         mock_sparse.encode_single.assert_called_once()
         assert dense is not None
         assert sparse is not None
+
+
+class TestEmbeddingCache:
+    def test_cache_miss_then_hit(self, mock_dense, mock_db):
+        cache = InMemoryCache()
+        vs = VectorSearch(
+            dense_model=mock_dense, sparse_model=None, db=mock_db,
+            embedding_cache=cache,
+        )
+
+        vs._encode_query("same query")
+        vs._encode_query("same query")
+
+        assert mock_dense.encode.call_count == 1
+        assert cache.stats()["hits"] == 1
+        assert cache.stats()["misses"] == 1
+
+    def test_different_queries_miss(self, mock_dense, mock_db):
+        cache = InMemoryCache()
+        vs = VectorSearch(
+            dense_model=mock_dense, sparse_model=None, db=mock_db,
+            embedding_cache=cache,
+        )
+
+        vs._encode_query("query a")
+        vs._encode_query("query b")
+
+        assert mock_dense.encode.call_count == 2
+        assert cache.stats()["misses"] == 2
+
+    def test_no_cache_always_encodes(self, mock_dense, mock_db):
+        vs = VectorSearch(
+            dense_model=mock_dense, sparse_model=None, db=mock_db,
+        )
+
+        vs._encode_query("q")
+        vs._encode_query("q")
+
+        assert mock_dense.encode.call_count == 2
 
 
 class TestSearch:

@@ -35,8 +35,11 @@ from api.schemas import (
 )
 from search.rag import RAGPipeline
 from search.vector_search import VectorSearch
+from search.cache import InMemoryCache
 from search.exceptions import SearchBackendError
-from search.prompts import SYSTEM_PROMPT, build_context_string, build_chat_prompt
+from search.prompts import (
+    SYSTEM_PROMPT, build_context_string, build_chat_prompt, build_search_query,
+)
 from database.qdrant_manager import QdrantManager
 from api.session_manager import session_manager
 from models.llm import LlamaModel
@@ -75,9 +78,14 @@ db = QdrantManager()
 dense_model = EmbeddingModel() if config.SEARCH_DENSE_ENABLED else None
 sparse_model = SparseEncoder() if config.SEARCH_SPARSE_ENABLED else None
 llm = LlamaModel()
+embedding_cache = InMemoryCache(maxsize=1024, default_ttl=3600)
+response_cache = InMemoryCache(maxsize=256, default_ttl=1800)
 
-vector_search = VectorSearch(dense_model=dense_model, sparse_model=sparse_model, db=db)
-rag = RAGPipeline(search=vector_search, llm=llm)
+vector_search = VectorSearch(
+    dense_model=dense_model, sparse_model=sparse_model, db=db,
+    embedding_cache=embedding_cache,
+)
+rag = RAGPipeline(search=vector_search, llm=llm, response_cache=response_cache)
 
 
 # ========================================
@@ -302,6 +310,9 @@ async def chat_stream(
         )
 
         rag_limit = chat_request.rag_limit or config.SEARCH_TOP_K
+        search_query = build_search_query(
+            chat_request.message, context_messages[:-1],
+        )
 
         def generate_stream():
             """Sync generator yielding SSE events.
@@ -319,11 +330,11 @@ async def chat_stream(
                     try:
                         if chat_request.rag_date:
                             search_results = vector_search.search_temporal(
-                                chat_request.message, chat_request.rag_date, limit=rag_limit,
+                                search_query, chat_request.rag_date, limit=rag_limit,
                             )
                         else:
                             search_results = vector_search.search(
-                                chat_request.message, limit=rag_limit,
+                                search_query, limit=rag_limit,
                             )
                     except SearchBackendError:
                         search_results = []
@@ -479,15 +490,16 @@ async def _chat_with_rag(
 ) -> dict:
     """Handle chat with RAG integration."""
     rag_limit = request.rag_limit or config.SEARCH_TOP_K
+    search_query = build_search_query(request.message, context_messages[:-1])
 
     if request.rag_date:
         search_results = await asyncio.to_thread(
             vector_search.search_temporal,
-            request.message, request.rag_date, limit=rag_limit,
+            search_query, request.rag_date, limit=rag_limit,
         )
     else:
         search_results = await asyncio.to_thread(
-            vector_search.search, request.message, limit=rag_limit,
+            vector_search.search, search_query, limit=rag_limit,
         )
 
     if not search_results:

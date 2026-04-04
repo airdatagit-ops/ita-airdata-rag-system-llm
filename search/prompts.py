@@ -41,6 +41,24 @@ def build_rag_prompt(query: str, context: str) -> str:
     )
 
 
+def build_search_query(
+    current_message: str,
+    history: List[Dict[str, str]],
+    max_history_messages: int = 3,
+) -> str:
+    """Enrich a search query with recent conversation context.
+
+    Extracts only user messages from *history* (last *max_history_messages*)
+    and prepends them to *current_message*.  This gives the embedding model
+    topical context without diluting the vector with long assistant responses.
+    """
+    user_messages = [m["content"] for m in history if m["role"] == "user"]
+    recent = user_messages[-max_history_messages:]
+    if not recent:
+        return current_message
+    return " ".join(recent) + " " + current_message
+
+
 def build_chat_prompt(
     query: str,
     context: str | None,

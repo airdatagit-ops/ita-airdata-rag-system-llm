@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 from loguru import logger
 
 from search.vector_search import VectorSearch
+from search.cache import CacheBackend, make_cache_key
 from search.exceptions import SearchBackendError
 from models.llm import LlamaModel
 
@@ -21,9 +22,11 @@ class RAGPipeline:
         self,
         search: Optional[VectorSearch] = None,
         llm: Optional[LlamaModel] = None,
+        response_cache: Optional[CacheBackend] = None,
     ):
         self.search = search or VectorSearch()
         self.llm = llm or LlamaModel()
+        self._response_cache = response_cache
         logger.info("RAGPipeline initialized")
 
     def query(
@@ -45,6 +48,13 @@ class RAGPipeline:
         Returns:
             Dictionary with answer and metadata
         """
+        if self._response_cache is not None:
+            cache_key = make_cache_key("rag", question, str(date), str(limit))
+            cached = self._response_cache.get(cache_key)
+            if cached is not None:
+                logger.info(f"RAG cache hit for: {question[:50]}...")
+                return cached
+
         start_time = time.time()
 
         try:
@@ -89,6 +99,9 @@ class RAGPipeline:
             "llm_time_ms": int(llm_time * 1000),
             "total_time_ms": int(total_time * 1000)
         }
+
+        if self._response_cache is not None:
+            self._response_cache.set(cache_key, response)
 
         logger.info(f"RAG query completed in {total_time:.2f}s")
         return response

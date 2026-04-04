@@ -7,6 +7,7 @@ from loguru import logger
 
 from models.embeddings import EmbeddingModel, SparseEncoder
 from database.qdrant_manager import QdrantManager
+from search.cache import CacheBackend, make_cache_key
 from config import config
 
 _SENTINEL = object()
@@ -26,6 +27,7 @@ class VectorSearch:
         dense_model: Optional[EmbeddingModel] = _SENTINEL,
         sparse_model: Optional[SparseEncoder] = _SENTINEL,
         db: Optional[QdrantManager] = None,
+        embedding_cache: Optional[CacheBackend] = None,
     ):
         if dense_model is _SENTINEL:
             self.dense_model = EmbeddingModel() if config.SEARCH_DENSE_ENABLED else None
@@ -38,6 +40,7 @@ class VectorSearch:
             self.sparse_model = sparse_model
 
         self.db = db or QdrantManager()
+        self._embedding_cache = embedding_cache
 
         modes = []
         if self.dense_model:
@@ -49,17 +52,30 @@ class VectorSearch:
     def _encode_query(self, query: str):
         """Encode query into dense and/or sparse vectors.
 
+        Results are cached when an ``embedding_cache`` is provided.
         When both models are available the encodings run in parallel.
         """
+        if self._embedding_cache is not None:
+            key = make_cache_key("emb", query)
+            cached = self._embedding_cache.get(key)
+            if cached is not None:
+                logger.debug(f"Embedding cache hit for: {query[:50]}...")
+                return cached
+
         if self.dense_model and self.sparse_model:
             with ThreadPoolExecutor(max_workers=2) as pool:
                 dense_future = pool.submit(lambda: self.dense_model.encode(query).tolist())
                 sparse_future = pool.submit(self.sparse_model.encode_single, query)
-                return dense_future.result(), sparse_future.result()
+                result = dense_future.result(), sparse_future.result()
+        else:
+            dense_vector = self.dense_model.encode(query).tolist() if self.dense_model else None
+            sparse_vector = self.sparse_model.encode_single(query) if self.sparse_model else None
+            result = dense_vector, sparse_vector
 
-        dense_vector = self.dense_model.encode(query).tolist() if self.dense_model else None
-        sparse_vector = self.sparse_model.encode_single(query) if self.sparse_model else None
-        return dense_vector, sparse_vector
+        if self._embedding_cache is not None:
+            self._embedding_cache.set(key, result)
+
+        return result
 
     @staticmethod
     def _format_results(results) -> List[Dict]:

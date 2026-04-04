@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from search.rag import RAGPipeline
+from search.cache import InMemoryCache
 from search.exceptions import SearchBackendError
 
 
@@ -21,6 +22,11 @@ def mock_llm():
 @pytest.fixture
 def rag(mock_search, mock_llm):
     return RAGPipeline(search=mock_search, llm=mock_llm)
+
+
+SAMPLE_RESULTS = [
+    {"text": "Art. 1", "regulation_id": "doc-1", "score": 0.9}
+]
 
 
 class TestQueryResponseFormat:
@@ -69,6 +75,46 @@ class TestSearchBackendErrorHandling:
 
         assert "indisponível" in result["answer"]
         assert result["sources"] == []
+
+
+class TestResponseCache:
+    def test_cache_hit_skips_search_and_llm(self, mock_search, mock_llm):
+        cache = InMemoryCache()
+        rag = RAGPipeline(search=mock_search, llm=mock_llm, response_cache=cache)
+
+        mock_search.search.return_value = SAMPLE_RESULTS
+        mock_llm.generate_with_context.return_value = "Resposta."
+
+        r1 = rag.query("mesma pergunta", limit=5)
+        r2 = rag.query("mesma pergunta", limit=5)
+
+        assert r1["answer"] == r2["answer"]
+        mock_search.search.assert_called_once()
+        mock_llm.generate_with_context.assert_called_once()
+        assert cache.stats()["hits"] == 1
+
+    def test_different_params_miss(self, mock_search, mock_llm):
+        cache = InMemoryCache()
+        rag = RAGPipeline(search=mock_search, llm=mock_llm, response_cache=cache)
+
+        mock_search.search.return_value = SAMPLE_RESULTS
+        mock_llm.generate_with_context.return_value = "R"
+
+        rag.query("q", limit=3)
+        rag.query("q", limit=5)
+
+        assert mock_search.search.call_count == 2
+
+    def test_no_cache_always_executes(self, mock_search, mock_llm):
+        rag = RAGPipeline(search=mock_search, llm=mock_llm)
+
+        mock_search.search.return_value = SAMPLE_RESULTS
+        mock_llm.generate_with_context.return_value = "R"
+
+        rag.query("q")
+        rag.query("q")
+
+        assert mock_search.search.call_count == 2
 
 
 if __name__ == "__main__":
