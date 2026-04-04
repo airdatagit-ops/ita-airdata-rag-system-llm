@@ -37,9 +37,7 @@ from search.rag import RAGPipeline
 from search.vector_search import VectorSearch
 from search.cache import InMemoryCache
 from search.exceptions import SearchBackendError
-from search.prompts import (
-    SYSTEM_PROMPT, build_context_string, build_chat_prompt, build_search_query,
-)
+from search.prompts import SYSTEM_PROMPT
 from database.qdrant_manager import QdrantManager
 from api.session_manager import session_manager
 from models.llm import LlamaModel
@@ -310,9 +308,6 @@ async def chat_stream(
         )
 
         rag_limit = chat_request.rag_limit or config.SEARCH_TOP_K
-        search_query = build_search_query(
-            chat_request.message, context_messages[:-1],
-        )
 
         def generate_stream():
             """Sync generator yielding SSE events.
@@ -327,17 +322,15 @@ async def chat_stream(
                 yield f"data: {json.dumps({'type': 'session', 'session_id': session_id})}\n\n"
 
                 if chat_request.use_rag:
-                    try:
-                        if chat_request.rag_date:
-                            search_results = vector_search.search_temporal(
-                                search_query, chat_request.rag_date, limit=rag_limit,
-                            )
-                        else:
-                            search_results = vector_search.search(
-                                search_query, limit=rag_limit,
-                            )
-                    except SearchBackendError:
-                        search_results = []
+                    result = rag.query(
+                        chat_request.message,
+                        history=context_messages[:-1],
+                        limit=rag_limit,
+                        date=chat_request.rag_date,
+                        stream=True,
+                        temperature=chat_request.temperature,
+                        max_tokens=chat_request.max_tokens,
+                    )
 
                     sources_data = [
                         {
@@ -345,25 +338,13 @@ async def chat_stream(
                             "score": s.get("score"),
                             "text": s.get("text", "")[:2000],
                         }
-                        for s in search_results[:rag_limit]
-                    ] if search_results else []
+                        for s in result["sources"]
+                    ] if result["sources"] else []
                     yield f"data: {json.dumps({'type': 'sources', 'sources': sources_data})}\n\n"
 
-                    if search_results:
-                        context_str = build_context_string(search_results)
-                        prompt = build_chat_prompt(
-                            query=chat_request.message,
-                            context=context_str,
-                            history=context_messages[:-1],
-                        )
-
-                        for chunk in llm.generate(
-                            prompt=prompt,
-                            system_prompt=SYSTEM_PROMPT,
-                            temperature=chat_request.temperature,
-                            max_tokens=chat_request.max_tokens,
-                            stream=True,
-                        ):
+                    answer_stream = result.get("answer_stream")
+                    if answer_stream:
+                        for chunk in answer_stream:
                             full_response.append(chunk)
                             yield f"data: {json.dumps({'type': 'token', 'content': chunk})}\n\n"
                     else:
@@ -449,10 +430,20 @@ async def chat(
         )
 
         if chat_request.use_rag:
-            assistant_message = await _chat_with_rag(
-                request=chat_request,
-                context_messages=context_messages,
+            rag_limit = chat_request.rag_limit or config.SEARCH_TOP_K
+            result = await asyncio.to_thread(
+                rag.query,
+                chat_request.message,
+                history=context_messages[:-1],
+                limit=rag_limit,
+                date=chat_request.rag_date,
+                temperature=chat_request.temperature,
+                max_tokens=chat_request.max_tokens,
             )
+            assistant_message = {
+                "content": result["answer"],
+                "sources": result.get("sources"),
+            }
         else:
             assistant_message = await _chat_without_rag(
                 request=chat_request,
@@ -482,45 +473,6 @@ async def chat(
     except Exception as e:
         logger.error(f"Error processing chat request: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
-
-
-async def _chat_with_rag(
-    request: ChatRequest,
-    context_messages: list,
-) -> dict:
-    """Handle chat with RAG integration."""
-    rag_limit = request.rag_limit or config.SEARCH_TOP_K
-    search_query = build_search_query(request.message, context_messages[:-1])
-
-    if request.rag_date:
-        search_results = await asyncio.to_thread(
-            vector_search.search_temporal,
-            search_query, request.rag_date, limit=rag_limit,
-        )
-    else:
-        search_results = await asyncio.to_thread(
-            vector_search.search, search_query, limit=rag_limit,
-        )
-
-    if not search_results:
-        return await _chat_without_rag(request, context_messages)
-
-    context_str = build_context_string(search_results)
-    prompt = build_chat_prompt(
-        query=request.message,
-        context=context_str,
-        history=context_messages[:-1],
-    )
-
-    response = await asyncio.to_thread(
-        llm.generate,
-        prompt=prompt,
-        system_prompt=SYSTEM_PROMPT,
-        temperature=request.temperature,
-        max_tokens=request.max_tokens,
-    )
-
-    return {"content": response, "sources": search_results}
 
 
 async def _chat_without_rag(
