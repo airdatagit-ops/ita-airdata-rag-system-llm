@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models
+.PHONY: test lint lint-fix eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models
 
 PYTHON ?= python
 K ?= 5
@@ -68,6 +68,8 @@ help:
 	@echo "  make migrate                                      Run database migrations"
 	@echo "  make test                                         Run all unit tests"
 	@echo "  make test FILE=tests/evaluation                   Run tests in a specific dir or file"
+	@echo "  make lint                                         Run linter (ruff) — unused imports, etc."
+	@echo "  make lint-fix                                     Auto-fix lint errors"
 	@echo "  make clean                                        Remove evaluation result files"
 	@echo ""
 	@echo "  ── deploy ────────────────────────────────────────────────────────────"
@@ -78,6 +80,12 @@ help:
 
 test:
 	$(PYTHON) -m pytest $(or $(FILE),tests/) -v --tb=short
+
+lint:
+	$(PYTHON) -m ruff check .
+
+lint-fix:
+	$(PYTHON) -m ruff check --fix .
 
 eval: eval-retrieval eval-generation
 

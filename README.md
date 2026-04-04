@@ -421,7 +421,7 @@ make download-models
 
 # Ou manualmente:
 ollama pull llama3.2:3b    # Generator (modelo principal)
-ollama pull llama3.2:1b    # Rewriter (modelo menor, mais rápido)
+ollama pull llama3.2:3b    # Rewriter (reescrita de queries)
 ```
 
 ### 6.2. Modelos suportados
@@ -430,7 +430,7 @@ Qualquer modelo disponível no Ollama funciona. O modelo padrão é configurado 
 
 | Modelo | Tamanho | Uso no pipeline | Observação |
 |--------|---------|-----------------|------------|
-| `llama3.2:1b` | ~1.3GB | Rewriter (padrão) | Ultra-leve, ideal para reescrita de queries |
+| `llama3.2:3b` | ~2GB | Rewriter (padrão) | Bom equilíbrio qualidade/velocidade para reescrita |
 | `llama3.2:3b` | ~2GB | Generator (padrão) | Bom equilíbrio qualidade/velocidade |
 | `llama3.1:8b` | ~4.7GB | Generator (alternativa) | Melhor qualidade, mais lento |
 | `phi3:3.8b` | ~2.3GB | Alternativa | Modelo leve da Microsoft |
@@ -474,7 +474,7 @@ O script `scripts/download_models.py` baixa:
 |--------|------|-----------|
 | `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Sentence-Transformer | Embedding (busca vetorial) |
 | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Cross-Encoder | Evaluator (re-ranking) |
-| `llama3.2:1b` | Ollama LLM | Rewriter (reescrita de queries) |
+| `llama3.2:3b` | Ollama LLM | Rewriter (reescrita de queries) |
 | `llama3.2:3b` | Ollama LLM | Generator (geração de respostas) |
 
 > **Dica:** Execute `make download-models` após clonar o repositório ou alterar modelos no `.env`. O deploy (`make deploy`) já faz o download automático dos modelos HuggingFace.
@@ -844,7 +844,7 @@ O pipeline RAG é organizado em módulos independentes sob `search/`:
 ```
 search/
   shared/              # Schemas, exceptions e utilitários
-    schemas.py         # SearchFilter, RewrittenQuery, EvaluatedDocument, PipelineTrace
+    schemas.py         # Pydantic models + FilterRegistry (valores dinâmicos do DB)
     exceptions.py      # Exceções por módulo (RewriterError, EvaluatorError, etc.)
     timeouts.py        # Wrapper de timeout para chamadas LLM
   rewriter/            # Reescrita de queries
@@ -869,10 +869,10 @@ search/
 | Variável | Default | Descrição |
 |----------|---------|-----------|
 | `REWRITER_ENABLED` | `true` | Habilita o módulo Rewriter (desabilitar para pipeline mais leve) |
-| `REWRITER_MODEL` | `llama3.2:1b` | Modelo LLM para reescrita de queries (menor = mais rápido) |
+| `REWRITER_MODEL` | `llama3.2:3b` | Modelo LLM para reescrita de queries |
 | `REWRITER_MAX_QUERIES` | `3` | Máximo de sub-queries geradas |
 | `REWRITER_MAX_QUERY_LENGTH` | `500` | Tamanho máximo por query reescrita (chars) |
-| `REWRITER_TEMPERATURE` | `0.3` | Temperatura do LLM no rewriter |
+| `REWRITER_TEMPERATURE` | `0.1` | Temperatura do LLM no rewriter |
 | `REWRITER_TIMEOUT` | `60` | Timeout (s) para o LLM do rewriter |
 | `EVALUATOR_ENABLED` | `true` | Habilita o módulo Evaluator (desabilitar para pipeline mais leve) |
 | `CROSS_ENCODER_MODEL` | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Modelo cross-encoder para avaliação |
@@ -884,6 +884,15 @@ search/
 | `GENERATOR_GROUNDED_ONLY` | `true` | Respostas apenas com base nos documentos |
 | `GENERATOR_TIMEOUT` | `120` | Timeout (s) para o LLM do generator |
 | `PIPELINE_DEBUG` | `false` | Ativar debug trace globalmente |
+
+### Registro dinâmico de filtros (`FilterRegistry`)
+
+Os valores aceitos para filtros (`metadata.type`, `metadata.authority`) são carregados **automaticamente do banco SQLite** na inicialização, ordenados por frequência. Apenas os **top N** mais frequentes são:
+
+1. Injetados no prompt do Rewriter (para o LLM saber quais valores usar)
+2. Usados na validação (valores fora da lista são descartados silenciosamente)
+
+Isso garante que ao coletar novos tipos de documentos ou autoridades, eles aparecem automaticamente no pipeline RAG sem edição manual de código. Se o banco não estiver disponível (ex: testes unitários), um fallback estático é usado.
 
 ### Modo Debug
 
@@ -1297,7 +1306,7 @@ tests/
 
 Todos os testes usam **mocks** para isolar dependências externas (Qdrant, Ollama, modelo de embeddings), garantindo execução rápida e sem necessidade de serviços rodando.
 
-### 13.2. Executar testes
+### 13.2. Executar testes e lint
 
 ```bash
 # Todos os testes
@@ -1311,7 +1320,18 @@ make test FILE=tests/evaluation/test_evaluate_retrieval.py
 
 # Direto via pytest
 python -m pytest tests/ -v --tb=short
+
+# Lint (ruff) — verifica imports não usados, variáveis mortas, etc.
+make lint
+
+# Auto-corrigir erros de lint
+make lint-fix
 ```
+
+O linter **ruff** é configurado via `pyproject.toml` e verifica:
+- `F401` — imports não utilizados
+- `F841` — variáveis atribuídas mas não usadas
+- `E711`/`E712` — comparações com `None`/`True`/`False`
 
 ### 13.3. Comandos do Makefile
 
@@ -1348,6 +1368,8 @@ python -m pytest tests/ -v --tb=short
 | `make migrate` | Executa migrações do banco SQLite |
 | `make test` | Executa todos os testes unitários |
 | `make test FILE=<path>` | Executa testes de um arquivo ou diretório |
+| `make lint` | Linter (ruff) — imports não usados, variáveis mortas |
+| `make lint-fix` | Auto-corrige erros de lint |
 | `make eval` | Executa ambas as avaliações (retrieval + geração) |
 | `make eval-retrieval` | Avaliação de retrieval |
 | `make eval-generation` | Avaliação de geração |

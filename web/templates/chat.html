@@ -283,28 +283,27 @@
           for (const event of events) {
             for (const line of event.split('\n')) {
               if (!line.startsWith('data: ')) continue;
+              let data;
               try {
-                const data = JSON.parse(line.slice(6));
-                
-                if (data.type === 'token') {
-                  fullContent += data.content;
-                  textContainer.innerHTML = this.formatMessage(fullContent);
-                  this.scrollToBottom();
-                } else if (data.type === 'sources') {
-                  sources = data.sources;
-                } else if (data.type === 'debug_trace') {
-                  debugTrace = data.trace;
-                } else if (data.type === 'done') {
-                  finalData = data;
-                  this.sessionId = data.session_id;
-                  this.messageCount = data.message_count;
-                } else if (data.type === 'error') {
-                  throw new Error(data.error);
-                }
-              } catch (e) {
-                if (e.message && !e.message.includes('JSON')) {
-                  throw e;
-                }
+                data = JSON.parse(line.slice(6));
+              } catch (parseErr) {
+                console.warn('SSE JSON parse error (skipped):', parseErr.message);
+                continue;
+              }
+              if (data.type === 'token') {
+                fullContent += data.content;
+                textContainer.innerHTML = this.formatMessage(fullContent);
+                this.scrollToBottom();
+              } else if (data.type === 'sources') {
+                sources = data.sources;
+              } else if (data.type === 'debug_trace') {
+                debugTrace = data.trace;
+              } else if (data.type === 'done') {
+                finalData = data;
+                this.sessionId = data.session_id;
+                this.messageCount = data.message_count;
+              } else if (data.type === 'error') {
+                throw new Error(data.error);
               }
             }
           }
@@ -384,6 +383,11 @@
         });
       }
       
+      // Link inline citations to sources
+      if (sources && sources.length > 0) {
+        this.linkCitations(contentDiv, sources);
+      }
+
       // Add sources if present
       if (sources && sources.length > 0) {
         let sourcesHTML = `
@@ -391,19 +395,22 @@
             <div class="sources-header">📚 Fontes consultadas (clique para ver detalhes):</div>
             <ul class="sources-list">
         `;
-        sources.slice(0, 3).forEach((source, idx) => {
+        sources.slice(0, 5).forEach((source, idx) => {
           const sourceId = `source_${messageId}_${idx}`;
-          // Store source data globally
+          const sourceUrl = (source.metadata && source.metadata.url) || '';
           this.sourcesData[sourceId] = {
             regulation_id: source.regulation_id || 'Desconhecido',
             text: source.text || 'Texto não disponível',
-            score: source.score || 0
+            score: source.score || 0,
+            url: sourceUrl,
+            metadata: source.metadata || {},
           };
           const previewText = (source.text || '').substring(0, 80).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const linkIcon = sourceUrl ? `<a href="${sourceUrl}" target="_blank" rel="noopener" class="source-link" title="Ver documento original" onclick="event.stopPropagation()">🔗</a>` : '';
           sourcesHTML += `
             <li class="source-item clickable" data-source-id="${sourceId}">
               <div class="source-info">
-                <strong>${source.regulation_id}</strong>
+                <strong>${source.regulation_id}</strong> ${linkIcon}
                 <span class="source-preview">${previewText}...</span>
               </div>
               <span class="score">(score: ${source.score?.toFixed(2) || 'N/A'}) 👁️</span>
@@ -460,19 +467,22 @@
             <div class="sources-header">📚 Fontes consultadas (clique para ver detalhes):</div>
             <ul class="sources-list">
         `;
-        sources.slice(0, 3).forEach((source, idx) => {
+        sources.slice(0, 5).forEach((source, idx) => {
           const sourceId = `source_${msgId}_${idx}`;
-          // Store source data globally
+          const sourceUrl = (source.metadata && source.metadata.url) || '';
           this.sourcesData[sourceId] = {
             regulation_id: source.regulation_id || 'Desconhecido',
             text: source.text || 'Texto não disponível',
-            score: source.score || 0
+            score: source.score || 0,
+            url: sourceUrl,
+            metadata: source.metadata || {},
           };
           const previewText = (source.text || '').substring(0, 80).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const linkIcon = sourceUrl ? `<a href="${sourceUrl}" target="_blank" rel="noopener" class="source-link" title="Ver documento original" onclick="event.stopPropagation()">🔗</a>` : '';
           messageHTML += `
             <li class="source-item clickable" data-source-id="${sourceId}">
               <div class="source-info">
-                <strong>${source.regulation_id}</strong>
+                <strong>${source.regulation_id}</strong> ${linkIcon}
                 <span class="source-preview">${previewText}...</span>
               </div>
               <span class="score">(score: ${source.score?.toFixed(2) || 'N/A'}) 👁️</span>
@@ -626,13 +636,34 @@
     },
     
     formatMessage(content) {
-      // Convert newlines to <br>
-      let formatted = content.replace(/\n/g, '<br>');
-      
-      // Simple markdown-like formatting
+      let formatted = this.escapeHtml(content);
+
+      // Markdown: bold, italic, inline code
       formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
       formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
-      
+      formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      // Markdown lists (- item or 1. item)
+      formatted = formatted.replace(/^(\d+)\.\s+(.+)$/gm, '<li class="md-ol">$2</li>');
+      formatted = formatted.replace(/^[-•]\s+(.+)$/gm, '<li class="md-ul">$1</li>');
+
+      // Wrap consecutive <li> in <ul>/<ol>
+      formatted = formatted.replace(/((?:<li class="md-ul">.*?<\/li>\s*)+)/g, '<ul>$1</ul>');
+      formatted = formatted.replace(/((?:<li class="md-ol">.*?<\/li>\s*)+)/g, '<ol>$1</ol>');
+
+      // Inline citations: [TIPO NÚMERO] -> badge with data-ref for linking
+      formatted = formatted.replace(
+        /\[([A-Z]{2,6})\s+([\d\-\.\/]+(?:\s*[\w\-\.\/]+)?)\]/g,
+        '<span class="citation-badge" data-ref="$1 $2" title="$1 $2">$1 $2</span>'
+      );
+
+      // Newlines to <br> (skip inside lists)
+      formatted = formatted.replace(/\n/g, '<br>');
+
+      // Clean up <br> before/after block elements
+      formatted = formatted.replace(/<br>\s*(<[uo]l>)/g, '$1');
+      formatted = formatted.replace(/(<\/[uo]l>)\s*<br>/g, '$1');
+
       return formatted;
     },
     
@@ -663,6 +694,33 @@
         });
       });
     },
+
+    linkCitations(container, sources) {
+      const badges = container.querySelectorAll('.citation-badge[data-ref]');
+      if (!badges.length || !sources.length) return;
+
+      badges.forEach(badge => {
+        const ref = badge.dataset.ref.toLowerCase();
+        const match = sources.find(s => {
+          const regId = (s.regulation_id || '').toLowerCase();
+          return regId.includes(ref) || ref.includes(regId.replace(/-/g, ' '));
+        });
+
+        if (match) {
+          const url = (match.metadata && match.metadata.url) || '';
+          if (url) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.className = 'citation-link';
+            link.title = `Ver ${match.regulation_id}`;
+            link.innerHTML = badge.outerHTML;
+            badge.replaceWith(link);
+          }
+        }
+      });
+    },
     
     openSourceModal(sourceId) {
       const sourceData = this.sourcesData[sourceId];
@@ -679,7 +737,15 @@
       this.currentSourceText = sourceData.text;
       
       titleEl.textContent = `📄 ${sourceData.regulation_id}`;
-      metaEl.innerHTML = `<span class="meta-score">Score de similaridade: <strong>${sourceData.score?.toFixed(4) || 'N/A'}</strong></span>`;
+      
+      let metaHTML = `<span class="meta-score">Score: <strong>${sourceData.score?.toFixed(4) || 'N/A'}</strong></span>`;
+      const meta = sourceData.metadata || {};
+      if (meta.type) metaHTML += ` | Tipo: <strong>${meta.type}</strong>`;
+      if (meta.authority) metaHTML += ` | Órgão: <strong>${meta.authority}</strong>`;
+      if (sourceData.url) {
+        metaHTML += ` | <a href="${sourceData.url}" target="_blank" rel="noopener" class="source-doc-link">🔗 Ver documento original</a>`;
+      }
+      metaEl.innerHTML = metaHTML;
       textEl.textContent = sourceData.text;
       
       modal.classList.add('active');

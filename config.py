@@ -12,10 +12,8 @@ Usage:
     model_name = config.EMBEDDING_MODEL
 """
 
-import os
 from pathlib import Path
 from typing import List, Optional
-from pydantic import Field
 from pydantic_settings import BaseSettings
 
 from dotenv import load_dotenv
@@ -193,7 +191,7 @@ class Settings(BaseSettings):
     # RAG Pipeline — Rewriter
     # ========================================
     REWRITER_ENABLED: bool = getenv('REWRITER_ENABLED', 'true').lower() in ('true', '1', 'yes')
-    REWRITER_MODEL: str = getenv('REWRITER_MODEL', 'llama3.2:1b')
+    REWRITER_MODEL: str = getenv('REWRITER_MODEL', 'llama3.2:3b')
     REWRITER_MAX_QUERIES: int = int(getenv('REWRITER_MAX_QUERIES', '3'))
     REWRITER_MAX_QUERY_LENGTH: int = int(getenv('REWRITER_MAX_QUERY_LENGTH', '500'))
     REWRITER_TEMPERATURE: float = float(getenv('REWRITER_TEMPERATURE', '0.1'))

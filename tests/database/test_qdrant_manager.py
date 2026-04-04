@@ -1,6 +1,6 @@
 """Tests for QdrantManager upload and indexing control."""
 
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -180,7 +180,7 @@ class TestSearchVectorFallback:
         mock_result.points = []
         mgr.client.query_points.return_value = mock_result
 
-        results = mgr.search(dense_vector=[0.1], sparse_vector=MagicMock())
+        mgr.search(dense_vector=[0.1], sparse_vector=MagicMock())
 
         call_kwargs = mgr.client.query_points.call_args
         assert call_kwargs[1].get("using") == "sparse"
@@ -191,7 +191,7 @@ class TestSearchVectorFallback:
         mock_result.points = []
         mgr.client.query_points.return_value = mock_result
 
-        results = mgr.search(dense_vector=[0.1], sparse_vector=MagicMock())
+        mgr.search(dense_vector=[0.1], sparse_vector=MagicMock())
 
         call_kwargs = mgr.client.query_points.call_args
         assert call_kwargs[1].get("using") == "dense"

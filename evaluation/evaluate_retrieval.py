@@ -237,7 +237,6 @@ class RetrievalEvaluator:
         relevant_expected, moderate_expected = self._get_expected_docs(query_id)
         relevant_set = set(relevant_expected)
         moderate_set = set(moderate_expected)
-        all_expected_set = relevant_set | moderate_set
 
         search_kwargs = {"limit": k}
         if self._hybrid_mode or self._sparse_mode:

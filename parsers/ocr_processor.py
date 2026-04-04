@@ -15,7 +15,7 @@ import io
 import json
 from pathlib import Path
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Optional, Dict
 
 import numpy as np
 from PIL import Image

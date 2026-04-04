@@ -1,6 +1,5 @@
 """Tests for the centralized prompts module."""
 
-import pytest
 
 from search.prompts import (
     SYSTEM_PROMPT,

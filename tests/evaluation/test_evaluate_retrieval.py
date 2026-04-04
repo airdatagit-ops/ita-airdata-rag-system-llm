@@ -1,8 +1,6 @@
 """Unit tests for retrieval evaluation."""
 
-import csv
 import json
-import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 

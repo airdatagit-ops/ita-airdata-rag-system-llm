@@ -374,19 +374,30 @@ async def chat_stream(
                             "regulation_id": s.get("regulation_id"),
                             "score": s.get("score"),
                             "text": s.get("text", "")[:2000],
+                            "metadata": s.get("metadata", {}),
                         }
                         for s in result["sources"]
                     ] if result["sources"] else []
                     yield f"data: {json.dumps({'type': 'sources', 'sources': sources_data})}\n\n"
 
                     if chat_request.debug and "trace" in result:
-                        yield f"data: {json.dumps({'type': 'debug_trace', 'trace': result['trace']})}\n\n"
+                        try:
+                            trace_payload = json.dumps(
+                                {"type": "debug_trace", "trace": result["trace"]},
+                                default=str,
+                            )
+                            yield f"data: {trace_payload}\n\n"
+                        except Exception as trace_exc:
+                            logger.error(f"Failed to serialize debug trace: {trace_exc}")
 
                     answer_stream = result.get("answer_stream")
                     if answer_stream:
                         for chunk in answer_stream:
                             full_response.append(chunk)
                             yield f"data: {json.dumps({'type': 'token', 'content': chunk})}\n\n"
+                    elif "answer" in result:
+                        full_response.append(result["answer"])
+                        yield f"data: {json.dumps({'type': 'token', 'content': result['answer']})}\n\n"
                     else:
                         for chunk in _stream_without_rag(chat_request, context_messages):
                             full_response.append(chunk)

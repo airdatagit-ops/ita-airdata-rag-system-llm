@@ -5,12 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from search.generator.generator import ResponseGenerator
-from search.generator.prompts import (
-    GENERATOR_GROUNDED_SYSTEM_PROMPT,
-    GENERATOR_UNGROUNDED_SYSTEM_PROMPT,
-    build_generator_context,
-    build_references_section,
-)
+from search.generator.prompts import build_generator_context
 from search.shared.schemas import EvaluatedDocument
 
 
@@ -59,20 +54,10 @@ class TestGenerateBasic:
         assert isinstance(result, str)
         assert len(result) > 0
 
-    def test_appends_references_when_grounded(self, generator, mock_llm):
+    def test_does_not_append_references(self, generator, mock_llm):
+        """References are rendered by the frontend, not appended by the generator."""
         mock_llm.generate.return_value = "Resposta."
         result = generator.generate(SAMPLE_EVALUATED, "pergunta")
-
-        assert "Fontes:" in result
-        assert "ICA-100-12" in result
-        assert "DCA-200-5" in result
-
-    def test_no_references_when_ungrounded(self, mock_llm):
-        with patch("search.generator.generator.LlamaModel", return_value=mock_llm):
-            gen = ResponseGenerator(llm=mock_llm, grounded_only=False, timeout=10)
-
-        mock_llm.generate.return_value = "Resposta com conhecimento."
-        result = gen.generate(SAMPLE_EVALUATED, "pergunta", grounded_only=False)
 
         assert "Fontes:" not in result
 
@@ -84,8 +69,8 @@ class TestGroundedOnlyOverride:
         result_grounded = generator.generate(SAMPLE_EVALUATED, "q", grounded_only=True)
         result_ungrounded = generator.generate(SAMPLE_EVALUATED, "q", grounded_only=False)
 
-        assert "Fontes:" in result_grounded
-        assert "Fontes:" not in result_ungrounded
+        assert isinstance(result_grounded, str)
+        assert isinstance(result_ungrounded, str)
 
 
 class TestStreamingGeneration:
@@ -114,33 +99,18 @@ class TestPromptBuilders:
         assert "DECEA" in context
         assert "Relevância: 85" in context
 
-    def test_build_references_deduplicates(self):
-        docs = [
-            {"regulation_id": "ICA-1", "metadata": {"authority": "ANAC"}},
-            {"regulation_id": "ICA-1", "metadata": {"authority": "ANAC"}},
-            {"regulation_id": "ICA-2", "metadata": {}},
-        ]
-        refs = build_references_section(docs)
-
-        assert refs.count("ICA-1") == 1
-        assert "ICA-2" in refs
-
-    def test_build_references_empty_docs(self):
-        assert build_references_section([]) == ""
-
-
 class TestSystemPromptSelection:
     def test_grounded_no_history(self, generator):
         prompt = generator._select_system_prompt(grounded=True, has_history=False)
-        assert "EXCLUSIVAMENTE" in prompt
+        assert "EXCLUSIVELY" in prompt
 
     def test_ungrounded_no_history(self, generator):
         prompt = generator._select_system_prompt(grounded=False, has_history=False)
-        assert "Priorize" in prompt
+        assert "Prioritize" in prompt
 
     def test_grounded_with_history(self, generator):
         prompt = generator._select_system_prompt(grounded=True, has_history=True)
-        assert "conversa" in prompt.lower()
+        assert "conversation" in prompt.lower()
 
 
 if __name__ == "__main__":

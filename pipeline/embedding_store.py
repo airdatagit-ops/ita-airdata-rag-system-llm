@@ -14,7 +14,7 @@ Usage:
 
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Dict, Generator, List, Optional, Set
+from typing import Dict, Generator, Optional, Set
 
 import pyarrow as pa
 import pyarrow.parquet as pq

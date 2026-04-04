@@ -5,7 +5,7 @@ Parses PDF documents (ICAs) and extracts text and sections.
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 import re
 
 from loguru import logger

@@ -112,9 +112,9 @@ class TestRewriteValidation:
 class TestRewriteFilterParsing:
     def test_parses_filters_correctly(self, rewriter, mock_llm):
         response = json.dumps([{
-            "text": "regulamentos ANAC",
+            "text": "regulamentos DECEA",
             "filters": [
-                {"field": "metadata.authority", "operator": "eq", "value": "ANAC"},
+                {"field": "metadata.authority", "operator": "eq", "value": "DECEA"},
                 {"field": "effective_date", "operator": "gte", "value": "2023-01-01"},
             ],
             "sorts": [{"field": "effective_date", "order": "desc"}],
@@ -125,6 +125,7 @@ class TestRewriteFilterParsing:
 
         assert len(result[0].filters) == 2
         assert result[0].filters[0].field == "metadata.authority"
+        assert result[0].filters[0].value == "DECEA"
         assert len(result[0].sorts) == 1
         assert result[0].sorts[0].order.value == "desc"
 

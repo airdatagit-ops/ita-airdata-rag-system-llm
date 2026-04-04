@@ -1,149 +1,92 @@
 """Prompt templates for the query rewriter stage.
 
-The schema block injected into the system prompt is generated at import
-time from the Pydantic models so it stays in sync with the code.
+System prompt is in English for better instruction-following by small
+LLMs. Values for types and authorities are loaded dynamically from the
+``FilterRegistry`` so the prompt stays in sync with the actual data.
 """
 
 from __future__ import annotations
 
-import json
-from typing import Any, Dict, List
-
-from search.shared.schemas import (
-    RewrittenQuery,
-    SearchFilter,
-    SearchSort,
-    FilterOperator,
-    SortOrder,
-)
-
-# ------------------------------------------------------------------
-# Valid values for filter fields (kept in sync with rewriter.py)
-# ------------------------------------------------------------------
-
-VALID_FILTER_FIELDS: Dict[str, Dict[str, Any]] = {
-    "metadata.type": {
-        "description": "Tipo de documento normativo",
-        "operator": "eq",
-        "values": sorted([
-            "ICA", "DCA", "MCA", "NSCA", "RCA", "PCA", "FCA",
-            "TCA", "BCA", "BMA", "IMA", "RICA", "ROCA", "decreto",
-        ]),
-    },
-    "metadata.authority": {
-        "description": "Órgão emissor do documento",
-        "operator": "eq",
-        "values": sorted([
-            "DECEA", "EMAER", "GABAER", "CENIPA", "DCTA", "COMGAP",
-            "DIRSA", "CIMAER", "DIRAD", "DIRINFRA", "DEPENS",
-        ]),
-    },
-    "effective_date": {
-        "description": "Data de vigência do documento (formato ISO 8601)",
-        "operator": "gte | lte",
-        "values": "string ISO 8601 (ex: 2024-01-01)",
-    },
-}
-
-VALID_FACET_TYPES = ["general", "temporal", "authority", "document_type"]
-
-
-def _build_schema_block() -> str:
-    """Generate a human-readable schema description from Pydantic models."""
-    filter_schema = json.dumps(
-        SearchFilter.model_json_schema(), indent=2, ensure_ascii=False,
-    )
-    sort_schema = json.dumps(
-        SearchSort.model_json_schema(), indent=2, ensure_ascii=False,
-    )
-    query_schema = json.dumps(
-        RewrittenQuery.model_json_schema(), indent=2, ensure_ascii=False,
-    )
-
-    fields_block = "\n".join(
-        f'  - field: "{field}"\n'
-        f'    Descrição: {info["description"]}\n'
-        f'    Operadores: {info["operator"]}\n'
-        f'    Valores: {info["values"]}'
-        for field, info in VALID_FILTER_FIELDS.items()
-    )
-
-    return (
-        f"=== SCHEMA DO OUTPUT (Pydantic) ===\n"
-        f"Cada elemento do JSON array segue este schema:\n"
-        f"{query_schema}\n\n"
-        f"Schema de SearchFilter:\n{filter_schema}\n\n"
-        f"Schema de SearchSort:\n{sort_schema}\n\n"
-        f"=== CAMPOS DE FILTRO PERMITIDOS ===\n"
-        f"Só use os campos abaixo. Qualquer outro será descartado.\n\n"
-        f"{fields_block}\n\n"
-        f"facet_type: um de {VALID_FACET_TYPES}"
-    )
-
-
-REWRITER_SCHEMA_BLOCK = _build_schema_block()
-
-# ------------------------------------------------------------------
-# Prompts
-# ------------------------------------------------------------------
-
-_SYSTEM_PROMPT_TEMPLATE = """\
-Você é um módulo de reescrita de consultas para um sistema de busca vetorial em \
-regulamentações de aviação civil brasileira (SISLAER/CENDOC).
-
-TAREFA: Transformar a consulta do usuário em 1 a <<MAX_QUERIES>> sub-consultas \
-otimizadas para busca semântica.
-
-REGRAS OBRIGATÓRIAS:
-1. Reescreva para melhorar clareza, corrigir erros e expandir siglas comuns \
-   (ex: RBAC → Regulamento Brasileiro de Aviação Civil).
-2. Se a consulta for complexa, decomponha em sub-consultas (uma por faceta).
-3. Mantenha cada consulta concisa (máximo 500 caracteres).
-4. Responda APENAS com JSON válido conforme o schema abaixo. \
-   Sem markdown, sem texto antes ou depois.
-
-FILTROS — regras estritas:
-- SÓ gere filtros quando o usuário mencionar EXPLICITAMENTE um tipo ou órgão.
-- Na dúvida, NÃO filtre. Deixe "filters": [] e confie na busca semântica.
-- Use APENAS os campos e valores listados no schema abaixo.
-
-PROIBIDO:
-- Inventar campos ou valores que não estejam no schema.
-- Colocar filtros quando o usuário NÃO especificou tipo/órgão/data.
-- Gerar texto fora do JSON.
-
-""" + REWRITER_SCHEMA_BLOCK
+from search.shared.schemas import filter_registry
 
 
 def build_system_prompt(max_queries: int) -> str:
-    """Build system prompt with max_queries substituted."""
-    return _SYSTEM_PROMPT_TEMPLATE.replace("<<MAX_QUERIES>>", str(max_queries))
+    """Build the system prompt with current filter values.
 
-_USER_PROMPT_TEMPLATE = """\
-Consulta: "<<QUERY>>"
+    Written in English for the 3B model; ~450 prompt tokens.
+    """
+    types = ", ".join(filter_registry.prompt_types)
+    authorities = ", ".join(filter_registry.prompt_authorities)
 
-Responda com um JSON array seguindo o schema acima. Exemplos:
+    return f"""\
+You are a query rewriter for a vector search engine over Brazilian civil \
+aviation regulations (SISLAER/CENDOC).
 
-Consulta simples (sem filtros):
-[{"text": "regras para operação de drones no espaço aéreo brasileiro", \
-"filters": [], "sorts": [], "facet_type": "general"}]
+TASK: Receive the user's query and return 1 to {max_queries} optimised \
+sub-queries for semantic search. Reply ONLY with a valid JSON array — \
+no explanations, no markdown, no text before or after. Your entire \
+response must start with "[" and end with "]".
 
-Consulta com tipo explícito:
-[{"text": "requisitos para certificação de pilotos", "filters": [], \
-"sorts": [], "facet_type": "general"}, \
-{"text": "requisitos para certificação de pilotos em ICAs", \
-"filters": [{"field": "metadata.type", "operator": "eq", "value": "ICA"}], \
-"sorts": [], "facet_type": "document_type"}]
+SCHEMA — each array element:
+  "text"       — string, rewritten query (max 500 chars)
+  "filters"    — array of filter objects (or [] if none)
+  "sorts"      — array of sort objects (or [])
+  "facet_type" — one of: general, temporal, authority, document_type
 
-Consulta com órgão explícito:
-[{"text": "normas do DECEA sobre espaço aéreo", \
-"filters": [{"field": "metadata.authority", "operator": "eq", "value": "DECEA"}], \
-"sorts": [], "facet_type": "authority"}]
+Filter object: {{"field": "...", "operator": "eq", "value": "..."}}
+Sort object:   {{"field": "...", "order": "asc"|"desc"}}
 
-Agora reescreva a consulta acima:
-"""
+REWRITING RULES:
+1. Improve clarity, fix typos, expand abbreviations \
+(RBAC → Regulamento Brasileiro de Aviação Civil).
+2. For complex queries, decompose into sub-queries (one per facet).
+3. Keep each query concise (max 500 chars).
+
+FILTER RULES — STRICT:
+- ONLY add filters when the user EXPLICITLY mentions a document type \
+or authority. When in doubt, use "filters": [].
+- Allowed fields and values:
+    "metadata.type"      (operator "eq"): {types}
+    "metadata.authority" (operator "eq"): {authorities}
+    "effective_date"     (operator "gte" or "lte"): ISO 8601 date
+- FORBIDDEN: inventing fields, using values not in the lists above, \
+filtering without explicit user mention.
+
+EXAMPLES:
+
+Input: "regras para drones"
+Output:
+[{{"text":"regras para operação de drones no espaço aéreo brasileiro",\
+"filters":[],"sorts":[],"facet_type":"general"}}]
+
+Input: "ICAs sobre certificação de pilotos"
+Output:
+[{{"text":"certificação e habilitação de pilotos",\
+"filters":[{{"field":"metadata.type","operator":"eq","value":"ICA"}}],\
+"sorts":[],"facet_type":"document_type"}}]
+
+Input: "normas do DECEA sobre espaço aéreo"
+Output:
+[{{"text":"normas sobre controle do espaço aéreo",\
+"filters":[{{"field":"metadata.authority","operator":"eq","value":"DECEA"}}],\
+"sorts":[],"facet_type":"authority"}}]
+
+Input: "o que é RBAC"
+Output:
+[{{"text":"Regulamento Brasileiro de Aviação Civil RBAC",\
+"filters":[],"sorts":[],"facet_type":"general"}}]
+
+Input: "últimas MCA publicadas pelo GABAER"
+Output:
+[{{"text":"MCA publicadas pelo GABAER",\
+"filters":[{{"field":"metadata.type","operator":"eq","value":"MCA"}},\
+{{"field":"metadata.authority","operator":"eq","value":"GABAER"}}],\
+"sorts":[{{"field":"effective_date","order":"desc"}}],\
+"facet_type":"document_type"}}]
+
+Remember: output ONLY the JSON array."""
 
 
 def build_user_prompt(query: str) -> str:
-    """Build user prompt with query substituted."""
-    return _USER_PROMPT_TEMPLATE.replace("<<QUERY>>", query)
+    """Build user prompt with the query only."""
+    return query

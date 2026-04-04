@@ -6,7 +6,7 @@ original query, and optional conversation history.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Generator, List, Optional
+from typing import Dict, Generator, List, Optional
 
 from loguru import logger
 
@@ -22,7 +22,6 @@ from search.generator.prompts import (
     GENERATOR_CHAT_UNGROUNDED_SYSTEM_PROMPT,
     build_generator_context,
     build_generator_prompt,
-    build_references_section,
 )
 
 
@@ -100,12 +99,10 @@ class ResponseGenerator:
         if stream:
             return self._generate_stream(
                 prompt, system_prompt, temperature, effective_max_tokens,
-                documents, effective_grounded,
             )
 
         return self._generate_sync(
             prompt, system_prompt, temperature, effective_max_tokens,
-            documents, effective_grounded,
         )
 
     # ------------------------------------------------------------------
@@ -118,8 +115,6 @@ class ResponseGenerator:
         system_prompt: str,
         temperature: Optional[float],
         max_tokens: int,
-        documents: List[Dict[str, Any]],
-        grounded: bool,
     ) -> str:
         fallback_msg = (
             "Não foi possível gerar a resposta no tempo disponível. "
@@ -144,11 +139,6 @@ class ResponseGenerator:
         if timed_out:
             return fallback_msg
 
-        if grounded and documents:
-            refs = build_references_section(documents)
-            if refs:
-                answer += refs
-
         return answer
 
     def _generate_stream(
@@ -157,8 +147,6 @@ class ResponseGenerator:
         system_prompt: str,
         temperature: Optional[float],
         max_tokens: int,
-        documents: List[Dict[str, Any]],
-        grounded: bool,
     ) -> Generator[str, None, None]:
         """Streaming generation — yields chunks then appends references."""
         try:
@@ -171,11 +159,6 @@ class ResponseGenerator:
             )
             for chunk in stream:
                 yield chunk
-
-            if grounded and documents:
-                refs = build_references_section(documents)
-                if refs:
-                    yield refs
 
         except Exception as exc:
             logger.error(f"Streaming generation error: {exc}")

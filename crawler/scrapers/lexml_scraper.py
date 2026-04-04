@@ -17,7 +17,6 @@ Usage:
 import asyncio
 import hashlib
 import re
-from pathlib import Path
 from typing import Dict, List, Optional
 from urllib.parse import quote, urljoin
 

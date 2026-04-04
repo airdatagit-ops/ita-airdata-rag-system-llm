@@ -893,6 +893,91 @@
   background: var(--bg-tertiary, #1f3460);
 }
 
+/* Source document links */
+.source-link {
+  text-decoration: none;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.source-link:hover {
+  opacity: 1;
+}
+
+.source-doc-link {
+  color: var(--primary-color, #0d6efd);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.source-doc-link:hover {
+  text-decoration: underline;
+}
+
+/* Inline citation badges */
+.citation-badge {
+  display: inline;
+  padding: 0.1em 0.4em;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--primary-color, #0d6efd);
+  background: rgba(13, 110, 253, 0.08);
+  border-radius: 4px;
+  border: 1px solid rgba(13, 110, 253, 0.2);
+  white-space: nowrap;
+}
+
+a.citation-link {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+a.citation-link .citation-badge {
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+a.citation-link:hover .citation-badge {
+  background: rgba(13, 110, 253, 0.18);
+  border-color: rgba(13, 110, 253, 0.5);
+  text-decoration: underline;
+}
+
+[data-theme="dark"] .citation-badge {
+  color: #79c0ff;
+  background: rgba(121, 192, 255, 0.1);
+  border-color: rgba(121, 192, 255, 0.25);
+}
+
+[data-theme="dark"] a.citation-link:hover .citation-badge {
+  background: rgba(121, 192, 255, 0.2);
+  border-color: rgba(121, 192, 255, 0.5);
+}
+
+/* Markdown list styling in messages */
+.message-text ul,
+.message-text ol {
+  margin: 0.4em 0;
+  padding-left: 1.5em;
+}
+
+.message-text li {
+  margin-bottom: 0.2em;
+}
+
+.message-text code {
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+  background: var(--bg-secondary, #f0f0f0);
+  border-radius: 3px;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+}
+
+[data-theme="dark"] .message-text code {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* Additional dark mode text improvements */
 html[data-theme="dark"] .chat-header h2 {
   color: #79c0ff !important;

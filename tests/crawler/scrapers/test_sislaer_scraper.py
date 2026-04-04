@@ -1,6 +1,5 @@
 """Tests for the SISLAER scraper."""
 
-import pytest
 
 from crawler.scrapers.base import compute_canonical_id, split_version_year, ScrapedDocument
 from crawler.scrapers.sislaer_scraper import (

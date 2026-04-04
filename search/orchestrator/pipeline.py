@@ -7,7 +7,7 @@ error handling, timeouts, and an optional debug trace.
 from __future__ import annotations
 
 import time
-from typing import Dict, Generator, List, Optional
+from typing import Dict, List, Optional
 
 from loguru import logger
 
@@ -28,6 +28,7 @@ from search.shared.schemas import (
 )
 from search.rewriter import QueryRewriter
 from search.searcher import DocumentSearcher
+from search.searcher.enrichment import enrich_documents
 from search.evaluator import DocumentEvaluator
 from search.generator import ResponseGenerator
 
@@ -222,6 +223,8 @@ class RAGPipeline:
                 result["trace"] = trace.to_dict()
             return result
 
+        enrich_documents(search_results.documents, fields={"url", "title"})
+
         # --------------------------------------------------------
         # 3. EVALUATE
         # --------------------------------------------------------
@@ -329,6 +332,11 @@ class RAGPipeline:
             )
 
         if stream:
+            if timings:
+                timings.total_ms = int((time.time() - pipeline_start) * 1000)
+            if trace:
+                trace.timings = timings or StageTimings()
+
             result = {
                 "sources": sources,
                 "search_time_ms": int(search_time * 1000),

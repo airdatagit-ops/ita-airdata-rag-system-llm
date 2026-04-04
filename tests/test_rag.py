@@ -4,7 +4,7 @@ Adapted from the original test_rag.py to work with the new modular
 architecture (Rewriter -> Searcher -> Evaluator -> Generator).
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 

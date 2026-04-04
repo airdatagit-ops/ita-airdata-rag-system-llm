@@ -13,7 +13,6 @@ Concrete scrapers inherit from BaseScraper and implement:
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 from abc import ABC, abstractmethod

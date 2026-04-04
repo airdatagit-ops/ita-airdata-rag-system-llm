@@ -15,22 +15,16 @@ from config import config
 from models.llm import LlamaModel
 from search.shared.exceptions import RewriterError
 from search.shared.schemas import (
+    ALLOWED_FILTER_FIELDS,
+    FilterOperator,
     RewrittenQuery,
     SearchFilter,
     SearchSort,
-    FilterOperator,
     SortOrder,
+    filter_registry,
 )
 from search.shared.timeouts import with_timeout
-from search.rewriter.prompts import (
-    build_system_prompt,
-    build_user_prompt,
-    VALID_FILTER_FIELDS,
-)
-
-_VALID_FILTER_FIELDS = set(VALID_FILTER_FIELDS.keys())
-
-_VALID_TYPE_VALUES = set(VALID_FILTER_FIELDS["metadata.type"]["values"])
+from search.rewriter.prompts import build_system_prompt, build_user_prompt
 
 
 class QueryRewriter:
@@ -123,16 +117,63 @@ class QueryRewriter:
     # Internal helpers
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _extract_json(raw: str) -> str:
+        """Extract the first JSON array or object from LLM output.
+
+        Handles trailing text, markdown fences, and other noise the
+        small rewriter model may produce after the JSON payload.
+        """
+        text = raw.strip()
+        if text.startswith("```"):
+            text = text.split("```")[1]
+            if text.startswith("json"):
+                text = text[4:]
+            text = text.strip()
+
+        start = -1
+        bracket = None
+        for i, ch in enumerate(text):
+            if ch in ("[", "{"):
+                start = i
+                bracket = ch
+                break
+
+        if start == -1:
+            return text
+
+        closing = "]" if bracket == "[" else "}"
+        depth = 0
+        in_string = False
+        escape = False
+        for i in range(start, len(text)):
+            ch = text[i]
+            if escape:
+                escape = False
+                continue
+            if ch == "\\":
+                escape = True
+                continue
+            if ch == '"':
+                in_string = not in_string
+                continue
+            if in_string:
+                continue
+            if ch == bracket:
+                depth += 1
+            elif ch == closing:
+                depth -= 1
+                if depth == 0:
+                    return text[start:i + 1]
+
+        return text[start:]
+
     def _parse_response(self, raw: str, max_queries: int) -> List[RewrittenQuery]:
         """Parse the LLM JSON response into ``RewrittenQuery`` objects."""
-        raw = raw.strip()
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
+        cleaned = self._extract_json(raw)
 
         try:
-            data = json.loads(raw)
+            data = json.loads(cleaned)
         except json.JSONDecodeError as exc:
             raise RewriterError(f"Invalid JSON from LLM: {exc}") from exc
 
@@ -164,19 +205,25 @@ class QueryRewriter:
 
     @staticmethod
     def _parse_filters(raw_filters: list) -> List[SearchFilter]:
+        accepted_types = filter_registry.type_values
+        accepted_authorities = filter_registry.authority_values
+
         parsed: List[SearchFilter] = []
         for f in raw_filters:
             if not isinstance(f, dict):
                 continue
             field = str(f.get("field", ""))
-            if field not in _VALID_FILTER_FIELDS:
-                logger.debug(f"Rewriter: discarding hallucinated filter field '{field}'")
+            if field not in ALLOWED_FILTER_FIELDS:
+                logger.debug(f"Rewriter: discarding unknown filter field '{field}'")
                 continue
             value = f.get("value")
             if value is None or value == "":
                 continue
-            if field == "metadata.type" and str(value) not in _VALID_TYPE_VALUES:
+            if field == "metadata.type" and str(value) not in accepted_types:
                 logger.debug(f"Rewriter: discarding invalid type value '{value}'")
+                continue
+            if field == "metadata.authority" and str(value) not in accepted_authorities:
+                logger.debug(f"Rewriter: discarding invalid authority value '{value}'")
                 continue
             try:
                 parsed.append(

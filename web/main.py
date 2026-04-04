@@ -2,7 +2,6 @@
 
 import httpx
 import json
-import os
 from pathlib import Path
 from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.templating import Jinja2Templates

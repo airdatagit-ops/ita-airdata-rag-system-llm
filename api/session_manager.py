@@ -24,7 +24,6 @@ import time
 import threading
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
-from collections import defaultdict
 from loguru import logger
 
 

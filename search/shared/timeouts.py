@@ -8,11 +8,10 @@ timeout is recorded in the pipeline trace.
 from __future__ import annotations
 
 import concurrent.futures
-from typing import Any, Callable, Optional, TypeVar
+from typing import Callable, Optional, TypeVar
 
 from loguru import logger
 
-from search.shared.exceptions import PipelineTimeoutError
 
 T = TypeVar("T")
 

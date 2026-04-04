@@ -1,0 +1,25 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+exclude = [
+    "venv",
+    "data",
+    "evaluation/results",
+    ".git",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
+select = [
+    "F401",   # unused imports
+    "F841",   # unused variables
+    "E711",   # comparison to None
+    "E712",   # comparison to True/False
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # re-exports are expected
+
+[tool.ruff.lint.isort]
+known-first-party = ["api", "config", "crawler", "models", "parsers", "pipeline", "search", "web", "scripts"]

@@ -10,12 +10,15 @@ from search.shared.exceptions import (
     PipelineTimeoutError,
 )
 from search.shared.schemas import (
-    SearchFilter,
-    SearchSort,
-    RewrittenQuery,
+    ALLOWED_FILTER_FIELDS,
     EvaluatedDocument,
-    SearchResults,
     PipelineTrace,
+    RewrittenQuery,
+    SearchFilter,
+    SearchResults,
+    SearchSort,
+    VALID_FACET_TYPES,
+    filter_registry,
 )
 
 __all__ = [
@@ -32,4 +35,7 @@ __all__ = [
     "EvaluatedDocument",
     "SearchResults",
     "PipelineTrace",
+    "ALLOWED_FILTER_FIELDS",
+    "VALID_FACET_TYPES",
+    "filter_registry",
 ]

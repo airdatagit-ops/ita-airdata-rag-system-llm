@@ -1,8 +1,6 @@
 """Tests for the SQLite-backed DocumentStore."""
 
-import json
 import pytest
-from pathlib import Path
 
 from pipeline.document_store import DocumentStore
 

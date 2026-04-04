@@ -15,7 +15,6 @@ Usage:
 
 import asyncio
 import re
-from pathlib import Path
 from typing import Dict, List, Optional
 
 import requests

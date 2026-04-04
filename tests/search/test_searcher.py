@@ -1,6 +1,6 @@
 """Tests for the DocumentSearcher module."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -9,9 +9,7 @@ from search.shared.exceptions import SearchBackendError
 from search.shared.schemas import (
     RewrittenQuery,
     SearchFilter,
-    SearchSort,
     FilterOperator,
-    SortOrder,
 )
 
 

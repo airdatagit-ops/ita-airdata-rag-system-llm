@@ -13,7 +13,6 @@ Usage:
 import time
 from typing import Dict, List, Optional
 
-import ollama
 from ollama import Client
 from loguru import logger
 
