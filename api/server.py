@@ -36,8 +36,12 @@ from api.schemas import (
 from search.rag import RAGPipeline
 from search.vector_search import VectorSearch
 from search.cache import InMemoryCache
-from search.exceptions import SearchBackendError
+from search.shared.exceptions import SearchBackendError
 from search.prompts import SYSTEM_PROMPT
+from search.rewriter import QueryRewriter
+from search.searcher import DocumentSearcher
+from search.evaluator import DocumentEvaluator
+from search.generator import ResponseGenerator
 from database.qdrant_manager import QdrantManager
 from api.session_manager import session_manager
 from models.llm import LlamaModel
@@ -83,7 +87,21 @@ vector_search = VectorSearch(
     dense_model=dense_model, sparse_model=sparse_model, db=db,
     embedding_cache=embedding_cache,
 )
-rag = RAGPipeline(search=vector_search, llm=llm, response_cache=response_cache)
+
+rewriter = QueryRewriter(llm=LlamaModel(
+    model_name=config.REWRITER_MODEL or config.OLLAMA_MODEL,
+))
+searcher = DocumentSearcher(vector_search=vector_search)
+evaluator = DocumentEvaluator()
+generator = ResponseGenerator(llm=llm)
+
+rag = RAGPipeline(
+    rewriter=rewriter,
+    searcher=searcher,
+    evaluator=evaluator,
+    generator=generator,
+    response_cache=response_cache,
+)
 
 
 # ========================================
@@ -131,6 +149,8 @@ async def search_regulations(
             date=search_request.date,
             limit=search_request.limit,
             return_sources=True,
+            debug=search_request.debug,
+            grounded_only=search_request.grounded_only,
         )
         return SearchResponse(**result)
     except SearchBackendError:
@@ -330,6 +350,8 @@ async def chat_stream(
                         stream=True,
                         temperature=chat_request.temperature,
                         max_tokens=chat_request.max_tokens,
+                        debug=chat_request.debug,
+                        grounded_only=chat_request.grounded_only,
                     )
 
                     sources_data = [
@@ -341,6 +363,9 @@ async def chat_stream(
                         for s in result["sources"]
                     ] if result["sources"] else []
                     yield f"data: {json.dumps({'type': 'sources', 'sources': sources_data})}\n\n"
+
+                    if chat_request.debug and "trace" in result:
+                        yield f"data: {json.dumps({'type': 'debug_trace', 'trace': result['trace']})}\n\n"
 
                     answer_stream = result.get("answer_stream")
                     if answer_stream:
@@ -439,10 +464,13 @@ async def chat(
                 date=chat_request.rag_date,
                 temperature=chat_request.temperature,
                 max_tokens=chat_request.max_tokens,
+                debug=chat_request.debug,
+                grounded_only=chat_request.grounded_only,
             )
             assistant_message = {
                 "content": result["answer"],
                 "sources": result.get("sources"),
+                "trace": result.get("trace"),
             }
         else:
             assistant_message = await _chat_without_rag(
@@ -463,6 +491,7 @@ async def chat(
             sources=assistant_message.get("sources"),
             processing_time_ms=processing_time_ms,
             model_used=llm.model_name,
+            trace=assistant_message.get("trace"),
         )
 
     except ValueError as e:

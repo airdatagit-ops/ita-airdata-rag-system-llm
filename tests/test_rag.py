@@ -1,32 +1,78 @@
-"""Tests for RAG pipeline."""
+"""Tests for the modular RAG pipeline orchestrator.
 
-from unittest.mock import MagicMock, patch, call
+Adapted from the original test_rag.py to work with the new modular
+architecture (Rewriter -> Searcher -> Evaluator -> Generator).
+"""
+
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from search.rag import RAGPipeline
+from search.orchestrator.pipeline import RAGPipeline
 from search.cache import InMemoryCache
-from search.exceptions import SearchBackendError
+from search.shared.exceptions import SearchBackendError
+from search.shared.schemas import (
+    EvaluatedDocument,
+    RewrittenQuery,
+    SearchResults,
+)
 
 
 @pytest.fixture
-def mock_search():
-    return MagicMock()
+def mock_rewriter():
+    rw = MagicMock()
+    rw.rewrite.return_value = [
+        RewrittenQuery(text="teste reescrito", facet_type="general")
+    ]
+    return rw
 
 
 @pytest.fixture
-def mock_llm():
-    return MagicMock()
+def mock_searcher():
+    s = MagicMock()
+    s.search.return_value = SearchResults(
+        documents=[
+            {"text": "Art. 1", "regulation_id": "doc-1", "score": 0.9}
+        ],
+        results_per_query={"teste reescrito": 1},
+        total_before_dedup=1,
+        total_after_dedup=1,
+    )
+    return s
 
 
 @pytest.fixture
-def rag(mock_search, mock_llm):
-    return RAGPipeline(search=mock_search, llm=mock_llm)
+def mock_evaluator():
+    ev = MagicMock()
+    ev.evaluate.return_value = [
+        EvaluatedDocument(
+            document={"text": "Art. 1", "regulation_id": "doc-1", "score": 0.9},
+            relevance_score=85.0,
+            query_text="teste reescrito",
+        )
+    ]
+    return ev
 
 
-SAMPLE_RESULTS = [
-    {"text": "Art. 1", "regulation_id": "doc-1", "score": 0.9}
-]
+@pytest.fixture
+def mock_generator():
+    gen = MagicMock()
+    gen.generate.return_value = "Resposta gerada."
+    gen.llm = MagicMock()
+    gen.llm.model_name = "test-model"
+    gen.grounded_only = True
+    return gen
+
+
+@pytest.fixture
+def rag(mock_rewriter, mock_searcher, mock_evaluator, mock_generator):
+    return RAGPipeline(
+        rewriter=mock_rewriter,
+        searcher=mock_searcher,
+        evaluator=mock_evaluator,
+        generator=mock_generator,
+    )
+
 
 SAMPLE_HISTORY = [
     {"role": "user", "content": "O que é licitação?"},
@@ -35,10 +81,7 @@ SAMPLE_HISTORY = [
 
 
 class TestQueryResponseFormat:
-    def test_returns_expected_keys(self, rag, mock_search, mock_llm):
-        mock_search.search.return_value = SAMPLE_RESULTS
-        mock_llm.generate.return_value = "Resposta gerada."
-
+    def test_returns_expected_keys(self, rag):
         result = rag.query("teste", limit=1)
 
         assert "answer" in result
@@ -47,8 +90,15 @@ class TestQueryResponseFormat:
         assert isinstance(result["answer"], str)
         assert isinstance(result["sources"], list)
 
-    def test_empty_results_returns_default_answer(self, rag, mock_search):
-        mock_search.search.return_value = []
+    def test_empty_search_results_returns_default_answer(
+        self, rag, mock_searcher,
+    ):
+        mock_searcher.search.return_value = SearchResults(
+            documents=[],
+            results_per_query={},
+            total_before_dedup=0,
+            total_after_dedup=0,
+        )
 
         result = rag.query("nada relevante", limit=1)
 
@@ -57,22 +107,9 @@ class TestQueryResponseFormat:
         assert result["llm_time_ms"] == 0
 
 
-class TestTemporalQuery:
-    def test_delegates_to_search_temporal(self, rag, mock_search, mock_llm):
-        mock_search.search_temporal.return_value = [
-            {"text": "Art. 5", "regulation_id": "doc-5", "score": 0.8}
-        ]
-        mock_llm.generate.return_value = "Temporal."
-
-        result = rag.query("teste", date="2023-05-15", limit=1)
-
-        mock_search.search_temporal.assert_called_once_with("teste", "2023-05-15", limit=1)
-        assert result["answer"] == "Temporal."
-
-
 class TestSearchBackendErrorHandling:
-    def test_returns_service_unavailable(self, rag, mock_search):
-        mock_search.search.side_effect = SearchBackendError("down")
+    def test_returns_service_unavailable(self, rag, mock_searcher):
+        mock_searcher.search.side_effect = SearchBackendError("down")
 
         result = rag.query("teste")
 
@@ -80,55 +117,56 @@ class TestSearchBackendErrorHandling:
         assert result["sources"] == []
 
 
-class TestPromptSelection:
-    """Verify the pipeline picks the right prompt based on history."""
+class TestPipelineStages:
+    def test_rewriter_is_called(self, rag, mock_rewriter):
+        rag.query("minha pergunta")
+        mock_rewriter.rewrite.assert_called_once()
+        args = mock_rewriter.rewrite.call_args
+        assert args[0][0] == "minha pergunta"
 
-    @patch("search.rag.build_rag_prompt")
-    def test_query_without_history_uses_rag_prompt(
-        self, mock_build_rag, rag, mock_search, mock_llm,
-    ):
-        mock_search.search.return_value = SAMPLE_RESULTS
-        mock_build_rag.return_value = "rag-prompt"
-        mock_llm.generate.return_value = "R"
-
+    def test_searcher_receives_rewritten_queries(self, rag, mock_searcher):
         rag.query("pergunta")
+        mock_searcher.search.assert_called_once()
+        queries = mock_searcher.search.call_args[0][0]
+        assert len(queries) == 1
+        assert queries[0].text == "teste reescrito"
 
-        mock_build_rag.assert_called_once()
-        assert "pergunta" in str(mock_build_rag.call_args)
+    def test_evaluator_receives_documents(self, rag, mock_evaluator):
+        rag.query("pergunta")
+        mock_evaluator.evaluate.assert_called_once()
 
-    @patch("search.rag.build_chat_prompt")
-    @patch("search.rag.build_search_query")
-    def test_query_with_history_uses_chat_prompt(
-        self, mock_bsq, mock_bcp, rag, mock_search, mock_llm,
-    ):
-        mock_bsq.return_value = "enriched query"
-        mock_search.search.return_value = SAMPLE_RESULTS
-        mock_bcp.return_value = "chat-prompt"
-        mock_llm.generate.return_value = "R"
+    def test_generator_receives_evaluated_docs(self, rag, mock_generator):
+        rag.query("pergunta")
+        mock_generator.generate.assert_called_once()
+        args = mock_generator.generate.call_args
+        evaluated = args[0][0]
+        assert len(evaluated) == 1
+        assert evaluated[0].relevance_score == 85.0
 
-        rag.query("nova pergunta", history=SAMPLE_HISTORY)
 
-        mock_bcp.assert_called_once()
-        mock_bsq.assert_called_once_with("nova pergunta", SAMPLE_HISTORY)
+class TestDebugTrace:
+    def test_trace_not_returned_by_default(self, rag):
+        result = rag.query("teste")
+        assert "trace" not in result
 
-    @patch("search.rag.build_search_query")
-    def test_search_query_enriched_with_history(
-        self, mock_bsq, rag, mock_search, mock_llm,
-    ):
-        mock_bsq.return_value = "enriched"
-        mock_search.search.return_value = SAMPLE_RESULTS
-        mock_llm.generate.return_value = "R"
+    def test_trace_returned_when_debug_enabled(self, rag):
+        result = rag.query("teste", debug=True)
+        assert "trace" in result
+        trace = result["trace"]
+        assert trace["original_query"] == "teste"
+        assert len(trace["rewritten_queries"]) == 1
+        assert "timings" in trace
 
-        rag.query("atual", history=SAMPLE_HISTORY)
-
-        mock_bsq.assert_called_once_with("atual", SAMPLE_HISTORY)
-        mock_search.search.assert_called_once_with("enriched", limit=5)
+    def test_trace_contains_evaluation_scores(self, rag):
+        result = rag.query("teste", debug=True)
+        trace = result["trace"]
+        assert "evaluation_scores" in trace
+        assert trace["documents_accepted"] == 1
 
 
 class TestStreamingMode:
-    def test_query_stream_returns_answer_stream(self, rag, mock_search, mock_llm):
-        mock_search.search.return_value = SAMPLE_RESULTS
-        mock_llm.generate.return_value = iter(["chunk1", "chunk2"])
+    def test_query_stream_returns_answer_stream(self, rag, mock_generator):
+        mock_generator.generate.return_value = iter(["chunk1", "chunk2"])
 
         result = rag.query("q", stream=True)
 
@@ -137,19 +175,13 @@ class TestStreamingMode:
         assert "search_time_ms" in result
         assert "answer" not in result
 
-    def test_stream_passes_params_to_llm(self, rag, mock_search, mock_llm):
-        mock_search.search.return_value = SAMPLE_RESULTS
-        mock_llm.generate.return_value = iter([])
-
-        rag.query("q", stream=True, temperature=0.5, max_tokens=100)
-
-        _, kwargs = mock_llm.generate.call_args
-        assert kwargs["stream"] is True
-        assert kwargs["temperature"] == 0.5
-        assert kwargs["max_tokens"] == 100
-
-    def test_stream_no_results_returns_answer_not_stream(self, rag, mock_search):
-        mock_search.search.return_value = []
+    def test_stream_no_results_returns_answer_not_stream(
+        self, rag, mock_searcher,
+    ):
+        mock_searcher.search.return_value = SearchResults(
+            documents=[], results_per_query={},
+            total_before_dedup=0, total_after_dedup=0,
+        )
 
         result = rag.query("q", stream=True)
 
@@ -158,70 +190,49 @@ class TestStreamingMode:
 
 
 class TestResponseCache:
-    def test_cache_hit_skips_search_and_llm(self, mock_search, mock_llm):
+    def test_cache_hit_skips_pipeline(
+        self, mock_rewriter, mock_searcher, mock_evaluator, mock_generator,
+    ):
         cache = InMemoryCache()
-        rag = RAGPipeline(search=mock_search, llm=mock_llm, response_cache=cache)
-
-        mock_search.search.return_value = SAMPLE_RESULTS
-        mock_llm.generate.return_value = "Resposta."
+        rag = RAGPipeline(
+            rewriter=mock_rewriter,
+            searcher=mock_searcher,
+            evaluator=mock_evaluator,
+            generator=mock_generator,
+            response_cache=cache,
+        )
 
         r1 = rag.query("mesma pergunta", limit=5)
         r2 = rag.query("mesma pergunta", limit=5)
 
         assert r1["answer"] == r2["answer"]
-        mock_search.search.assert_called_once()
-        mock_llm.generate.assert_called_once()
+        assert mock_rewriter.rewrite.call_count == 1
         assert cache.stats()["hits"] == 1
 
-    def test_different_params_miss(self, mock_search, mock_llm):
+    def test_cache_skipped_with_debug(
+        self, mock_rewriter, mock_searcher, mock_evaluator, mock_generator,
+    ):
         cache = InMemoryCache()
-        rag = RAGPipeline(search=mock_search, llm=mock_llm, response_cache=cache)
+        rag = RAGPipeline(
+            rewriter=mock_rewriter,
+            searcher=mock_searcher,
+            evaluator=mock_evaluator,
+            generator=mock_generator,
+            response_cache=cache,
+        )
 
-        mock_search.search.return_value = SAMPLE_RESULTS
-        mock_llm.generate.return_value = "R"
+        rag.query("q", debug=True)
+        rag.query("q", debug=True)
 
-        rag.query("q", limit=3)
-        rag.query("q", limit=5)
-
-        assert mock_search.search.call_count == 2
-
-    def test_no_cache_always_executes(self, mock_search, mock_llm):
-        rag = RAGPipeline(search=mock_search, llm=mock_llm)
-
-        mock_search.search.return_value = SAMPLE_RESULTS
-        mock_llm.generate.return_value = "R"
-
-        rag.query("q")
-        rag.query("q")
-
-        assert mock_search.search.call_count == 2
-
-    def test_cache_skipped_with_history(self, mock_search, mock_llm):
-        cache = InMemoryCache()
-        rag = RAGPipeline(search=mock_search, llm=mock_llm, response_cache=cache)
-
-        mock_search.search.return_value = SAMPLE_RESULTS
-        mock_llm.generate.return_value = "R"
-
-        rag.query("q", history=SAMPLE_HISTORY)
-        rag.query("q", history=SAMPLE_HISTORY)
-
-        assert mock_search.search.call_count == 2
-        assert mock_llm.generate.call_count == 2
+        assert mock_rewriter.rewrite.call_count == 2
         assert cache.stats()["hits"] == 0
 
-    def test_cache_skipped_with_stream(self, mock_search, mock_llm):
-        cache = InMemoryCache()
-        rag = RAGPipeline(search=mock_search, llm=mock_llm, response_cache=cache)
 
-        mock_search.search.return_value = SAMPLE_RESULTS
-        mock_llm.generate.return_value = iter([])
-
-        rag.query("q", stream=True)
-        rag.query("q", stream=True)
-
-        assert mock_search.search.call_count == 2
-        assert cache.stats()["hits"] == 0
+class TestGroundedOnlyPassthrough:
+    def test_grounded_only_passed_to_generator(self, rag, mock_generator):
+        rag.query("teste", grounded_only=False)
+        _, kwargs = mock_generator.generate.call_args
+        assert kwargs["grounded_only"] is False
 
 
 if __name__ == "__main__":

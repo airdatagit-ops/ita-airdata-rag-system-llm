@@ -947,6 +947,246 @@ html[data-theme="dark"] .empty-state p {
   color: var(--text-secondary) !important;
 }
 
+/* ============================================
+   Debug Trace Panel
+   ============================================ */
+
+.debug-trace-panel {
+  margin-top: 0.75rem;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.8rem;
+  background: var(--bg-secondary, #f8f9fa);
+}
+
+.debug-trace-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.625rem 1rem;
+  background: var(--bg-tertiary, #e9ecef);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #6c757d);
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.debug-trace-header:hover {
+  background: var(--bg-hover, #dee2e6);
+}
+
+.debug-toggle-icon {
+  font-size: 0.7rem;
+  transition: transform 0.2s;
+}
+
+.debug-trace-panel.expanded .debug-toggle-icon {
+  transform: rotate(90deg);
+}
+
+.debug-trace-body {
+  display: none;
+  padding: 0.75rem 1rem;
+}
+
+.debug-trace-panel.expanded .debug-trace-body {
+  display: block;
+}
+
+.debug-section {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px dashed var(--border-color, #e0e0e0);
+}
+
+.debug-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.debug-section-title {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-primary, #333);
+  margin-bottom: 0.375rem;
+}
+
+.debug-original {
+  font-style: italic;
+  color: var(--text-muted, #868e96);
+  margin-bottom: 0.375rem;
+  font-size: 0.75rem;
+}
+
+.debug-query-item {
+  padding: 0.375rem 0.5rem;
+  background: var(--bg-primary, #fff);
+  border-radius: 4px;
+  margin-bottom: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  align-items: center;
+}
+
+.debug-query-text {
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+}
+
+.debug-badge {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.375rem;
+  background: var(--primary-color, #0d6efd);
+  color: #fff;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.debug-filters {
+  font-size: 0.7rem;
+  color: var(--text-muted, #868e96);
+  font-style: italic;
+}
+
+.debug-stats {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6c757d);
+  font-family: 'Courier New', monospace;
+}
+
+/* Timing bar */
+.debug-timing-bar {
+  display: flex;
+  height: 22px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.375rem;
+}
+
+.debug-timing-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 600;
+  min-width: 2%;
+  transition: width 0.3s;
+}
+
+.debug-timing-segment.rewriter { background: #6366f1; }
+.debug-timing-segment.searcher { background: #22c55e; }
+.debug-timing-segment.evaluator { background: #f59e0b; }
+.debug-timing-segment.generator { background: #ef4444; }
+
+.debug-timing-legend {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.65rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.legend-item::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.legend-item.rewriter::before { background: #6366f1; }
+.legend-item.searcher::before { background: #22c55e; }
+.legend-item.evaluator::before { background: #f59e0b; }
+.legend-item.generator::before { background: #ef4444; }
+
+/* Evaluation table */
+.debug-eval-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+}
+
+.debug-eval-table th {
+  text-align: left;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-tertiary, #e9ecef);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color, #ddd);
+}
+
+.debug-eval-table td {
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--border-color, #eee);
+  font-family: 'Courier New', monospace;
+}
+
+.debug-score-accepted td {
+  color: var(--success-color, #28a745);
+}
+
+.debug-score-rejected td {
+  color: var(--text-muted, #999);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.debug-errors {
+  background: #fff3cd;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.debug-error-item {
+  font-size: 0.75rem;
+  color: #856404;
+  margin-bottom: 0.25rem;
+}
+
+/* Dark mode debug */
+[data-theme="dark"] .debug-trace-panel {
+  background: var(--bg-secondary, #16213e);
+  border-color: var(--border-color, #333);
+}
+
+[data-theme="dark"] .debug-trace-header {
+  background: var(--bg-tertiary, #1f3460);
+  color: var(--text-secondary, #aaa);
+}
+
+[data-theme="dark"] .debug-query-item {
+  background: var(--bg-primary, #1a1a2e);
+}
+
+[data-theme="dark"] .debug-eval-table th {
+  background: var(--bg-tertiary, #1f3460);
+}
+
+[data-theme="dark"] .debug-errors {
+  background: #332d1a;
+}
+
+[data-theme="dark"] .debug-error-item {
+  color: #ffc107;
+}
+
+[data-theme="dark"] .debug-section-title {
+  color: var(--text-primary, #eee) !important;
+}
+
+[data-theme="dark"] .debug-stats {
+  color: var(--text-secondary, #aaa) !important;
+}
+
 /* Dark mode specific overrides for system messages (model change) */
 html[data-theme="dark"] .message.system .message-content {
   background: var(--bg-warning, #fff3cd);

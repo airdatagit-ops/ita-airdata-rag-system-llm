@@ -1,9 +1,24 @@
-"""Custom exceptions for the search module."""
+"""Backward-compatible re-export of search exceptions.
 
+The canonical definitions now live in ``search.shared.exceptions``.
+"""
 
-class SearchError(Exception):
-    """Base exception for search operations."""
+from search.shared.exceptions import (  # noqa: F401
+    SearchError,
+    SearchBackendError,
+    RewriterError,
+    SearcherError,
+    EvaluatorError,
+    GeneratorError,
+    PipelineTimeoutError,
+)
 
-
-class SearchBackendError(SearchError):
-    """Raised when the vector database or other search backend fails."""
+__all__ = [
+    "SearchError",
+    "SearchBackendError",
+    "RewriterError",
+    "SearcherError",
+    "EvaluatorError",
+    "GeneratorError",
+    "PipelineTimeoutError",
+]

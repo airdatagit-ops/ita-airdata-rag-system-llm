@@ -41,6 +41,14 @@
           <small>Busca informações nos documentos indexados</small>
         </div>
         
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="debugMode"/>
+            Modo Debug (pipeline)
+          </label>
+          <small>Exibe trace detalhado do pipeline RAG</small>
+        </div>
+        
         <button id="newChatBtn" class="btn btn-secondary">
           🔄 Nova Conversa
         </button>
@@ -147,6 +155,7 @@
       sendBtn: document.getElementById('sendBtn'),
       modelSelect: document.getElementById('modelSelect'),
       useRag: document.getElementById('useRag'),
+      debugMode: document.getElementById('debugMode'),
       typingIndicator: document.getElementById('typingIndicator'),
       newChatBtn: document.getElementById('newChatBtn'),
       historyList: document.getElementById('historyList'),
@@ -239,6 +248,7 @@
             message: message,
             session_id: this.sessionId,
             use_rag: this.elements.useRag.checked,
+            debug: this.elements.debugMode.checked,
             model_name: this.elements.modelSelect.value
           })
         });
@@ -255,6 +265,7 @@
         let fullContent = '';
         let sources = null;
         let finalData = null;
+        let debugTrace = null;
         
         // Read SSE stream
         const reader = response.body.getReader();
@@ -278,6 +289,8 @@
                   this.scrollToBottom();
                 } else if (data.type === 'sources') {
                   sources = data.sources;
+                } else if (data.type === 'debug_trace') {
+                  debugTrace = data.trace;
                 } else if (data.type === 'done') {
                   finalData = data;
                   this.sessionId = data.session_id;
@@ -296,7 +309,7 @@
         }
         
         // Update message with final metadata
-        this.finalizeStreamingMessage(messageDiv, sources, finalData);
+        this.finalizeStreamingMessage(messageDiv, sources, finalData, debugTrace);
         
         // Update UI
         this.updateSessionInfo();
@@ -336,13 +349,18 @@
       return messageDiv;
     },
     
-    finalizeStreamingMessage(messageDiv, sources, finalData) {
+    finalizeStreamingMessage(messageDiv, sources, finalData, debugTrace = null) {
       messageDiv.classList.remove('streaming');
       const contentDiv = messageDiv.querySelector('.message-content');
       
       // Generate unique message ID
       const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       messageDiv.dataset.messageId = messageId;
+      
+      // Add debug trace panel if available
+      if (debugTrace) {
+        contentDiv.insertAdjacentHTML('beforeend', this.renderDebugTrace(debugTrace));
+      }
       
       // Add sources if present
       if (sources && sources.length > 0) {
@@ -664,6 +682,122 @@
           console.error('Erro ao copiar:', err);
           alert('Erro ao copiar texto');
         });
+    },
+    
+    renderDebugTrace(trace) {
+      if (!trace) return '';
+      
+      const timings = trace.timings || {};
+      const totalMs = timings.total_ms || 1;
+      const rewriterPct = Math.round((timings.rewriter_ms || 0) / totalMs * 100);
+      const searcherPct = Math.round((timings.searcher_ms || 0) / totalMs * 100);
+      const evaluatorPct = Math.round((timings.evaluator_ms || 0) / totalMs * 100);
+      const generatorPct = Math.round((timings.generator_ms || 0) / totalMs * 100);
+      
+      const queries = (trace.rewritten_queries || []).map(q => {
+        const filtersStr = (q.filters || []).map(f => `${f.field} ${f.operator} ${JSON.stringify(f.value)}`).join(', ');
+        return `<div class="debug-query-item">
+          <span class="debug-query-text">${this.escapeHtml(q.text)}</span>
+          ${q.facet_type ? `<span class="debug-badge">${q.facet_type}</span>` : ''}
+          ${filtersStr ? `<span class="debug-filters">Filtros: ${this.escapeHtml(filtersStr)}</span>` : ''}
+        </div>`;
+      }).join('');
+      
+      const evalScores = (trace.evaluation_scores || []).map(e => {
+        const statusClass = e.accepted ? 'debug-score-accepted' : 'debug-score-rejected';
+        const statusIcon = e.accepted ? '✅' : '❌';
+        return `<tr class="${statusClass}">
+          <td>${this.escapeHtml(e.regulation_id || '?')}</td>
+          <td>${e.score?.toFixed(1) || '0'}</td>
+          <td>${statusIcon}</td>
+        </tr>`;
+      }).join('');
+      
+      const errors = (trace.errors || []).map(e => 
+        `<div class="debug-error-item">⚠️ ${this.escapeHtml(e)}</div>`
+      ).join('');
+      
+      return `
+        <div class="debug-trace-panel">
+          <div class="debug-trace-header" onclick="this.parentElement.classList.toggle('expanded')">
+            🔍 Pipeline Debug Trace
+            <span class="debug-toggle-icon">▶</span>
+          </div>
+          <div class="debug-trace-body">
+            <div class="debug-section">
+              <div class="debug-section-title">⏱️ Timings (${totalMs}ms total)</div>
+              <div class="debug-timing-bar">
+                <div class="debug-timing-segment rewriter" style="width:${rewriterPct}%" title="Rewriter: ${timings.rewriter_ms || 0}ms">
+                  ${timings.rewriter_ms || 0}ms
+                </div>
+                <div class="debug-timing-segment searcher" style="width:${searcherPct}%" title="Searcher: ${timings.searcher_ms || 0}ms">
+                  ${timings.searcher_ms || 0}ms
+                </div>
+                <div class="debug-timing-segment evaluator" style="width:${evaluatorPct}%" title="Evaluator: ${timings.evaluator_ms || 0}ms">
+                  ${timings.evaluator_ms || 0}ms
+                </div>
+                <div class="debug-timing-segment generator" style="width:${generatorPct}%" title="Generator: ${timings.generator_ms || 0}ms">
+                  ${timings.generator_ms || 0}ms
+                </div>
+              </div>
+              <div class="debug-timing-legend">
+                <span class="legend-item rewriter">Rewriter</span>
+                <span class="legend-item searcher">Searcher</span>
+                <span class="legend-item evaluator">Evaluator</span>
+                <span class="legend-item generator">Generator</span>
+              </div>
+            </div>
+            
+            <div class="debug-section">
+              <div class="debug-section-title">✏️ Rewriter (${(trace.rewritten_queries || []).length} queries)</div>
+              <div class="debug-original">Original: "${this.escapeHtml(trace.original_query || '')}"</div>
+              ${queries}
+            </div>
+            
+            <div class="debug-section">
+              <div class="debug-section-title">🔎 Searcher</div>
+              <div class="debug-stats">
+                Encontrados: ${trace.total_documents_found || 0} |
+                Após dedup: ${trace.documents_after_dedup || 0}
+              </div>
+            </div>
+            
+            ${evalScores ? `
+            <div class="debug-section">
+              <div class="debug-section-title">📊 Evaluator (threshold: ${trace.evaluation_threshold || 0})</div>
+              <div class="debug-stats">
+                Aceitos: ${trace.documents_accepted || 0} |
+                Descartados: ${trace.documents_discarded || 0}
+              </div>
+              <table class="debug-eval-table">
+                <thead><tr><th>Documento</th><th>Score</th><th>Status</th></tr></thead>
+                <tbody>${evalScores}</tbody>
+              </table>
+            </div>` : ''}
+            
+            <div class="debug-section">
+              <div class="debug-section-title">🤖 Generator</div>
+              <div class="debug-stats">
+                Modelo: ${this.escapeHtml(trace.generator_model || '?')} |
+                Grounded: ${trace.generator_grounded_only ? 'Sim' : 'Não'} |
+                Contexto: ${trace.generator_context_length || 0} chars
+              </div>
+            </div>
+            
+            ${errors ? `
+            <div class="debug-section debug-errors">
+              <div class="debug-section-title">⚠️ Warnings</div>
+              ${errors}
+            </div>` : ''}
+          </div>
+        </div>
+      `;
+    },
+    
+    escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
     },
     
     startNewChat() {

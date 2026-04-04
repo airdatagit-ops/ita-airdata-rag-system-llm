@@ -190,6 +190,37 @@ class Settings(BaseSettings):
     NUM_WORKERS: int = getenv('NUM_WORKERS')
 
     # ========================================
+    # RAG Pipeline — Rewriter
+    # ========================================
+    REWRITER_MODEL: str = getenv('REWRITER_MODEL', '')
+    REWRITER_MAX_QUERIES: int = int(getenv('REWRITER_MAX_QUERIES', '3'))
+    REWRITER_MAX_QUERY_LENGTH: int = int(getenv('REWRITER_MAX_QUERY_LENGTH', '500'))
+    REWRITER_TEMPERATURE: float = float(getenv('REWRITER_TEMPERATURE', '0.3'))
+    REWRITER_TIMEOUT: int = int(getenv('REWRITER_TIMEOUT', '30'))
+
+    # ========================================
+    # RAG Pipeline — Evaluator (Cross-Encoder)
+    # ========================================
+    CROSS_ENCODER_MODEL: str = getenv(
+        'CROSS_ENCODER_MODEL', 'cross-encoder/ms-marco-MiniLM-L-6-v2',
+    )
+    EVALUATOR_THRESHOLD: int = int(getenv('EVALUATOR_THRESHOLD', '30'))
+    EVALUATOR_BATCH_SIZE: int = int(getenv('EVALUATOR_BATCH_SIZE', '32'))
+
+    # ========================================
+    # RAG Pipeline — Generator
+    # ========================================
+    GENERATOR_MODEL: str = getenv('GENERATOR_MODEL', '')
+    GENERATOR_MAX_RESPONSE_TOKENS: int = int(getenv('GENERATOR_MAX_RESPONSE_TOKENS', '1024'))
+    GENERATOR_GROUNDED_ONLY: bool = getenv('GENERATOR_GROUNDED_ONLY', 'true').lower() in ('true', '1', 'yes')
+    GENERATOR_TIMEOUT: int = int(getenv('GENERATOR_TIMEOUT', '120'))
+
+    # ========================================
+    # RAG Pipeline — General
+    # ========================================
+    PIPELINE_DEBUG: bool = getenv('PIPELINE_DEBUG', 'false').lower() in ('true', '1', 'yes')
+
+    # ========================================
     # Advanced Settings
     # ========================================
     LOG_QUERIES: bool = getenv('LOG_QUERIES')

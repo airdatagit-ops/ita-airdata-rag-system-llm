@@ -34,26 +34,32 @@ O Aviation RAG System é uma plataforma que combina:
 - **Geração aumentada por recuperação (RAG)** — Usa os trechos recuperados como contexto para um LLM gerar respostas fundamentadas
 - **Chat conversacional** — Mantém histórico de conversa por sessão, com streaming em tempo real
 
-### Fluxo de uma consulta RAG:
+### Arquitetura do Search Pipeline (RAG Modular)
 
-```
-Pergunta do usuário
-        │
-        ▼
-  1. Embedding da pergunta (Legal-BERTimbau)
-        │
-        ▼
-  2. Busca vetorial no Qdrant (top-K documentos similares)
-        │
-        ▼
-  3. Construção do prompt (contexto + pergunta + histórico)
-        │
-        ▼
-  4. Geração de resposta pelo LLM (Ollama)
-        │
-        ▼
-  Resposta com citações de fontes
-```
+O pipeline RAG é modular, composto por 4 estágios independentes orquestrados pelo `RAGPipeline`:
+
+![Search Pipeline](docs/assets/search-pipeline.png)
+
+| Estágio | Descrição | Módulo |
+|---------|-----------|--------|
+| **1. Rewriter** | Reescreve a consulta do usuário em 1..N sub-queries otimizadas usando um LLM menor. Adiciona filtros e sorts quando detecta intenção temporal/tipo de documento. | `search/rewriter/` |
+| **2. Searcher** | Executa buscas vetoriais em paralelo para cada sub-query. Converte filtros do schema em filtros nativos Qdrant. Deduplica resultados. | `search/searcher/` |
+| **3. Evaluator** | Avalia a relevância de cada documento usando um modelo cross-encoder (0-100). Filtra por threshold configurável. | `search/evaluator/` |
+| **4. Generator** | Gera a resposta final contextualizada com referências às fontes. Suporta modo grounded (apenas documentos) ou ungrounded (com conhecimento prévio). | `search/generator/` |
+
+O pipeline possui um **modo debug** ativável por request que retorna um `PipelineTrace` completo com queries reescritas, scores de avaliação, documentos aceitos/descartados e tempos de cada estágio.
+
+### Arquitetura do Indexing Pipeline
+
+O pipeline de ingestão é composto por 3 fases que extraem, processam e indexam documentos regulatórios:
+
+![Indexing Pipeline](docs/assets/indexing-pipeline.png)
+
+| Fase | Descrição | Fontes |
+|------|-----------|--------|
+| **Fase 1: Scraping** | Coleta documentos das fontes com skip/hash check | SISLAER, LexML, DECEA |
+| **Fase 2: Embedding** | Limpeza, chunking e geração de embeddings (denso + esparso) | SQLite → Parquet |
+| **Fase 3: Indexing** | Upload paralelo dos vetores no Qdrant | Parquet → Qdrant |
 
 ### Componentes do sistema:
 
@@ -62,9 +68,13 @@ Pergunta do usuário
 | Configuração central | Pydantic Settings | `config.py` |
 | API RAG | FastAPI | `api/server.py` |
 | Busca vetorial | Qdrant Client | `search/vector_search.py` |
-| Pipeline RAG | VectorSearch + LLM | `search/rag.py` |
-| Prompts RAG | Templates centralizados | `search/prompts.py` |
-| Exceções de busca | Custom exceptions | `search/exceptions.py` |
+| Pipeline RAG (orquestrador) | Modular Pipeline | `search/orchestrator/pipeline.py` |
+| Rewriter | LLM query rewriting | `search/rewriter/` |
+| Searcher | Parallel vector search | `search/searcher/` |
+| Evaluator | Cross-encoder reranking | `search/evaluator/` |
+| Generator | LLM response generation | `search/generator/` |
+| Schemas compartilhados | Pydantic models | `search/shared/schemas.py` |
+| Exceções do pipeline | Custom exceptions | `search/shared/exceptions.py` |
 | Embeddings | Legal-BERTimbau (sentence-transformers) | `models/embeddings.py` |
 | LLM | Ollama (llama3, phi3, etc.) | `models/llm.py` |
 | Banco vetorial | Qdrant | `database/qdrant_manager.py` |
@@ -796,6 +806,66 @@ location /explore/ {
 | `expiry_date` | datetime | Data de fim da vigência |
 | `version` | string | Versão do documento |
 | `metadata` | dict | Metadados adicionais |
+
+---
+
+## 8.5. Pipeline RAG Modular
+
+O pipeline RAG é organizado em módulos independentes sob `search/`:
+
+```
+search/
+  shared/              # Schemas, exceptions e utilitários
+    schemas.py         # SearchFilter, RewrittenQuery, EvaluatedDocument, PipelineTrace
+    exceptions.py      # Exceções por módulo (RewriterError, EvaluatorError, etc.)
+    timeouts.py        # Wrapper de timeout para chamadas LLM
+  rewriter/            # Reescrita de queries
+    rewriter.py        # QueryRewriter (LLM-based)
+    prompts.py         # Prompts do rewriter
+  searcher/            # Busca paralela
+    searcher.py        # DocumentSearcher
+    filters.py         # Conversão SearchFilter → Qdrant Filter
+  evaluator/           # Avaliação com cross-encoder
+    evaluator.py       # DocumentEvaluator (CrossEncoder batch)
+  generator/           # Geração de resposta
+    generator.py       # ResponseGenerator (LLM)
+    prompts.py         # Prompts grounded/ungrounded
+  orchestrator/        # Orquestrador
+    pipeline.py        # RAGPipeline (encadeia os 4 módulos)
+  vector_search.py     # Busca vetorial (usado pelo Searcher)
+  cache.py             # Cache LRU in-memory
+```
+
+### Configuração do Pipeline RAG
+
+| Variável | Default | Descrição |
+|----------|---------|-----------|
+| `REWRITER_MODEL` | `OLLAMA_MODEL` | Modelo LLM para reescrita de queries |
+| `REWRITER_MAX_QUERIES` | `3` | Máximo de sub-queries geradas |
+| `REWRITER_MAX_QUERY_LENGTH` | `500` | Tamanho máximo por query reescrita (chars) |
+| `REWRITER_TEMPERATURE` | `0.3` | Temperatura do LLM no rewriter |
+| `REWRITER_TIMEOUT` | `30` | Timeout (s) para o LLM do rewriter |
+| `CROSS_ENCODER_MODEL` | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Modelo cross-encoder para avaliação |
+| `EVALUATOR_THRESHOLD` | `30` | Score mínimo (0-100) para aceitar documento |
+| `EVALUATOR_BATCH_SIZE` | `32` | Batch size do cross-encoder |
+| `GENERATOR_MODEL` | `OLLAMA_MODEL` | Modelo LLM para geração de resposta |
+| `GENERATOR_MAX_RESPONSE_TOKENS` | `1024` | Máximo de tokens na resposta |
+| `GENERATOR_GROUNDED_ONLY` | `true` | Respostas apenas com base nos documentos |
+| `GENERATOR_TIMEOUT` | `120` | Timeout (s) para o LLM do generator |
+| `PIPELINE_DEBUG` | `false` | Ativar debug trace globalmente |
+
+### Modo Debug
+
+O pipeline suporta um modo debug ativável por request (`debug: true`) que retorna um `PipelineTrace` com:
+
+- Queries reescritas pelo Rewriter (com filtros e facetas)
+- Resultados por query do Searcher (contagem, dedup)
+- Scores de avaliação do Evaluator (aceitos/descartados)
+- Contexto enviado ao Generator (modelo, grounded, tamanho)
+- Timings de cada estágio (ms)
+- Warnings/erros não-fatais capturados
+
+Na interface web, o toggle "Modo Debug" no painel de chat ativa essa funcionalidade e exibe o trace com visualização rica (barra de timings, tabela de scores, badges de facetas).
 
 ---
 
