@@ -77,7 +77,6 @@ class ResponseGenerator:
         top = sorted(evaluated_docs, key=lambda ed: ed.relevance_score, reverse=True)
         max_docs = config.GENERATOR_MAX_DOCS
         if max_docs > 0 and len(top) > max_docs:
-            logger.info(f"Generator: using top {max_docs}/{len(top)} docs by relevance score")
             top = top[:max_docs]
         return top
 
@@ -105,6 +104,8 @@ class ResponseGenerator:
         effective_max_tokens = max_tokens or self.max_tokens
 
         top_docs = self.select_top_docs(evaluated_docs)
+        if len(top_docs) < len(evaluated_docs):
+            logger.info(f"Generator: using top {len(top_docs)}/{len(evaluated_docs)} docs by relevance score")
         documents = [ed.document for ed in top_docs]
 
         context = build_generator_context(documents)

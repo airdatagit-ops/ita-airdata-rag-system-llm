@@ -82,7 +82,8 @@ sparse_model = None
 if config.SEARCH_SPARSE_ENABLED:
     from models.embeddings import SparseEncoder
     sparse_model = SparseEncoder()
-llm = create_llm()
+generator_model = config.GENERATOR_MODEL or config.OLLAMA_MODEL
+llm = create_llm(model_name=generator_model)
 embedding_cache = InMemoryCache(maxsize=1024, default_ttl=3600)
 response_cache = InMemoryCache(maxsize=256, default_ttl=1800)
 
@@ -112,6 +113,7 @@ else:
     logger.info("Evaluator DISABLED — search results go directly to generator")
 
 generator = ResponseGenerator(llm=llm)
+logger.info(f"Generator model: {generator_model}")
 
 rag = RAGPipeline(
     rewriter=rewriter,
@@ -696,6 +698,14 @@ async def change_model(
             raise HTTPException(
                 status_code=400,
                 detail=f"Model '{new_model}' not found. Available models: {available_models}",
+            )
+
+        if new_model == previous_model:
+            return ChangeModelResponse(
+                success=True,
+                previous_model=previous_model,
+                current_model=new_model,
+                message=f"Model already set to '{new_model}'",
             )
 
         llm.model_name = new_model
