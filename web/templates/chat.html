@@ -876,8 +876,10 @@
               <div class="debug-stats">
                 Modelo: ${this.escapeHtml(trace.generator_model || '?')} |
                 Grounded: ${trace.generator_grounded_only ? 'Sim' : 'Não'} |
-                Contexto: ${trace.generator_context_length || 0} chars
+                Contexto: ${trace.generator_context_length || 0} chars |
+                Docs: ${(trace.generator_documents || []).length}
               </div>
+              ${this.renderGeneratorDocuments(trace.generator_documents || [])}
             </div>
             
             ${errors ? `
@@ -890,6 +892,46 @@
       `;
     },
     
+    renderGeneratorDocuments(docs) {
+      if (!docs || docs.length === 0) return '';
+      const items = docs.map((doc, i) => {
+        const label = (doc.type && doc.number)
+          ? `${doc.type} ${doc.number}`
+          : doc.regulation_id || `Doc ${i + 1}`;
+        const truncBadge = doc.truncated
+          ? '<span class="debug-badge debug-badge-warn">truncado</span>'
+          : '';
+        const docId = `gen_doc_${Date.now()}_${i}`;
+        return `
+          <div class="debug-gen-doc">
+            <div class="debug-gen-doc-header" onclick="
+              const body = document.getElementById('${docId}');
+              const icon = this.querySelector('.debug-toggle-icon');
+              if (body.style.display === 'none') {
+                body.style.display = 'block';
+                icon.textContent = '▼';
+              } else {
+                body.style.display = 'none';
+                icon.textContent = '▶';
+              }
+            ">
+              <span class="debug-toggle-icon">▶</span>
+              <strong>[${i + 1}] ${this.escapeHtml(label)}</strong>
+              <span class="debug-gen-doc-meta">
+                score: ${doc.score != null ? doc.score.toFixed(1) : '?'} |
+                ${doc.char_count || 0} chars
+                ${truncBadge}
+              </span>
+            </div>
+            <div id="${docId}" class="debug-gen-doc-body" style="display:none">
+              ${doc.title ? `<div class="debug-gen-doc-title">${this.escapeHtml(doc.title)}</div>` : ''}
+              <pre class="debug-gen-doc-text">${this.escapeHtml(doc.text || '')}</pre>
+            </div>
+          </div>`;
+      }).join('');
+      return `<div class="debug-gen-docs">${items}</div>`;
+    },
+
     escapeHtml(text) {
       const div = document.createElement('div');
       div.textContent = text;

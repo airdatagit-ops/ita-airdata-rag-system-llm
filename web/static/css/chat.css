@@ -1332,6 +1332,93 @@ html[data-theme="dark"] .empty-state p {
   color: var(--text-secondary, #aaa) !important;
 }
 
+/* Generator documents in debug trace */
+.debug-gen-docs {
+  margin-top: 0.5rem;
+}
+
+.debug-gen-doc {
+  border: 1px solid var(--border-color, #dee2e6);
+  border-radius: 4px;
+  margin-bottom: 0.35rem;
+  overflow: hidden;
+}
+
+.debug-gen-doc-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  background: var(--bg-secondary, #f8f9fa);
+  cursor: pointer;
+  font-size: 0.75rem;
+  user-select: none;
+}
+
+.debug-gen-doc-header:hover {
+  background: var(--bg-tertiary, #e9ecef);
+}
+
+.debug-gen-doc-meta {
+  margin-left: auto;
+  color: var(--text-secondary, #6c757d);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.debug-gen-doc-body {
+  padding: 0.5rem;
+  border-top: 1px solid var(--border-color, #dee2e6);
+  background: var(--bg-primary, #fff);
+}
+
+.debug-gen-doc-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6c757d);
+  margin-bottom: 0.35rem;
+}
+
+.debug-gen-doc-text {
+  font-size: 0.7rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.4rem;
+  background: var(--bg-secondary, #f8f9fa);
+  border-radius: 3px;
+  color: var(--text-primary, #333);
+}
+
+.debug-badge-warn {
+  background: #ffc107 !important;
+  color: #333 !important;
+}
+
+[data-theme="dark"] .debug-gen-doc {
+  border-color: var(--border-color, #333);
+}
+
+[data-theme="dark"] .debug-gen-doc-header {
+  background: var(--bg-secondary, #1a1a2e);
+}
+
+[data-theme="dark"] .debug-gen-doc-header:hover {
+  background: var(--bg-tertiary, #1f3460);
+}
+
+[data-theme="dark"] .debug-gen-doc-body {
+  background: var(--bg-primary, #0d1117);
+}
+
+[data-theme="dark"] .debug-gen-doc-text {
+  background: var(--bg-secondary, #1a1a2e);
+  color: var(--text-primary, #eee);
+}
+
 /* Dark mode specific overrides for system messages (model change) */
 html[data-theme="dark"] .message.system .message-content {
   background: var(--bg-warning, #fff3cd);
