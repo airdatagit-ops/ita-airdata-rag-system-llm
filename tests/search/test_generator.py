@@ -88,7 +88,10 @@ class TestPromptBuilders:
             {
                 "text": "Content",
                 "regulation_id": "ICA-1",
-                "metadata": {"type": "ICA", "number": "100-12", "authority": "DECEA"},
+                "metadata": {
+                    "type": "ICA", "number": "100-12",
+                    "authority": "DECEA", "title": "Regras de Tráfego Aéreo",
+                },
             },
         ]
         context = build_generator_context(docs)
@@ -96,7 +99,8 @@ class TestPromptBuilders:
         assert "ICA 100-12" in context
         assert "Content" in context
         assert "ICA-1" not in context
-        assert "DECEA" not in context
+        assert "DECEA" in context
+        assert "Regras de Tráfego Aéreo" in context
 
 class TestSystemPromptSelection:
     def test_grounded_no_history(self, generator):
