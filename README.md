@@ -236,10 +236,10 @@ cp env.example .env
 | Variável | Tipo | Padrão | Descrição |
 |----------|------|--------|-----------|
 | `OLLAMA_HOST` | string | `http://localhost:11434` | URL do servidor Ollama |
-| `OLLAMA_MODEL` | string | `llama3.2:3b` | Modelo LLM padrão |
+| `OLLAMA_MODEL` | string | `llama3.1:8b` | Modelo LLM padrão |
 | `LLM_TEMPERATURE` | float | `0.3` | Temperatura de geração (0=determinístico, 2=criativo) |
 | `LLM_TOP_P` | float | `0.9` | Nucleus sampling |
-| `LLM_MAX_TOKENS` | int | `500` | Máximo de tokens por resposta |
+| `LLM_MAX_TOKENS` | int | `2048` | Máximo de tokens por resposta |
 
 #### Modelo de Embeddings
 
@@ -254,11 +254,12 @@ cp env.example .env
 
 | Variável | Tipo | Padrão | Descrição |
 |----------|------|--------|-----------|
-| `SEARCH_TOP_K` | int | `5` | Número de resultados retornados |
-| `SEARCH_SCORE_THRESHOLD` | float | `0.3` | Score mínimo de similaridade (apenas busca dense-only) |
+| `SEARCH_TOP_K` | int | `8` | Número de resultados retornados por query |
+| `SEARCH_SCORE_THRESHOLD` | float | `0.3` | Score mínimo de similaridade. Sem efeito em modo híbrido (RRF) |
 | `SEARCH_DENSE_ENABLED` | bool | `true` | Habilita busca semântica (dense vectors) |
-| `SEARCH_SPARSE_ENABLED` | bool | `false` | Habilita busca por keywords/BM25 (sparse vectors via fastembed) |
+| `SEARCH_SPARSE_ENABLED` | bool | `true` | Habilita busca por keywords/BM25 (sparse vectors via fastembed) |
 | `SPARSE_EMBEDDING_MODEL` | string | `Qdrant/bm25` | Modelo de sparse embeddings (usado quando `SEARCH_SPARSE_ENABLED=true`) |
+| `DEFAULT_EMBEDDING_MODE` | string | `hybrid` | Modo padrão para `make embed` (`dense`, `sparse`, `hybrid`) |
 | `HNSW_M` | int | `16` | Parâmetro M do índice HNSW |
 | `HNSW_EF_CONSTRUCT` | int | `100` | Parâmetro ef_construct do HNSW |
 | `HNSW_EF_SEARCH` | int | `64` | Parâmetro ef para busca no HNSW |
@@ -345,7 +346,76 @@ Este script mostra:
 - Estrutura dos campos (payload) de cada registro
 - Exemplos de dados armazenados
 
-### 4.5. Reset completo
+### 4.5. Backup e Restore (Snapshots)
+
+O Qdrant suporta **snapshots** nativamente — uma cópia binária completa da collection (vetores, payloads, índices HNSW). Restaurar um snapshot é **ordens de magnitude mais rápido** que re-gerar embeddings e re-indexar (~segundos vs. horas).
+
+#### Criar backup
+
+```bash
+make backup
+```
+
+Isso cria um snapshot da collection e salva em `data/backups/`:
+
+```
+Creating Qdrant snapshot for 'aviation_regulations' …
+Snapshot created: aviation_regulations-2026-04-05-18-30-00.snapshot
+Downloading to data/backups/aviation_regulations-2026-04-05-18-30-00.snapshot …
+Backup saved: data/backups/aviation_regulations-2026-04-05-18-30-00.snapshot (1.2G)
+Restore with: make restore FILE=data/backups/aviation_regulations-2026-04-05-18-30-00.snapshot
+```
+
+#### Restaurar backup
+
+```bash
+make restore FILE=data/backups/aviation_regulations-2026-04-05-18-30-00.snapshot
+```
+
+Para listar snapshots disponíveis:
+
+```bash
+make restore   # sem FILE= lista os backups existentes
+```
+
+#### Quando usar
+
+| Cenário | Recomendação |
+|---------|-------------|
+| Antes de `make index RECREATE=1` | `make backup` — permite voltar atrás se algo der errado |
+| Migrar para novo servidor | `make backup` → copiar `.snapshot` → `make restore FILE=...` |
+| Após indexação bem-sucedida | `make backup` — evita re-executar `embed` + `index` futuramente |
+| Re-deploy rápido | `make restore` em vez de `make embed FORCE=1 && make index RECREATE=1` |
+
+#### Notas técnicas
+
+- O snapshot inclui **tudo**: vetores densos, esparsos, payloads, configuração HNSW e índices de payload.
+- A collection de destino é **sobrescrita** pelo restore — dados existentes são substituídos.
+- O restore usa a API de **upload multipart** do Qdrant, portanto funciona tanto com Qdrant em Docker quanto instalado nativamente — não depende de paths compartilhados.
+- Snapshots podem ser grandes (~1-2 GB para ~400K pontos com vetores de 1024 dims). Certifique-se de ter espaço em disco.
+- Para backup/restore em outro host Qdrant, ajuste `QDRANT_HOST`:
+
+```bash
+make backup QDRANT_HOST=192.168.1.100
+make restore QDRANT_HOST=192.168.1.100 FILE=data/backups/meu-backup.snapshot
+```
+
+#### Fluxo recomendado para próximas vezes
+
+Na primeira vez, execute o pipeline completo:
+
+```bash
+make pipeline MODE=hybrid RECREATE=1    # collect + embed + index (pode levar horas)
+make backup                             # salvar snapshot após sucesso
+```
+
+Nas próximas vezes (novo servidor, re-deploy, ou recovery):
+
+```bash
+make restore FILE=data/backups/aviation_regulations-YYYY-MM-DD.snapshot   # segundos
+```
+
+### 4.6. Reset completo
 
 Para apagar todos os dados e recriar a coleção:
 
@@ -422,8 +492,8 @@ curl -fsSL https://ollama.com/install.sh | sh
 make download-models
 
 # Ou manualmente:
-ollama pull llama3.2:3b    # Generator (modelo principal)
-ollama pull llama3.2:3b    # Rewriter (reescrita de queries)
+ollama pull llama3.1:8b    # Generator (modelo principal)
+ollama pull qwen2.5:7b     # Rewriter (reescrita de queries)
 ```
 
 ### 6.2. Modelos suportados
@@ -432,10 +502,10 @@ Qualquer modelo disponível no Ollama funciona. O modelo padrão é configurado 
 
 | Modelo | Tamanho | Uso no pipeline | Observação |
 |--------|---------|-----------------|------------|
-| `llama3.2:3b` | ~2GB | Rewriter (padrão) | Bom equilíbrio qualidade/velocidade para reescrita |
-| `llama3.2:3b` | ~2GB | Generator (padrão) | Bom equilíbrio qualidade/velocidade |
-| `llama3.1:8b` | ~4.7GB | Generator (alternativa) | Melhor qualidade, mais lento |
-| `phi3:3.8b` | ~2.3GB | Alternativa | Modelo leve da Microsoft |
+| `qwen2.5:7b` | ~4.7GB | Rewriter (padrão) | Boa qualidade de reescrita, respeita filtros |
+| `llama3.1:8b` | ~4.7GB | Generator (padrão) | Bom equilíbrio qualidade/velocidade |
+| `llama3.1:70b` | ~40GB | Generator (GPU) | Melhor qualidade, requer GPU com ~48GB VRAM |
+| `llama3.2:3b` | ~2GB | Alternativa leve | Para ambientes com recursos limitados |
 
 ### 6.3. Troca de modelo em tempo real
 
@@ -475,9 +545,9 @@ O script `scripts/download_models.py` baixa:
 | Modelo | Tipo | Usado por |
 |--------|------|-----------|
 | `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Sentence-Transformer | Embedding (busca vetorial) |
-| `cross-encoder/ms-marco-MiniLM-L-6-v2` | Cross-Encoder | Evaluator (re-ranking) |
-| `llama3.2:3b` | Ollama LLM | Rewriter (reescrita de queries) |
-| `llama3.2:3b` | Ollama LLM | Generator (geração de respostas) |
+| `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` | Cross-Encoder | Evaluator (re-ranking) |
+| `llama3.1:8b` | Ollama LLM | Generator (geração de respostas) |
+| `qwen2.5:7b` | Ollama LLM | Rewriter (reescrita de queries) |
 
 > **Dica:** Execute `make download-models` após clonar o repositório ou alterar modelos no `.env`. O deploy (`make deploy`) já faz o download automático dos modelos HuggingFace.
 
@@ -871,18 +941,20 @@ search/
 | Variável | Default | Descrição |
 |----------|---------|-----------|
 | `REWRITER_ENABLED` | `true` | Habilita o módulo Rewriter (desabilitar para pipeline mais leve) |
-| `REWRITER_MODEL` | `llama3.2:3b` | Modelo LLM para reescrita de queries |
+| `REWRITER_MODEL` | `qwen2.5:7b` | Modelo LLM para reescrita de queries |
 | `REWRITER_MAX_QUERIES` | `3` | Máximo de sub-queries geradas |
 | `REWRITER_MAX_QUERY_LENGTH` | `500` | Tamanho máximo por query reescrita (chars) |
-| `REWRITER_TEMPERATURE` | `0.1` | Temperatura do LLM no rewriter |
+| `REWRITER_TEMPERATURE` | `0.3` | Temperatura do LLM no rewriter |
 | `REWRITER_TIMEOUT` | `60` | Timeout (s) para o LLM do rewriter |
 | `EVALUATOR_ENABLED` | `true` | Habilita o módulo Evaluator (desabilitar para pipeline mais leve) |
-| `CROSS_ENCODER_MODEL` | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Modelo cross-encoder para avaliação |
-| `EVALUATOR_THRESHOLD` | `30` | Score mínimo (0-100) para aceitar documento |
+| `CROSS_ENCODER_MODEL` | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` | Modelo cross-encoder multilíngue para avaliação |
+| `EVALUATOR_THRESHOLD` | `35` | Score mínimo (0-100) para aceitar documento |
 | `EVALUATOR_BATCH_SIZE` | `32` | Batch size do cross-encoder |
 | `EVALUATOR_MAX_TOKENS` | `480` | Máximo de tokens na entrada do cross-encoder |
-| `GENERATOR_MODEL` | `OLLAMA_MODEL` | Modelo LLM para geração de resposta |
-| `GENERATOR_MAX_RESPONSE_TOKENS` | `1024` | Máximo de tokens na resposta |
+| `GENERATOR_MODEL` | `OLLAMA_MODEL` | Modelo LLM para geração de resposta (herda de `OLLAMA_MODEL` se vazio) |
+| `GENERATOR_MAX_RESPONSE_TOKENS` | `2048` | Máximo de tokens na resposta |
+| `GENERATOR_MAX_DOCS` | `7` | Máximo de documentos enviados ao generator (0 = sem limite) |
+| `GENERATOR_MAX_DOC_CHARS` | `2000` | Truncar texto de cada documento (0 = sem truncamento) |
 | `GENERATOR_GROUNDED_ONLY` | `true` | Respostas apenas com base nos documentos |
 | `GENERATOR_TIMEOUT` | `120` | Timeout (s) para o LLM do generator |
 | `PIPELINE_DEBUG` | `false` | Ativar debug trace globalmente |
@@ -904,6 +976,7 @@ O pipeline suporta um modo debug ativável por request (`debug: true`) que retor
 - Resultados por query do Searcher (contagem, dedup)
 - Scores de avaliação do Evaluator (aceitos/descartados)
 - Contexto enviado ao Generator (modelo, grounded, tamanho)
+- Documentos enviados ao Generator (texto completo que a LLM recebe, com scores e metadados)
 - Timings de cada estágio (ms)
 - Warnings/erros não-fatais capturados
 

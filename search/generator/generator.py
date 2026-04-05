@@ -65,6 +65,22 @@ class ResponseGenerator:
             f"grounded={self.grounded_only}, timeout={self.timeout}s)"
         )
 
+    @staticmethod
+    def select_top_docs(
+        evaluated_docs: List[EvaluatedDocument],
+    ) -> List[EvaluatedDocument]:
+        """Sort by relevance and apply GENERATOR_MAX_DOCS limit.
+
+        Used by both ``generate()`` and the pipeline trace so the same
+        doc selection logic is never duplicated.
+        """
+        top = sorted(evaluated_docs, key=lambda ed: ed.relevance_score, reverse=True)
+        max_docs = config.GENERATOR_MAX_DOCS
+        if max_docs > 0 and len(top) > max_docs:
+            logger.info(f"Generator: using top {max_docs}/{len(top)} docs by relevance score")
+            top = top[:max_docs]
+        return top
+
     def generate(
         self,
         evaluated_docs: List[EvaluatedDocument],
@@ -88,11 +104,7 @@ class ResponseGenerator:
         )
         effective_max_tokens = max_tokens or self.max_tokens
 
-        top_docs = sorted(evaluated_docs, key=lambda ed: ed.relevance_score, reverse=True)
-        max_docs = config.GENERATOR_MAX_DOCS
-        if max_docs > 0 and len(top_docs) > max_docs:
-            logger.info(f"Generator: using top {max_docs}/{len(top_docs)} docs by relevance score")
-            top_docs = top_docs[:max_docs]
+        top_docs = self.select_top_docs(evaluated_docs)
         documents = [ed.document for ed in top_docs]
 
         context = build_generator_context(documents)

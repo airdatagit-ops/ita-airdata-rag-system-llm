@@ -162,18 +162,7 @@ class VectorSearch:
             limit=limit or config.SEARCH_TOP_K,
         )
 
-        formatted = []
-        for result in results:
-            formatted.append({
-                "regulation_id": result.payload.get("regulation_id"),
-                "version": result.payload.get("version"),
-                "text": result.payload.get("text"),
-                "score": result.score,
-                "effective_date": result.payload.get("effective_date"),
-                "expiry_date": result.payload.get("expiry_date"),
-                "metadata": result.payload.get("metadata", {}),
-            })
-
+        formatted = self._format_results(results)
         logger.info(f"Found {len(formatted)} results valid on {date}")
         return formatted
 

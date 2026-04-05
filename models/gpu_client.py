@@ -113,26 +113,42 @@ class RemoteEmbeddingModel:
         )
         return result
 
+    _MAX_RETRIES = 3
+    _RETRY_BACKOFF = 2.0
+
     def _encode_chunk(
         self,
         texts: List[str],
         normalize: bool,
         server_batch: int,
     ) -> np.ndarray:
-        """Send a single batch of texts to the GPU server."""
-        resp = self._client.post(
-            f"{_base_url()}/v1/embeddings",
-            headers=_headers(),
-            json={
-                "texts": texts,
-                "normalize": normalize,
-                "batch_size": server_batch,
-            },
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        self.dimension = data["dimension"]
-        return np.array(data["embeddings"], dtype=np.float32)
+        """Send a single batch of texts to the GPU server with retry."""
+        last_exc: Exception | None = None
+        for attempt in range(1, self._MAX_RETRIES + 1):
+            try:
+                resp = self._client.post(
+                    f"{_base_url()}/v1/embeddings",
+                    headers=_headers(),
+                    json={
+                        "texts": texts,
+                        "normalize": normalize,
+                        "batch_size": server_batch,
+                    },
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                self.dimension = data["dimension"]
+                return np.array(data["embeddings"], dtype=np.float32)
+            except (httpx.TransportError, httpx.HTTPStatusError) as exc:
+                last_exc = exc
+                if attempt < self._MAX_RETRIES:
+                    wait = self._RETRY_BACKOFF * attempt
+                    logger.warning(
+                        f"_encode_chunk attempt {attempt}/{self._MAX_RETRIES} failed: {exc} "
+                        f"— retrying in {wait:.0f}s"
+                    )
+                    time.sleep(wait)
+        raise last_exc  # type: ignore[misc]
 
     def encode_batch(
         self,

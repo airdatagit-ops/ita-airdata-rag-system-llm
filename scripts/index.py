@@ -21,6 +21,7 @@ from typing import Dict, List, Optional
 
 import pyarrow.parquet as pq
 from loguru import logger
+from tqdm import tqdm
 
 from config import config
 from database.qdrant_manager import QdrantManager
@@ -124,20 +125,26 @@ def _build_sparse_lookup(sparse_path: Path) -> Dict:
 _ROW_GROUP_BATCH = 20_000
 
 
+def _count_rows(directory: Path) -> int:
+    return sum(pq.read_metadata(p).num_rows for p in directory.glob("*.parquet"))
+
+
 def _index_dense_streaming(
     emb_store: EmbeddingStore, db: QdrantManager,
     batch_size: int, workers: int,
 ) -> int:
+    total_rows = _count_rows(emb_store.dense_dir)
+    progress = tqdm(total=total_rows, desc="Index [dense]", unit="pts")
     total = 0
     for path in sorted(emb_store.dense_dir.glob("*.parquet")):
         pf = pq.ParquetFile(path)
-        logger.info(f"[dense] {path.stem}: {pf.metadata.num_rows} rows, {pf.metadata.num_row_groups} row_groups")
         for batch in pf.iter_batches(batch_size=_ROW_GROUP_BATCH):
             points = _batch_to_dense_points(batch)
             db.upsert_points(points, batch_size=batch_size, parallel=workers)
             total += len(points)
+            progress.update(len(points))
             del points
-        logger.info(f"[dense] {path.stem}: {total} points upserted so far")
+    progress.close()
     return total
 
 
@@ -145,16 +152,18 @@ def _index_sparse_streaming(
     emb_store: EmbeddingStore, db: QdrantManager,
     batch_size: int, workers: int,
 ) -> int:
+    total_rows = _count_rows(emb_store.sparse_dir)
+    progress = tqdm(total=total_rows, desc="Index [sparse]", unit="pts")
     total = 0
     for path in sorted(emb_store.sparse_dir.glob("*.parquet")):
         pf = pq.ParquetFile(path)
-        logger.info(f"[sparse] {path.stem}: {pf.metadata.num_rows} rows, {pf.metadata.num_row_groups} row_groups")
         for batch in pf.iter_batches(batch_size=_ROW_GROUP_BATCH):
             points = _batch_to_sparse_points(batch)
             db.upsert_points(points, batch_size=batch_size, parallel=workers)
             total += len(points)
+            progress.update(len(points))
             del points
-        logger.info(f"[sparse] {path.stem}: {total} points upserted so far")
+    progress.close()
     return total
 
 
@@ -162,14 +171,14 @@ def _index_hybrid_streaming(
     emb_store: EmbeddingStore, db: QdrantManager,
     batch_size: int, workers: int,
 ) -> int:
+    total_rows = _count_rows(emb_store.dense_dir)
+    progress = tqdm(total=total_rows, desc="Index [hybrid]", unit="pts")
     total = 0
     for dense_path in sorted(emb_store.dense_dir.glob("*.parquet")):
         source = dense_path.stem
         sparse_path = emb_store.sparse_dir / f"{source}.parquet"
 
         dense_pf = pq.ParquetFile(dense_path)
-        n_rows = dense_pf.metadata.num_rows
-        logger.info(f"[hybrid] {source}: {n_rows} rows")
 
         sparse_lookup: Optional[Dict] = None
         if sparse_path.exists():
@@ -186,11 +195,12 @@ def _index_hybrid_streaming(
                 points = _batch_to_dense_points(batch)
             db.upsert_points(points, batch_size=batch_size, parallel=workers)
             total += len(points)
+            progress.update(len(points))
             del points
 
         del sparse_lookup
-        logger.info(f"[hybrid] {source}: done — {total} points upserted so far")
 
+    progress.close()
     return total
 
 

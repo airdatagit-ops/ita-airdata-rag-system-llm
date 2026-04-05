@@ -332,10 +332,7 @@ class RAGPipeline:
             trace.generator_model = self.generator.llm.model_name
             trace.generator_grounded_only = effective_grounded
             from search.generator.prompts import build_generator_context
-            gen_docs = sorted(evaluated, key=lambda ed: ed.relevance_score, reverse=True)
-            max_docs = config.GENERATOR_MAX_DOCS
-            if max_docs > 0 and len(gen_docs) > max_docs:
-                gen_docs = gen_docs[:max_docs]
+            gen_docs = self.generator.select_top_docs(evaluated)
             documents_for_ctx = [ed.document for ed in gen_docs]
             ctx = build_generator_context(documents_for_ctx)
             trace.generator_context_length = len(ctx)
