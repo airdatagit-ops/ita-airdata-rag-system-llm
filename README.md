@@ -20,7 +20,8 @@
 12. [Avaliação de Qualidade](#12-avaliação-de-qualidade)
 13. [Testes e Automação (Makefile)](#13-testes-e-automação-makefile)
 14. [Deploy em Produção (systemctl + Nginx)](#14-deploy-em-produção-systemctl--nginx)
-15. [Resolução de Problemas](#15-resolução-de-problemas)
+15. [GPU Inference Server (Remoto)](#15-gpu-inference-server-remoto)
+16. [Resolução de Problemas](#16-resolução-de-problemas)
 
 ---
 
@@ -399,6 +400,7 @@ vectors = model.encode(["texto 1", "texto 2", "texto 3"])
 - O modelo detecta automaticamente se CUDA está disponível
 - Com **GPU**: encoding rápido (~100 textos/segundo)
 - Com **CPU**: encoding lento (~5 textos/segundo), mas funcional
+- Com **`INFERENCE_MODE=remote`**: delegação para GPU remoto via HTTP (veja [seção 15](#15-gpu-inference-server-remoto))
 
 O cache do modelo é armazenado em `models_cache/`.
 
@@ -1553,7 +1555,238 @@ sudo systemctl start nginx       # 6. nginx
 
 ---
 
-## 15. Resolução de Problemas
+## 15. GPU Inference Server (Remoto)
+
+O sistema suporta três modos de inferência, configuráveis via `INFERENCE_MODE` no `.env`:
+
+| Modo | Descrição | Quando usar |
+|------|-----------|-------------|
+| `local` | Modelos carregados no processo local (GPU se disponível, senão CPU) | Desenvolvimento com GPU local |
+| `remote` | Chamadas HTTP para o GPU Inference Server remoto | Produção sem GPU local |
+| `cpu` | Forçar execução em CPU, sem CUDA | Testes ou máquinas sem GPU |
+
+### 15.1. Arquitetura
+
+```
+  Máquina Local (sem GPU)                    Servidor GPU
+  ─────────────────────────                  ─────────────────────────────
+  API RAG (FastAPI)                          nginx (porta 80)
+    │                                          │
+    ├── create_embedding_model()               ├── /gpu-api/ ──► GPU Server (porta 8090)
+    ├── create_evaluator()       ──HTTP──►     │                  ├── /v1/embeddings
+    └── create_llm()                           │                  ├── /v1/rerank
+                                               │                  ├── /v1/generate[/stream]
+                                               │                  ├── /v1/models
+                                               │                  └── /health
+                                               │
+                                               └── /ollama-api/ ──► Ollama (porta 11434)
+```
+
+O nginx atua como reverse proxy, eliminando a necessidade de abrir portas adicionais no firewall. O GPU server escuta apenas em `127.0.0.1:8090` (ou `0.0.0.0:8090` se acesso direto for necessário).
+
+### 15.2. Configuração do cliente (`.env` local)
+
+```env
+# Modo de inferência: local | remote | cpu
+INFERENCE_MODE=remote
+
+# URL do GPU server (acessível via Nginx reverse proxy)
+GPU_SERVER_URL=http://<IP-SERVIDOR>/gpu-api
+
+# Chave de autenticação (opcional, deve coincidir com GPU_SERVER_API_KEY no servidor)
+GPU_SERVER_API_KEY=
+
+# Timeout para chamadas remotas (segundos)
+GPU_SERVER_TIMEOUT=120
+```
+
+### 15.3. Estrutura do GPU Server
+
+O diretório `gpu_server/` contém a aplicação standalone:
+
+```
+gpu_server/
+├── server.py              # FastAPI app com endpoints de inferência
+├── requirements.txt       # Dependências (torch, sentence-transformers, etc.)
+├── .env.example           # Template de variáveis de ambiente do servidor
+├── deploy.sh              # Script de setup automatizado
+├── gpu_server.service     # Unit file para systemd (com placeholders)
+└── nginx-gpu-api.conf     # Snippet nginx — location blocks para reverse proxy
+```
+
+### 15.4. Deploy no servidor GPU
+
+#### Passo 1: Copiar arquivos
+
+```bash
+scp -P 2222 -r gpu_server/ user@servidor:/path/to/airdata/
+```
+
+#### Passo 2: Setup básico (venv + dependências)
+
+```bash
+ssh -p 2222 user@servidor
+cd /path/to/airdata/gpu_server
+chmod +x deploy.sh
+./deploy.sh
+```
+
+#### Passo 3: Instalar como serviço systemd
+
+```bash
+sudo ./deploy.sh --install
+sudo systemctl start gpu-server
+sudo systemctl status gpu-server
+```
+
+O flag `--install` renderiza `gpu_server.service` substituindo os placeholders (`__INSTALL_DIR__`, `__USER__`, `__GROUP__`, `__MODEL_CACHE__`, `__OLLAMA_DATA__`) com os valores reais e instala em `/etc/systemd/system/`.
+
+#### Passo 4: Configurar nginx (reverse proxy)
+
+```bash
+sudo ./deploy.sh --with-nginx
+```
+
+Ou manualmente:
+
+```bash
+# 1. Copiar o snippet de locations
+sudo cp nginx-gpu-api.conf /etc/nginx/sites-available/gpu-api
+
+# 2. Incluir no server block existente (NÃO cria um novo server block)
+#    Adicione esta linha DENTRO do bloco server {} do site desejado:
+#    include /etc/nginx/sites-available/gpu-api;
+
+# 3. Testar e recarregar
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+#### Passo 5: Verificar
+
+```bash
+# Direto (local no servidor)
+curl http://localhost:8090/health
+
+# Via nginx (remoto)
+curl http://<IP-SERVIDOR>/gpu-api/health
+```
+
+### 15.5. Integração nginx — sem impacto nas configurações existentes
+
+O snippet `nginx-gpu-api.conf` contém **apenas blocos `location`**, não um `server` block completo. Isso é idêntico ao padrão usado pelo RAG API (`deploy/nginx-rag.conf`):
+
+```nginx
+# Arquivo: gpu_server/nginx-gpu-api.conf
+# Apenas locations — incluir DENTRO de um server {} existente
+
+location /gpu-api/ {
+    proxy_pass http://127.0.0.1:8090/;
+    # ... headers, timeouts, SSE support
+}
+
+location /ollama-api/ {
+    proxy_pass http://127.0.0.1:11434/;
+    # ... headers, timeouts
+}
+```
+
+**Por que isso não afeta configurações existentes:**
+
+1. **Não cria `server` block** — apenas adiciona paths (locations) ao site existente
+2. **Não conflita com `server_name`** — evita o warning "conflicting server name"
+3. **Paths únicos** — `/gpu-api/` e `/ollama-api/` não colidem com paths existentes
+4. **Path stripping** — `proxy_pass` com trailing slash (`http://127.0.0.1:8090/`) remove o prefixo `/gpu-api/` antes de enviar ao backend
+5. **SSE streaming** — `proxy_buffering off` + `X-Accel-Buffering: no` (header no response do server) garantem streaming sem buffer
+6. **Arquivo separado** — fica em `/etc/nginx/sites-available/gpu-api` (não modifica `default` diretamente)
+
+**Integração com o default site:**
+
+```bash
+# Ver como fica dentro do server block existente:
+server {
+    listen 80;
+    server_name _;
+
+    # Serviços existentes (CloudBeaver, Airflow, GitLab, etc.)
+    location /db/     { proxy_pass http://127.0.0.1:8978/; ... }
+    location /airflow/ { proxy_pass http://127.0.0.1:8081/airflow/; ... }
+
+    # GPU API — incluído via snippet (não modifica nada acima)
+    include /etc/nginx/sites-available/gpu-api;
+}
+```
+
+### 15.6. Variáveis de ambiente do servidor (`gpu_server/.env`)
+
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `GPU_SERVER_HOST` | `0.0.0.0` | Interface de bind do servidor |
+| `GPU_SERVER_PORT` | `8090` | Porta do servidor |
+| `GPU_SERVER_API_KEY` | *(vazio)* | Chave de autenticação (desabilitada se vazia) |
+| `EMBEDDING_MODEL` | `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Modelo SentenceTransformer |
+| `CROSS_ENCODER_MODEL` | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` | Modelo CrossEncoder |
+| `MODEL_CACHE_DIR` | `/dados/airdata/models_cache` | Cache de modelos HuggingFace |
+| `OLLAMA_HOST` | `http://localhost:11434` | Endpoint do Ollama local |
+
+### 15.7. Factory Functions
+
+O módulo `models/gpu_client.py` fornece factory functions que roteiam automaticamente:
+
+```python
+from models.gpu_client import create_embedding_model, create_evaluator, create_llm
+
+embed = create_embedding_model()  # RemoteEmbeddingModel ou EmbeddingModel
+evalu = create_evaluator()        # RemoteDocumentEvaluator ou DocumentEvaluator
+llm   = create_llm()              # RemoteLlamaModel ou LlamaModel
+```
+
+Em modo `remote`, nenhuma biblioteca ML pesada (torch, sentence-transformers, ollama) é carregada localmente — imports condicionais via `TYPE_CHECKING` e `__getattr__` lazy loading em `models/__init__.py`.
+
+### 15.8. Endpoints do GPU Server
+
+| Método | Endpoint | Auth | Descrição |
+|--------|----------|------|-----------|
+| `GET` | `/health` | Não | Readiness probe (status, GPU, modelos carregados) |
+| `POST` | `/v1/embeddings` | Sim* | Embeddings via SentenceTransformer |
+| `POST` | `/v1/rerank` | Sim* | Reranking via CrossEncoder |
+| `POST` | `/v1/generate` | Sim* | Chat completion via Ollama (sync) |
+| `POST` | `/v1/generate/stream` | Sim* | Chat completion via Ollama (SSE streaming) |
+| `GET` | `/v1/models` | Sim* | Lista modelos Ollama disponíveis |
+
+\* Auth via header `X-API-Key` — desabilitada quando `GPU_SERVER_API_KEY` está vazio.
+
+### 15.9. Gerenciamento
+
+```bash
+# Status do serviço
+sudo systemctl status gpu-server
+
+# Logs em tempo real
+sudo journalctl -u gpu-server -f
+
+# Reiniciar após mudança de .env
+sudo systemctl restart gpu-server
+
+# Listar modelos Ollama disponíveis
+curl -s http://<IP>/gpu-api/v1/models | python3 -m json.tool
+
+# Verificar GPU
+curl -s http://<IP>/gpu-api/health | python3 -m json.tool
+```
+
+### 15.10. Ordem de inicialização no servidor GPU
+
+```bash
+sudo systemctl start ollama       # 1. Ollama (LLM)
+sudo systemctl start gpu-server   # 2. GPU Inference Server
+sudo systemctl start nginx        # 3. nginx (reverse proxy)
+```
+
+O `gpu_server.service` declara `After=ollama.service` e `Wants=ollama.service`, portanto o systemd gerencia a ordem automaticamente no boot.
+
+---
+
+## 16. Resolução de Problemas
 
 ### Erros de importação ao executar scripts
 
@@ -1611,10 +1844,13 @@ RuntimeError: CUDA out of memory
 
 **Causa:** GPU sem memória suficiente para o modelo de embeddings.
 
-**Solução:** O modelo automaticamente cai para CPU se CUDA não estiver disponível. Para forçar CPU:
+**Solução:** O modelo automaticamente cai para CPU se CUDA não estiver disponível. Alternativas:
 
 ```bash
-export CUDA_VISIBLE_DEVICES=""  # Desabilitar GPU
+export CUDA_VISIBLE_DEVICES=""  # Desabilitar GPU local
+# Ou usar GPU remoto:
+export INFERENCE_MODE=remote
+export GPU_SERVER_URL=http://161.24.29.21/gpu-api
 ```
 
 ### Timeout na API de chat

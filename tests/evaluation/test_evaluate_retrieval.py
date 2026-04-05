@@ -121,9 +121,9 @@ class TestRetrievalEvaluator:
             RetrievalEvaluator(golden_set_path=str(tmp_path / "nope.csv"))
 
     @patch("evaluation.evaluate_retrieval.QdrantManager")
-    @patch("evaluation.evaluate_retrieval.EmbeddingModel")
-    def test_evaluate_hit(self, MockEmbed, MockQdrant, evaluator):
-        mock_embed = MockEmbed.return_value
+    @patch("evaluation.evaluate_retrieval.create_embedding_model")
+    def test_evaluate_hit(self, MockCreateEmbed, MockQdrant, evaluator):
+        mock_embed = MockCreateEmbed.return_value
         mock_embed.encode.return_value = np.random.rand(3, 1024)
 
         mock_point = MagicMock()
@@ -144,10 +144,10 @@ class TestRetrievalEvaluator:
         assert q1.first_relevant_rank == 1
 
     @patch("evaluation.evaluate_retrieval.QdrantManager")
-    @patch("evaluation.evaluate_retrieval.EmbeddingModel")
-    def test_evaluate_hit_with_canonical_id(self, MockEmbed, MockQdrant, evaluator):
+    @patch("evaluation.evaluate_retrieval.create_embedding_model")
+    def test_evaluate_hit_with_canonical_id(self, MockCreateEmbed, MockQdrant, evaluator):
         """Retrieved canonical IDs should match golden set IDs."""
-        mock_embed = MockEmbed.return_value
+        mock_embed = MockCreateEmbed.return_value
         mock_embed.encode.return_value = np.random.rand(3, 1024)
 
         mock_point = MagicMock()
@@ -164,9 +164,9 @@ class TestRetrievalEvaluator:
         assert q1.first_relevant_rank == 1
 
     @patch("evaluation.evaluate_retrieval.QdrantManager")
-    @patch("evaluation.evaluate_retrieval.EmbeddingModel")
-    def test_evaluate_miss(self, MockEmbed, MockQdrant, evaluator):
-        mock_embed = MockEmbed.return_value
+    @patch("evaluation.evaluate_retrieval.create_embedding_model")
+    def test_evaluate_miss(self, MockCreateEmbed, MockQdrant, evaluator):
+        mock_embed = MockCreateEmbed.return_value
         mock_embed.encode.return_value = np.random.rand(3, 1024)
 
         mock_point = MagicMock()
@@ -183,9 +183,9 @@ class TestRetrievalEvaluator:
         assert q2.first_relevant_rank is None
 
     @patch("evaluation.evaluate_retrieval.QdrantManager")
-    @patch("evaluation.evaluate_retrieval.EmbeddingModel")
-    def test_evaluate_coverage(self, MockEmbed, MockQdrant, evaluator):
-        mock_embed = MockEmbed.return_value
+    @patch("evaluation.evaluate_retrieval.create_embedding_model")
+    def test_evaluate_coverage(self, MockCreateEmbed, MockQdrant, evaluator):
+        mock_embed = MockCreateEmbed.return_value
         mock_embed.encode.return_value = np.random.rand(3, 1024)
 
         mock_qdrant = MockQdrant.return_value
@@ -196,9 +196,9 @@ class TestRetrievalEvaluator:
         assert result.coverage_correct_rate == 1.0
 
     @patch("evaluation.evaluate_retrieval.QdrantManager")
-    @patch("evaluation.evaluate_retrieval.EmbeddingModel")
-    def test_evaluate_parallel(self, MockEmbed, MockQdrant, evaluator):
-        mock_embed = MockEmbed.return_value
+    @patch("evaluation.evaluate_retrieval.create_embedding_model")
+    def test_evaluate_parallel(self, MockCreateEmbed, MockQdrant, evaluator):
+        mock_embed = MockCreateEmbed.return_value
         mock_embed.encode.return_value = np.random.rand(3, 1024)
 
         mock_qdrant = MockQdrant.return_value
@@ -208,9 +208,9 @@ class TestRetrievalEvaluator:
         assert result.total_queries == 3
 
     @patch("evaluation.evaluate_retrieval.QdrantManager")
-    @patch("evaluation.evaluate_retrieval.EmbeddingModel")
-    def test_save_results(self, MockEmbed, MockQdrant, evaluator, tmp_path):
-        mock_embed = MockEmbed.return_value
+    @patch("evaluation.evaluate_retrieval.create_embedding_model")
+    def test_save_results(self, MockCreateEmbed, MockQdrant, evaluator, tmp_path):
+        mock_embed = MockCreateEmbed.return_value
         mock_embed.encode.return_value = np.random.rand(3, 1024)
 
         mock_qdrant = MockQdrant.return_value
@@ -231,9 +231,9 @@ class TestRetrievalEvaluator:
 
 class TestPrintReport:
     @patch("evaluation.evaluate_retrieval.QdrantManager")
-    @patch("evaluation.evaluate_retrieval.EmbeddingModel")
-    def test_print_report_runs(self, MockEmbed, MockQdrant, evaluator, capsys):
-        mock_embed = MockEmbed.return_value
+    @patch("evaluation.evaluate_retrieval.create_embedding_model")
+    def test_print_report_runs(self, MockCreateEmbed, MockQdrant, evaluator, capsys):
+        mock_embed = MockCreateEmbed.return_value
         mock_embed.encode.return_value = np.random.rand(3, 1024)
 
         mock_qdrant = MockQdrant.return_value

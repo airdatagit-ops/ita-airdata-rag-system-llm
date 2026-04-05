@@ -6,12 +6,15 @@ original query, and optional conversation history.
 
 from __future__ import annotations
 
-from typing import Dict, Generator, List, Optional
+from typing import TYPE_CHECKING, Dict, Generator, List, Optional
 
 from loguru import logger
 
 from config import config
-from models.llm import LlamaModel
+from models.gpu_client import create_llm
+
+if TYPE_CHECKING:
+    from models.llm import LlamaModel
 from search.shared.exceptions import GeneratorError
 from search.shared.schemas import EvaluatedDocument
 from search.shared.timeouts import with_timeout
@@ -50,7 +53,7 @@ class ResponseGenerator:
         timeout: Optional[int] = None,
     ):
         model_name = config.GENERATOR_MODEL or config.OLLAMA_MODEL
-        self.llm = llm or LlamaModel(model_name=model_name)
+        self.llm = llm or create_llm(model_name=model_name)
         self.grounded_only = (
             grounded_only if grounded_only is not None
             else config.GENERATOR_GROUNDED_ONLY

@@ -1,7 +1,7 @@
 """Tests for the QueryRewriter module."""
 
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -18,8 +18,7 @@ def mock_llm():
 
 @pytest.fixture
 def rewriter(mock_llm):
-    with patch("search.rewriter.rewriter.LlamaModel", return_value=mock_llm):
-        return QueryRewriter(llm=mock_llm, max_queries=3, timeout=5)
+    return QueryRewriter(llm=mock_llm, max_queries=3, timeout=5)
 
 
 VALID_LLM_RESPONSE = json.dumps([
@@ -86,8 +85,7 @@ class TestRewriteFallback:
 
 class TestRewriteValidation:
     def test_truncates_long_queries(self, mock_llm):
-        with patch("search.rewriter.rewriter.LlamaModel", return_value=mock_llm):
-            rw = QueryRewriter(llm=mock_llm, max_query_length=20, timeout=5)
+        rw = QueryRewriter(llm=mock_llm, max_query_length=20, timeout=5)
 
         long_query = json.dumps([
             {"text": "a" * 100, "filters": [], "sorts": [], "facet_type": "general"}

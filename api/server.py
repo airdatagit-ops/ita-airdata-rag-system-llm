@@ -44,8 +44,7 @@ from search.evaluator import DocumentEvaluator
 from search.generator import ResponseGenerator
 from database.qdrant_manager import QdrantManager
 from api.session_manager import session_manager
-from models.llm import LlamaModel
-from models.embeddings import EmbeddingModel, SparseEncoder
+from models.gpu_client import create_embedding_model, create_evaluator, create_llm
 
 # ========================================
 # Application
@@ -77,11 +76,17 @@ app.add_middleware(
 # so ``change_model`` affects all code paths automatically.
 
 db = QdrantManager()
-dense_model = EmbeddingModel() if config.SEARCH_DENSE_ENABLED else None
-sparse_model = SparseEncoder() if config.SEARCH_SPARSE_ENABLED else None
-llm = LlamaModel()
+dense_model = create_embedding_model() if config.SEARCH_DENSE_ENABLED else None
+
+sparse_model = None
+if config.SEARCH_SPARSE_ENABLED:
+    from models.embeddings import SparseEncoder
+    sparse_model = SparseEncoder()
+llm = create_llm()
 embedding_cache = InMemoryCache(maxsize=1024, default_ttl=3600)
 response_cache = InMemoryCache(maxsize=256, default_ttl=1800)
+
+logger.info(f"Inference mode: {config.INFERENCE_MODE.upper()}")
 
 vector_search = VectorSearch(
     dense_model=dense_model, sparse_model=sparse_model, db=db,
@@ -91,7 +96,7 @@ vector_search = VectorSearch(
 rewriter = None
 if config.REWRITER_ENABLED:
     rewriter_model_name = config.REWRITER_MODEL or config.OLLAMA_MODEL
-    rewriter = QueryRewriter(llm=LlamaModel(model_name=rewriter_model_name))
+    rewriter = QueryRewriter(llm=create_llm(model_name=rewriter_model_name))
     logger.info(f"Rewriter ENABLED (model={rewriter_model_name})")
 else:
     logger.info("Rewriter DISABLED — queries pass through unchanged")
@@ -100,8 +105,8 @@ searcher = DocumentSearcher(vector_search=vector_search)
 
 evaluator = None
 if config.EVALUATOR_ENABLED:
-    evaluator = DocumentEvaluator()
-    evaluator.model  # force eager load so the model is ready before first request
+    evaluator = create_evaluator()
+    evaluator.model  # force eager load (no-op for remote mode)
     logger.info(f"Evaluator ENABLED (model={config.CROSS_ENCODER_MODEL}) — pre-loaded")
 else:
     logger.info("Evaluator DISABLED — search results go directly to generator")

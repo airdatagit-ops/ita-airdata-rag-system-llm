@@ -7,13 +7,16 @@ using an LLM, with optional filters and sorts for downstream search.
 from __future__ import annotations
 
 import json
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from pydantic import BaseModel, Field
 from loguru import logger
 
 from config import config
-from models.llm import LlamaModel
+from models.gpu_client import create_llm
+
+if TYPE_CHECKING:
+    from models.llm import LlamaModel
 from search.shared.exceptions import RewriterError
 from search.shared.schemas import (
     ALLOWED_FILTER_FIELDS,
@@ -76,7 +79,7 @@ class QueryRewriter:
         timeout: Optional[int] = None,
     ):
         model_name = config.REWRITER_MODEL or config.OLLAMA_MODEL
-        self.llm = llm or LlamaModel(model_name=model_name)
+        self.llm = llm or create_llm(model_name=model_name)
         self.max_queries = max_queries or config.REWRITER_MAX_QUERIES
         self.max_query_length = max_query_length or config.REWRITER_MAX_QUERY_LENGTH
         self.timeout = timeout or config.REWRITER_TIMEOUT

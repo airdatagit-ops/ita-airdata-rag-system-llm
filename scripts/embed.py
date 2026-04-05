@@ -224,8 +224,8 @@ def run(args: argparse.Namespace) -> int:
     dense_model = None
     sparse_model = None
     if do_dense:
-        from models.embeddings import EmbeddingModel
-        dense_model = EmbeddingModel()
+        from models.gpu_client import create_embedding_model
+        dense_model = create_embedding_model()
     if do_sparse:
         from models.embeddings import SparseEncoder
         sparse_model = SparseEncoder()

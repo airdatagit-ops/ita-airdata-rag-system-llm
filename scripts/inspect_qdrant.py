@@ -5,7 +5,7 @@ Script para inspecionar a estrutura de dados retornada pelo Qdrant.
 import json
 from loguru import logger
 from database.qdrant_manager import QdrantManager
-from models.embeddings import EmbeddingModel
+from models.gpu_client import create_embedding_model
 from tabulate import tabulate
 
 
@@ -29,7 +29,7 @@ def inspect_payload_structure():
     logger.info("=" * 80)
     
     manager = QdrantManager()
-    embeddings = EmbeddingModel()
+    embeddings = create_embedding_model()
     
     query_text = "regulations aircraft"
     query_vector = embeddings.encode(query_text)
@@ -115,7 +115,7 @@ def compare_multiple_records():
     logger.info("=" * 80)
     
     manager = QdrantManager()
-    embeddings = EmbeddingModel()
+    embeddings = create_embedding_model()
     
     query_vector = embeddings.encode("regulations")
     results = manager.search(dense_vector=query_vector.tolist(), limit=5, with_payload=True)

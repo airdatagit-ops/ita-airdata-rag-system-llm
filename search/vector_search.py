@@ -1,14 +1,19 @@
 """Vector search with support for dense, sparse, or hybrid (RRF) modes."""
 
+from __future__ import annotations
+
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 from loguru import logger
 
-from models.embeddings import EmbeddingModel, SparseEncoder
+from models.gpu_client import create_embedding_model
 from database.qdrant_manager import QdrantManager
 from search.cache import CacheBackend, make_cache_key
 from config import config
+
+if TYPE_CHECKING:
+    from models.embeddings import EmbeddingModel, SparseEncoder
 
 _SENTINEL = object()
 
@@ -39,7 +44,7 @@ class VectorSearch:
                     "— skipping dense model load"
                 )
                 want_dense = False
-            self.dense_model = EmbeddingModel() if want_dense else None
+            self.dense_model = create_embedding_model() if want_dense else None
         else:
             self.dense_model = dense_model
 
@@ -51,7 +56,11 @@ class VectorSearch:
                     "— skipping sparse model load"
                 )
                 want_sparse = False
-            self.sparse_model = SparseEncoder() if want_sparse else None
+            if want_sparse:
+                from models.embeddings import SparseEncoder as _SparseEncoder
+                self.sparse_model = _SparseEncoder()
+            else:
+                self.sparse_model = None
         else:
             self.sparse_model = sparse_model
 

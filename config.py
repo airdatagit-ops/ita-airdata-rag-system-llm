@@ -223,6 +223,17 @@ class Settings(BaseSettings):
     PIPELINE_DEBUG: bool = getenv('PIPELINE_DEBUG', 'false').lower() in ('true', '1', 'yes')
 
     # ========================================
+    # GPU Inference Mode
+    # ========================================
+    # "local"  — load models in-process (uses GPU if available, falls back to CPU)
+    # "remote" — call the GPU inference server via HTTP
+    # "cpu"    — force CPU-only execution (no CUDA, no remote)
+    INFERENCE_MODE: str = getenv('INFERENCE_MODE', 'local')
+    GPU_SERVER_URL: str = getenv('GPU_SERVER_URL', 'http://localhost:8090')
+    GPU_SERVER_API_KEY: str = getenv('GPU_SERVER_API_KEY', '')
+    GPU_SERVER_TIMEOUT: int = int(getenv('GPU_SERVER_TIMEOUT', '120'))
+
+    # ========================================
     # Advanced Settings
     # ========================================
     LOG_QUERIES: bool = getenv('LOG_QUERIES')
@@ -337,8 +348,12 @@ def validate_config() -> bool:
         issues.append("EMBEDDING_MODEL is not set.")
 
     # Check LLM configuration
-    if not config.OLLAMA_HOST or not config.OLLAMA_MODEL:
+    if config.INFERENCE_MODE != "remote" and (not config.OLLAMA_HOST or not config.OLLAMA_MODEL):
         issues.append("Ollama configuration (OLLAMA_HOST, OLLAMA_MODEL) is incomplete.")
+
+    # Check GPU server when remote mode
+    if config.INFERENCE_MODE == "remote" and not config.GPU_SERVER_URL:
+        issues.append("GPU_SERVER_URL is required when INFERENCE_MODE=remote.")
 
     # Check data directories
     for dir_name, dir_path in [
@@ -377,6 +392,8 @@ def print_config():
         "Environment": [
             ("Environment", config.ENVIRONMENT),
             ("Debug", config.DEBUG),
+            ("Inference Mode", config.INFERENCE_MODE),
+            ("GPU Server URL", config.GPU_SERVER_URL if config.INFERENCE_MODE == "remote" else "N/A"),
         ],
         "Qdrant": [
             ("Host", config.QDRANT_HOST),

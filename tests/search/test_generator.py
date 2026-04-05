@@ -1,6 +1,6 @@
 """Tests for the ResponseGenerator module."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -44,8 +44,7 @@ def mock_llm():
 
 @pytest.fixture
 def generator(mock_llm):
-    with patch("search.generator.generator.LlamaModel", return_value=mock_llm):
-        return ResponseGenerator(llm=mock_llm, grounded_only=True, timeout=10)
+    return ResponseGenerator(llm=mock_llm, grounded_only=True, timeout=10)
 
 
 class TestGenerateBasic:
@@ -102,7 +101,7 @@ class TestPromptBuilders:
 class TestSystemPromptSelection:
     def test_grounded_no_history(self, generator):
         prompt = generator._select_system_prompt(grounded=True, has_history=False)
-        assert "EXCLUSIVELY" in prompt
+        assert "ONLY" in prompt
 
     def test_ungrounded_no_history(self, generator):
         prompt = generator._select_system_prompt(grounded=False, has_history=False)

@@ -30,7 +30,7 @@ from typing import Dict, List, Optional, Tuple
 
 from loguru import logger
 
-from models.embeddings import EmbeddingModel
+from models.gpu_client import create_embedding_model
 from database.qdrant_manager import QdrantManager
 from config import config
 
@@ -339,7 +339,7 @@ class RetrievalEvaluator:
         dense_embeddings = None
         sparse_embeddings = None
         if use_dense:
-            embed_model = EmbeddingModel()
+            embed_model = create_embedding_model()
             dense_embeddings = embed_model.encode(queries)
         if use_sparse:
             sparse_model = SparseEncoder()

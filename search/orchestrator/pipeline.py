@@ -31,6 +31,7 @@ from search.searcher import DocumentSearcher
 from search.searcher.enrichment import enrich_documents
 from search.evaluator import DocumentEvaluator
 from search.generator import ResponseGenerator
+from models.gpu_client import create_evaluator
 
 
 class RAGPipeline:
@@ -83,7 +84,7 @@ class RAGPipeline:
 
         self.evaluator = evaluator if self.evaluator_enabled else None
         if self.evaluator_enabled and evaluator is None:
-            self.evaluator = DocumentEvaluator()
+            self.evaluator = create_evaluator()
 
         self.generator = generator or ResponseGenerator(
             llm=llm,
