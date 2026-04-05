@@ -261,6 +261,10 @@ class PipelineTrace(BaseModel):
     generator_model: str = ""
     generator_grounded_only: bool = True
     generator_context_length: int = 0
+    generator_documents: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Documents sent to the generator with the text the LLM actually sees",
+    )
 
     timings: StageTimings = Field(default_factory=StageTimings)
     errors: List[str] = Field(default_factory=list)

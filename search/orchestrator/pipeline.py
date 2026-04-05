@@ -332,8 +332,29 @@ class RAGPipeline:
             trace.generator_model = self.generator.llm.model_name
             trace.generator_grounded_only = effective_grounded
             from search.generator.prompts import build_generator_context
-            ctx = build_generator_context([ed.document for ed in evaluated])
+            gen_docs = sorted(evaluated, key=lambda ed: ed.relevance_score, reverse=True)
+            max_docs = config.GENERATOR_MAX_DOCS
+            if max_docs > 0 and len(gen_docs) > max_docs:
+                gen_docs = gen_docs[:max_docs]
+            documents_for_ctx = [ed.document for ed in gen_docs]
+            ctx = build_generator_context(documents_for_ctx)
             trace.generator_context_length = len(ctx)
+            doc_char_limit = config.GENERATOR_MAX_DOC_CHARS
+            trace.generator_documents = []
+            for ed in gen_docs:
+                doc = ed.document
+                raw_text = doc.get("text", "") or ""
+                sent_text = raw_text[:doc_char_limit] if doc_char_limit > 0 else raw_text
+                trace.generator_documents.append({
+                    "regulation_id": doc.get("regulation_id", ""),
+                    "type": (doc.get("metadata") or {}).get("type", ""),
+                    "number": (doc.get("metadata") or {}).get("number", ""),
+                    "title": (doc.get("metadata") or {}).get("title", ""),
+                    "score": ed.relevance_score,
+                    "text": sent_text,
+                    "char_count": len(sent_text),
+                    "truncated": doc_char_limit > 0 and len(raw_text) > doc_char_limit,
+                })
 
         if trace and timings:
             timings.total_ms = int((time.time() - pipeline_start) * 1000)
