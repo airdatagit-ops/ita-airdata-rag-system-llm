@@ -23,7 +23,7 @@ from config import config
 _TIMEOUT = httpx.Timeout(
     connect=10.0,
     read=float(config.GPU_SERVER_TIMEOUT),
-    write=10.0,
+    write=60.0,
     pool=10.0,
 )
 
@@ -62,6 +62,9 @@ class RemoteEmbeddingModel:
             f"(model={self.model_name})"
         )
 
+    # Max texts per HTTP request to avoid payload/timeout issues during ingestion
+    CLIENT_BATCH_SIZE = 512
+
     def encode(
         self,
         texts: Union[str, List[str]],
@@ -76,31 +79,60 @@ class RemoteEmbeddingModel:
         else:
             was_single = False
 
+        server_batch = batch_size or config.EMBEDDING_BATCH_SIZE
+        n = len(texts)
+
+        if n <= self.CLIENT_BATCH_SIZE:
+            result = self._encode_chunk(texts, normalize, server_batch)
+            return result[0] if was_single else result
+
+        all_embs: List[np.ndarray] = []
         t0 = time.time()
+
+        chunks = range(0, n, self.CLIENT_BATCH_SIZE)
+        if show_progress:
+            from tqdm import tqdm
+            chunks = tqdm(
+                chunks,
+                total=(n + self.CLIENT_BATCH_SIZE - 1) // self.CLIENT_BATCH_SIZE,
+                desc="Remote encode",
+                unit="batch",
+            )
+
+        for start in chunks:
+            chunk_texts = texts[start : start + self.CLIENT_BATCH_SIZE]
+            embs = self._encode_chunk(chunk_texts, normalize, server_batch)
+            all_embs.append(embs)
+
+        result = np.vstack(all_embs)
+        elapsed = time.time() - t0
+        logger.info(
+            f"Remote encode: {n} texts in {elapsed:.1f}s "
+            f"({n / elapsed:.0f} texts/s, "
+            f"{(n + self.CLIENT_BATCH_SIZE - 1) // self.CLIENT_BATCH_SIZE} HTTP requests)"
+        )
+        return result
+
+    def _encode_chunk(
+        self,
+        texts: List[str],
+        normalize: bool,
+        server_batch: int,
+    ) -> np.ndarray:
+        """Send a single batch of texts to the GPU server."""
         resp = self._client.post(
             f"{_base_url()}/v1/embeddings",
             headers=_headers(),
             json={
                 "texts": texts,
                 "normalize": normalize,
-                "batch_size": batch_size or config.EMBEDDING_BATCH_SIZE,
+                "batch_size": server_batch,
             },
         )
         resp.raise_for_status()
         data = resp.json()
-
-        embeddings = np.array(data["embeddings"], dtype=np.float32)
         self.dimension = data["dimension"]
-
-        elapsed = time.time() - t0
-        logger.debug(
-            f"Remote encode: {len(texts)} texts in {elapsed:.2f}s "
-            f"(server {data['elapsed_ms']}ms)"
-        )
-
-        if was_single:
-            return embeddings[0]
-        return embeddings
+        return np.array(data["embeddings"], dtype=np.float32)
 
     def encode_batch(
         self,
@@ -108,7 +140,7 @@ class RemoteEmbeddingModel:
         batch_size: int | None = None,
         show_progress: bool = True,
     ) -> np.ndarray:
-        return self.encode(texts, batch_size=batch_size)
+        return self.encode(texts, batch_size=batch_size, show_progress=show_progress)
 
     def get_similarity(
         self,

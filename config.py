@@ -214,6 +214,7 @@ class Settings(BaseSettings):
     GENERATOR_MODEL: str = getenv('GENERATOR_MODEL', '')
     GENERATOR_MAX_RESPONSE_TOKENS: int = int(getenv('GENERATOR_MAX_RESPONSE_TOKENS', '1024'))
     GENERATOR_MAX_DOC_CHARS: int = int(getenv('GENERATOR_MAX_DOC_CHARS', '2000'))
+    GENERATOR_MAX_DOCS: int = int(getenv('GENERATOR_MAX_DOCS', '7'))
     GENERATOR_GROUNDED_ONLY: bool = getenv('GENERATOR_GROUNDED_ONLY', 'true').lower() in ('true', '1', 'yes')
     GENERATOR_TIMEOUT: int = int(getenv('GENERATOR_TIMEOUT', '120'))
 

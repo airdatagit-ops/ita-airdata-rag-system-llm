@@ -200,6 +200,40 @@ class TestRemoteEmbeddingModel:
     @patch("models.gpu_client._base_url", return_value="http://gpu:8090")
     @patch("models.gpu_client._headers", return_value={"Content-Type": "application/json"})
     @patch("models.gpu_client.config")
+    def test_encode_large_batch_uses_client_batching(self, mock_cfg, _h, _u):
+        """When texts exceed CLIENT_BATCH_SIZE, encode splits into multiple HTTP requests."""
+        mock_cfg.EMBEDDING_MODEL = "test-embed"
+        mock_cfg.EMBEDDING_DIMENSION = 4
+        mock_cfg.EMBEDDING_BATCH_SIZE = 32
+        mock_cfg.GPU_SERVER_URL = "http://gpu:8090"
+        mock_cfg.GPU_SERVER_API_KEY = ""
+        mock_cfg.GPU_SERVER_TIMEOUT = 120
+        model = RemoteEmbeddingModel()
+        model.CLIENT_BATCH_SIZE = 3  # small value to trigger batching
+
+        def _fake_post(url, headers, json):
+            n = len(json["texts"])
+            resp = MagicMock()
+            resp.json.return_value = {
+                "embeddings": [[float(i)] * 4 for i in range(n)],
+                "dimension": 4,
+                "elapsed_ms": 5,
+            }
+            resp.raise_for_status = MagicMock()
+            return resp
+
+        model._client = MagicMock()
+        model._client.post.side_effect = _fake_post
+
+        result = model.encode([f"text_{i}" for i in range(7)])
+
+        assert isinstance(result, np.ndarray)
+        assert result.shape == (7, 4)
+        assert model._client.post.call_count == 3  # ceil(7/3) = 3 HTTP requests
+
+    @patch("models.gpu_client._base_url", return_value="http://gpu:8090")
+    @patch("models.gpu_client._headers", return_value={"Content-Type": "application/json"})
+    @patch("models.gpu_client.config")
     def test_get_similarity(self, mock_cfg, _h, _u):
         mock_cfg.EMBEDDING_MODEL = "test-embed"
         mock_cfg.EMBEDDING_DIMENSION = 1024
