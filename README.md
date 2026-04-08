@@ -1519,7 +1519,57 @@ sudo systemctl restart ragapi ragweb
 make deploy
 ```
 
-Este comando executa: `git pull` → atualiza dependências → reinstala serviços systemd → reinicia os 3 serviços → health checks. O nginx **não é tocado** por padrão para evitar conflitos com outros serviços no servidor.
+Este comando executa: `git stash` → `git pull` → `git stash pop` → atualiza dependências → reinstala serviços systemd → reinicia os 3 serviços → health checks. O nginx **não é tocado** por padrão para evitar conflitos com outros serviços no servidor. O `git stash` preserva alterações locais nos `.env` que diferem do repositório.
+
+#### Deploy via GitHub Actions
+
+O projeto possui um workflow de CI/CD que permite deployar **qualquer branch** diretamente pela interface do GitHub, sem acessar o servidor via SSH.
+
+**Como usar:**
+
+1. Acesse o repositório no GitHub
+2. Vá em **Actions** > **Deploy** > **Run workflow**
+3. Selecione a branch desejada (default: `main`)
+4. Clique em **Run workflow**
+
+O workflow usa um **self-hosted runner** instalado no próprio servidor de produção. O runner faz polling via HTTPS (conexão de saída) para o GitHub, eliminando a necessidade de abrir portas de entrada no firewall da universidade.
+
+**Arquivo:** `.github/workflows/deploy.yml`
+
+**Fluxo de execução:**
+
+```
+GitHub Actions (trigger manual)
+  → Self-hosted runner no servidor
+    → git fetch + checkout da branch
+      → deploy.sh (stash, pull, deps, restart, health check)
+```
+
+#### Configuração do self-hosted runner
+
+O runner está instalado em `/home/jean/actions-runner` no servidor e roda como serviço systemd:
+
+```bash
+# Status do runner
+sudo systemctl status actions.runner.AirData-ITA-ita-airdata-rag-system-llm.airdatasrv02
+
+# Reiniciar se necessário
+sudo systemctl restart actions.runner.AirData-ITA-ita-airdata-rag-system-llm.airdatasrv02
+```
+
+Para instalar em um novo servidor:
+
+1. No GitHub: **Settings** > **Actions** > **Runners** > **New self-hosted runner**
+2. Seguir os comandos de instalação exibidos pelo GitHub
+3. Instalar como serviço: `sudo ./svc.sh install && sudo ./svc.sh start`
+4. Configurar sudoers para deploy sem senha:
+
+```bash
+sudo visudo -f /etc/sudoers.d/actions-runner
+# Adicionar:
+jean ALL=(ALL) NOPASSWD: /usr/bin/bash /home/jean/ita-airdata-rag-system-llm/deploy/deploy.sh
+jean ALL=(ALL) NOPASSWD: /usr/bin/bash /home/jean/ita-airdata-rag-system-llm/deploy/deploy.sh *
+```
 
 ### 14.2. Comandos de gerenciamento
 
@@ -1581,9 +1631,16 @@ A configuração dos virtual hosts fica em `/etc/nginx/sites-available/airdata-s
 
 | Virtual Host | `server_name` | Conteúdo |
 |---|---|---|
-| OWL Ontologia | `owl.airdata.ita.br _` (default) | Arquivos estáticos de `/var/www/airdata-site` + snippet rag |
+| OWL Ontologia | `owl.airdata.ita.br _` (default) | Arquivos estáticos + snippet rag + Airflow + pgweb |
 | Data Portal | `data.airdata.ita.br` | Proxy para porta 9010 |
 | Chatbot RAG | `chatbot.airdata.ita.br` | Proxy para ragweb (porta 8082, raiz) + snippet rag |
+
+Serviços de infraestrutura (apenas no virtual host OWL/default):
+
+| Location | Serviço | Porta | Observação |
+|---|---|---|---|
+| `/airflow/` | Apache Airflow | 8080 | `base_url` configurado em `airflow.cfg` para subpath |
+| `/pgweb/` | pgweb | 8081 | Basic Auth (admin), trailing slash strip no proxy |
 
 Para editar os virtual hosts:
 
@@ -1612,6 +1669,8 @@ sudo tail -f /var/log/nginx/error.log
 | Estatísticas | `http://chatbot.airdata.ita.br/ragapi/stats` (requer API Key) |
 | Ontologia OWL | `http://owl.airdata.ita.br/` |
 | Data Portal | `http://data.airdata.ita.br/` |
+| Airflow | `http://owl.airdata.ita.br/airflow/` |
+| pgweb | `http://owl.airdata.ita.br/pgweb/` (requer Basic Auth) |
 
 ### 14.5. Ordem de inicialização
 
