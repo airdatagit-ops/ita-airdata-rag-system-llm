@@ -23,7 +23,8 @@ jobs:
           echo "========================================="
           echo "  Deploying branch: $BRANCH"
           echo "========================================="
-          cd ~/ita-airdata-rag-system-llm
+          PROJECT_DIR="/home/jean/ita-airdata-rag-system-llm"
+          cd "$PROJECT_DIR"
           git fetch origin
           git checkout "$BRANCH"
-          sudo bash deploy/deploy.sh
+          sudo /usr/bin/bash "$PROJECT_DIR/deploy/deploy.sh"

@@ -233,7 +233,9 @@ preflight_check
 if ! $SKIP_PULL; then
     info "Pulling latest changes..."
     cd "$PROJECT_DIR"
+    sudo -u "$DEPLOY_USER" git stash --quiet 2>/dev/null || true
     sudo -u "$DEPLOY_USER" git pull
+    sudo -u "$DEPLOY_USER" git stash pop --quiet 2>/dev/null || true
     success "Git pull complete."
 else
     info "Skipping git pull (--skip-pull)."
