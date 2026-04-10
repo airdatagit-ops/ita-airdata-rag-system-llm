@@ -2,7 +2,6 @@
 
 import httpx
 import json
-import os
 from pathlib import Path
 from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.templating import Jinja2Templates
@@ -264,6 +263,7 @@ async def send_chat_message(request: Request):
         message = body.get("message", "")
         session_id = body.get("session_id")
         use_rag = body.get("use_rag", False)
+        debug = body.get("debug", False)
         model_name = body.get("model_name")
         
         headers = {"X-API-Key": settings.API_KEY}
@@ -280,6 +280,7 @@ async def send_chat_message(request: Request):
         payload = {
             "message": message,
             "use_rag": use_rag,
+            "debug": debug,
             "context_window": 10
         }
         
@@ -331,6 +332,7 @@ async def stream_chat_message(request: Request):
         message = body.get("message", "")
         session_id = body.get("session_id")
         use_rag = body.get("use_rag", False)
+        debug = body.get("debug", False)
         model_name = body.get("model_name")
         
         headers = {"X-API-Key": settings.API_KEY}
@@ -347,6 +349,7 @@ async def stream_chat_message(request: Request):
         payload = {
             "message": message,
             "use_rag": use_rag,
+            "debug": debug,
             "context_window": 10
         }
         

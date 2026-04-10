@@ -7,8 +7,7 @@ PDF-extracted and web-scraped text before embedding and indexing.
 
 import re
 import unicodedata
-from dataclasses import dataclass, field
-from typing import List, Optional
+from dataclasses import dataclass
 
 from loguru import logger
 

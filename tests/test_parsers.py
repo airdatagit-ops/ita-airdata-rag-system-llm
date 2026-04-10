@@ -12,7 +12,7 @@ def test_temporal_extractor():
     dates = extractor.extract_dates(text, publication_date="2023-01-01")
 
     assert dates["effective_date"] == "2023-06-15"
-    assert dates["is_revoked"] == False
+    assert not dates["is_revoked"]
 
 
 def test_revocation_detection_revoking_act():

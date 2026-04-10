@@ -19,7 +19,6 @@ import csv
 import json
 import re
 import time
-from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -27,8 +26,7 @@ from typing import Dict, List, Optional
 
 from loguru import logger
 
-from models.embeddings import EmbeddingModel
-from models.llm import LlamaModel
+from models.gpu_client import create_embedding_model, create_llm
 from database.qdrant_manager import QdrantManager
 from config import config
 
@@ -179,9 +177,9 @@ class GenerationEvaluator:
         sparse_mode = use_sparse and not use_dense
         mode_label = "hybrid" if hybrid_mode else ("sparse" if sparse_mode else "dense")
 
-        embed_model = EmbeddingModel()
+        embed_model = create_embedding_model()
         qdrant = QdrantManager()
-        llm = LlamaModel()
+        llm = create_llm()
 
         logger.info(f"Batch encoding {len(query_texts)} queries (mode={mode_label})...")
         dense_embeddings = embed_model.encode(query_texts) if use_dense else None

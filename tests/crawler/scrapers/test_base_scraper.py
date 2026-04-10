@@ -1,12 +1,11 @@
 """Tests for crawler.scrapers.base and crawler.scrapers registry."""
 
 import asyncio
-from typing import Dict, List, Optional
 
 import pytest
 
 from crawler.scrapers.base import BaseScraper, ScrapedDocument
-from crawler.scrapers import get_scraper, list_scrapers, _REGISTRY
+from crawler.scrapers import get_scraper, list_scrapers
 
 
 # ── concrete test scraper ────────────────────────────────────────────────────

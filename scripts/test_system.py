@@ -2,8 +2,7 @@
 
 from loguru import logger
 from database.qdrant_manager import QdrantManager
-from models.embeddings import EmbeddingModel
-from models.llm import LlamaModel
+from models.gpu_client import create_embedding_model, create_llm
 from search.rag import RAGPipeline
 
 
@@ -22,7 +21,7 @@ def test_qdrant():
 def test_embeddings():
     """Test embedding model."""
     try:
-        model = EmbeddingModel()
+        model = create_embedding_model()
         emb = model.encode("test")
         logger.success(f"✓ Embeddings: {emb.shape}")
         return True
@@ -34,7 +33,7 @@ def test_embeddings():
 def test_llm():
     """Test LLM."""
     try:
-        llm = LlamaModel()
+        llm = create_llm()
         response = llm.generate("Diga olá", max_tokens=10)
         logger.success(f"✓ LLM: {response[:50]}...")
         return True

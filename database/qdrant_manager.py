@@ -19,6 +19,7 @@ from qdrant_client.models import (
 )
 
 from config import config
+from search.shared.exceptions import SearchBackendError
 
 PREFETCH_MULTIPLIER = 3
 
@@ -49,7 +50,38 @@ class QdrantManager:
                 prefer_grpc=True, timeout=120,
             )
 
+        self._collection_vectors: set[str] = self._detect_available_vectors()
         logger.info(f"QdrantManager initialized ({self.host}:{self.port})")
+
+    @property
+    def has_dense(self) -> bool:
+        return "dense" in self._collection_vectors
+
+    @property
+    def has_sparse(self) -> bool:
+        return "sparse" in self._collection_vectors
+
+    def _detect_available_vectors(self) -> set[str]:
+        """Introspect the collection to discover which named vectors exist."""
+        try:
+            info = self.client.get_collection(self.collection_name)
+        except Exception:
+            return set()
+
+        available: set[str] = set()
+
+        vectors_cfg = info.config.params.vectors
+        if isinstance(vectors_cfg, dict):
+            available.update(vectors_cfg.keys())
+
+        sparse_cfg = info.config.params.sparse_vectors
+        if isinstance(sparse_cfg, dict):
+            available.update(sparse_cfg.keys())
+
+        if available:
+            logger.info(f"Collection vectors: {sorted(available)}")
+
+        return available
 
     def create_collection(
         self,
@@ -246,6 +278,22 @@ class QdrantManager:
             ])
 
         limit = limit or config.SEARCH_TOP_K
+
+        # Filter out vectors the collection doesn't support
+        if dense_vector is not None and not self.has_dense:
+            logger.warning("Dense vector provided but collection has no 'dense' vectors — ignoring")
+            dense_vector = None
+        if sparse_vector is not None and not self.has_sparse:
+            logger.warning("Sparse vector provided but collection has no 'sparse' vectors — ignoring")
+            sparse_vector = None
+
+        if dense_vector is None and sparse_vector is None:
+            raise SearchBackendError(
+                "No usable vectors: collection supports "
+                f"{sorted(self._collection_vectors) or 'none'}, "
+                "but neither matched the provided query vectors"
+            )
+
         has_dense = dense_vector is not None
         has_sparse = sparse_vector is not None
 
@@ -262,8 +310,7 @@ class QdrantManager:
             return points
 
         except Exception as e:
-            logger.error(f"Error searching: {e}")
-            return []
+            raise SearchBackendError(f"Qdrant search failed: {e}") from e
 
     def _search_hybrid(self, dense_vector, sparse_vector, limit, filters, with_payload):
         """Hybrid search: prefetch from both branches, fuse with RRF."""

@@ -254,7 +254,6 @@ def example_streaming_chat():
     print("Assistant: ", end='', flush=True)
 
     session_id = None
-    sources = None
 
     for chunk in client.chat_stream(
         message="Explique o que é um RAG system em detalhes.",
@@ -268,7 +267,7 @@ def example_streaming_chat():
         elif chunk_type == 'chunk':
             print(chunk.get('content', ''), end='', flush=True)
         elif chunk_type == 'sources':
-            sources = chunk.get('sources')
+            _ = chunk.get('sources')
         elif chunk_type == 'done':
             print("\n[Stream completed]")
         elif chunk_type == 'error':

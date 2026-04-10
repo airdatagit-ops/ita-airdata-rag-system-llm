@@ -1,4 +1,4 @@
-.PHONY: test eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check
+.PHONY: test lint lint-fix eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models backup restore
 
 PYTHON ?= python
 K ?= 5
@@ -16,6 +16,10 @@ MODE ?=
 BATCH_SIZE ?=
 STORE_DB ?= data/store.db
 SQL ?=
+QDRANT_HOST ?= localhost
+QDRANT_PORT ?= 6333
+QDRANT_COLLECTION ?= aviation_regulations
+BACKUP_DIR ?= data/backups
 
 help:
 	@echo "Usage:"
@@ -57,10 +61,23 @@ help:
 	@echo "  make query SQL='SELECT source, COUNT(*) ...'      Run a one-shot SQL query"
 	@echo "  make explore                                      Open datasette web UI for the store"
 	@echo ""
+	@echo "  ── development ──────────────────────────────────────────────────────"
+	@echo "  make download-models                              Pre-download all ML models"
+	@echo "  make download-models SKIP_OLLAMA=1                Skip Ollama pulls"
+	@echo "  make start                                        Start API + Web (Ctrl+C to stop)"
+	@echo "  make start-api                                    Start only the API server"
+	@echo "  make start-web                                    Start only the Web server"
+	@echo ""
+	@echo "  ── backup & restore ──────────────────────────────────────────────────"
+	@echo "  make backup                                       Snapshot Qdrant collection to data/backups/"
+	@echo "  make restore FILE=data/backups/<snapshot>.snapshot Restore collection from snapshot file"
+	@echo ""
 	@echo "  ── utilities ─────────────────────────────────────────────────────────"
 	@echo "  make migrate                                      Run database migrations"
 	@echo "  make test                                         Run all unit tests"
 	@echo "  make test FILE=tests/evaluation                   Run tests in a specific dir or file"
+	@echo "  make lint                                         Run linter (ruff) — unused imports, etc."
+	@echo "  make lint-fix                                     Auto-fix lint errors"
 	@echo "  make clean                                        Remove evaluation result files"
 	@echo ""
 	@echo "  ── deploy ────────────────────────────────────────────────────────────"
@@ -71,6 +88,12 @@ help:
 
 test:
 	$(PYTHON) -m pytest $(or $(FILE),tests/) -v --tb=short
+
+lint:
+	$(PYTHON) -m ruff check .
+
+lint-fix:
+	$(PYTHON) -m ruff check --fix .
 
 eval: eval-retrieval eval-generation
 
@@ -123,6 +146,25 @@ migrate:
 clean:
 	rm -f evaluation/results/*.csv evaluation/results/*.json
 
+download-models:
+	$(PYTHON) -m scripts.download_models $(if $(SKIP_OLLAMA),--skip-ollama,) $(if $(SKIP_EMBEDDINGS),--skip-embeddings,) $(if $(SKIP_CROSS_ENCODER),--skip-cross-encoder,)
+
+start-api:
+	$(PYTHON) -m uvicorn api.server:app --host 127.0.0.1 --port 8083 --reload
+
+start-web:
+	cd web && API_BASE_URL=http://127.0.0.1:8083 ROOT_PATH= $(PYTHON) -m uvicorn main:app --host 127.0.0.1 --port 8082 --reload
+
+start:
+	@echo "API  →  http://127.0.0.1:8083"
+	@echo "Web  →  http://127.0.0.1:8082"
+	@echo "Ctrl+C to stop both"
+	@echo ""
+	@trap 'kill 0' EXIT; \
+	$(PYTHON) -m uvicorn api.server:app --host 127.0.0.1 --port 8083 --reload & \
+	cd web && API_BASE_URL=http://127.0.0.1:8083 ROOT_PATH= $(PYTHON) -m uvicorn main:app --host 127.0.0.1 --port 8082 --reload & \
+	wait
+
 deploy:
 	@sudo bash deploy/deploy.sh
 
@@ -134,3 +176,41 @@ deploy-nginx:
 
 check:
 	@bash deploy/deploy.sh --check-only
+
+# ── Qdrant Backup & Restore ──────────────────────────────────────────────────
+
+backup:
+	@curl -sf "http://$(QDRANT_HOST):$(QDRANT_PORT)/healthz" > /dev/null \
+	  || (echo "Error: Qdrant not reachable at $(QDRANT_HOST):$(QDRANT_PORT)" && exit 1)
+	@mkdir -p $(BACKUP_DIR)
+	@echo "Creating Qdrant snapshot for '$(QDRANT_COLLECTION)' …"
+	@SNAP_NAME=$$(curl -sf -X POST \
+	  "http://$(QDRANT_HOST):$(QDRANT_PORT)/collections/$(QDRANT_COLLECTION)/snapshots" \
+	  | $(PYTHON) -c "import sys,json; print(json.load(sys.stdin)['result']['name'])") && \
+	echo "Snapshot created: $$SNAP_NAME" && \
+	echo "Downloading to $(BACKUP_DIR)/$$SNAP_NAME …" && \
+	curl -sf -o "$(BACKUP_DIR)/$$SNAP_NAME" \
+	  "http://$(QDRANT_HOST):$(QDRANT_PORT)/collections/$(QDRANT_COLLECTION)/snapshots/$$SNAP_NAME" && \
+	FILE_SIZE=$$(du -h "$(BACKUP_DIR)/$$SNAP_NAME" | cut -f1) && \
+	echo "Backup saved: $(BACKUP_DIR)/$$SNAP_NAME ($$FILE_SIZE)" && \
+	echo "Restore with: make restore FILE=$(BACKUP_DIR)/$$SNAP_NAME"
+
+restore:
+ifndef FILE
+	@echo "Usage: make restore FILE=data/backups/<snapshot-name>.snapshot"
+	@echo ""
+	@echo "Available snapshots:"
+	@ls -lh $(BACKUP_DIR)/*.snapshot 2>/dev/null || echo "  (none found in $(BACKUP_DIR)/)"
+	@exit 1
+endif
+	@test -f "$(FILE)" || (echo "File not found: $(FILE)" && exit 1)
+	@FILE_SIZE=$$(du -h "$(FILE)" | cut -f1) && \
+	echo "Restoring '$(QDRANT_COLLECTION)' from $(FILE) ($$FILE_SIZE) …"
+	@curl -sf -X POST \
+	  "http://$(QDRANT_HOST):$(QDRANT_PORT)/collections/$(QDRANT_COLLECTION)/snapshots/upload?priority=snapshot" \
+	  -H "Content-Type: multipart/form-data" \
+	  -F "snapshot=@$(FILE)" && \
+	echo "" && echo "Restore complete." && \
+	echo "Verifying …" && \
+	curl -sf "http://$(QDRANT_HOST):$(QDRANT_PORT)/collections/$(QDRANT_COLLECTION)" \
+	  | $(PYTHON) -c "import sys,json; i=json.load(sys.stdin)['result']; print(f\"  Points: {i['points_count']}, Status: {i['status']}\")"

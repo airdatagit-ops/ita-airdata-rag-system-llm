@@ -41,6 +41,14 @@
           <small>Busca informações nos documentos indexados</small>
         </div>
         
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="debugMode" checked/>
+            Modo Debug (pipeline)
+          </label>
+          <small>Exibe trace detalhado do pipeline RAG</small>
+        </div>
+        
         <button id="newChatBtn" class="btn btn-secondary">
           🔄 Nova Conversa
         </button>
@@ -147,6 +155,7 @@
       sendBtn: document.getElementById('sendBtn'),
       modelSelect: document.getElementById('modelSelect'),
       useRag: document.getElementById('useRag'),
+      debugMode: document.getElementById('debugMode'),
       typingIndicator: document.getElementById('typingIndicator'),
       newChatBtn: document.getElementById('newChatBtn'),
       historyList: document.getElementById('historyList'),
@@ -239,6 +248,7 @@
             message: message,
             session_id: this.sessionId,
             use_rag: this.elements.useRag.checked,
+            debug: this.elements.debugMode.checked,
             model_name: this.elements.modelSelect.value
           })
         });
@@ -255,48 +265,56 @@
         let fullContent = '';
         let sources = null;
         let finalData = null;
+        let debugTrace = null;
         
-        // Read SSE stream
+        // Read SSE stream with proper line buffering
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let sseBuffer = '';
         
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           
-          const text = decoder.decode(value, { stream: true });
-          const lines = text.split('\n');
+          sseBuffer += decoder.decode(value, { stream: true });
+          const events = sseBuffer.split('\n\n');
+          sseBuffer = events.pop();
           
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
+          for (const event of events) {
+            for (const line of event.split('\n')) {
+              if (!line.startsWith('data: ')) continue;
+              let data;
               try {
-                const data = JSON.parse(line.slice(6));
-                
-                if (data.type === 'token') {
-                  fullContent += data.content;
-                  textContainer.innerHTML = this.formatMessage(fullContent);
-                  this.scrollToBottom();
-                } else if (data.type === 'sources') {
-                  sources = data.sources;
-                } else if (data.type === 'done') {
-                  finalData = data;
-                  this.sessionId = data.session_id;
-                  this.messageCount = data.message_count;
-                } else if (data.type === 'error') {
-                  throw new Error(data.error);
-                }
-              } catch (e) {
-                // Ignore parse errors for incomplete chunks
-                if (e.message && !e.message.includes('JSON')) {
-                  throw e;
-                }
+                data = JSON.parse(line.slice(6));
+              } catch (parseErr) {
+                console.warn('SSE JSON parse error (skipped):', parseErr.message);
+                continue;
+              }
+              if (data.type === 'status') {
+                const stages = { searching: '🔍 Buscando documentos...', generating: '✍️ Gerando resposta...' };
+                textContainer.innerHTML = `<span class="pipeline-status">${stages[data.stage] || data.stage}</span>`;
+                this.scrollToBottom();
+              } else if (data.type === 'token') {
+                fullContent += data.content;
+                textContainer.innerHTML = this.formatMessage(fullContent);
+                this.scrollToBottom();
+              } else if (data.type === 'sources') {
+                sources = data.sources;
+              } else if (data.type === 'debug_trace') {
+                debugTrace = data.trace;
+              } else if (data.type === 'done') {
+                finalData = data;
+                this.sessionId = data.session_id;
+                this.messageCount = data.message_count;
+              } else if (data.type === 'error') {
+                throw new Error(data.error);
               }
             }
           }
         }
         
         // Update message with final metadata
-        this.finalizeStreamingMessage(messageDiv, sources, finalData);
+        this.finalizeStreamingMessage(messageDiv, sources, finalData, debugTrace);
         
         // Update UI
         this.updateSessionInfo();
@@ -336,7 +354,7 @@
       return messageDiv;
     },
     
-    finalizeStreamingMessage(messageDiv, sources, finalData) {
+    finalizeStreamingMessage(messageDiv, sources, finalData, debugTrace = null) {
       messageDiv.classList.remove('streaming');
       const contentDiv = messageDiv.querySelector('.message-content');
       
@@ -344,6 +362,36 @@
       const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       messageDiv.dataset.messageId = messageId;
       
+      // Add debug trace button if available
+      if (debugTrace) {
+        const traceId = `trace_${messageId}`;
+        this.tracesData = this.tracesData || {};
+        this.tracesData[traceId] = debugTrace;
+        contentDiv.insertAdjacentHTML('beforeend', `
+          <div class="debug-trace-actions">
+            <button class="debug-trace-btn" data-trace-id="${traceId}">
+              🔍 Ver Pipeline Trace
+            </button>
+          </div>
+        `);
+        contentDiv.querySelector(`[data-trace-id="${traceId}"]`).addEventListener('click', (e) => {
+          const btn = e.currentTarget;
+          const panel = btn.closest('.debug-trace-actions').querySelector('.debug-trace-panel');
+          if (panel) {
+            panel.remove();
+            btn.textContent = '🔍 Ver Pipeline Trace';
+          } else {
+            btn.insertAdjacentHTML('afterend', this.renderDebugTrace(this.tracesData[traceId]));
+            btn.textContent = '🔍 Ocultar Pipeline Trace';
+          }
+        });
+      }
+      
+      // Link inline citations to sources
+      if (sources && sources.length > 0) {
+        this.linkCitations(contentDiv, sources);
+      }
+
       // Add sources if present
       if (sources && sources.length > 0) {
         let sourcesHTML = `
@@ -351,19 +399,22 @@
             <div class="sources-header">📚 Fontes consultadas (clique para ver detalhes):</div>
             <ul class="sources-list">
         `;
-        sources.slice(0, 3).forEach((source, idx) => {
+        sources.slice(0, 5).forEach((source, idx) => {
           const sourceId = `source_${messageId}_${idx}`;
-          // Store source data globally
+          const sourceUrl = (source.metadata && source.metadata.url) || '';
           this.sourcesData[sourceId] = {
             regulation_id: source.regulation_id || 'Desconhecido',
             text: source.text || 'Texto não disponível',
-            score: source.score || 0
+            score: source.score || 0,
+            url: sourceUrl,
+            metadata: source.metadata || {},
           };
           const previewText = (source.text || '').substring(0, 80).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const linkIcon = sourceUrl ? `<a href="${sourceUrl}" target="_blank" rel="noopener" class="source-link" title="Ver documento original" onclick="event.stopPropagation()">🔗</a>` : '';
           sourcesHTML += `
             <li class="source-item clickable" data-source-id="${sourceId}">
               <div class="source-info">
-                <strong>${source.regulation_id}</strong>
+                <strong>${source.regulation_id}</strong> ${linkIcon}
                 <span class="source-preview">${previewText}...</span>
               </div>
               <span class="score">(score: ${source.score?.toFixed(2) || 'N/A'}) 👁️</span>
@@ -420,19 +471,22 @@
             <div class="sources-header">📚 Fontes consultadas (clique para ver detalhes):</div>
             <ul class="sources-list">
         `;
-        sources.slice(0, 3).forEach((source, idx) => {
+        sources.slice(0, 5).forEach((source, idx) => {
           const sourceId = `source_${msgId}_${idx}`;
-          // Store source data globally
+          const sourceUrl = (source.metadata && source.metadata.url) || '';
           this.sourcesData[sourceId] = {
             regulation_id: source.regulation_id || 'Desconhecido',
             text: source.text || 'Texto não disponível',
-            score: source.score || 0
+            score: source.score || 0,
+            url: sourceUrl,
+            metadata: source.metadata || {},
           };
           const previewText = (source.text || '').substring(0, 80).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const linkIcon = sourceUrl ? `<a href="${sourceUrl}" target="_blank" rel="noopener" class="source-link" title="Ver documento original" onclick="event.stopPropagation()">🔗</a>` : '';
           messageHTML += `
             <li class="source-item clickable" data-source-id="${sourceId}">
               <div class="source-info">
-                <strong>${source.regulation_id}</strong>
+                <strong>${source.regulation_id}</strong> ${linkIcon}
                 <span class="source-preview">${previewText}...</span>
               </div>
               <span class="score">(score: ${source.score?.toFixed(2) || 'N/A'}) 👁️</span>
@@ -586,13 +640,34 @@
     },
     
     formatMessage(content) {
-      // Convert newlines to <br>
-      let formatted = content.replace(/\n/g, '<br>');
-      
-      // Simple markdown-like formatting
+      let formatted = this.escapeHtml(content);
+
+      // Markdown: bold, italic, inline code
       formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
       formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
-      
+      formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      // Markdown lists (- item or 1. item)
+      formatted = formatted.replace(/^(\d+)\.\s+(.+)$/gm, '<li class="md-ol">$2</li>');
+      formatted = formatted.replace(/^[-•]\s+(.+)$/gm, '<li class="md-ul">$1</li>');
+
+      // Wrap consecutive <li> in <ul>/<ol>
+      formatted = formatted.replace(/((?:<li class="md-ul">.*?<\/li>\s*)+)/g, '<ul>$1</ul>');
+      formatted = formatted.replace(/((?:<li class="md-ol">.*?<\/li>\s*)+)/g, '<ol>$1</ol>');
+
+      // Inline citations: [TIPO NÚMERO] -> badge with data-ref for linking
+      formatted = formatted.replace(
+        /\[([A-Z]{2,6})\s+([\d\-\.\/]+(?:\s*[\w\-\.\/]+)?)\]/g,
+        '<span class="citation-badge" data-ref="$1 $2" title="$1 $2">$1 $2</span>'
+      );
+
+      // Newlines to <br> (skip inside lists)
+      formatted = formatted.replace(/\n/g, '<br>');
+
+      // Clean up <br> before/after block elements
+      formatted = formatted.replace(/<br>\s*(<[uo]l>)/g, '$1');
+      formatted = formatted.replace(/(<\/[uo]l>)\s*<br>/g, '$1');
+
       return formatted;
     },
     
@@ -623,6 +698,33 @@
         });
       });
     },
+
+    linkCitations(container, sources) {
+      const badges = container.querySelectorAll('.citation-badge[data-ref]');
+      if (!badges.length || !sources.length) return;
+
+      badges.forEach(badge => {
+        const ref = badge.dataset.ref.toLowerCase();
+        const match = sources.find(s => {
+          const regId = (s.regulation_id || '').toLowerCase();
+          return regId.includes(ref) || ref.includes(regId.replace(/-/g, ' '));
+        });
+
+        if (match) {
+          const url = (match.metadata && match.metadata.url) || '';
+          if (url) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.className = 'citation-link';
+            link.title = `Ver ${match.regulation_id}`;
+            link.innerHTML = badge.outerHTML;
+            badge.replaceWith(link);
+          }
+        }
+      });
+    },
     
     openSourceModal(sourceId) {
       const sourceData = this.sourcesData[sourceId];
@@ -639,7 +741,15 @@
       this.currentSourceText = sourceData.text;
       
       titleEl.textContent = `📄 ${sourceData.regulation_id}`;
-      metaEl.innerHTML = `<span class="meta-score">Score de similaridade: <strong>${sourceData.score?.toFixed(4) || 'N/A'}</strong></span>`;
+      
+      let metaHTML = `<span class="meta-score">Score: <strong>${sourceData.score?.toFixed(4) || 'N/A'}</strong></span>`;
+      const meta = sourceData.metadata || {};
+      if (meta.type) metaHTML += ` | Tipo: <strong>${meta.type}</strong>`;
+      if (meta.authority) metaHTML += ` | Órgão: <strong>${meta.authority}</strong>`;
+      if (sourceData.url) {
+        metaHTML += ` | <a href="${sourceData.url}" target="_blank" rel="noopener" class="source-doc-link">🔗 Ver documento original</a>`;
+      }
+      metaEl.innerHTML = metaHTML;
       textEl.textContent = sourceData.text;
       
       modal.classList.add('active');
@@ -664,6 +774,168 @@
           console.error('Erro ao copiar:', err);
           alert('Erro ao copiar texto');
         });
+    },
+    
+    renderDebugTrace(trace) {
+      if (!trace) return '';
+      
+      const timings = trace.timings || {};
+      const totalMs = timings.total_ms || 1;
+      const rewriterPct = Math.round((timings.rewriter_ms || 0) / totalMs * 100);
+      const searcherPct = Math.round((timings.searcher_ms || 0) / totalMs * 100);
+      const evaluatorPct = Math.round((timings.evaluator_ms || 0) / totalMs * 100);
+      const generatorPct = Math.round((timings.generator_ms || 0) / totalMs * 100);
+      
+      const queries = (trace.rewritten_queries || []).map(q => {
+        const filtersStr = (q.filters || []).map(f => `${f.field} ${f.operator} ${JSON.stringify(f.value)}`).join(', ');
+        return `<div class="debug-query-item">
+          <span class="debug-query-text">${this.escapeHtml(q.text)}</span>
+          ${q.facet_type ? `<span class="debug-badge">${q.facet_type}</span>` : ''}
+          ${filtersStr ? `<span class="debug-filters">Filtros: ${this.escapeHtml(filtersStr)}</span>` : ''}
+        </div>`;
+      }).join('');
+      
+      const evalScores = (trace.evaluation_scores || []).map(e => {
+        const statusClass = e.accepted ? 'debug-score-accepted' : 'debug-score-rejected';
+        const statusIcon = e.accepted ? '✅' : '❌';
+        const docLabel = this.escapeHtml(e.regulation_id || '?');
+        const docCell = e.url
+          ? `<a href="${this.escapeHtml(e.url)}" target="_blank" rel="noopener" class="debug-doc-link">${docLabel}</a>`
+          : docLabel;
+        return `<tr class="${statusClass}">
+          <td>${docCell}</td>
+          <td>${e.score?.toFixed(1) || '0'}</td>
+          <td>${statusIcon}</td>
+        </tr>`;
+      }).join('');
+      
+      const errors = (trace.errors || []).map(e => 
+        `<div class="debug-error-item">⚠️ ${this.escapeHtml(e)}</div>`
+      ).join('');
+      
+      return `
+        <div class="debug-trace-panel expanded">
+          <div class="debug-trace-header" onclick="this.parentElement.classList.toggle('expanded')">
+            🔍 Pipeline Debug Trace
+            <span class="debug-toggle-icon">▶</span>
+          </div>
+          <div class="debug-trace-body">
+            <div class="debug-section">
+              <div class="debug-section-title">⏱️ Timings (${totalMs}ms total)</div>
+              <div class="debug-timing-bar">
+                <div class="debug-timing-segment rewriter" style="width:${rewriterPct}%" title="Rewriter: ${timings.rewriter_ms || 0}ms">
+                  ${timings.rewriter_ms || 0}ms
+                </div>
+                <div class="debug-timing-segment searcher" style="width:${searcherPct}%" title="Searcher: ${timings.searcher_ms || 0}ms">
+                  ${timings.searcher_ms || 0}ms
+                </div>
+                <div class="debug-timing-segment evaluator" style="width:${evaluatorPct}%" title="Evaluator: ${timings.evaluator_ms || 0}ms">
+                  ${timings.evaluator_ms || 0}ms
+                </div>
+                <div class="debug-timing-segment generator" style="width:${generatorPct}%" title="Generator: ${timings.generator_ms || 0}ms">
+                  ${timings.generator_ms || 0}ms
+                </div>
+              </div>
+              <div class="debug-timing-legend">
+                <span class="legend-item rewriter">Rewriter</span>
+                <span class="legend-item searcher">Searcher</span>
+                <span class="legend-item evaluator">Evaluator</span>
+                <span class="legend-item generator">Generator</span>
+              </div>
+            </div>
+            
+            <div class="debug-section">
+              <div class="debug-section-title">✏️ Rewriter (${(trace.rewritten_queries || []).length} queries)</div>
+              <div class="debug-original">Original: "${this.escapeHtml(trace.original_query || '')}"</div>
+              ${queries}
+            </div>
+            
+            <div class="debug-section">
+              <div class="debug-section-title">🔎 Searcher</div>
+              <div class="debug-stats">
+                Encontrados: ${trace.total_documents_found || 0} |
+                Após dedup: ${trace.documents_after_dedup || 0}
+              </div>
+            </div>
+            
+            ${evalScores ? `
+            <div class="debug-section">
+              <div class="debug-section-title">📊 Evaluator (threshold: ${trace.evaluation_threshold || 0})</div>
+              <div class="debug-stats">
+                Aceitos: ${trace.documents_accepted || 0} |
+                Descartados: ${trace.documents_discarded || 0}
+              </div>
+              <table class="debug-eval-table">
+                <thead><tr><th>Documento</th><th>Score</th><th>Status</th></tr></thead>
+                <tbody>${evalScores}</tbody>
+              </table>
+            </div>` : ''}
+            
+            <div class="debug-section">
+              <div class="debug-section-title">🤖 Generator</div>
+              <div class="debug-stats">
+                Modelo: ${this.escapeHtml(trace.generator_model || '?')} |
+                Grounded: ${trace.generator_grounded_only ? 'Sim' : 'Não'} |
+                Contexto: ${trace.generator_context_length || 0} chars |
+                Docs: ${(trace.generator_documents || []).length}
+              </div>
+              ${this.renderGeneratorDocuments(trace.generator_documents || [])}
+            </div>
+            
+            ${errors ? `
+            <div class="debug-section debug-errors">
+              <div class="debug-section-title">⚠️ Warnings</div>
+              ${errors}
+            </div>` : ''}
+          </div>
+        </div>
+      `;
+    },
+    
+    renderGeneratorDocuments(docs) {
+      if (!docs || docs.length === 0) return '';
+      const items = docs.map((doc, i) => {
+        const label = (doc.type && doc.number)
+          ? `${doc.type} ${doc.number}`
+          : doc.regulation_id || `Doc ${i + 1}`;
+        const truncBadge = doc.truncated
+          ? '<span class="debug-badge debug-badge-warn">truncado</span>'
+          : '';
+        const docId = `gen_doc_${Date.now()}_${i}`;
+        return `
+          <div class="debug-gen-doc">
+            <div class="debug-gen-doc-header" onclick="
+              const body = document.getElementById('${docId}');
+              const icon = this.querySelector('.debug-toggle-icon');
+              if (body.style.display === 'none') {
+                body.style.display = 'block';
+                icon.textContent = '▼';
+              } else {
+                body.style.display = 'none';
+                icon.textContent = '▶';
+              }
+            ">
+              <span class="debug-toggle-icon">▶</span>
+              <strong>[${i + 1}] ${this.escapeHtml(label)}</strong>
+              <span class="debug-gen-doc-meta">
+                score: ${doc.score != null ? doc.score.toFixed(1) : '?'} |
+                ${doc.char_count || 0} chars
+                ${truncBadge}
+              </span>
+            </div>
+            <div id="${docId}" class="debug-gen-doc-body" style="display:none">
+              ${doc.title ? `<div class="debug-gen-doc-title">${this.escapeHtml(doc.title)}</div>` : ''}
+              <pre class="debug-gen-doc-text">${this.escapeHtml(doc.text || '')}</pre>
+            </div>
+          </div>`;
+      }).join('');
+      return `<div class="debug-gen-docs">${items}</div>`;
+    },
+
+    escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
     },
     
     startNewChat() {

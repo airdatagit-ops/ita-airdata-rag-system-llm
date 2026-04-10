@@ -28,13 +28,12 @@ from typing import Dict, List, Optional, Set
 
 import aiohttp
 from aiolimiter import AsyncLimiter
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 from loguru import logger
 
 from config import config
 from crawler.scrapers.base import (
-    BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, ORIGINALS_DIR,
-    compute_canonical_id, split_version_year,
+    BaseScraper, ScrapedDocument, DEFAULT_USER_AGENT, compute_canonical_id, split_version_year,
 )
 
 _FRONTIER_FILE = Path(config.DATA_DIR) / ".sislaer_frontier.json"

@@ -1,0 +1,21 @@
+# GPU Inference Server — Dependencies
+# Install with: pip install -r requirements.txt
+# For GPU support install PyTorch with CUDA separately first:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+
+# API framework
+fastapi>=0.115.0
+uvicorn>=0.34.0
+pydantic>=2.7.0
+loguru>=0.7.0
+
+# Numerical
+numpy>=2.0.0
+
+# ML models
+torch>=2.2.0
+sentence-transformers>=4.0.0
+transformers>=4.45.0
+
+# Ollama client (for LLM proxy)
+ollama>=0.4.0

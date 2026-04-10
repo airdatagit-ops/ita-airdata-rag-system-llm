@@ -21,7 +21,6 @@ from typing import Dict, Optional, List
 from dateutil import parser as date_parser
 from loguru import logger
 
-from config import config
 
 _PT_MONTHS = {
     "janeiro": 1, "fevereiro": 2, "março": 3, "marco": 3,

@@ -1,7 +1,7 @@
 """Chunking module for splitting documents into optimal chunks."""
 
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 from loguru import logger
 from config import config
 
@@ -220,8 +220,7 @@ class ICAChunker:
             return self._fallback_chunk(article, text)
         
         chunks = []
-        doc_id = article.get("regulation_id", article.get("slug", "unknown"))
-        
+
         for art_num, art_text in articles:
             # Check if article is too large
             estimated_tokens = len(art_text.split())

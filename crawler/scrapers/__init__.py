@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Dict, Type
 
-from crawler.scrapers.base import BaseScraper, ScrapedDocument  # noqa: re-export
+from crawler.scrapers.base import BaseScraper, ScrapedDocument as ScrapedDocument  # noqa: F401
 
 _REGISTRY: Dict[str, Type[BaseScraper]] = {}
 

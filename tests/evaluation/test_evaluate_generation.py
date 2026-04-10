@@ -84,18 +84,18 @@ class TestGenerationEvaluator:
         with pytest.raises(FileNotFoundError):
             GenerationEvaluator(golden_set_path=str(tmp_path / "nope.csv"))
 
-    @patch("evaluation.evaluate_generation.LlamaModel")
+    @patch("evaluation.evaluate_generation.create_llm")
     @patch("evaluation.evaluate_generation.QdrantManager")
-    @patch("evaluation.evaluate_generation.EmbeddingModel")
-    def test_evaluate_with_results(self, MockEmbed, MockQdrant, MockLlm, evaluator):
-        MockEmbed.return_value.encode.return_value = np.random.rand(2, 1024)
+    @patch("evaluation.evaluate_generation.create_embedding_model")
+    def test_evaluate_with_results(self, MockCreateEmbed, MockQdrant, MockCreateLlm, evaluator):
+        MockCreateEmbed.return_value.encode.return_value = np.random.rand(2, 1024)
 
         mock_point = MagicMock()
         mock_point.payload = {"regulation_id": "DOC-1", "text": "Artigo sobre voo."}
         mock_point.score = 0.9
         MockQdrant.return_value.search.return_value = [mock_point]
 
-        MockLlm.return_value.generate_with_context.return_value = (
+        MockCreateLlm.return_value.generate_with_context.return_value = (
             "Conforme ICA-96-1-art10, o artigo estabelece as regras."
         )
 
@@ -105,11 +105,11 @@ class TestGenerationEvaluator:
         assert result.citation_rate > 0
         assert result.empty_rate == 0
 
-    @patch("evaluation.evaluate_generation.LlamaModel")
+    @patch("evaluation.evaluate_generation.create_llm")
     @patch("evaluation.evaluate_generation.QdrantManager")
-    @patch("evaluation.evaluate_generation.EmbeddingModel")
-    def test_evaluate_no_results(self, MockEmbed, MockQdrant, MockLlm, evaluator):
-        MockEmbed.return_value.encode.return_value = np.random.rand(2, 1024)
+    @patch("evaluation.evaluate_generation.create_embedding_model")
+    def test_evaluate_no_results(self, MockCreateEmbed, MockQdrant, MockCreateLlm, evaluator):
+        MockCreateEmbed.return_value.encode.return_value = np.random.rand(2, 1024)
         MockQdrant.return_value.search.return_value = []
 
         result = evaluator.evaluate(k=5)
@@ -118,21 +118,21 @@ class TestGenerationEvaluator:
         for a in result.analyses:
             assert a.is_empty is True
 
-    @patch("evaluation.evaluate_generation.LlamaModel")
+    @patch("evaluation.evaluate_generation.create_llm")
     @patch("evaluation.evaluate_generation.QdrantManager")
-    @patch("evaluation.evaluate_generation.EmbeddingModel")
-    def test_evaluate_sample(self, MockEmbed, MockQdrant, MockLlm, evaluator):
-        MockEmbed.return_value.encode.return_value = np.random.rand(1, 1024)
+    @patch("evaluation.evaluate_generation.create_embedding_model")
+    def test_evaluate_sample(self, MockCreateEmbed, MockQdrant, MockCreateLlm, evaluator):
+        MockCreateEmbed.return_value.encode.return_value = np.random.rand(1, 1024)
         MockQdrant.return_value.search.return_value = []
 
         result = evaluator.evaluate(k=1, sample=1)
         assert result.total_queries == 1
 
-    @patch("evaluation.evaluate_generation.LlamaModel")
+    @patch("evaluation.evaluate_generation.create_llm")
     @patch("evaluation.evaluate_generation.QdrantManager")
-    @patch("evaluation.evaluate_generation.EmbeddingModel")
-    def test_save_results(self, MockEmbed, MockQdrant, MockLlm, evaluator, tmp_path):
-        MockEmbed.return_value.encode.return_value = np.random.rand(2, 1024)
+    @patch("evaluation.evaluate_generation.create_embedding_model")
+    def test_save_results(self, MockCreateEmbed, MockQdrant, MockCreateLlm, evaluator, tmp_path):
+        MockCreateEmbed.return_value.encode.return_value = np.random.rand(2, 1024)
         MockQdrant.return_value.search.return_value = []
 
         result = evaluator.evaluate(k=1)
@@ -147,18 +147,17 @@ class TestGenerationEvaluator:
         assert "empty_rate" in data["metrics"]
         assert len(data["analyses"]) == 2
 
-
     @patch("evaluation.evaluate_generation.config")
     @patch("evaluation.evaluate_generation.SparseEncoder")
-    @patch("evaluation.evaluate_generation.LlamaModel")
+    @patch("evaluation.evaluate_generation.create_llm")
     @patch("evaluation.evaluate_generation.QdrantManager")
-    @patch("evaluation.evaluate_generation.EmbeddingModel")
-    def test_evaluate_hybrid_mode(self, MockEmbed, MockQdrant, MockLlm, MockSparse, mock_config, evaluator):
+    @patch("evaluation.evaluate_generation.create_embedding_model")
+    def test_evaluate_hybrid_mode(self, MockCreateEmbed, MockQdrant, MockCreateLlm, MockSparse, mock_config, evaluator):
         """When SEARCH_SPARSE_ENABLED=True, evaluation should use hybrid search."""
         mock_config.SEARCH_DENSE_ENABLED = True
         mock_config.SEARCH_SPARSE_ENABLED = True
 
-        MockEmbed.return_value.encode.return_value = np.random.rand(2, 1024)
+        MockCreateEmbed.return_value.encode.return_value = np.random.rand(2, 1024)
         MockSparse.return_value.encode.return_value = [{"indices": [0], "values": [1.0]}] * 2
 
         mock_point = MagicMock()
@@ -166,7 +165,7 @@ class TestGenerationEvaluator:
         mock_point.score = 0.9
         MockQdrant.return_value.search.return_value = [mock_point]
 
-        MockLlm.return_value.generate_with_context.return_value = "Conforme ICA-96-1, regras."
+        MockCreateLlm.return_value.generate_with_context.return_value = "Conforme ICA-96-1, regras."
 
         result = evaluator.evaluate(k=5, sample=1)
         assert result.total_queries == 1
@@ -176,18 +175,18 @@ class TestGenerationEvaluator:
 
 
 class TestPrintReport:
-    @patch("evaluation.evaluate_generation.LlamaModel")
+    @patch("evaluation.evaluate_generation.create_llm")
     @patch("evaluation.evaluate_generation.QdrantManager")
-    @patch("evaluation.evaluate_generation.EmbeddingModel")
-    def test_print_report_runs(self, MockEmbed, MockQdrant, MockLlm, evaluator, capsys):
-        MockEmbed.return_value.encode.return_value = np.random.rand(2, 1024)
+    @patch("evaluation.evaluate_generation.create_embedding_model")
+    def test_print_report_runs(self, MockCreateEmbed, MockQdrant, MockCreateLlm, evaluator, capsys):
+        MockCreateEmbed.return_value.encode.return_value = np.random.rand(2, 1024)
 
         mock_point = MagicMock()
         mock_point.payload = {"regulation_id": "D1", "text": "t"}
         mock_point.score = 0.9
         MockQdrant.return_value.search.return_value = [mock_point]
 
-        MockLlm.return_value.generate_with_context.return_value = "Possivelmente algo."
+        MockCreateLlm.return_value.generate_with_context.return_value = "Possivelmente algo."
 
         result = evaluator.evaluate(k=1)
         print_report(result)

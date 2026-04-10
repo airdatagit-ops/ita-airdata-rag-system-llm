@@ -1,19 +1,41 @@
 """Tests for QdrantManager upload and indexing control."""
 
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from database.qdrant_manager import QdrantManager
+from search.exceptions import SearchBackendError
+
+
+def _make_collection_info(dense=True, sparse=True):
+    """Build a mock collection info with named vector configs."""
+    info = MagicMock()
+    vectors = {}
+    if dense:
+        vectors["dense"] = MagicMock()
+    sparse_vectors = {}
+    if sparse:
+        sparse_vectors["sparse"] = MagicMock()
+
+    info.config.params.vectors = vectors
+    info.config.params.sparse_vectors = sparse_vectors
+    return info
+
+
+def _make_manager(dense=True, sparse=True):
+    """Create a QdrantManager with a mocked client and collection vectors."""
+    with patch("database.qdrant_manager.QdrantClient") as MockClient:
+        mock_client = MagicMock()
+        mock_client.get_collection.return_value = _make_collection_info(dense, sparse)
+        MockClient.return_value = mock_client
+        mgr = QdrantManager(host="localhost", port=6333, collection_name="test")
+        return mgr
 
 
 @pytest.fixture
 def manager():
-    with patch("database.qdrant_manager.QdrantClient") as MockClient:
-        mock_client = MagicMock()
-        MockClient.return_value = mock_client
-        mgr = QdrantManager(host="localhost", port=6333, collection_name="test")
-        yield mgr
+    return _make_manager(dense=True, sparse=True)
 
 
 class TestDisableIndexing:
@@ -48,7 +70,7 @@ class TestWaitForIndexing:
 
         manager.wait_for_indexing(timeout_sec=5)
 
-        manager.client.get_collection.assert_called_once_with("test")
+        manager.client.get_collection.assert_called()
 
     @patch("time.sleep")
     def test_polls_until_green(self, mock_sleep, manager):
@@ -57,6 +79,7 @@ class TestWaitForIndexing:
         green = MagicMock()
         green.status.name = "GREEN"
 
+        manager.client.get_collection.reset_mock()
         manager.client.get_collection.side_effect = [yellow, yellow, green]
 
         manager.wait_for_indexing(timeout_sec=300)
@@ -109,3 +132,72 @@ class TestUpsertPoints:
         manager.client.upload_points.side_effect = RuntimeError("fail")
         points = [{"id": "1", "vector": [0.1], "payload": {}}]
         assert manager.upsert_points(points) is False
+
+
+class TestSearchErrorHandling:
+
+    def test_raises_search_backend_error_on_failure(self, manager):
+        manager.client.query_points.side_effect = RuntimeError("connection lost")
+
+        with pytest.raises(SearchBackendError, match="Qdrant search failed"):
+            manager.search(dense_vector=[0.1, 0.2])
+
+
+class TestCollectionIntrospection:
+
+    def test_detects_dense_and_sparse(self):
+        mgr = _make_manager(dense=True, sparse=True)
+        assert mgr.has_dense is True
+        assert mgr.has_sparse is True
+
+    def test_detects_sparse_only(self):
+        mgr = _make_manager(dense=False, sparse=True)
+        assert mgr.has_dense is False
+        assert mgr.has_sparse is True
+
+    def test_detects_dense_only(self):
+        mgr = _make_manager(dense=True, sparse=False)
+        assert mgr.has_dense is True
+        assert mgr.has_sparse is False
+
+    def test_handles_missing_collection(self):
+        with patch("database.qdrant_manager.QdrantClient") as MockClient:
+            mock_client = MagicMock()
+            mock_client.get_collection.side_effect = Exception("not found")
+            MockClient.return_value = mock_client
+            mgr = QdrantManager(host="localhost", port=6333, collection_name="nope")
+
+        assert mgr.has_dense is False
+        assert mgr.has_sparse is False
+
+
+class TestSearchVectorFallback:
+    """Verify search gracefully falls back when vectors don't match the collection."""
+
+    def test_dense_ignored_on_sparse_only_collection(self):
+        mgr = _make_manager(dense=False, sparse=True)
+        mock_result = MagicMock()
+        mock_result.points = []
+        mgr.client.query_points.return_value = mock_result
+
+        mgr.search(dense_vector=[0.1], sparse_vector=MagicMock())
+
+        call_kwargs = mgr.client.query_points.call_args
+        assert call_kwargs[1].get("using") == "sparse"
+
+    def test_sparse_ignored_on_dense_only_collection(self):
+        mgr = _make_manager(dense=True, sparse=False)
+        mock_result = MagicMock()
+        mock_result.points = []
+        mgr.client.query_points.return_value = mock_result
+
+        mgr.search(dense_vector=[0.1], sparse_vector=MagicMock())
+
+        call_kwargs = mgr.client.query_points.call_args
+        assert call_kwargs[1].get("using") == "dense"
+
+    def test_error_when_no_vectors_match(self):
+        mgr = _make_manager(dense=False, sparse=False)
+
+        with pytest.raises(SearchBackendError, match="No usable vectors"):
+            mgr.search(dense_vector=[0.1])

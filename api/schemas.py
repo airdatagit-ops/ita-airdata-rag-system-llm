@@ -11,6 +11,8 @@ class SearchRequest(BaseModel):
     limit: int = Field(5, ge=1, le=50, description="Number of results")
     score_threshold: Optional[float] = Field(None, ge=0.0, le=1.0)
     filters: Optional[Dict] = Field(None, description="Additional filters")
+    debug: bool = Field(False, description="Return pipeline debug trace")
+    grounded_only: Optional[bool] = Field(None, description="Restrict answers to document content only")
 
 
 class SourceDocument(BaseModel):
@@ -31,6 +33,7 @@ class SearchResponse(BaseModel):
     search_time_ms: int
     llm_time_ms: int
     total_time_ms: int
+    trace: Optional[Dict] = Field(None, description="Pipeline debug trace (when debug=True)")
 
 
 class VectorSearchRequest(BaseModel):
@@ -112,9 +115,12 @@ class ChatRequest(BaseModel):
     session_id: Optional[str] = Field(None, description="Session ID for conversation continuity")
     use_rag: bool = Field(False, description="Whether to use RAG for context")
     rag_date: Optional[str] = Field(None, description="Date for RAG temporal search (YYYY-MM-DD)")
+    rag_limit: Optional[int] = Field(None, ge=1, le=50, description="Number of RAG documents to retrieve")
     context_window: int = Field(10, ge=1, le=50, description="Number of previous messages to include")
     temperature: Optional[float] = Field(None, ge=0.0, le=2.0, description="LLM temperature override")
     max_tokens: Optional[int] = Field(None, ge=50, le=2000, description="Max tokens override")
+    debug: bool = Field(False, description="Return pipeline debug trace")
+    grounded_only: Optional[bool] = Field(None, description="Restrict answers to document content only")
 
 
 class ChatResponse(BaseModel):
@@ -125,6 +131,7 @@ class ChatResponse(BaseModel):
     sources: Optional[List[SourceDocument]] = Field(None, description="RAG sources if used")
     processing_time_ms: int = Field(..., description="Total processing time")
     model_used: str = Field(..., description="LLM model used")
+    trace: Optional[Dict] = Field(None, description="Pipeline debug trace (when debug=True)")
 
 
 class SessionInfo(BaseModel):

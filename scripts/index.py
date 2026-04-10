@@ -2,8 +2,10 @@
 Phase 3 – Index pre-computed embeddings into Qdrant.
 
 Reads dense and/or sparse embeddings from Parquet and bulk-upserts them
-into the Qdrant collection.  No embedding model is loaded, so this phase
-is purely I/O-bound and runs in seconds.
+into the Qdrant collection.
+
+Parquet files are processed **source by source** and streamed in row-group
+batches so that memory usage stays bounded regardless of corpus size.
 
 Usage:
     python -m scripts.index
@@ -14,10 +16,12 @@ Usage:
 
 import argparse
 import json
-from typing import Dict, List
+from pathlib import Path
+from typing import Dict, List, Optional
 
-import pyarrow as pa
+import pyarrow.parquet as pq
 from loguru import logger
+from tqdm import tqdm
 
 from config import config
 from database.qdrant_manager import QdrantManager
@@ -25,7 +29,6 @@ from pipeline.embedding_store import EmbeddingStore
 
 
 def _detect_mode(emb_store: EmbeddingStore) -> str:
-    """Detect which embedding types are available on disk."""
     has_dense = bool(list(emb_store.dense_dir.glob("*.parquet")))
     has_sparse = bool(list(emb_store.sparse_dir.glob("*.parquet")))
     if has_dense and has_sparse:
@@ -35,110 +38,175 @@ def _detect_mode(emb_store: EmbeddingStore) -> str:
     return "dense"
 
 
-def _build_points_dense(table: pa.Table) -> List[Dict]:
-    """Convert a dense Parquet table into Qdrant point dicts."""
+def _parse_meta(raw: str) -> Dict:
+    if not raw:
+        return {}
+    try:
+        return json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        return {}
+
+
+# ---------------------------------------------------------------------------
+# Streaming builders — convert one row-group batch into Qdrant points
+# ---------------------------------------------------------------------------
+
+def _batch_to_dense_points(batch) -> List[Dict]:
+    ids = batch.column("chunk_id").to_pylist()
+    vecs = batch.column("dense_vector").to_pylist()
+    texts = batch.column("text").to_pylist()
+    metas = batch.column("metadata").to_pylist()
+
     points = []
-    chunk_ids = table.column("chunk_id").to_pylist()
-    vectors = table.column("dense_vector").to_pylist()
-    texts = table.column("text").to_pylist()
-    metadata_col = table.column("metadata").to_pylist()
+    for i in range(batch.num_rows):
+        payload = {**_parse_meta(metas[i]), "text": texts[i]}
+        points.append({"id": ids[i], "vector": vecs[i], "payload": payload})
+    return points
 
-    for i in range(table.num_rows):
-        meta = {}
-        if metadata_col[i]:
-            try:
-                meta = json.loads(metadata_col[i])
-            except (json.JSONDecodeError, TypeError):
-                pass
 
-        payload = {**meta, "text": texts[i]}
+def _batch_to_sparse_points(batch) -> List[Dict]:
+    from qdrant_client.models import SparseVector
+
+    ids = batch.column("chunk_id").to_pylist()
+    idx_col = batch.column("sparse_indices").to_pylist()
+    val_col = batch.column("sparse_values").to_pylist()
+    texts = batch.column("text").to_pylist()
+    metas = batch.column("metadata").to_pylist()
+
+    points = []
+    for i in range(batch.num_rows):
+        payload = {**_parse_meta(metas[i]), "text": texts[i]}
         points.append({
-            "id": chunk_ids[i],
-            "vector": vectors[i],
+            "id": ids[i],
+            "vector": {"sparse": SparseVector(indices=idx_col[i], values=val_col[i])},
             "payload": payload,
         })
     return points
 
 
-def _build_points_hybrid(
-    dense_table: pa.Table,
-    sparse_table: pa.Table,
-) -> List[Dict]:
-    """Merge dense + sparse tables into hybrid point dicts."""
-    sparse_lookup: Dict[str, Dict] = {}
-    s_ids = sparse_table.column("chunk_id").to_pylist()
-    s_indices = sparse_table.column("sparse_indices").to_pylist()
-    s_values = sparse_table.column("sparse_values").to_pylist()
-    for i in range(sparse_table.num_rows):
-        sparse_lookup[s_ids[i]] = {
-            "indices": s_indices[i],
-            "values": s_values[i],
-        }
-
-    points = []
-    d_ids = dense_table.column("chunk_id").to_pylist()
-    d_vectors = dense_table.column("dense_vector").to_pylist()
-    d_texts = dense_table.column("text").to_pylist()
-    d_meta = dense_table.column("metadata").to_pylist()
-
+def _batch_to_hybrid_points(batch, sparse_lookup: Dict) -> List[Dict]:
     from qdrant_client.models import SparseVector
 
-    for i in range(dense_table.num_rows):
-        chunk_id = d_ids[i]
-        meta = {}
-        if d_meta[i]:
-            try:
-                meta = json.loads(d_meta[i])
-            except (json.JSONDecodeError, TypeError):
-                pass
+    ids = batch.column("chunk_id").to_pylist()
+    vecs = batch.column("dense_vector").to_pylist()
+    texts = batch.column("text").to_pylist()
+    metas = batch.column("metadata").to_pylist()
 
-        vector: Dict = {"dense": d_vectors[i]}
-        sp = sparse_lookup.get(chunk_id)
+    points = []
+    for i in range(batch.num_rows):
+        cid = ids[i]
+        vector: Dict = {"dense": vecs[i]}
+        sp = sparse_lookup.get(cid)
         if sp:
-            vector["sparse"] = SparseVector(
-                indices=sp["indices"], values=sp["values"]
-            )
+            vector["sparse"] = SparseVector(indices=sp[0], values=sp[1])
 
-        payload = {**meta, "text": d_texts[i]}
-        points.append({
-            "id": chunk_id,
-            "vector": vector,
-            "payload": payload,
-        })
+        payload = {**_parse_meta(metas[i]), "text": texts[i]}
+        points.append({"id": cid, "vector": vector, "payload": payload})
     return points
 
 
-def _build_points_sparse(table: pa.Table) -> List[Dict]:
-    """Convert a sparse-only Parquet table into Qdrant point dicts."""
-    from qdrant_client.models import SparseVector
-
-    points = []
-    chunk_ids = table.column("chunk_id").to_pylist()
-    indices_col = table.column("sparse_indices").to_pylist()
-    values_col = table.column("sparse_values").to_pylist()
-    texts = table.column("text").to_pylist()
-    metadata_col = table.column("metadata").to_pylist()
-
-    for i in range(table.num_rows):
-        meta = {}
-        if metadata_col[i]:
-            try:
-                meta = json.loads(metadata_col[i])
-            except (json.JSONDecodeError, TypeError):
-                pass
-
-        payload = {**meta, "text": texts[i]}
-        points.append({
-            "id": chunk_ids[i],
-            "vector": {"sparse": SparseVector(
-                indices=indices_col[i], values=values_col[i],
-            )},
-            "payload": payload,
-        })
-    return points
+def _build_sparse_lookup(sparse_path: Path) -> Dict:
+    """Load sparse vectors into a compact lookup: {chunk_id: (indices, values)}."""
+    lookup: Dict = {}
+    pf = pq.ParquetFile(sparse_path)
+    for batch in pf.iter_batches(batch_size=50_000, columns=["chunk_id", "sparse_indices", "sparse_values"]):
+        ids = batch.column("chunk_id").to_pylist()
+        idx = batch.column("sparse_indices").to_pylist()
+        vals = batch.column("sparse_values").to_pylist()
+        for i in range(batch.num_rows):
+            lookup[ids[i]] = (idx[i], vals[i])
+    return lookup
 
 
-# ── main logic ───────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# Streaming indexers — process one source file at a time
+# ---------------------------------------------------------------------------
+
+_ROW_GROUP_BATCH = 20_000
+
+
+def _count_rows(directory: Path) -> int:
+    return sum(pq.read_metadata(p).num_rows for p in directory.glob("*.parquet"))
+
+
+def _index_dense_streaming(
+    emb_store: EmbeddingStore, db: QdrantManager,
+    batch_size: int, workers: int,
+) -> int:
+    total_rows = _count_rows(emb_store.dense_dir)
+    progress = tqdm(total=total_rows, desc="Index [dense]", unit="pts")
+    total = 0
+    for path in sorted(emb_store.dense_dir.glob("*.parquet")):
+        pf = pq.ParquetFile(path)
+        for batch in pf.iter_batches(batch_size=_ROW_GROUP_BATCH):
+            points = _batch_to_dense_points(batch)
+            db.upsert_points(points, batch_size=batch_size, parallel=workers)
+            total += len(points)
+            progress.update(len(points))
+            del points
+    progress.close()
+    return total
+
+
+def _index_sparse_streaming(
+    emb_store: EmbeddingStore, db: QdrantManager,
+    batch_size: int, workers: int,
+) -> int:
+    total_rows = _count_rows(emb_store.sparse_dir)
+    progress = tqdm(total=total_rows, desc="Index [sparse]", unit="pts")
+    total = 0
+    for path in sorted(emb_store.sparse_dir.glob("*.parquet")):
+        pf = pq.ParquetFile(path)
+        for batch in pf.iter_batches(batch_size=_ROW_GROUP_BATCH):
+            points = _batch_to_sparse_points(batch)
+            db.upsert_points(points, batch_size=batch_size, parallel=workers)
+            total += len(points)
+            progress.update(len(points))
+            del points
+    progress.close()
+    return total
+
+
+def _index_hybrid_streaming(
+    emb_store: EmbeddingStore, db: QdrantManager,
+    batch_size: int, workers: int,
+) -> int:
+    total_rows = _count_rows(emb_store.dense_dir)
+    progress = tqdm(total=total_rows, desc="Index [hybrid]", unit="pts")
+    total = 0
+    for dense_path in sorted(emb_store.dense_dir.glob("*.parquet")):
+        source = dense_path.stem
+        sparse_path = emb_store.sparse_dir / f"{source}.parquet"
+
+        dense_pf = pq.ParquetFile(dense_path)
+
+        sparse_lookup: Optional[Dict] = None
+        if sparse_path.exists():
+            logger.info(f"[hybrid] {source}: building sparse lookup …")
+            sparse_lookup = _build_sparse_lookup(sparse_path)
+            logger.info(f"[hybrid] {source}: sparse lookup ready ({len(sparse_lookup)} entries)")
+        else:
+            logger.warning(f"[hybrid] {source}: no sparse file, dense-only fallback")
+
+        for batch in dense_pf.iter_batches(batch_size=_ROW_GROUP_BATCH):
+            if sparse_lookup:
+                points = _batch_to_hybrid_points(batch, sparse_lookup)
+            else:
+                points = _batch_to_dense_points(batch)
+            db.upsert_points(points, batch_size=batch_size, parallel=workers)
+            total += len(points)
+            progress.update(len(points))
+            del points
+
+        del sparse_lookup
+
+    progress.close()
+    return total
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 def run(args: argparse.Namespace) -> int:
     emb_store = EmbeddingStore()
@@ -158,40 +226,17 @@ def run(args: argparse.Namespace) -> int:
             logger.error("Failed to create Qdrant collection — aborting.")
             return 1
 
-    dense_table = emb_store.load_dense() if mode in ("dense", "hybrid") else None
-    sparse_table = emb_store.load_sparse() if mode in ("sparse", "hybrid") else None
-
-    if dense_table is None and sparse_table is None:
-        logger.warning("No embeddings found in store. Run `make embed` first.")
-        return 1
-
-    if mode == "hybrid" and dense_table is not None and sparse_table is not None:
-        logger.info(
-            f"Building hybrid points: {dense_table.num_rows} dense, "
-            f"{sparse_table.num_rows} sparse"
-        )
-        points = _build_points_hybrid(dense_table, sparse_table)
-    elif mode == "sparse" and sparse_table is not None:
-        logger.info(f"Building sparse-only points: {sparse_table.num_rows}")
-        points = _build_points_sparse(sparse_table)
-    elif dense_table is not None:
-        logger.info(f"Building dense-only points: {dense_table.num_rows}")
-        points = _build_points_dense(dense_table)
-    else:
-        logger.error("Inconsistent embedding state")
-        return 1
-
     batch_size = args.batch_size or 500
-    logger.info(
-        f"Upserting {len(points)} points to Qdrant "
-        f"(batch_size={batch_size}, workers={args.workers}) …"
-    )
+    logger.info(f"Indexing with batch_size={batch_size}, workers={args.workers}, row_group_batch={_ROW_GROUP_BATCH}")
 
     db.disable_indexing()
     try:
-        db.upsert_points(
-            points, batch_size=batch_size, parallel=args.workers,
-        )
+        if mode == "hybrid":
+            total = _index_hybrid_streaming(emb_store, db, batch_size, args.workers)
+        elif mode == "sparse":
+            total = _index_sparse_streaming(emb_store, db, batch_size, args.workers)
+        else:
+            total = _index_dense_streaming(emb_store, db, batch_size, args.workers)
     finally:
         db.enable_indexing()
 
@@ -202,7 +247,7 @@ def run(args: argparse.Namespace) -> int:
     info = db.get_collection_info()
     logger.success(
         f"Indexing complete: {info.get('points_count', '?')} points in Qdrant "
-        f"(status={info.get('status', '?')})"
+        f"(status={info.get('status', '?')}), total upserted: {total}"
     )
     return 0
 
@@ -215,7 +260,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--batch-size", type=int, default=None,
-        help="Points per upsert batch (default: from config)",
+        help="Points per upsert batch (default: 500)",
     )
     parser.add_argument(
         "--workers", type=int, default=4,

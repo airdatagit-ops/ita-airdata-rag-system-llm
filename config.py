@@ -12,10 +12,8 @@ Usage:
     model_name = config.EMBEDDING_MODEL
 """
 
-import os
 from pathlib import Path
 from typing import List, Optional
-from pydantic import Field
 from pydantic_settings import BaseSettings
 
 from dotenv import load_dotenv
@@ -190,6 +188,53 @@ class Settings(BaseSettings):
     NUM_WORKERS: int = getenv('NUM_WORKERS')
 
     # ========================================
+    # RAG Pipeline — Rewriter
+    # ========================================
+    REWRITER_ENABLED: bool = getenv('REWRITER_ENABLED', 'false').lower() in ('true', '1', 'yes')
+    REWRITER_MODEL: str = getenv('REWRITER_MODEL', 'llama3.2:3b')
+    REWRITER_MAX_QUERIES: int = int(getenv('REWRITER_MAX_QUERIES', '3'))
+    REWRITER_MAX_QUERY_LENGTH: int = int(getenv('REWRITER_MAX_QUERY_LENGTH', '500'))
+    REWRITER_TEMPERATURE: float = float(getenv('REWRITER_TEMPERATURE', '0.3'))
+    REWRITER_TIMEOUT: int = int(getenv('REWRITER_TIMEOUT', '60'))
+
+    # ========================================
+    # RAG Pipeline — Evaluator (Cross-Encoder)
+    # ========================================
+    EVALUATOR_ENABLED: bool = getenv('EVALUATOR_ENABLED', 'true').lower() in ('true', '1', 'yes')
+    CROSS_ENCODER_MODEL: str = getenv(
+        'CROSS_ENCODER_MODEL', 'cross-encoder/mmarco-mMiniLMv2-L12-H384-v1',
+    )
+    EVALUATOR_THRESHOLD: int = int(getenv('EVALUATOR_THRESHOLD', '25'))
+    EVALUATOR_BATCH_SIZE: int = int(getenv('EVALUATOR_BATCH_SIZE', '32'))
+    EVALUATOR_MAX_TOKENS: int = int(getenv('EVALUATOR_MAX_TOKENS', '480'))
+
+    # ========================================
+    # RAG Pipeline — Generator
+    # ========================================
+    GENERATOR_MODEL: str = getenv('GENERATOR_MODEL', '')
+    GENERATOR_MAX_RESPONSE_TOKENS: int = int(getenv('GENERATOR_MAX_RESPONSE_TOKENS', '1024'))
+    GENERATOR_MAX_DOC_CHARS: int = int(getenv('GENERATOR_MAX_DOC_CHARS', '2000'))
+    GENERATOR_MAX_DOCS: int = int(getenv('GENERATOR_MAX_DOCS', '7'))
+    GENERATOR_GROUNDED_ONLY: bool = getenv('GENERATOR_GROUNDED_ONLY', 'true').lower() in ('true', '1', 'yes')
+    GENERATOR_TIMEOUT: int = int(getenv('GENERATOR_TIMEOUT', '120'))
+
+    # ========================================
+    # RAG Pipeline — General
+    # ========================================
+    PIPELINE_DEBUG: bool = getenv('PIPELINE_DEBUG', 'false').lower() in ('true', '1', 'yes')
+
+    # ========================================
+    # GPU Inference Mode
+    # ========================================
+    # "local"  — load models in-process (uses GPU if available, falls back to CPU)
+    # "remote" — call the GPU inference server via HTTP
+    # "cpu"    — force CPU-only execution (no CUDA, no remote)
+    INFERENCE_MODE: str = getenv('INFERENCE_MODE', 'local')
+    GPU_SERVER_URL: str = getenv('GPU_SERVER_URL', 'http://localhost:8090')
+    GPU_SERVER_API_KEY: str = getenv('GPU_SERVER_API_KEY', '')
+    GPU_SERVER_TIMEOUT: int = int(getenv('GPU_SERVER_TIMEOUT', '120'))
+
+    # ========================================
     # Advanced Settings
     # ========================================
     LOG_QUERIES: bool = getenv('LOG_QUERIES')
@@ -304,8 +349,12 @@ def validate_config() -> bool:
         issues.append("EMBEDDING_MODEL is not set.")
 
     # Check LLM configuration
-    if not config.OLLAMA_HOST or not config.OLLAMA_MODEL:
+    if config.INFERENCE_MODE != "remote" and (not config.OLLAMA_HOST or not config.OLLAMA_MODEL):
         issues.append("Ollama configuration (OLLAMA_HOST, OLLAMA_MODEL) is incomplete.")
+
+    # Check GPU server when remote mode
+    if config.INFERENCE_MODE == "remote" and not config.GPU_SERVER_URL:
+        issues.append("GPU_SERVER_URL is required when INFERENCE_MODE=remote.")
 
     # Check data directories
     for dir_name, dir_path in [
@@ -344,6 +393,8 @@ def print_config():
         "Environment": [
             ("Environment", config.ENVIRONMENT),
             ("Debug", config.DEBUG),
+            ("Inference Mode", config.INFERENCE_MODE),
+            ("GPU Server URL", config.GPU_SERVER_URL if config.INFERENCE_MODE == "remote" else "N/A"),
         ],
         "Qdrant": [
             ("Host", config.QDRANT_HOST),

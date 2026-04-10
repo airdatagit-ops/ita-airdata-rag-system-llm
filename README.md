@@ -20,7 +20,8 @@
 12. [Avaliação de Qualidade](#12-avaliação-de-qualidade)
 13. [Testes e Automação (Makefile)](#13-testes-e-automação-makefile)
 14. [Deploy em Produção (systemctl + Nginx)](#14-deploy-em-produção-systemctl--nginx)
-15. [Resolução de Problemas](#15-resolução-de-problemas)
+15. [GPU Inference Server (Remoto)](#15-gpu-inference-server-remoto)
+16. [Resolução de Problemas](#16-resolução-de-problemas)
 
 ---
 
@@ -34,26 +35,32 @@ O Aviation RAG System é uma plataforma que combina:
 - **Geração aumentada por recuperação (RAG)** — Usa os trechos recuperados como contexto para um LLM gerar respostas fundamentadas
 - **Chat conversacional** — Mantém histórico de conversa por sessão, com streaming em tempo real
 
-### Fluxo de uma consulta RAG:
+### Arquitetura do Search Pipeline (RAG Modular)
 
-```
-Pergunta do usuário
-        │
-        ▼
-  1. Embedding da pergunta (Legal-BERTimbau)
-        │
-        ▼
-  2. Busca vetorial no Qdrant (top-K documentos similares)
-        │
-        ▼
-  3. Construção do prompt (contexto + pergunta + histórico)
-        │
-        ▼
-  4. Geração de resposta pelo LLM (Ollama)
-        │
-        ▼
-  Resposta com citações de fontes
-```
+O pipeline RAG é modular, composto por 4 estágios independentes orquestrados pelo `RAGPipeline`:
+
+![Search Pipeline](docs/assets/search-pipeline.png)
+
+| Estágio | Descrição | Módulo |
+|---------|-----------|--------|
+| **1. Rewriter** | Reescreve a consulta do usuário em 1..N sub-queries otimizadas usando um LLM menor. Adiciona filtros e sorts quando detecta intenção temporal/tipo de documento. | `search/rewriter/` |
+| **2. Searcher** | Executa buscas vetoriais em paralelo para cada sub-query. Converte filtros do schema em filtros nativos Qdrant. Deduplica resultados. | `search/searcher/` |
+| **3. Evaluator** | Avalia a relevância de cada documento usando um modelo cross-encoder (0-100). Filtra por threshold configurável. | `search/evaluator/` |
+| **4. Generator** | Gera a resposta final contextualizada com referências às fontes. Suporta modo grounded (apenas documentos) ou ungrounded (com conhecimento prévio). | `search/generator/` |
+
+O pipeline possui um **modo debug** ativável por request que retorna um `PipelineTrace` completo com queries reescritas, scores de avaliação, documentos aceitos/descartados e tempos de cada estágio.
+
+### Arquitetura do Indexing Pipeline
+
+O pipeline de ingestão é composto por 3 fases que extraem, processam e indexam documentos regulatórios:
+
+![Indexing Pipeline](docs/assets/indexing-pipeline.png)
+
+| Fase | Descrição | Fontes |
+|------|-----------|--------|
+| **Fase 1: Scraping** | Coleta documentos das fontes com skip/hash check | SISLAER, LexML, DECEA |
+| **Fase 2: Embedding** | Limpeza, chunking e geração de embeddings (denso + esparso) | SQLite → Parquet |
+| **Fase 3: Indexing** | Upload paralelo dos vetores no Qdrant | Parquet → Qdrant |
 
 ### Componentes do sistema:
 
@@ -62,7 +69,13 @@ Pergunta do usuário
 | Configuração central | Pydantic Settings | `config.py` |
 | API RAG | FastAPI | `api/server.py` |
 | Busca vetorial | Qdrant Client | `search/vector_search.py` |
-| Pipeline RAG | VectorSearch + LLM | `search/rag.py` |
+| Pipeline RAG (orquestrador) | Modular Pipeline | `search/orchestrator/pipeline.py` |
+| Rewriter | LLM query rewriting | `search/rewriter/` |
+| Searcher | Parallel vector search | `search/searcher/` |
+| Evaluator | Cross-encoder reranking | `search/evaluator/` |
+| Generator | LLM response generation | `search/generator/` |
+| Schemas compartilhados | Pydantic models | `search/shared/schemas.py` |
+| Exceções do pipeline | Custom exceptions | `search/shared/exceptions.py` |
 | Embeddings | Legal-BERTimbau (sentence-transformers) | `models/embeddings.py` |
 | LLM | Ollama (llama3, phi3, etc.) | `models/llm.py` |
 | Banco vetorial | Qdrant | `database/qdrant_manager.py` |
@@ -223,10 +236,10 @@ cp env.example .env
 | Variável | Tipo | Padrão | Descrição |
 |----------|------|--------|-----------|
 | `OLLAMA_HOST` | string | `http://localhost:11434` | URL do servidor Ollama |
-| `OLLAMA_MODEL` | string | `llama3.2:3b` | Modelo LLM padrão |
+| `OLLAMA_MODEL` | string | `llama3.1:8b` | Modelo LLM padrão |
 | `LLM_TEMPERATURE` | float | `0.3` | Temperatura de geração (0=determinístico, 2=criativo) |
 | `LLM_TOP_P` | float | `0.9` | Nucleus sampling |
-| `LLM_MAX_TOKENS` | int | `500` | Máximo de tokens por resposta |
+| `LLM_MAX_TOKENS` | int | `2048` | Máximo de tokens por resposta |
 
 #### Modelo de Embeddings
 
@@ -241,11 +254,12 @@ cp env.example .env
 
 | Variável | Tipo | Padrão | Descrição |
 |----------|------|--------|-----------|
-| `SEARCH_TOP_K` | int | `5` | Número de resultados retornados |
-| `SEARCH_SCORE_THRESHOLD` | float | `0.3` | Score mínimo de similaridade (apenas busca dense-only) |
+| `SEARCH_TOP_K` | int | `8` | Número de resultados retornados por query |
+| `SEARCH_SCORE_THRESHOLD` | float | `0.3` | Score mínimo de similaridade. Sem efeito em modo híbrido (RRF) |
 | `SEARCH_DENSE_ENABLED` | bool | `true` | Habilita busca semântica (dense vectors) |
-| `SEARCH_SPARSE_ENABLED` | bool | `false` | Habilita busca por keywords/BM25 (sparse vectors via fastembed) |
+| `SEARCH_SPARSE_ENABLED` | bool | `true` | Habilita busca por keywords/BM25 (sparse vectors via fastembed) |
 | `SPARSE_EMBEDDING_MODEL` | string | `Qdrant/bm25` | Modelo de sparse embeddings (usado quando `SEARCH_SPARSE_ENABLED=true`) |
+| `DEFAULT_EMBEDDING_MODE` | string | `hybrid` | Modo padrão para `make embed` (`dense`, `sparse`, `hybrid`) |
 | `HNSW_M` | int | `16` | Parâmetro M do índice HNSW |
 | `HNSW_EF_CONSTRUCT` | int | `100` | Parâmetro ef_construct do HNSW |
 | `HNSW_EF_SEARCH` | int | `64` | Parâmetro ef para busca no HNSW |
@@ -332,7 +346,76 @@ Este script mostra:
 - Estrutura dos campos (payload) de cada registro
 - Exemplos de dados armazenados
 
-### 4.5. Reset completo
+### 4.5. Backup e Restore (Snapshots)
+
+O Qdrant suporta **snapshots** nativamente — uma cópia binária completa da collection (vetores, payloads, índices HNSW). Restaurar um snapshot é **ordens de magnitude mais rápido** que re-gerar embeddings e re-indexar (~segundos vs. horas).
+
+#### Criar backup
+
+```bash
+make backup
+```
+
+Isso cria um snapshot da collection e salva em `data/backups/`:
+
+```
+Creating Qdrant snapshot for 'aviation_regulations' …
+Snapshot created: aviation_regulations-2026-04-05-18-30-00.snapshot
+Downloading to data/backups/aviation_regulations-2026-04-05-18-30-00.snapshot …
+Backup saved: data/backups/aviation_regulations-2026-04-05-18-30-00.snapshot (1.2G)
+Restore with: make restore FILE=data/backups/aviation_regulations-2026-04-05-18-30-00.snapshot
+```
+
+#### Restaurar backup
+
+```bash
+make restore FILE=data/backups/aviation_regulations-2026-04-05-18-30-00.snapshot
+```
+
+Para listar snapshots disponíveis:
+
+```bash
+make restore   # sem FILE= lista os backups existentes
+```
+
+#### Quando usar
+
+| Cenário | Recomendação |
+|---------|-------------|
+| Antes de `make index RECREATE=1` | `make backup` — permite voltar atrás se algo der errado |
+| Migrar para novo servidor | `make backup` → copiar `.snapshot` → `make restore FILE=...` |
+| Após indexação bem-sucedida | `make backup` — evita re-executar `embed` + `index` futuramente |
+| Re-deploy rápido | `make restore` em vez de `make embed FORCE=1 && make index RECREATE=1` |
+
+#### Notas técnicas
+
+- O snapshot inclui **tudo**: vetores densos, esparsos, payloads, configuração HNSW e índices de payload.
+- A collection de destino é **sobrescrita** pelo restore — dados existentes são substituídos.
+- O restore usa a API de **upload multipart** do Qdrant, portanto funciona tanto com Qdrant em Docker quanto instalado nativamente — não depende de paths compartilhados.
+- Snapshots podem ser grandes (~1-2 GB para ~400K pontos com vetores de 1024 dims). Certifique-se de ter espaço em disco.
+- Para backup/restore em outro host Qdrant, ajuste `QDRANT_HOST`:
+
+```bash
+make backup QDRANT_HOST=192.168.1.100
+make restore QDRANT_HOST=192.168.1.100 FILE=data/backups/meu-backup.snapshot
+```
+
+#### Fluxo recomendado para próximas vezes
+
+Na primeira vez, execute o pipeline completo:
+
+```bash
+make pipeline MODE=hybrid RECREATE=1    # collect + embed + index (pode levar horas)
+make backup                             # salvar snapshot após sucesso
+```
+
+Nas próximas vezes (novo servidor, re-deploy, ou recovery):
+
+```bash
+make restore FILE=data/backups/aviation_regulations-YYYY-MM-DD.snapshot   # segundos
+```
+
+### 4.6. Reset completo
 
 Para apagar todos os dados e recriar a coleção:
 
@@ -387,8 +470,11 @@ vectors = model.encode(["texto 1", "texto 2", "texto 3"])
 - O modelo detecta automaticamente se CUDA está disponível
 - Com **GPU**: encoding rápido (~100 textos/segundo)
 - Com **CPU**: encoding lento (~5 textos/segundo), mas funcional
+- Com **`INFERENCE_MODE=remote`**: delegação para GPU remoto via HTTP (veja [seção 15](#15-gpu-inference-server-remoto))
 
 O cache do modelo é armazenado em `models_cache/`.
+
+> **Pré-download:** O modelo de embeddings é baixado automaticamente com `make download-models` (veja [seção abaixo](#pré-download-de-modelos)).
 
 ---
 
@@ -402,20 +488,24 @@ O sistema usa **Ollama** para rodar modelos de linguagem localmente. O Ollama ge
 # Instalar Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 
-# Baixar modelos
-ollama pull llama3.2:3b    # Modelo leve (3B parâmetros)
-ollama pull llama3.1:8b    # Modelo médio (8B parâmetros)
+# Baixar modelos (via Makefile — recomendado)
+make download-models
+
+# Ou manualmente:
+ollama pull llama3.1:8b    # Generator (modelo principal)
+ollama pull qwen2.5:7b     # Rewriter (reescrita de queries)
 ```
 
 ### 6.2. Modelos suportados
 
 Qualquer modelo disponível no Ollama funciona. O modelo padrão é configurado em `OLLAMA_MODEL` no `.env`. Modelos testados:
 
-| Modelo | Tamanho | Observação |
-|--------|---------|------------|
-| `llama3.2:3b` | ~2GB | Rápido, bom para testes |
-| `llama3.1:8b` | ~4.7GB | Melhor qualidade, mais lento |
-| `phi3:3.8b` | ~2.3GB | Alternativa leve da Microsoft |
+| Modelo | Tamanho | Uso no pipeline | Observação |
+|--------|---------|-----------------|------------|
+| `qwen2.5:7b` | ~4.7GB | Rewriter (padrão) | Boa qualidade de reescrita, respeita filtros |
+| `llama3.1:8b` | ~4.7GB | Generator (padrão) | Bom equilíbrio qualidade/velocidade |
+| `llama3.1:70b` | ~40GB | Generator (GPU) | Melhor qualidade, requer GPU com ~48GB VRAM |
+| `llama3.2:3b` | ~2GB | Alternativa leve | Para ambientes com recursos limitados |
 
 ### 6.3. Troca de modelo em tempo real
 
@@ -438,6 +528,28 @@ A classe `LlamaModel` (`models/llm.py`) oferece:
 | `generate()` | Geração de texto com prompt simples (suporta streaming) |
 | `generate_with_context()` | Geração RAG (prompt + contexto de documentos) |
 | `chat()` | Chat com histórico de mensagens (suporta streaming) |
+
+### 6.5. Pré-download de modelos {#pré-download-de-modelos}
+
+Todos os modelos ML (embeddings, cross-encoder, Ollama) podem ser baixados de uma vez antes de iniciar o servidor:
+
+```bash
+make download-models                       # Baixa tudo (embeddings + cross-encoder + Ollama)
+make download-models SKIP_OLLAMA=1         # Apenas modelos HuggingFace
+make download-models SKIP_EMBEDDINGS=1     # Pula modelo de embeddings
+make download-models SKIP_CROSS_ENCODER=1  # Pula cross-encoder
+```
+
+O script `scripts/download_models.py` baixa:
+
+| Modelo | Tipo | Usado por |
+|--------|------|-----------|
+| `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Sentence-Transformer | Embedding (busca vetorial) |
+| `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` | Cross-Encoder | Evaluator (re-ranking) |
+| `llama3.1:8b` | Ollama LLM | Generator (geração de respostas) |
+| `qwen2.5:7b` | Ollama LLM | Rewriter (reescrita de queries) |
+
+> **Dica:** Execute `make download-models` após clonar o repositório ou alterar modelos no `.env`. O deploy (`make deploy`) já faz o download automático dos modelos HuggingFace.
 
 ---
 
@@ -797,6 +909,81 @@ location /explore/ {
 
 ---
 
+## 8.5. Pipeline RAG Modular
+
+O pipeline RAG é organizado em módulos independentes sob `search/`:
+
+```
+search/
+  shared/              # Schemas, exceptions e utilitários
+    schemas.py         # Pydantic models + FilterRegistry (valores dinâmicos do DB)
+    exceptions.py      # Exceções por módulo (RewriterError, EvaluatorError, etc.)
+    timeouts.py        # Wrapper de timeout para chamadas LLM
+  rewriter/            # Reescrita de queries
+    rewriter.py        # QueryRewriter (LLM-based)
+    prompts.py         # Prompts do rewriter
+  searcher/            # Busca paralela
+    searcher.py        # DocumentSearcher
+    filters.py         # Conversão SearchFilter → Qdrant Filter
+  evaluator/           # Avaliação com cross-encoder
+    evaluator.py       # DocumentEvaluator (CrossEncoder batch)
+  generator/           # Geração de resposta
+    generator.py       # ResponseGenerator (LLM)
+    prompts.py         # Prompts grounded/ungrounded
+  orchestrator/        # Orquestrador
+    pipeline.py        # RAGPipeline (encadeia os 4 módulos)
+  vector_search.py     # Busca vetorial (usado pelo Searcher)
+  cache.py             # Cache LRU in-memory
+```
+
+### Configuração do Pipeline RAG
+
+| Variável | Default | Descrição |
+|----------|---------|-----------|
+| `REWRITER_ENABLED` | `true` | Habilita o módulo Rewriter (desabilitar para pipeline mais leve) |
+| `REWRITER_MODEL` | `qwen2.5:7b` | Modelo LLM para reescrita de queries |
+| `REWRITER_MAX_QUERIES` | `3` | Máximo de sub-queries geradas |
+| `REWRITER_MAX_QUERY_LENGTH` | `500` | Tamanho máximo por query reescrita (chars) |
+| `REWRITER_TEMPERATURE` | `0.3` | Temperatura do LLM no rewriter |
+| `REWRITER_TIMEOUT` | `60` | Timeout (s) para o LLM do rewriter |
+| `EVALUATOR_ENABLED` | `true` | Habilita o módulo Evaluator (desabilitar para pipeline mais leve) |
+| `CROSS_ENCODER_MODEL` | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` | Modelo cross-encoder multilíngue para avaliação |
+| `EVALUATOR_THRESHOLD` | `35` | Score mínimo (0-100) para aceitar documento |
+| `EVALUATOR_BATCH_SIZE` | `32` | Batch size do cross-encoder |
+| `EVALUATOR_MAX_TOKENS` | `480` | Máximo de tokens na entrada do cross-encoder |
+| `GENERATOR_MODEL` | `OLLAMA_MODEL` | Modelo LLM para geração de resposta (herda de `OLLAMA_MODEL` se vazio) |
+| `GENERATOR_MAX_RESPONSE_TOKENS` | `2048` | Máximo de tokens na resposta |
+| `GENERATOR_MAX_DOCS` | `7` | Máximo de documentos enviados ao generator (0 = sem limite) |
+| `GENERATOR_MAX_DOC_CHARS` | `2000` | Truncar texto de cada documento (0 = sem truncamento) |
+| `GENERATOR_GROUNDED_ONLY` | `true` | Respostas apenas com base nos documentos |
+| `GENERATOR_TIMEOUT` | `120` | Timeout (s) para o LLM do generator |
+| `PIPELINE_DEBUG` | `false` | Ativar debug trace globalmente |
+
+### Registro dinâmico de filtros (`FilterRegistry`)
+
+Os valores aceitos para filtros (`metadata.type`, `metadata.authority`) são carregados **automaticamente do banco SQLite** na inicialização, ordenados por frequência. Apenas os **top N** mais frequentes são:
+
+1. Injetados no prompt do Rewriter (para o LLM saber quais valores usar)
+2. Usados na validação (valores fora da lista são descartados silenciosamente)
+
+Isso garante que ao coletar novos tipos de documentos ou autoridades, eles aparecem automaticamente no pipeline RAG sem edição manual de código. Se o banco não estiver disponível (ex: testes unitários), um fallback estático é usado.
+
+### Modo Debug
+
+O pipeline suporta um modo debug ativável por request (`debug: true`) que retorna um `PipelineTrace` com:
+
+- Queries reescritas pelo Rewriter (com filtros e facetas)
+- Resultados por query do Searcher (contagem, dedup)
+- Scores de avaliação do Evaluator (aceitos/descartados)
+- Contexto enviado ao Generator (modelo, grounded, tamanho)
+- Documentos enviados ao Generator (texto completo que a LLM recebe, com scores e metadados)
+- Timings de cada estágio (ms)
+- Warnings/erros não-fatais capturados
+
+Na interface web, o toggle "Modo Debug" no painel de chat ativa essa funcionalidade e exibe o trace com visualização rica (barra de timings, tabela de scores, badges de facetas).
+
+---
+
 ## 9. API RAG (Backend)
 
 A API RAG (`api/server.py`) é o coração do sistema. É um servidor FastAPI que expõe todos os endpoints de busca, chat e gerenciamento.
@@ -865,15 +1052,23 @@ O `SessionManager` (`api/session_manager.py`) gerencia sessões de chat em memó
 - Cleanup automático em background
 - Context window configurável (quantas mensagens anteriores enviar ao LLM)
 
-### 9.5. Como executar a API
+### 9.5. Como executar (API + Web)
+
+A forma mais prática de iniciar todo o ambiente de desenvolvimento é via `make start`, que sobe a API e a interface Web no mesmo terminal:
 
 ```bash
-# Na raiz do projeto, com o venv ativado:
-python -m api.server
-
-# Ou com uvicorn diretamente:
-uvicorn api.server:app --host 127.0.0.1 --port 8083 --reload
+# Inicia API (porta 8083) e Web (porta 8082) — Ctrl+C para ambos
+make start
 ```
+
+Também é possível iniciar cada serviço individualmente (em terminais separados):
+
+```bash
+make start-api    # Apenas a API (porta 8083)
+make start-web    # Apenas a Web (porta 8082)
+```
+
+> **Pré-requisitos:** Qdrant rodando (padrão `localhost:6333`) e Ollama com o modelo configurado no `.env`.
 
 ### 9.6. Exemplo de uso via curl
 
@@ -913,10 +1108,11 @@ Para documentação completa da interface web, consulte `web/`:
 ### Resumo de como executar:
 
 ```bash
+# Via Makefile (recomendado — sobe API + Web juntos):
+make start
+
+# Ou manualmente:
 cd web/
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
 cp env.example .env
 # Editar .env (configurar API_BASE_URL e API_KEY)
 python main.py
@@ -943,6 +1139,7 @@ python main.py
 
 | Script | Comando | Descrição |
 |--------|---------|-----------|
+| `download_models.py` | `python -m scripts.download_models` | Pré-baixa todos os modelos ML necessários (`make download-models`) |
 | `validate_data.py` | `python -m scripts.validate_data` | Valida qualidade e limpeza dos documentos (`make validate-data`) |
 | `inspect_qdrant.py` | `python -m scripts.inspect_qdrant` | Inspeciona dados do Qdrant |
 | `test_system.py` | `python -m scripts.test_system` | Testa todos os componentes |
@@ -974,22 +1171,25 @@ make index RECREATE=1                         # Recria a coleção
 # 4. Pipeline completo (3 fases em sequência)
 make pipeline
 
-# 5. Verificar o que foi indexado
+# 5. Pré-baixar modelos ML (cross-encoder, embeddings, Ollama)
+make download-models
+
+# 6. Verificar o que foi indexado
 python -m scripts.inspect_qdrant
 
-# 6. Consultar documentos coletados
+# 7. Consultar documentos coletados
 make query SQL="SELECT source, COUNT(*) n FROM documents GROUP BY source"
 make explore                                  # Web UI (Datasette)
 
-# 7. Testar todo o sistema
+# 8. Testar todo o sistema
 python -m scripts.test_system
 
-# 8. Resetar tudo e re-coletar
+# 9. Resetar tudo e re-coletar
 make collect FORCE=1                          # Apaga e re-coleta
 make embed FORCE=1                            # Re-gera embeddings
 make index RECREATE=1                         # Recria Qdrant
 
-# 9. Validar qualidade dos documentos
+# 10. Validar qualidade dos documentos
 python -m scripts.validate_data --report-only
 ```
 
@@ -1157,10 +1357,13 @@ tests/
 ├── __init__.py
 ├── crawler/
 │   └── scrapers/
-│       ├── test_base_scraper.py     # BaseScraper ABC, registry, ScrapedDocument
-│       ├── test_sislaer_scraper.py  # SISLAERScraper (Search API, parsing, norma codes)
-│       ├── test_decea_scraper.py    # DECEAScraper (sync + async)
-│       └── test_lexml_scraper.py    # LexMLScraper (async)
+│       ├── test_base_scraper.py        # BaseScraper ABC, registry, ScrapedDocument
+│       ├── test_sislaer_scraper.py     # SISLAERScraper (Search API, parsing, norma codes)
+│       ├── test_decea_scraper.py       # DECEAScraper (sync + async)
+│       ├── test_lexml_scraper.py       # LexMLScraper (async)
+│       └── test_field_completeness.py  # Validação de campos obrigatórios
+├── database/
+│   └── test_qdrant_manager.py          # QdrantManager + SearchBackendError
 ├── evaluation/
 │   ├── test_evaluate_retrieval.py
 │   └── test_evaluate_generation.py
@@ -1168,12 +1371,17 @@ tests/
 │   ├── test_document_store.py
 │   ├── test_embedding_store.py
 │   └── test_text_cleaner.py
-└── ...
+├── search/
+│   ├── test_prompts.py                 # Templates e funções de prompt
+│   └── test_vector_search.py           # DI, encoding paralelo, error handling
+├── test_embeddings.py
+├── test_parsers.py
+└── test_rag.py                         # RAGPipeline com DI e SearchBackendError
 ```
 
 Todos os testes usam **mocks** para isolar dependências externas (Qdrant, Ollama, modelo de embeddings), garantindo execução rápida e sem necessidade de serviços rodando.
 
-### 13.2. Executar testes
+### 13.2. Executar testes e lint
 
 ```bash
 # Todos os testes
@@ -1187,7 +1395,18 @@ make test FILE=tests/evaluation/test_evaluate_retrieval.py
 
 # Direto via pytest
 python -m pytest tests/ -v --tb=short
+
+# Lint (ruff) — verifica imports não usados, variáveis mortas, etc.
+make lint
+
+# Auto-corrigir erros de lint
+make lint-fix
 ```
+
+O linter **ruff** é configurado via `pyproject.toml` e verifica:
+- `F401` — imports não utilizados
+- `F841` — variáveis atribuídas mas não usadas
+- `E711`/`E712` — comparações com `None`/`True`/`False`
 
 ### 13.3. Comandos do Makefile
 
@@ -1206,6 +1425,16 @@ python -m pytest tests/ -v --tb=short
 | `make query` | Console SQL interativo para explorar documentos |
 | `make explore` | Interface web (datasette) para explorar o SQLite |
 
+**Desenvolvimento:**
+
+| Comando | Descrição |
+|---------|-----------|
+| `make download-models` | Pré-baixa todos os modelos ML (embeddings, cross-encoder, Ollama) |
+| `make download-models SKIP_OLLAMA=1` | Pré-baixa apenas modelos HuggingFace (sem Ollama) |
+| `make start` | Inicia API + Web (Ctrl+C para ambos) |
+| `make start-api` | Inicia apenas a API (porta 8083) |
+| `make start-web` | Inicia apenas a Web (porta 8082) |
+
 **Avaliação e utilitários:**
 
 | Comando | Descrição |
@@ -1214,6 +1443,8 @@ python -m pytest tests/ -v --tb=short
 | `make migrate` | Executa migrações do banco SQLite |
 | `make test` | Executa todos os testes unitários |
 | `make test FILE=<path>` | Executa testes de um arquivo ou diretório |
+| `make lint` | Linter (ruff) — imports não usados, variáveis mortas |
+| `make lint-fix` | Auto-corrige erros de lint |
 | `make eval` | Executa ambas as avaliações (retrieval + geração) |
 | `make eval-retrieval` | Avaliação de retrieval |
 | `make eval-generation` | Avaliação de geração |
@@ -1288,7 +1519,57 @@ sudo systemctl restart ragapi ragweb
 make deploy
 ```
 
-Este comando executa: `git pull` → atualiza dependências → reinstala serviços systemd → reinicia os 3 serviços → health checks. O nginx **não é tocado** por padrão para evitar conflitos com outros serviços no servidor.
+Este comando executa: `git stash` → `git pull` → `git stash pop` → atualiza dependências → reinstala serviços systemd → reinicia os 3 serviços → health checks. O nginx **não é tocado** por padrão para evitar conflitos com outros serviços no servidor. O `git stash` preserva alterações locais nos `.env` que diferem do repositório.
+
+#### Deploy via GitHub Actions
+
+O projeto possui um workflow de CI/CD que permite deployar **qualquer branch** diretamente pela interface do GitHub, sem acessar o servidor via SSH.
+
+**Como usar:**
+
+1. Acesse o repositório no GitHub
+2. Vá em **Actions** > **Deploy** > **Run workflow**
+3. Selecione a branch desejada (default: `main`)
+4. Clique em **Run workflow**
+
+O workflow usa um **self-hosted runner** instalado no próprio servidor de produção. O runner faz polling via HTTPS (conexão de saída) para o GitHub, eliminando a necessidade de abrir portas de entrada no firewall da universidade.
+
+**Arquivo:** `.github/workflows/deploy.yml`
+
+**Fluxo de execução:**
+
+```
+GitHub Actions (trigger manual)
+  → Self-hosted runner no servidor
+    → git fetch + checkout da branch
+      → deploy.sh (stash, pull, deps, restart, health check)
+```
+
+#### Configuração do self-hosted runner
+
+O runner está instalado em `/home/jean/actions-runner` no servidor e roda como serviço systemd:
+
+```bash
+# Status do runner
+sudo systemctl status actions.runner.AirData-ITA-ita-airdata-rag-system-llm.airdatasrv02
+
+# Reiniciar se necessário
+sudo systemctl restart actions.runner.AirData-ITA-ita-airdata-rag-system-llm.airdatasrv02
+```
+
+Para instalar em um novo servidor:
+
+1. No GitHub: **Settings** > **Actions** > **Runners** > **New self-hosted runner**
+2. Seguir os comandos de instalação exibidos pelo GitHub
+3. Instalar como serviço: `sudo ./svc.sh install && sudo ./svc.sh start`
+4. Configurar sudoers para deploy sem senha:
+
+```bash
+sudo visudo -f /etc/sudoers.d/actions-runner
+# Adicionar:
+jean ALL=(ALL) NOPASSWD: /usr/bin/bash /home/jean/ita-airdata-rag-system-llm/deploy/deploy.sh
+jean ALL=(ALL) NOPASSWD: /usr/bin/bash /home/jean/ita-airdata-rag-system-llm/deploy/deploy.sh *
+```
 
 ### 14.2. Comandos de gerenciamento
 
@@ -1350,9 +1631,16 @@ A configuração dos virtual hosts fica em `/etc/nginx/sites-available/airdata-s
 
 | Virtual Host | `server_name` | Conteúdo |
 |---|---|---|
-| OWL Ontologia | `owl.airdata.ita.br _` (default) | Arquivos estáticos de `/var/www/airdata-site` + snippet rag |
+| OWL Ontologia | `owl.airdata.ita.br _` (default) | Arquivos estáticos + snippet rag + Airflow + pgweb |
 | Data Portal | `data.airdata.ita.br` | Proxy para porta 9010 |
 | Chatbot RAG | `chatbot.airdata.ita.br` | Proxy para ragweb (porta 8082, raiz) + snippet rag |
+
+Serviços de infraestrutura (apenas no virtual host OWL/default):
+
+| Location | Serviço | Porta | Observação |
+|---|---|---|---|
+| `/airflow/` | Apache Airflow | 8080 | `base_url` configurado em `airflow.cfg` para subpath |
+| `/pgweb/` | pgweb | 8081 | Basic Auth (admin), trailing slash strip no proxy |
 
 Para editar os virtual hosts:
 
@@ -1381,6 +1669,8 @@ sudo tail -f /var/log/nginx/error.log
 | Estatísticas | `http://chatbot.airdata.ita.br/ragapi/stats` (requer API Key) |
 | Ontologia OWL | `http://owl.airdata.ita.br/` |
 | Data Portal | `http://data.airdata.ita.br/` |
+| Airflow | `http://owl.airdata.ita.br/airflow/` |
+| pgweb | `http://owl.airdata.ita.br/pgweb/` (requer Basic Auth) |
 
 ### 14.5. Ordem de inicialização
 
@@ -1397,7 +1687,238 @@ sudo systemctl start nginx       # 6. nginx
 
 ---
 
-## 15. Resolução de Problemas
+## 15. GPU Inference Server (Remoto)
+
+O sistema suporta três modos de inferência, configuráveis via `INFERENCE_MODE` no `.env`:
+
+| Modo | Descrição | Quando usar |
+|------|-----------|-------------|
+| `local` | Modelos carregados no processo local (GPU se disponível, senão CPU) | Desenvolvimento com GPU local |
+| `remote` | Chamadas HTTP para o GPU Inference Server remoto | Produção sem GPU local |
+| `cpu` | Forçar execução em CPU, sem CUDA | Testes ou máquinas sem GPU |
+
+### 15.1. Arquitetura
+
+```
+  Máquina Local (sem GPU)                    Servidor GPU
+  ─────────────────────────                  ─────────────────────────────
+  API RAG (FastAPI)                          nginx (porta 80)
+    │                                          │
+    ├── create_embedding_model()               ├── /gpu-api/ ──► GPU Server (porta 8090)
+    ├── create_evaluator()       ──HTTP──►     │                  ├── /v1/embeddings
+    └── create_llm()                           │                  ├── /v1/rerank
+                                               │                  ├── /v1/generate[/stream]
+                                               │                  ├── /v1/models
+                                               │                  └── /health
+                                               │
+                                               └── /ollama-api/ ──► Ollama (porta 11434)
+```
+
+O nginx atua como reverse proxy, eliminando a necessidade de abrir portas adicionais no firewall. O GPU server escuta apenas em `127.0.0.1:8090` (ou `0.0.0.0:8090` se acesso direto for necessário).
+
+### 15.2. Configuração do cliente (`.env` local)
+
+```env
+# Modo de inferência: local | remote | cpu
+INFERENCE_MODE=remote
+
+# URL do GPU server (acessível via Nginx reverse proxy)
+GPU_SERVER_URL=http://<IP-SERVIDOR>/gpu-api
+
+# Chave de autenticação (opcional, deve coincidir com GPU_SERVER_API_KEY no servidor)
+GPU_SERVER_API_KEY=
+
+# Timeout para chamadas remotas (segundos)
+GPU_SERVER_TIMEOUT=120
+```
+
+### 15.3. Estrutura do GPU Server
+
+O diretório `gpu_server/` contém a aplicação standalone:
+
+```
+gpu_server/
+├── server.py              # FastAPI app com endpoints de inferência
+├── requirements.txt       # Dependências (torch, sentence-transformers, etc.)
+├── .env.example           # Template de variáveis de ambiente do servidor
+├── deploy.sh              # Script de setup automatizado
+├── gpu_server.service     # Unit file para systemd (com placeholders)
+└── nginx-gpu-api.conf     # Snippet nginx — location blocks para reverse proxy
+```
+
+### 15.4. Deploy no servidor GPU
+
+#### Passo 1: Copiar arquivos
+
+```bash
+scp -P 2222 -r gpu_server/ user@servidor:/path/to/airdata/
+```
+
+#### Passo 2: Setup básico (venv + dependências)
+
+```bash
+ssh -p 2222 user@servidor
+cd /path/to/airdata/gpu_server
+chmod +x deploy.sh
+./deploy.sh
+```
+
+#### Passo 3: Instalar como serviço systemd
+
+```bash
+sudo ./deploy.sh --install
+sudo systemctl start gpu-server
+sudo systemctl status gpu-server
+```
+
+O flag `--install` renderiza `gpu_server.service` substituindo os placeholders (`__INSTALL_DIR__`, `__USER__`, `__GROUP__`, `__MODEL_CACHE__`, `__OLLAMA_DATA__`) com os valores reais e instala em `/etc/systemd/system/`.
+
+#### Passo 4: Configurar nginx (reverse proxy)
+
+```bash
+sudo ./deploy.sh --with-nginx
+```
+
+Ou manualmente:
+
+```bash
+# 1. Copiar o snippet de locations
+sudo cp nginx-gpu-api.conf /etc/nginx/sites-available/gpu-api
+
+# 2. Incluir no server block existente (NÃO cria um novo server block)
+#    Adicione esta linha DENTRO do bloco server {} do site desejado:
+#    include /etc/nginx/sites-available/gpu-api;
+
+# 3. Testar e recarregar
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+#### Passo 5: Verificar
+
+```bash
+# Direto (local no servidor)
+curl http://localhost:8090/health
+
+# Via nginx (remoto)
+curl http://<IP-SERVIDOR>/gpu-api/health
+```
+
+### 15.5. Integração nginx — sem impacto nas configurações existentes
+
+O snippet `nginx-gpu-api.conf` contém **apenas blocos `location`**, não um `server` block completo. Isso é idêntico ao padrão usado pelo RAG API (`deploy/nginx-rag.conf`):
+
+```nginx
+# Arquivo: gpu_server/nginx-gpu-api.conf
+# Apenas locations — incluir DENTRO de um server {} existente
+
+location /gpu-api/ {
+    proxy_pass http://127.0.0.1:8090/;
+    # ... headers, timeouts, SSE support
+}
+
+location /ollama-api/ {
+    proxy_pass http://127.0.0.1:11434/;
+    # ... headers, timeouts
+}
+```
+
+**Por que isso não afeta configurações existentes:**
+
+1. **Não cria `server` block** — apenas adiciona paths (locations) ao site existente
+2. **Não conflita com `server_name`** — evita o warning "conflicting server name"
+3. **Paths únicos** — `/gpu-api/` e `/ollama-api/` não colidem com paths existentes
+4. **Path stripping** — `proxy_pass` com trailing slash (`http://127.0.0.1:8090/`) remove o prefixo `/gpu-api/` antes de enviar ao backend
+5. **SSE streaming** — `proxy_buffering off` + `X-Accel-Buffering: no` (header no response do server) garantem streaming sem buffer
+6. **Arquivo separado** — fica em `/etc/nginx/sites-available/gpu-api` (não modifica `default` diretamente)
+
+**Integração com o default site:**
+
+```bash
+# Ver como fica dentro do server block existente:
+server {
+    listen 80;
+    server_name _;
+
+    # Serviços existentes (CloudBeaver, Airflow, GitLab, etc.)
+    location /db/     { proxy_pass http://127.0.0.1:8978/; ... }
+    location /airflow/ { proxy_pass http://127.0.0.1:8081/airflow/; ... }
+
+    # GPU API — incluído via snippet (não modifica nada acima)
+    include /etc/nginx/sites-available/gpu-api;
+}
+```
+
+### 15.6. Variáveis de ambiente do servidor (`gpu_server/.env`)
+
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `GPU_SERVER_HOST` | `0.0.0.0` | Interface de bind do servidor |
+| `GPU_SERVER_PORT` | `8090` | Porta do servidor |
+| `GPU_SERVER_API_KEY` | *(vazio)* | Chave de autenticação (desabilitada se vazia) |
+| `EMBEDDING_MODEL` | `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Modelo SentenceTransformer |
+| `CROSS_ENCODER_MODEL` | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` | Modelo CrossEncoder |
+| `MODEL_CACHE_DIR` | `/dados/airdata/models_cache` | Cache de modelos HuggingFace |
+| `OLLAMA_HOST` | `http://localhost:11434` | Endpoint do Ollama local |
+
+### 15.7. Factory Functions
+
+O módulo `models/gpu_client.py` fornece factory functions que roteiam automaticamente:
+
+```python
+from models.gpu_client import create_embedding_model, create_evaluator, create_llm
+
+embed = create_embedding_model()  # RemoteEmbeddingModel ou EmbeddingModel
+evalu = create_evaluator()        # RemoteDocumentEvaluator ou DocumentEvaluator
+llm   = create_llm()              # RemoteLlamaModel ou LlamaModel
+```
+
+Em modo `remote`, nenhuma biblioteca ML pesada (torch, sentence-transformers, ollama) é carregada localmente — imports condicionais via `TYPE_CHECKING` e `__getattr__` lazy loading em `models/__init__.py`.
+
+### 15.8. Endpoints do GPU Server
+
+| Método | Endpoint | Auth | Descrição |
+|--------|----------|------|-----------|
+| `GET` | `/health` | Não | Readiness probe (status, GPU, modelos carregados) |
+| `POST` | `/v1/embeddings` | Sim* | Embeddings via SentenceTransformer |
+| `POST` | `/v1/rerank` | Sim* | Reranking via CrossEncoder |
+| `POST` | `/v1/generate` | Sim* | Chat completion via Ollama (sync) |
+| `POST` | `/v1/generate/stream` | Sim* | Chat completion via Ollama (SSE streaming) |
+| `GET` | `/v1/models` | Sim* | Lista modelos Ollama disponíveis |
+
+\* Auth via header `X-API-Key` — desabilitada quando `GPU_SERVER_API_KEY` está vazio.
+
+### 15.9. Gerenciamento
+
+```bash
+# Status do serviço
+sudo systemctl status gpu-server
+
+# Logs em tempo real
+sudo journalctl -u gpu-server -f
+
+# Reiniciar após mudança de .env
+sudo systemctl restart gpu-server
+
+# Listar modelos Ollama disponíveis
+curl -s http://<IP>/gpu-api/v1/models | python3 -m json.tool
+
+# Verificar GPU
+curl -s http://<IP>/gpu-api/health | python3 -m json.tool
+```
+
+### 15.10. Ordem de inicialização no servidor GPU
+
+```bash
+sudo systemctl start ollama       # 1. Ollama (LLM)
+sudo systemctl start gpu-server   # 2. GPU Inference Server
+sudo systemctl start nginx        # 3. nginx (reverse proxy)
+```
+
+O `gpu_server.service` declara `After=ollama.service` e `Wants=ollama.service`, portanto o systemd gerencia a ordem automaticamente no boot.
+
+---
+
+## 16. Resolução de Problemas
 
 ### Erros de importação ao executar scripts
 
@@ -1455,10 +1976,13 @@ RuntimeError: CUDA out of memory
 
 **Causa:** GPU sem memória suficiente para o modelo de embeddings.
 
-**Solução:** O modelo automaticamente cai para CPU se CUDA não estiver disponível. Para forçar CPU:
+**Solução:** O modelo automaticamente cai para CPU se CUDA não estiver disponível. Alternativas:
 
 ```bash
-export CUDA_VISIBLE_DEVICES=""  # Desabilitar GPU
+export CUDA_VISIBLE_DEVICES=""  # Desabilitar GPU local
+# Ou usar GPU remoto:
+export INFERENCE_MODE=remote
+export GPU_SERVER_URL=http://161.24.29.21/gpu-api
 ```
 
 ### Timeout na API de chat

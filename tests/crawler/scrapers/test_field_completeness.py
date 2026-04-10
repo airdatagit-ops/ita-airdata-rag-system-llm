@@ -5,8 +5,6 @@ unexpectedly None or empty, and that cross-source canonical IDs are
 consistent.
 """
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -15,9 +13,8 @@ from crawler.scrapers.base import (
     compute_canonical_id,
     split_version_year,
 )
-from crawler.scrapers.sislaer_scraper import _parse_title, _normalize_doc_type
+from crawler.scrapers.sislaer_scraper import _parse_title
 from crawler.scrapers.lexml_scraper import LexMLScraper
-from crawler.scrapers.decea_scraper import DECEAScraper
 
 
 # ── split_version_year edge cases ────────────────────────────────────────────
