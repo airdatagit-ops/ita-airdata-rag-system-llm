@@ -59,7 +59,12 @@ class SearchSort(BaseModel):
 
 VALID_FACET_TYPES = ["general", "temporal", "authority", "document_type"]
 
-ALLOWED_FILTER_FIELDS = frozenset({"metadata.type", "metadata.authority", "effective_date"})
+ALLOWED_FILTER_FIELDS = frozenset({
+    "metadata.type",
+    "metadata.authority",
+    "metadata.number",
+    "effective_date",
+})
 
 
 class FilterRegistry:

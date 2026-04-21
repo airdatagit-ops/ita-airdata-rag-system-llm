@@ -196,6 +196,7 @@ class Settings(BaseSettings):
     REWRITER_MAX_QUERY_LENGTH: int = int(getenv('REWRITER_MAX_QUERY_LENGTH', '500'))
     REWRITER_TEMPERATURE: float = float(getenv('REWRITER_TEMPERATURE', '0.3'))
     REWRITER_TIMEOUT: int = int(getenv('REWRITER_TIMEOUT', '60'))
+    REWRITER_PROMPT_VERSION: str = getenv('REWRITER_PROMPT_VERSION', 'v1')
 
     # ========================================
     # RAG Pipeline — Evaluator (Cross-Encoder)

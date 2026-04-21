@@ -942,6 +942,7 @@ search/
 |----------|---------|-----------|
 | `REWRITER_ENABLED` | `true` | Habilita o módulo Rewriter (desabilitar para pipeline mais leve) |
 | `REWRITER_MODEL` | `qwen2.5:7b` | Modelo LLM para reescrita de queries |
+| `REWRITER_PROMPT_VERSION` | `v1` | System prompt version: `v1` (legacy) or `v2` (structured sorts/filters incl. `metadata.number`). |
 | `REWRITER_MAX_QUERIES` | `3` | Máximo de sub-queries geradas |
 | `REWRITER_MAX_QUERY_LENGTH` | `500` | Tamanho máximo por query reescrita (chars) |
 | `REWRITER_TEMPERATURE` | `0.3` | Temperatura do LLM no rewriter |
