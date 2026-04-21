@@ -547,7 +547,7 @@ O script `scripts/download_models.py` baixa:
 | Modelo | Tipo | Usado por |
 |--------|------|-----------|
 | `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Sentence-Transformer | Embedding (busca vetorial) |
-| `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` | Cross-Encoder | Evaluator (re-ranking) |
+| `BAAI/bge-reranker-base` | Cross-Encoder | Evaluator (re-ranking) |
 | `llama3.1:8b` | Ollama LLM | Generator (geração de respostas) |
 | `qwen2.5:7b` | Ollama LLM | Rewriter (reescrita de queries) |
 
@@ -950,8 +950,8 @@ search/
 | `REWRITER_TEMPERATURE` | `0.3` | Temperatura do LLM no rewriter |
 | `REWRITER_TIMEOUT` | `60` | Timeout (s) para o LLM do rewriter |
 | `EVALUATOR_ENABLED` | `true` | Habilita o módulo Evaluator (desabilitar para pipeline mais leve) |
-| `CROSS_ENCODER_MODEL` | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` | Modelo cross-encoder multilíngue para avaliação |
-| `EVALUATOR_THRESHOLD` | `35` | Score mínimo (0-100) para aceitar documento |
+| `CROSS_ENCODER_MODEL` | `BAAI/bge-reranker-base` | Cross-encoder multilíngue (280M, 512 token window). |
+| `EVALUATOR_THRESHOLD` | `55` | Score mínimo (0-100). Calibrado para `bge-reranker-base`; para o legado `cross-encoder/mmarco-mMiniLMv2-L12` use 35. |
 | `EVALUATOR_BATCH_SIZE` | `32` | Batch size do cross-encoder |
 | `EVALUATOR_MAX_TOKENS` | `480` | Máximo de tokens na entrada do cross-encoder |
 | `GENERATOR_MODEL` | `OLLAMA_MODEL` | Modelo LLM para geração de resposta (herda de `OLLAMA_MODEL` se vazio) |
@@ -1859,7 +1859,7 @@ server {
 | `GPU_SERVER_PORT` | `8090` | Porta do servidor |
 | `GPU_SERVER_API_KEY` | *(vazio)* | Chave de autenticação (desabilitada se vazia) |
 | `EMBEDDING_MODEL` | `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Modelo SentenceTransformer |
-| `CROSS_ENCODER_MODEL` | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` | Modelo CrossEncoder |
+| `CROSS_ENCODER_MODEL` | `BAAI/bge-reranker-base` | Modelo CrossEncoder |
 | `MODEL_CACHE_DIR` | `/dados/airdata/models_cache` | Cache de modelos HuggingFace |
 | `OLLAMA_HOST` | `http://localhost:11434` | Endpoint do Ollama local |
 

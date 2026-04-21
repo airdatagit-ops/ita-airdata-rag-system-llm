@@ -208,9 +208,9 @@ class Settings(BaseSettings):
     # ========================================
     EVALUATOR_ENABLED: bool = getenv('EVALUATOR_ENABLED', 'true').lower() in ('true', '1', 'yes')
     CROSS_ENCODER_MODEL: str = getenv(
-        'CROSS_ENCODER_MODEL', 'cross-encoder/mmarco-mMiniLMv2-L12-H384-v1',
+        'CROSS_ENCODER_MODEL', 'BAAI/bge-reranker-base',
     )
-    EVALUATOR_THRESHOLD: int = int(getenv('EVALUATOR_THRESHOLD', '25'))
+    EVALUATOR_THRESHOLD: int = int(getenv('EVALUATOR_THRESHOLD', '55'))
     EVALUATOR_BATCH_SIZE: int = int(getenv('EVALUATOR_BATCH_SIZE', '32'))
     EVALUATOR_MAX_TOKENS: int = int(getenv('EVALUATOR_MAX_TOKENS', '480'))
 

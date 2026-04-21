@@ -40,7 +40,7 @@ EMBEDDING_MODEL_NAME = os.getenv(
     "EMBEDDING_MODEL", "rufimelo/Legal-BERTimbau-sts-large-ma-v3",
 )
 CROSS_ENCODER_MODEL_NAME = os.getenv(
-    "CROSS_ENCODER_MODEL", "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+    "CROSS_ENCODER_MODEL", "BAAI/bge-reranker-base",
 )
 MODEL_CACHE_DIR = os.getenv("MODEL_CACHE_DIR", "/dados/airdata/models_cache")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
