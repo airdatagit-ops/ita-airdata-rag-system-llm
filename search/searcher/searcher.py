@@ -48,16 +48,30 @@ class DocumentSearcher:
     ) -> SearchResults:
         """Search for all *queries* in parallel and return merged results.
 
+        When any sub-query carries a ``sort`` directive (e.g. temporal
+        sort), the per-sub-query Qdrant fetch is widened by
+        ``SEARCH_SORT_FETCH_MULTIPLIER`` so that the in-memory sort has
+        a chance to reach genuinely older/newer chunks that fell outside
+        the relevance top-K. The deduplicated, sorted list is then
+        capped back to ``limit * len(queries)`` to keep the downstream
+        evaluator load constant.
+
         Raises ``SearcherError`` if every single sub-query fails.
         """
         effective_limit = limit or self.default_limit
+        has_sort = any(q.sorts for q in queries)
+        fetch_limit = (
+            effective_limit * config.SEARCH_SORT_FETCH_MULTIPLIER
+            if has_sort
+            else effective_limit
+        )
 
         if len(queries) == 1:
             results_map = {
-                queries[0].text: self._execute_single(queries[0], effective_limit, date)
+                queries[0].text: self._execute_single(queries[0], fetch_limit, date)
             }
         else:
-            results_map = self._execute_parallel(queries, effective_limit, date)
+            results_map = self._execute_parallel(queries, fetch_limit, date)
 
         all_docs: List[Dict] = []
         results_per_query: Dict[str, int] = {}
@@ -69,10 +83,14 @@ class DocumentSearcher:
         total_before = len(all_docs)
         deduped = self._deduplicate(all_docs)
 
-        for q in queries:
-            if q.sorts:
-                deduped = sort_documents(deduped, q.sorts)
-                break
+        if has_sort:
+            for q in queries:
+                if q.sorts:
+                    deduped = sort_documents(deduped, q.sorts)
+                    cap = effective_limit * len(queries)
+                    if len(deduped) > cap:
+                        deduped = deduped[:cap]
+                    break
 
         return SearchResults(
             documents=deduped,

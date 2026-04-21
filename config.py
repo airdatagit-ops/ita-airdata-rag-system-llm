@@ -65,6 +65,11 @@ class Settings(BaseSettings):
     SEARCH_SCORE_THRESHOLD: float = getenv('SEARCH_SCORE_THRESHOLD')
     SEARCH_DENSE_ENABLED: bool = getenv('SEARCH_DENSE_ENABLED', 'true')
     SEARCH_SPARSE_ENABLED: bool = getenv('SEARCH_SPARSE_ENABLED', 'false')
+    # RRF prefetch pool size (hybrid only) = limit * SEARCH_PREFETCH_MULTIPLIER.
+    SEARCH_PREFETCH_MULTIPLIER: int = getenv('SEARCH_PREFETCH_MULTIPLIER', '3')
+    # When a sub-query carries a sort, fetch limit * this many candidates
+    # before in-memory sorting; the deduped pool is then capped back to limit.
+    SEARCH_SORT_FETCH_MULTIPLIER: int = getenv('SEARCH_SORT_FETCH_MULTIPLIER', '3')
     SPARSE_EMBEDDING_MODEL: str = getenv('SPARSE_EMBEDDING_MODEL', 'Qdrant/bm25')
     HNSW_EF_SEARCH: int = getenv('HNSW_EF_SEARCH')
     HNSW_M: int = getenv('HNSW_M')

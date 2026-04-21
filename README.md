@@ -259,6 +259,8 @@ cp env.example .env
 | `SEARCH_DENSE_ENABLED` | bool | `true` | Habilita busca semântica (dense vectors) |
 | `SEARCH_SPARSE_ENABLED` | bool | `true` | Habilita busca por keywords/BM25 (sparse vectors via fastembed) |
 | `SPARSE_EMBEDDING_MODEL` | string | `Qdrant/bm25` | Modelo de sparse embeddings (usado quando `SEARCH_SPARSE_ENABLED=true`) |
+| `SEARCH_PREFETCH_MULTIPLIER` | int | `3` | RRF prefetch pool size per branch in hybrid mode = `SEARCH_TOP_K * mul`. |
+| `SEARCH_SORT_FETCH_MULTIPLIER` | int | `3` | When a sub-query carries a sort, fetch `SEARCH_TOP_K * mul` candidates, sort in-memory, then cap back to the pool size. |
 | `DEFAULT_EMBEDDING_MODE` | string | `hybrid` | Modo padrão para `make embed` (`dense`, `sparse`, `hybrid`) |
 | `HNSW_M` | int | `16` | Parâmetro M do índice HNSW |
 | `HNSW_EF_CONSTRUCT` | int | `100` | Parâmetro ef_construct do HNSW |
