@@ -224,6 +224,9 @@ class Settings(BaseSettings):
     GENERATOR_GROUNDED_ONLY: bool = getenv('GENERATOR_GROUNDED_ONLY', 'true').lower() in ('true', '1', 'yes')
     GENERATOR_TIMEOUT: int = int(getenv('GENERATOR_TIMEOUT', '120'))
 
+    # Judge model for evaluation/llm_judge.py; empty falls back to GENERATOR_MODEL.
+    JUDGE_MODEL: str = getenv('JUDGE_MODEL', '')
+
     # ========================================
     # RAG Pipeline — General
     # ========================================

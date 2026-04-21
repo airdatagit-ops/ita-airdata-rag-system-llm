@@ -113,6 +113,7 @@ class RAGPipeline:
         grounded_only: Optional[bool] = None,
         max_queries: Optional[int] = None,
         evaluation_threshold: Optional[int] = None,
+        include_generation: bool = True,
     ) -> Dict:
         """Answer a question using the full RAG pipeline.
 
@@ -121,6 +122,11 @@ class RAGPipeline:
             grounded_only: Override generator groundedness.
             max_queries: Override rewriter max sub-queries.
             evaluation_threshold: Override evaluator threshold.
+            include_generation: When False, return after the
+                Evaluator stage (no LLM generation). Used by
+                offline retrieval evaluators to measure the docs
+                the Generator would actually receive without
+                paying the generation cost.
         """
         enable_debug = debug if debug is not None else config.PIPELINE_DEBUG
 
@@ -129,6 +135,7 @@ class RAGPipeline:
             and history is None
             and not stream
             and not enable_debug
+            and include_generation
         )
         if use_cache:
             cache_key = make_cache_key("rag", question, str(date), str(limit))
@@ -317,6 +324,22 @@ class RAGPipeline:
         sources = (
             [ed.document for ed in evaluated] if return_sources else []
         )
+
+        if not include_generation:
+            elapsed = int((time.time() - pipeline_start) * 1000)
+            if timings:
+                timings.total_ms = elapsed
+                trace.timings = timings
+            response = {
+                "answer": "",
+                "sources": sources,
+                "search_time_ms": int(search_time * 1000),
+                "llm_time_ms": 0,
+                "total_time_ms": elapsed,
+            }
+            if trace:
+                response["trace"] = trace.to_dict()
+            return response
 
         # --------------------------------------------------------
         # 4. GENERATE

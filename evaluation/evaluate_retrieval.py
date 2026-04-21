@@ -66,6 +66,13 @@ class QueryResult:
     recall: float
     ndcg_at_k: float
     hit: bool
+    rewriter_subqueries: int = 0
+    docs_before_evaluator: int = 0
+    docs_after_evaluator: int = 0
+    rewriter_ms: int = 0
+    searcher_ms: int = 0
+    evaluator_ms: int = 0
+    total_ms: int = 0
 
 
 @dataclass
@@ -83,6 +90,13 @@ class EvaluationResult:
     retrieval_recall: float
     coverage_queries: int
     coverage_correct_rate: float
+    mode: str = "raw"
+    avg_rewriter_subqueries: float = 0.0
+    avg_evaluator_filter_rate: float = 0.0
+    avg_rewriter_ms: float = 0.0
+    avg_searcher_ms: float = 0.0
+    avg_evaluator_ms: float = 0.0
+    avg_total_ms: float = 0.0
     query_results: List[QueryResult] = field(default_factory=list)
 
 
@@ -212,6 +226,29 @@ class RetrievalEvaluator:
 
         logger.info(f"Loaded {len(self.golden_set)} unique queries from golden set")
 
+    def _select_query_ids(self, sample: Optional[int] = None) -> List[str]:
+        """Return ordered query ids honouring an optional ``sample`` cap.
+
+        The golden set has two query categories: ``coverage`` (negative
+        signals — the system should NOT find a relevant doc) and the
+        rest (retrieval queries). Sampling keeps ALL coverage queries
+        and caps only the retrieval list, so latency-critical A/B runs
+        still report a meaningful ``coverage_correct_rate``. Selection
+        is deterministic (insertion order = CSV order) for
+        reproducibility.
+        """
+        all_ids = list(self.golden_set.keys())
+        if sample is None or sample <= 0:
+            return all_ids
+        retrieval_ids: List[str] = []
+        coverage_ids: List[str] = []
+        for qid in all_ids:
+            if self.golden_set[qid][0].category == 'coverage':
+                coverage_ids.append(qid)
+            else:
+                retrieval_ids.append(qid)
+        return retrieval_ids[:sample] + coverage_ids
+
     def _get_expected_docs(self, query_id: str) -> Tuple[List[str], List[str]]:
         relevant = []
         moderate = []
@@ -303,7 +340,114 @@ class RetrievalEvaluator:
             ndcg_at_k=ndcg, hit=hit,
         )
 
-    def evaluate(self, k: int = 5, workers: int = 1, search_mode: str = "auto") -> EvaluationResult:
+    def _evaluate_single_query_pipeline(
+        self,
+        query_id: str,
+        k: int,
+        pipeline,
+    ) -> QueryResult:
+        """Evaluate a single query running the full RAG pipeline (no generation)."""
+        items = self.golden_set[query_id]
+        query = items[0].query
+        category = items[0].category
+
+        relevant_expected, moderate_expected = self._get_expected_docs(query_id)
+        relevant_set = set(relevant_expected)
+        moderate_set = set(moderate_expected)
+
+        response = pipeline.query(
+            query,
+            limit=k,
+            include_generation=False,
+            return_sources=True,
+            debug=True,
+        )
+        sources = response.get("sources", [])
+        retrieved_ids = [s.get("regulation_id", "") for s in sources]
+        retrieved_scores = [
+            (s.get("regulation_id", ""), float(s.get("score") or 0.0))
+            for s in sources
+        ]
+
+        trace = response.get("trace", {})
+        timings = trace.get("timings", {}) or {}
+        rewritten = trace.get("rewritten_queries", []) or []
+        docs_before_eval = int(trace.get("documents_after_dedup") or 0)
+        docs_after_eval = int(trace.get("documents_accepted") or len(sources))
+
+        if 'NOT_IN_DB' in relevant_set:
+            return QueryResult(
+                query_id=query_id, query=query, category=category,
+                expected_docs=[(d, 'irrelevant') for d in relevant_expected],
+                retrieved_docs=retrieved_scores,
+                relevant_found=[], moderate_found=[],
+                first_relevant_rank=None,
+                precision_at_k=0.0, recall=0.0, ndcg_at_k=0.0, hit=False,
+                rewriter_subqueries=len(rewritten),
+                docs_before_evaluator=docs_before_eval,
+                docs_after_evaluator=docs_after_eval,
+                rewriter_ms=int(timings.get("rewriter_ms") or 0),
+                searcher_ms=int(timings.get("searcher_ms") or 0),
+                evaluator_ms=int(timings.get("evaluator_ms") or 0),
+                total_ms=int(timings.get("total_ms") or 0),
+            )
+
+        relevant_found: List[str] = []
+        moderate_found: List[str] = []
+        seen_relevant: set = set()
+        seen_moderate: set = set()
+        for d in retrieved_ids:
+            exp = _first_unmatched(d, list(relevant_set), seen_relevant)
+            if exp:
+                relevant_found.append(d)
+                seen_relevant.add(exp)
+                continue
+            exp = _first_unmatched(d, list(moderate_set), seen_moderate)
+            if exp:
+                moderate_found.append(d)
+                seen_moderate.add(exp)
+
+        first_relevant_rank = next(
+            (i for i, d in enumerate(retrieved_ids, 1)
+             if _any_match(d, relevant_set)),
+            None,
+        )
+
+        all_expected = relevant_set | moderate_set
+        matched = len(seen_relevant) + len(seen_moderate)
+        precision_at_k = matched / k if k > 0 else 0.0
+        recall = matched / len(all_expected) if all_expected else 0.0
+        ndcg = _compute_ndcg(
+            retrieved_ids, relevant_expected, moderate_expected, k,
+        )
+        hit = bool(relevant_found or moderate_found)
+
+        return QueryResult(
+            query_id=query_id, query=query, category=category,
+            expected_docs=[(d, 'relevant') for d in relevant_expected]
+                         + [(d, 'moderate') for d in moderate_expected],
+            retrieved_docs=retrieved_scores,
+            relevant_found=relevant_found,
+            moderate_found=moderate_found,
+            first_relevant_rank=first_relevant_rank,
+            precision_at_k=precision_at_k, recall=recall,
+            ndcg_at_k=ndcg, hit=hit,
+            rewriter_subqueries=len(rewritten),
+            docs_before_evaluator=docs_before_eval,
+            docs_after_evaluator=docs_after_eval,
+            rewriter_ms=int(timings.get("rewriter_ms") or 0),
+            searcher_ms=int(timings.get("searcher_ms") or 0),
+            evaluator_ms=int(timings.get("evaluator_ms") or 0),
+            total_ms=int(timings.get("total_ms") or 0),
+        )
+
+    def evaluate(
+        self,
+        k: int = 5,
+        workers: int = 1,
+        search_mode: str = "auto",
+        sample: Optional[int] = None,
+    ) -> EvaluationResult:
         """
         Run full evaluation. Embeddings are batched, search parallelized.
 
@@ -311,11 +455,13 @@ class RetrievalEvaluator:
             k: Number of results to retrieve per query
             workers: Number of parallel workers for Qdrant search
             search_mode: "dense", "sparse", "hybrid", or "auto" (from config)
+            sample: If set, cap retrieval queries to the first N (coverage
+                queries are always kept). Useful for A/B runs.
         """
         start = time.time()
-        logger.info(f"Starting evaluation: k={k}, workers={workers}")
+        logger.info(f"Starting evaluation: k={k}, workers={workers}, sample={sample}")
 
-        query_ids = list(self.golden_set.keys())
+        query_ids = self._select_query_ids(sample)
         queries = [self.golden_set[qid][0].query for qid in query_ids]
 
         if search_mode == "auto":
@@ -408,6 +554,107 @@ class RetrievalEvaluator:
             retrieval_recall=recall,
             coverage_queries=len(coverage_results),
             coverage_correct_rate=coverage_correct,
+            mode="raw",
+            query_results=query_results,
+        )
+
+    def evaluate_pipeline(
+        self,
+        k: int = 5,
+        workers: int = 1,
+        sample: Optional[int] = None,
+    ) -> EvaluationResult:
+        """Run end-to-end evaluation through ``RAGPipeline`` (no generation).
+
+        Measures the documents the Generator would actually receive after
+        rewriter + searcher + evaluator. This is the metric that reflects
+        what the user effectively sees as ``sources`` in the API response.
+
+        ``sample`` caps retrieval queries (coverage queries always run).
+        """
+        from search.orchestrator.pipeline import RAGPipeline
+
+        start = time.time()
+        logger.info(
+            f"Starting pipeline evaluation: k={k}, workers={workers}, sample={sample}"
+        )
+
+        pipeline = RAGPipeline()
+
+        query_ids = self._select_query_ids(sample)
+
+        if workers <= 1:
+            query_results = [
+                self._evaluate_single_query_pipeline(qid, k, pipeline)
+                for qid in query_ids
+            ]
+        else:
+            query_results = [None] * len(query_ids)
+            with ThreadPoolExecutor(max_workers=workers) as executor:
+                futures = {
+                    executor.submit(
+                        self._evaluate_single_query_pipeline, qid, k, pipeline
+                    ): i
+                    for i, qid in enumerate(query_ids)
+                }
+                for future in as_completed(futures):
+                    idx = futures[future]
+                    query_results[idx] = future.result()
+
+        elapsed = time.time() - start
+
+        retrieval_results = [r for r in query_results if r.category != 'coverage']
+        coverage_results = [r for r in query_results if r.category == 'coverage']
+
+        n = len(retrieval_results)
+        if n > 0:
+            hit_rate = sum(1 for r in retrieval_results if r.hit) / n
+            precision = sum(r.precision_at_k for r in retrieval_results) / n
+            recall = sum(r.recall for r in retrieval_results) / n
+            ndcg = sum(r.ndcg_at_k for r in retrieval_results) / n
+            mrr = sum(
+                (1.0 / r.first_relevant_rank) if r.first_relevant_rank else 0.0
+                for r in retrieval_results
+            ) / n
+            avg_subqueries = sum(r.rewriter_subqueries for r in retrieval_results) / n
+            filter_rates = [
+                1.0 - (r.docs_after_evaluator / r.docs_before_evaluator)
+                for r in retrieval_results if r.docs_before_evaluator > 0
+            ]
+            avg_filter_rate = sum(filter_rates) / len(filter_rates) if filter_rates else 0.0
+            avg_rew = sum(r.rewriter_ms for r in retrieval_results) / n
+            avg_sea = sum(r.searcher_ms for r in retrieval_results) / n
+            avg_eva = sum(r.evaluator_ms for r in retrieval_results) / n
+            avg_tot = sum(r.total_ms for r in retrieval_results) / n
+        else:
+            hit_rate = precision = recall = ndcg = mrr = 0.0
+            avg_subqueries = avg_filter_rate = 0.0
+            avg_rew = avg_sea = avg_eva = avg_tot = 0.0
+
+        coverage_correct = 0.0
+        if coverage_results:
+            coverage_correct = sum(1 for r in coverage_results if not r.hit) / len(coverage_results)
+
+        return EvaluationResult(
+            timestamp=datetime.now().isoformat(),
+            k=k,
+            total_queries=len(query_results),
+            elapsed_seconds=elapsed,
+            retrieval_queries=n,
+            retrieval_hit_rate=hit_rate,
+            retrieval_mrr=mrr,
+            retrieval_ndcg=ndcg,
+            retrieval_precision=precision,
+            retrieval_recall=recall,
+            coverage_queries=len(coverage_results),
+            coverage_correct_rate=coverage_correct,
+            mode="pipeline",
+            avg_rewriter_subqueries=avg_subqueries,
+            avg_evaluator_filter_rate=avg_filter_rate,
+            avg_rewriter_ms=avg_rew,
+            avg_searcher_ms=avg_sea,
+            avg_evaluator_ms=avg_eva,
+            avg_total_ms=avg_tot,
             query_results=query_results,
         )
 
@@ -417,12 +664,13 @@ class RetrievalEvaluator:
 
         ts = result.timestamp.replace(":", "").replace("-", "")[:15]
 
-        summary_path = output_path / f"summary_{ts}.csv"
+        summary_path = output_path / f"summary_{result.mode}_{ts}.csv"
         with open(summary_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(['metric', 'value'])
             metrics = [
                 ('timestamp', result.timestamp),
+                ('mode', result.mode),
                 ('k', result.k),
                 ('elapsed_seconds', f"{result.elapsed_seconds:.2f}"),
                 ('total_queries', result.total_queries),
@@ -435,20 +683,36 @@ class RetrievalEvaluator:
                 ('coverage_queries', result.coverage_queries),
                 ('coverage_correct_rate', f"{result.coverage_correct_rate:.4f}"),
             ]
+            if result.mode == "pipeline":
+                metrics += [
+                    ('avg_rewriter_subqueries', f"{result.avg_rewriter_subqueries:.2f}"),
+                    ('avg_evaluator_filter_rate', f"{result.avg_evaluator_filter_rate:.4f}"),
+                    ('avg_rewriter_ms', f"{result.avg_rewriter_ms:.0f}"),
+                    ('avg_searcher_ms', f"{result.avg_searcher_ms:.0f}"),
+                    ('avg_evaluator_ms', f"{result.avg_evaluator_ms:.0f}"),
+                    ('avg_total_ms', f"{result.avg_total_ms:.0f}"),
+                ]
             writer.writerows(metrics)
 
         logger.info(f"Summary saved: {summary_path}")
 
-        details_path = output_path / f"details_{ts}.csv"
+        details_path = output_path / f"details_{result.mode}_{ts}.csv"
         with open(details_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
-            writer.writerow([
+            header = [
                 'query_id', 'query', 'category', 'expected_docs', 'retrieved_docs',
                 'relevant_found', 'moderate_found', 'first_relevant_rank',
-                'precision_at_k', 'recall', 'ndcg_at_k', 'hit'
-            ])
+                'precision_at_k', 'recall', 'ndcg_at_k', 'hit',
+            ]
+            if result.mode == "pipeline":
+                header += [
+                    'rewriter_subqueries', 'docs_before_evaluator',
+                    'docs_after_evaluator', 'rewriter_ms', 'searcher_ms',
+                    'evaluator_ms', 'total_ms',
+                ]
+            writer.writerow(header)
             for qr in result.query_results:
-                writer.writerow([
+                row = [
                     qr.query_id,
                     qr.query,
                     qr.category,
@@ -460,28 +724,50 @@ class RetrievalEvaluator:
                     f"{qr.precision_at_k:.4f}",
                     f"{qr.recall:.4f}",
                     f"{qr.ndcg_at_k:.4f}",
-                    qr.hit
-                ])
+                    qr.hit,
+                ]
+                if result.mode == "pipeline":
+                    row += [
+                        qr.rewriter_subqueries,
+                        qr.docs_before_evaluator,
+                        qr.docs_after_evaluator,
+                        qr.rewriter_ms,
+                        qr.searcher_ms,
+                        qr.evaluator_ms,
+                        qr.total_ms,
+                    ]
+                writer.writerow(row)
 
         logger.info(f"Details saved: {details_path}")
 
-        json_path = output_path / f"results_{ts}.json"
+        json_path = output_path / f"results_{result.mode}_{ts}.json"
+        metrics_blob = {
+            'total_queries': result.total_queries,
+            'retrieval_queries': result.retrieval_queries,
+            'retrieval_hit_rate': result.retrieval_hit_rate,
+            'retrieval_mrr': result.retrieval_mrr,
+            'retrieval_ndcg': result.retrieval_ndcg,
+            'retrieval_precision': result.retrieval_precision,
+            'retrieval_recall': result.retrieval_recall,
+            'coverage_queries': result.coverage_queries,
+            'coverage_correct_rate': result.coverage_correct_rate,
+        }
+        if result.mode == "pipeline":
+            metrics_blob.update({
+                'avg_rewriter_subqueries': result.avg_rewriter_subqueries,
+                'avg_evaluator_filter_rate': result.avg_evaluator_filter_rate,
+                'avg_rewriter_ms': result.avg_rewriter_ms,
+                'avg_searcher_ms': result.avg_searcher_ms,
+                'avg_evaluator_ms': result.avg_evaluator_ms,
+                'avg_total_ms': result.avg_total_ms,
+            })
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump({
                 'timestamp': result.timestamp,
+                'mode': result.mode,
                 'k': result.k,
                 'elapsed_seconds': result.elapsed_seconds,
-                'metrics': {
-                    'total_queries': result.total_queries,
-                    'retrieval_queries': result.retrieval_queries,
-                    'retrieval_hit_rate': result.retrieval_hit_rate,
-                    'retrieval_mrr': result.retrieval_mrr,
-                    'retrieval_ndcg': result.retrieval_ndcg,
-                    'retrieval_precision': result.retrieval_precision,
-                    'retrieval_recall': result.retrieval_recall,
-                    'coverage_queries': result.coverage_queries,
-                    'coverage_correct_rate': result.coverage_correct_rate,
-                },
+                'metrics': metrics_blob,
                 'query_results': [
                     {
                         'query_id': qr.query_id,
@@ -507,9 +793,10 @@ def print_report(result: EvaluationResult):
     """Print a formatted evaluation report."""
     k = result.k
     print("\n" + "=" * 70)
-    print("  RAG RETRIEVAL QUALITY EVALUATION REPORT")
+    print(f"  RAG RETRIEVAL QUALITY EVALUATION REPORT  ({result.mode} mode)")
     print("=" * 70)
     print(f"  Timestamp:    {result.timestamp}")
+    print(f"  Mode:         {result.mode}")
     print(f"  K:            {k}")
     print(f"  Elapsed:      {result.elapsed_seconds:.2f}s")
     print(f"  Queries:      {result.total_queries}")
@@ -524,6 +811,17 @@ def print_report(result: EvaluationResult):
     print(f"    Precision@{k}:    {result.retrieval_precision:.4f}")
     print(f"    Recall:         {result.retrieval_recall:.4f}")
     print()
+
+    if result.mode == "pipeline":
+        print("  PIPELINE METRICS (end-to-end)")
+        print("  " + "-" * 40)
+        print(f"    Avg sub-queries:   {result.avg_rewriter_subqueries:.2f}")
+        print(f"    Evaluator filter:  {result.avg_evaluator_filter_rate:.1%} of docs dropped")
+        print(f"    Avg Rewriter:      {result.avg_rewriter_ms:.0f}ms")
+        print(f"    Avg Searcher:      {result.avg_searcher_ms:.0f}ms")
+        print(f"    Avg Evaluator:     {result.avg_evaluator_ms:.0f}ms")
+        print(f"    Avg total/query:   {result.avg_total_ms:.0f}ms")
+        print()
 
     print("  COVERAGE METRICS")
     print("  " + "-" * 40)
@@ -566,12 +864,29 @@ def main():
     parser.add_argument('--search-mode', type=str, default="auto",
                        choices=["auto", "dense", "sparse", "hybrid"],
                        help="Search mode: auto (from config), dense, sparse, or hybrid")
+    parser.add_argument('--use-pipeline', action='store_true',
+                       help="Run end-to-end through RAGPipeline (rewriter+searcher+"
+                            "evaluator, no LLM generation). Reflects what the user"
+                            " actually receives as sources. Slower; use workers=1"
+                            " for sequential timing accuracy.")
+    parser.add_argument('--sample', type=int, default=None,
+                       help="Cap retrieval queries to the first N (deterministic, "
+                            "CSV order). Coverage queries are always kept. Useful "
+                            "for fast A/B runs.")
 
     args = parser.parse_args()
 
     try:
         evaluator = RetrievalEvaluator(args.golden_set)
-        result = evaluator.evaluate(k=args.k, workers=args.workers, search_mode=args.search_mode)
+        if args.use_pipeline:
+            result = evaluator.evaluate_pipeline(
+                k=args.k, workers=args.workers, sample=args.sample,
+            )
+        else:
+            result = evaluator.evaluate(
+                k=args.k, workers=args.workers, search_mode=args.search_mode,
+                sample=args.sample,
+            )
 
         if not args.quiet:
             print_report(result)
