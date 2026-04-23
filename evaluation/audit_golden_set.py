@@ -18,14 +18,13 @@ Outputs a Markdown report at ``evaluation/results/golden_audit.md``.
 from __future__ import annotations
 
 import csv
-import json
 import re
 import sqlite3
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Tuple
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))

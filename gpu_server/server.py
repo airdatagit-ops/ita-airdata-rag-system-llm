@@ -23,11 +23,11 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import torch
 import uvicorn
-from fastapi import FastAPI, HTTPException, Header, Request
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from loguru import logger
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
 # Configuration via environment variables

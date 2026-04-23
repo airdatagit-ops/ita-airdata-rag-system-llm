@@ -40,7 +40,6 @@ from search.shared.exceptions import SearchBackendError
 from search.prompts import SYSTEM_PROMPT
 from search.rewriter import QueryRewriter
 from search.searcher import DocumentSearcher
-from search.evaluator import DocumentEvaluator
 from search.generator import ResponseGenerator
 from database.qdrant_manager import QdrantManager
 from api.session_manager import session_manager

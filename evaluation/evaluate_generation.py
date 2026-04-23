@@ -41,7 +41,7 @@ from config import config
 from evaluation.evaluate_retrieval import (
     _matches_expected as _id_matches_expected,
 )
-from evaluation.llm_judge import LLMJudge, JudgeVerdict
+from evaluation.llm_judge import LLMJudge
 
 try:
     from models.embeddings import SparseEncoder
