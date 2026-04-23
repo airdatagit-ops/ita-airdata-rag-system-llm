@@ -1,6 +1,9 @@
-.PHONY: test lint lint-fix eval eval-retrieval eval-generation extract-pipeline validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models backup restore
+.PHONY: install install-backend install-web test lint lint-fix eval eval-retrieval eval-generation extract-pipeline validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models backup restore
 
 PYTHON ?= python
+PYTHON3 ?= python3
+VENV_DIR ?= venv
+WEB_VENV_DIR ?= web/venv
 K ?= 5
 WORKERS ?= 4
 SAMPLE ?=
@@ -67,6 +70,10 @@ help:
 	@echo "  make explore                                      Open datasette web UI for the store"
 	@echo ""
 	@echo "  ── development ──────────────────────────────────────────────────────"
+	@echo "  make install                                      Create venvs + install backend & web deps"
+	@echo "  make install-backend                              Only backend (root) venv + requirements.txt"
+	@echo "  make install-web                                  Only web/ venv + web/requirements.txt"
+	@echo "  make install FORCE=1                              Re-create venvs from scratch"
 	@echo "  make download-models                              Pre-download all ML models"
 	@echo "  make download-models SKIP_OLLAMA=1                Skip Ollama pulls"
 	@echo "  make start                                        Start API + Web (Ctrl+C to stop)"
@@ -90,6 +97,46 @@ help:
 	@echo "  make deploy                                       Deploy (git pull + deps + restart)"
 	@echo "  make deploy-first                                 First-time setup + deploy"
 	@echo "  make deploy-nginx                                 Deploy + update nginx snippet"
+
+install: install-backend install-web
+
+install-backend:
+ifdef FORCE
+	@echo "→ Removing existing $(VENV_DIR)/ ..."
+	@rm -rf $(VENV_DIR)
+endif
+	@if [ ! -d "$(VENV_DIR)" ]; then \
+		echo "→ Creating backend venv at $(VENV_DIR)/ ..."; \
+		$(PYTHON3) -m venv $(VENV_DIR); \
+	else \
+		echo "→ Reusing existing $(VENV_DIR)/ (use FORCE=1 to recreate)"; \
+	fi
+	@echo "→ Upgrading pip ..."
+	@$(VENV_DIR)/bin/pip install --upgrade pip -q
+	@echo "→ Installing backend requirements ..."
+	@$(VENV_DIR)/bin/pip install -r requirements.txt
+	@echo "✓ Backend ready. Activate with: source $(VENV_DIR)/bin/activate"
+
+install-web:
+ifdef FORCE
+	@echo "→ Removing existing $(WEB_VENV_DIR)/ ..."
+	@rm -rf $(WEB_VENV_DIR)
+endif
+	@if [ ! -f web/requirements.txt ]; then \
+		echo "× web/requirements.txt not found — skipping web install"; \
+		exit 0; \
+	fi
+	@if [ ! -d "$(WEB_VENV_DIR)" ]; then \
+		echo "→ Creating web venv at $(WEB_VENV_DIR)/ ..."; \
+		$(PYTHON3) -m venv $(WEB_VENV_DIR); \
+	else \
+		echo "→ Reusing existing $(WEB_VENV_DIR)/ (use FORCE=1 to recreate)"; \
+	fi
+	@echo "→ Upgrading pip ..."
+	@$(WEB_VENV_DIR)/bin/pip install --upgrade pip -q
+	@echo "→ Installing web requirements ..."
+	@$(WEB_VENV_DIR)/bin/pip install -r web/requirements.txt
+	@echo "✓ Web ready. Activate with: source $(WEB_VENV_DIR)/bin/activate"
 
 test:
 	$(PYTHON) -m pytest $(or $(FILE),tests/) -v --tb=short

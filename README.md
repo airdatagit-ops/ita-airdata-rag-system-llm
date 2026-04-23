@@ -1500,6 +1500,10 @@ O linter **ruff** é configurado via `pyproject.toml` e verifica:
 
 | Comando | Descrição |
 |---------|-----------|
+| `make install` | Cria os venvs (`venv/` e `web/venv/`) e instala backend + web |
+| `make install-backend` | Apenas backend (`venv/` + `requirements.txt`) |
+| `make install-web` | Apenas web (`web/venv/` + `web/requirements.txt`) |
+| `make install FORCE=1` | Apaga e recria os venvs do zero |
 | `make download-models` | Pré-baixa todos os modelos ML (embeddings, cross-encoder, Ollama) |
 | `make download-models SKIP_OLLAMA=1` | Pré-baixa apenas modelos HuggingFace (sem Ollama) |
 | `make start` | Inicia API + Web (Ctrl+C para ambos) |
