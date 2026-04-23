@@ -1391,7 +1391,7 @@ python -m scripts.extract_pipeline_data --input minhas_queries.xlsx --k 5
 | Identificação | `query_id`, `query`, `input__*` | Query original + colunas extras propagadas. |
 | Rewriter | `subquery_idx`, `subquery_text`, `facet_type`, `filters_json`, `sorts_json` | Saída do `QueryRewriter` (uma linha por subquery × doc). |
 | Searcher | `doc_rank_in_subquery`, `regulation_id`, `doc_url`, `doc_type`, `doc_number`, `doc_title`, `search_score` | Documentos retornados antes da deduplicação, ordenados pelo rank dentro da subquery. |
-| Evaluator | `evaluator_score`, `evaluator_accepted` | Score do cross-encoder e flag de aprovação no threshold. |
+| Evaluator | `evaluator_score`, `evaluator_accepted`, `evaluator_text`, `evaluator_text_chars`, `evaluator_max_tokens` | Score (0-100) e flag de aprovação no threshold + **texto exato** (título/identificadores + corpo truncado por `EVALUATOR_MAX_TOKENS` palavras) que o cross-encoder enxergou para gerar a nota. Vazio quando o evaluator está desabilitado. |
 | Generator | `sent_to_generator`, `generator_text_chars`, `generator_truncated`, `generator_text` | `sent_to_generator=True` apenas para os docs que o pipeline efetivamente passou ao LLM (após `select_top_docs`). `generator_text` traz o texto integral enviado ao gerador apenas nesses casos. |
 | Resposta | `final_answer`, `generator_model`, `generator_grounded_only` | Resposta gerada (repetida por linha do grupo para facilitar pivots). |
 | Timings | `rewriter_ms`, `searcher_ms`, `evaluator_ms`, `generator_ms`, `total_time_ms` | Latência por estágio. |

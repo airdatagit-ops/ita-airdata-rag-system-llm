@@ -297,12 +297,33 @@ class RAGPipeline:
         effective_threshold = evaluation_threshold or config.EVALUATOR_THRESHOLD
         if trace:
             trace.evaluation_threshold = effective_threshold if self.evaluator_enabled else 0
+            # The evaluator (local or remote) sees a query-independent
+            # enriched text built by ``DocumentEvaluator._build_eval_text``
+            # — capture it so the offline extractor can show exactly
+            # what the cross-encoder scored. When the evaluator is
+            # disabled we leave the field empty (no eval happened).
+            eval_max_tokens = (
+                getattr(self.evaluator, "max_eval_tokens", config.EVALUATOR_MAX_TOKENS)
+                if self.evaluator_enabled
+                else 0
+            )
+
+            def _eval_text_for(doc: Dict) -> str:
+                if not self.evaluator_enabled or not eval_max_tokens:
+                    return ""
+                try:
+                    return DocumentEvaluator._build_eval_text(doc, eval_max_tokens)
+                except Exception:  # pragma: no cover - never break the pipeline for tracing
+                    return ""
+
             trace.evaluation_scores = [
                 {
                     "regulation_id": ed.document.get("regulation_id", ""),
                     "score": ed.relevance_score,
                     "accepted": True,
                     "url": (ed.document.get("metadata") or {}).get("url", ""),
+                    "eval_text": _eval_text_for(ed.document),
+                    "eval_max_tokens": eval_max_tokens,
                 }
                 for ed in evaluated
             ]
@@ -317,6 +338,8 @@ class RAGPipeline:
                             "score": 0,
                             "accepted": False,
                             "url": (doc.get("metadata") or {}).get("url", ""),
+                            "eval_text": _eval_text_for(doc),
+                            "eval_max_tokens": eval_max_tokens,
                         })
             trace.documents_accepted = len(evaluated)
             trace.documents_discarded = len(search_results.documents) - len(evaluated)

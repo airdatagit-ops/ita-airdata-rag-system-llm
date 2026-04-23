@@ -152,9 +152,15 @@ class TestExplodeResponse:
             ],
         }
         evaluation_scores = [
-            {"regulation_id": "d1", "score": 80.0, "accepted": True},
-            {"regulation_id": "d4", "score": 90.0, "accepted": True},
-            {"regulation_id": "d2", "score": 40.0, "accepted": False},
+            {"regulation_id": "d1", "score": 80.0, "accepted": True,
+             "eval_text": "T1 | ICA — nº 100-1\nCorpo do d1",
+             "eval_max_tokens": 480},
+            {"regulation_id": "d4", "score": 90.0, "accepted": True,
+             "eval_text": "T4 | MCA — nº 56-5\nCorpo do d4",
+             "eval_max_tokens": 480},
+            {"regulation_id": "d2", "score": 40.0, "accepted": False,
+             "eval_text": "T2 | ICA — nº 100-2\nCorpo do d2",
+             "eval_max_tokens": 480},
         ]
         generator_documents = [
             {"regulation_id": "d1", "type": "ICA", "number": "100-1",
@@ -187,10 +193,22 @@ class TestExplodeResponse:
         d1_row = next(r for r in rows if r["regulation_id"] == "d1")
         assert d1_row["evaluator_score"] == 80.0
         assert d1_row["evaluator_accepted"] is True
+        assert d1_row["evaluator_text"] == "T1 | ICA — nº 100-1\nCorpo do d1"
+        assert d1_row["evaluator_text_chars"] == len(d1_row["evaluator_text"])
+        assert d1_row["evaluator_max_tokens"] == 480
         assert d1_row["search_score"] == 0.9
         assert d1_row["subquery_text"] == "sq1"
         assert d1_row["doc_rank_in_subquery"] == 0
         assert d1_row["facet_type"] == "general"
+
+        d2_row = next(r for r in rows if r["regulation_id"] == "d2")
+        assert d2_row["evaluator_accepted"] is False
+        assert d2_row["evaluator_text"].startswith("T2")
+
+        d3_row = next(r for r in rows if r["regulation_id"] == "d3")
+        assert d3_row["evaluator_score"] is None
+        assert d3_row["evaluator_text"] == ""
+        assert d3_row["evaluator_text_chars"] == 0
 
         for r in rows:
             assert r["final_answer"] == "resposta XYZ"

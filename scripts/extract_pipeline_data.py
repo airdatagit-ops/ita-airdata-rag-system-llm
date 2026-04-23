@@ -4,10 +4,12 @@ Runs the full ``RAGPipeline`` on every query of an input CSV/XLSX and
 produces a single ``.xlsx`` (sheet ``exploded``) with one row per
 (query, sub-query, retrieved document). Each row carries the rewriter
 output (sub-query text, facet, filters, sorts), the searcher output
-(regulation_id, url, search score), the evaluator score for the doc,
-a ``sent_to_generator`` flag, the **full text** the document
-contributed to the generator context (only for docs the generator
-actually saw), and the final answer.
+(regulation_id, url, search score), the evaluator score and the
+**exact enriched text** that the cross-encoder actually scored
+(``evaluator_text``, plus ``_chars`` and ``_max_tokens`` for quick
+filtering), a ``sent_to_generator`` flag, the **full text** the
+document contributed to the generator context (only for docs the
+generator actually saw), and the final answer.
 
 Designed for offline analysis: every stage of the pipeline becomes a
 column you can pivot/filter in Excel without re-running the LLM.
@@ -145,11 +147,15 @@ def _sorts_to_compact(sorts: List[Dict[str, Any]]) -> str:
 def _index_evaluator_scores(
     evaluation_scores: List[Dict[str, Any]],
 ) -> Dict[str, Dict[str, Any]]:
-    """Map regulation_id -> {score, accepted} from trace.evaluation_scores.
+    """Map regulation_id -> {score, accepted, eval_text, eval_max_tokens}.
 
     The trace lists every doc that reached the evaluator (accepted +
     discarded), so a regulation_id missing from the map means it was
     filtered out before that stage (or the evaluator was disabled).
+
+    ``eval_text`` is the exact enriched/truncated text the cross-encoder
+    saw — handy for debugging "why did this doc score X?" without re-
+    running the model.
     """
     by_id: Dict[str, Dict[str, Any]] = {}
     for entry in evaluation_scores or []:
@@ -159,6 +165,8 @@ def _index_evaluator_scores(
         by_id[rid] = {
             "score": entry.get("score"),
             "accepted": bool(entry.get("accepted", False)),
+            "eval_text": entry.get("eval_text", "") or "",
+            "eval_max_tokens": entry.get("eval_max_tokens", 0) or 0,
         }
     return by_id
 
@@ -252,6 +260,9 @@ def explode_response(
             "search_score": None,
             "evaluator_score": None,
             "evaluator_accepted": None,
+            "evaluator_text_chars": 0,
+            "evaluator_max_tokens": 0,
+            "evaluator_text": "",
             "sent_to_generator": False,
             "generator_text_chars": 0,
             "generator_truncated": False,
@@ -283,6 +294,9 @@ def explode_response(
                 "search_score": None,
                 "evaluator_score": None,
                 "evaluator_accepted": None,
+                "evaluator_text_chars": 0,
+                "evaluator_max_tokens": 0,
+                "evaluator_text": "",
                 "sent_to_generator": False,
                 "generator_text_chars": 0,
                 "generator_truncated": False,
@@ -311,6 +325,9 @@ def explode_response(
                 "search_score": doc.get("score"),
                 "evaluator_score": eval_entry.get("score"),
                 "evaluator_accepted": eval_entry.get("accepted"),
+                "evaluator_text_chars": len(eval_entry.get("eval_text", "") or ""),
+                "evaluator_max_tokens": eval_entry.get("eval_max_tokens", 0) or 0,
+                "evaluator_text": eval_entry.get("eval_text", "") or "",
                 "sent_to_generator": sent,
                 "generator_text_chars": gen_entry.get("char_count", 0),
                 "generator_truncated": gen_entry.get("truncated", False),
@@ -342,6 +359,9 @@ _PREFERRED_COLUMN_ORDER: List[str] = [
     "search_score",
     "evaluator_score",
     "evaluator_accepted",
+    "evaluator_text_chars",
+    "evaluator_max_tokens",
+    "evaluator_text",
     "sent_to_generator",
     "generator_text_chars",
     "generator_truncated",
