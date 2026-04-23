@@ -494,7 +494,7 @@ curl -fsSL https://ollama.com/install.sh | sh
 make download-models
 
 # Ou manualmente:
-ollama pull llama3.1:8b    # Generator (modelo principal)
+ollama pull gemma4:26b     # Generator (modelo principal)
 ollama pull qwen2.5:7b     # Rewriter (reescrita de queries)
 ```
 
@@ -505,8 +505,9 @@ Qualquer modelo disponível no Ollama funciona. O modelo padrão é configurado 
 | Modelo | Tamanho | Uso no pipeline | Observação |
 |--------|---------|-----------------|------------|
 | `qwen2.5:7b` | ~4.7GB | Rewriter (padrão) | Boa qualidade de reescrita, respeita filtros |
-| `llama3.1:8b` | ~4.7GB | Generator (padrão) | Bom equilíbrio qualidade/velocidade |
-| `llama3.1:70b` | ~40GB | Generator (GPU) | Melhor qualidade, requer GPU com ~48GB VRAM |
+| `gemma4:26b` | ~17GB | **Generator (padrão)** | Vencedor do A/B vs `qwen2.5:14b` (100% citation grounding em E2E, ~5s med. latência, +108% citações por resposta, zero alucinações) |
+| `qwen2.5:14b` | ~9GB | Generator (alt.) | Baseline anterior. Disponível via UI/API change endpoint |
+| `llama3.1:70b` | ~40GB | Generator (GPU) | Maior, requer GPU com ~48GB VRAM |
 | `llama3.2:3b` | ~2GB | Alternativa leve | Para ambientes com recursos limitados |
 
 ### 6.3. Troca de modelo em tempo real
@@ -548,7 +549,7 @@ O script `scripts/download_models.py` baixa:
 |--------|------|-----------|
 | `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Sentence-Transformer | Embedding (busca vetorial) |
 | `BAAI/bge-reranker-base` | Cross-Encoder | Evaluator (re-ranking) |
-| `llama3.1:8b` | Ollama LLM | Generator (geração de respostas) |
+| `gemma4:26b` | Ollama LLM | Generator (geração de respostas) |
 | `qwen2.5:7b` | Ollama LLM | Rewriter (reescrita de queries) |
 
 > **Dica:** Execute `make download-models` após clonar o repositório ou alterar modelos no `.env`. O deploy (`make deploy`) já faz o download automático dos modelos HuggingFace.
