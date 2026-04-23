@@ -1348,6 +1348,71 @@ Q061,Minha nova pergunta sobre o tema X?,ICA-XX-YY-artWW,moderate,retrieval,Doc 
 | Citation Rate baixo | LLM não cita fontes. Ajustar prompt |
 | Hedging Rate alto | LLM inseguro nas respostas. Verificar qualidade do contexto recuperado |
 
+### 12.9. Extração de dados do pipeline (debug fim-a-fim em XLSX)
+
+Para análises mais profundas (auditoria por etapa, comparação manual de prompts, qualificação de subqueries) o script `scripts/extract_pipeline_data.py` executa o `RAGPipeline` completo para cada query de uma planilha de entrada e materializa **todos os estágios** em um único `.xlsx` no formato *exploded* (uma linha por subquery × documento recuperado).
+
+**Quando usar:**
+
+- Investigar por que uma resposta cita (ou deixa de citar) certo documento.
+- Diagnosticar reescritas do Rewriter (filtros, sorts, facetas) por subquery.
+- Comparar score do searcher vs. score do evaluator para o mesmo doc.
+- Inspecionar o **texto exato** que cada documento contribuiu ao contexto do gerador (apenas para os docs efetivamente enviados ao LLM).
+
+**Formato de entrada (`.csv` ou `.xlsx`):**
+
+| Coluna | Obrigatória | Comportamento |
+|--------|-------------|----------------|
+| `query` | Sim | Pergunta enviada ao pipeline. |
+| `query_id` | Não | Usado se presente; caso contrário gera-se `Q001`, `Q002`, … |
+| _quaisquer outras_ | Não | Repassadas para a saída como colunas `input__<nome>` (útil para cruzar com o golden set). |
+
+**Como executar:**
+
+```bash
+# Via Makefile (recomendado)
+make extract-pipeline INPUT=evaluation/golden_set_gen_sample.csv
+
+# Saída customizada + K menor + amostra
+make extract-pipeline INPUT=evaluation/golden_set.csv \
+    OUTPUT=data/pipeline_extracts/run1.xlsx K=3 SAMPLE=5
+
+# Pular a etapa de geração (muito mais rápido — final_answer fica vazio)
+make extract-pipeline INPUT=minhas_queries.xlsx NO_GENERATE=1
+
+# Direto
+python -m scripts.extract_pipeline_data --input minhas_queries.xlsx --k 5
+```
+
+**Saída** (default `data/pipeline_extracts/extract_<timestamp>.xlsx`, aba única `exploded`):
+
+| Grupo | Colunas | Descrição |
+|-------|---------|-----------|
+| Identificação | `query_id`, `query`, `input__*` | Query original + colunas extras propagadas. |
+| Rewriter | `subquery_idx`, `subquery_text`, `facet_type`, `filters_json`, `sorts_json` | Saída do `QueryRewriter` (uma linha por subquery × doc). |
+| Searcher | `doc_rank_in_subquery`, `regulation_id`, `doc_url`, `doc_type`, `doc_number`, `doc_title`, `search_score` | Documentos retornados antes da deduplicação, ordenados pelo rank dentro da subquery. |
+| Evaluator | `evaluator_score`, `evaluator_accepted` | Score do cross-encoder e flag de aprovação no threshold. |
+| Generator | `sent_to_generator`, `generator_text_chars`, `generator_truncated`, `generator_text` | `sent_to_generator=True` apenas para os docs que o pipeline efetivamente passou ao LLM (após `select_top_docs`). `generator_text` traz o texto integral enviado ao gerador apenas nesses casos. |
+| Resposta | `final_answer`, `generator_model`, `generator_grounded_only` | Resposta gerada (repetida por linha do grupo para facilitar pivots). |
+| Timings | `rewriter_ms`, `searcher_ms`, `evaluator_ms`, `generator_ms`, `total_time_ms` | Latência por estágio. |
+| Diagnóstico | `errors` | Mensagens do `PipelineTrace.errors` (rewriter caiu, evaluator falhou, generator timeout, etc.). |
+
+**Garantias do extrator:**
+
+- Toda query da entrada gera **pelo menos uma linha** (mesmo quando o pipeline retorna 0 docs ou crasha — nesse caso a linha vai com `errors` populado).
+- O extrator usa `RAGPipeline.query(..., debug=True)` e lê o `PipelineTrace`, então mudanças nos módulos do pipeline (rewriter, searcher, evaluator, generator) são automaticamente refletidas no .xlsx sem alterar este script.
+- Tamanho do arquivo controlado: o texto integral só é gravado para os docs marcados como `sent_to_generator=True` (tipicamente `GENERATOR_MAX_DOCS` por query).
+
+**Parâmetros (`make extract-pipeline ...`):**
+
+| Parâmetro | Padrão | Descrição |
+|-----------|--------|-----------|
+| `INPUT` | _obrigatório_ | Caminho `.csv` ou `.xlsx` com a coluna `query`. |
+| `OUTPUT` | `data/pipeline_extracts/extract_<ts>.xlsx` | Arquivo `.xlsx` de saída. |
+| `K` | `5` | `limit` por subquery (passado a `pipeline.query`). |
+| `SAMPLE` | _todas_ | Limita às primeiras N linhas da entrada. |
+| `NO_GENERATE` | _off_ | Quando `=1`, pula o gerador (`include_generation=False`). |
+
 ---
 
 ## 13. Testes e Automação (Makefile)
@@ -1378,6 +1443,8 @@ tests/
 ├── search/
 │   ├── test_prompts.py                 # Templates e funções de prompt
 │   └── test_vector_search.py           # DI, encoding paralelo, error handling
+├── scripts/
+│   └── test_extract_pipeline_data.py   # Extrator do RAG → XLSX (load, explode, write)
 ├── test_embeddings.py
 ├── test_parsers.py
 └── test_rag.py                         # RAGPipeline com DI e SearchBackendError
@@ -1452,6 +1519,7 @@ O linter **ruff** é configurado via `pyproject.toml` e verifica:
 | `make eval` | Executa ambas as avaliações (retrieval + geração) |
 | `make eval-retrieval` | Avaliação de retrieval |
 | `make eval-generation` | Avaliação de geração |
+| `make extract-pipeline INPUT=...` | Extrai dados de todas as etapas do RAG em um `.xlsx` exploded (ver §12.9) |
 | `make clean` | Remove arquivos de resultado das avaliações |
 
 **Parâmetros configuráveis:**
@@ -1467,6 +1535,9 @@ O linter **ruff** é configurado via `pyproject.toml` e verifica:
 | `K` | `5` | `make eval-retrieval K=10` |
 | `WORKERS` | `4` | `make eval-retrieval WORKERS=8` |
 | `SAMPLE` | todos | `make eval-generation SAMPLE=10` |
+| `INPUT` | — | `make extract-pipeline INPUT=evaluation/golden_set.csv` |
+| `OUTPUT` | timestamped | `make extract-pipeline INPUT=in.csv OUTPUT=out.xlsx` |
+| `NO_GENERATE` | — | `make extract-pipeline INPUT=in.csv NO_GENERATE=1` |
 | `FILE` | `tests/` | `make test FILE=tests/evaluation/` |
 | `LIMIT` | `0` (sem limite) | `make collect LIMIT=50` |
 | `CONCURRENCY` | `10` | `make collect CONCURRENCY=3` |

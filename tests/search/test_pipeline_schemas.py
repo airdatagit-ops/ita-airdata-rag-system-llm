@@ -110,6 +110,31 @@ class TestSearchResults:
         sr = SearchResults()
         assert sr.documents == []
         assert sr.total_before_dedup == 0
+        assert sr.documents_per_query == {}
+
+    def test_documents_per_query_optional(self):
+        """The opt-in per-query map must default to empty so existing
+        callers (production path) stay unaffected."""
+        sr = SearchResults(documents=[{"regulation_id": "d1"}])
+        assert sr.documents_per_query == {}
+
+
+class TestPipelineTraceExtraction:
+    def test_search_documents_per_query_default_empty(self):
+        """Trace stays lean unless the orchestrator explicitly fills it."""
+        trace = PipelineTrace(original_query="q")
+        assert trace.search_documents_per_query == {}
+        assert "search_documents_per_query" in trace.to_dict()
+
+    def test_search_documents_per_query_round_trip(self):
+        trace = PipelineTrace(
+            original_query="q",
+            search_documents_per_query={
+                "subq": [{"regulation_id": "d1", "score": 0.9}],
+            },
+        )
+        d = trace.to_dict()
+        assert d["search_documents_per_query"]["subq"][0]["regulation_id"] == "d1"
 
 
 if __name__ == "__main__":

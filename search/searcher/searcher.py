@@ -45,6 +45,7 @@ class DocumentSearcher:
         *,
         limit: Optional[int] = None,
         date: Optional[str] = None,
+        capture_per_query: bool = False,
     ) -> SearchResults:
         """Search for all *queries* in parallel and return merged results.
 
@@ -92,9 +93,16 @@ class DocumentSearcher:
                         deduped = deduped[:cap]
                     break
 
+        documents_per_query: Dict[str, List[Dict]] = (
+            {q: list(docs) for q, docs in results_map.items()}
+            if capture_per_query
+            else {}
+        )
+
         return SearchResults(
             documents=deduped,
             results_per_query=results_per_query,
+            documents_per_query=documents_per_query,
             total_before_dedup=total_before,
             total_after_dedup=len(deduped),
         )

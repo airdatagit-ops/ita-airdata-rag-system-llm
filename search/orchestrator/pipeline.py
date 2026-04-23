@@ -177,6 +177,7 @@ class RAGPipeline:
         try:
             search_results = self.searcher.search(
                 rewritten, limit=limit, date=date,
+                capture_per_query=trace is not None,
             )
         except SearchBackendError:
             logger.error("Search backend unavailable during RAG query")
@@ -215,6 +216,20 @@ class RAGPipeline:
             trace.search_results_per_query = search_results.results_per_query
             trace.total_documents_found = search_results.total_before_dedup
             trace.documents_after_dedup = search_results.total_after_dedup
+            trace.search_documents_per_query = {
+                qtext: [
+                    {
+                        "regulation_id": doc.get("regulation_id", ""),
+                        "url": (doc.get("metadata") or {}).get("url", ""),
+                        "score": doc.get("score", 0.0),
+                        "type": (doc.get("metadata") or {}).get("type", ""),
+                        "number": (doc.get("metadata") or {}).get("number", ""),
+                        "title": (doc.get("metadata") or {}).get("title", ""),
+                    }
+                    for doc in docs
+                ]
+                for qtext, docs in search_results.documents_per_query.items()
+            }
 
         if not search_results.documents:
             elapsed = int((time.time() - pipeline_start) * 1000)

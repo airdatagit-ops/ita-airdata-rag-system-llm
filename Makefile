@@ -1,4 +1,4 @@
-.PHONY: test lint lint-fix eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models backup restore
+.PHONY: test lint lint-fix eval eval-retrieval eval-generation extract-pipeline validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models backup restore
 
 PYTHON ?= python
 K ?= 5
@@ -16,6 +16,8 @@ MODE ?=
 BATCH_SIZE ?=
 STORE_DB ?= data/store.db
 SQL ?=
+INPUT ?=
+OUTPUT ?=
 QDRANT_HOST ?= localhost
 QDRANT_PORT ?= 6333
 QDRANT_COLLECTION ?= aviation_regulations
@@ -55,6 +57,9 @@ help:
 	@echo "  make eval-retrieval SEARCH_MODE=hybrid            Evaluate with hybrid search"
 	@echo "  make eval-generation                              Run generation evaluation"
 	@echo "  make eval-generation SAMPLE=10                    Limit generation to 10 queries"
+	@echo "  make extract-pipeline INPUT=path.csv              Extract per-stage RAG data into a single .xlsx"
+	@echo "  make extract-pipeline INPUT=p.xlsx OUTPUT=out.xlsx K=3 SAMPLE=5"
+	@echo "  make extract-pipeline INPUT=p.csv NO_GENERATE=1   Skip the generator stage (much faster)"
 	@echo ""
 	@echo "  ── analytics ─────────────────────────────────────────────────────────"
 	@echo "  make query                                        Open interactive SQL console"
@@ -102,6 +107,10 @@ eval-retrieval:
 
 eval-generation:
 	$(PYTHON) -m evaluation.evaluate_generation --k $(K) $(if $(SAMPLE),--sample $(SAMPLE),)
+
+extract-pipeline:
+	@test -n "$(INPUT)" || (echo "Usage: make extract-pipeline INPUT=<path.csv|.xlsx> [OUTPUT=<path.xlsx>] [K=5] [SAMPLE=N] [NO_GENERATE=1]" && exit 1)
+	$(PYTHON) -m scripts.extract_pipeline_data --input "$(INPUT)" $(if $(OUTPUT),--output "$(OUTPUT)",) --k $(K) $(if $(SAMPLE),--sample $(SAMPLE),) $(if $(NO_GENERATE),--no-generate,)
 
 validate-data:
 ifdef CLEAN
