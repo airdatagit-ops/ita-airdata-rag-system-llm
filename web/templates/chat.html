@@ -786,27 +786,57 @@
       const evaluatorPct = Math.round((timings.evaluator_ms || 0) / totalMs * 100);
       const generatorPct = Math.round((timings.generator_ms || 0) / totalMs * 100);
       
+      const resultsPerQuery = trace.search_results_per_query || {};
       const queries = (trace.rewritten_queries || []).map(q => {
         const filtersStr = (q.filters || []).map(f => `${f.field} ${f.operator} ${JSON.stringify(f.value)}`).join(', ');
+        const sortsStr = (q.sorts || []).map(s => `${s.field} ${s.order}`).join(', ');
+        const subCount = resultsPerQuery[q.text];
         return `<div class="debug-query-item">
           <span class="debug-query-text">${this.escapeHtml(q.text)}</span>
           ${q.facet_type ? `<span class="debug-badge">${q.facet_type}</span>` : ''}
+          ${subCount != null ? `<span class="debug-badge">${subCount} docs</span>` : ''}
           ${filtersStr ? `<span class="debug-filters">Filtros: ${this.escapeHtml(filtersStr)}</span>` : ''}
+          ${sortsStr ? `<span class="debug-filters">Ordem: ${this.escapeHtml(sortsStr)}</span>` : ''}
         </div>`;
       }).join('');
       
-      const evalScores = (trace.evaluation_scores || []).map(e => {
+      const evalScores = (trace.evaluation_scores || []).map((e, i) => {
         const statusClass = e.accepted ? 'debug-score-accepted' : 'debug-score-rejected';
         const statusIcon = e.accepted ? '✅' : '❌';
         const docLabel = this.escapeHtml(e.regulation_id || '?');
         const docCell = e.url
           ? `<a href="${this.escapeHtml(e.url)}" target="_blank" rel="noopener" class="debug-doc-link">${docLabel}</a>`
           : docLabel;
-        return `<tr class="${statusClass}">
-          <td>${docCell}</td>
+        const evalText = e.eval_text || '';
+        const hasEvalText = evalText.length > 0;
+        const detailId = `eval_text_${Date.now()}_${i}`;
+        const toggleAttrs = hasEvalText
+          ? `class="${statusClass} debug-eval-row-clickable" onclick="
+              const row = document.getElementById('${detailId}');
+              const icon = this.querySelector('.debug-eval-toggle');
+              if (row.style.display === 'none') { row.style.display = 'table-row'; icon.textContent = '▼'; }
+              else { row.style.display = 'none'; icon.textContent = '▶'; }
+            "`
+          : `class="${statusClass}"`;
+        const toggleIcon = hasEvalText
+          ? '<span class="debug-eval-toggle">▶</span> '
+          : '';
+        let row = `<tr ${toggleAttrs}>
+          <td>${toggleIcon}${docCell}</td>
           <td>${e.score?.toFixed(1) || '0'}</td>
           <td>${statusIcon}</td>
         </tr>`;
+        if (hasEvalText) {
+          const meta = `${evalText.length} chars`
+            + (e.eval_max_tokens ? ` · max ${e.eval_max_tokens} tokens` : '');
+          row += `<tr id="${detailId}" class="debug-eval-text-row" style="display:none">
+            <td colspan="3">
+              <div class="debug-eval-text-meta">Texto avaliado pelo cross-encoder · ${meta}</div>
+              <pre class="debug-gen-doc-text">${this.escapeHtml(evalText)}</pre>
+            </td>
+          </tr>`;
+        }
+        return row;
       }).join('');
       
       const errors = (trace.errors || []).map(e => 
@@ -856,6 +886,10 @@
                 Encontrados: ${trace.total_documents_found || 0} |
                 Após dedup: ${trace.documents_after_dedup || 0}
               </div>
+              ${this.renderSearcherSubqueries(
+                trace.rewritten_queries || [],
+                trace.search_documents_per_query || {},
+              )}
             </div>
             
             ${evalScores ? `
@@ -892,6 +926,53 @@
       `;
     },
     
+    renderSearcherSubqueries(rewritten, docsPerQuery) {
+      if (!docsPerQuery || Object.keys(docsPerQuery).length === 0) return '';
+      const items = (rewritten || []).map((q, qIdx) => {
+        const docs = docsPerQuery[q.text] || [];
+        const docId = `search_sq_${Date.now()}_${qIdx}`;
+        const docRows = docs.map((d, i) => {
+          const label = (d.type && d.number)
+            ? `${d.type} ${d.number}`
+            : (d.regulation_id || `Doc ${i + 1}`);
+          const docCell = d.url
+            ? `<a href="${this.escapeHtml(d.url)}" target="_blank" rel="noopener" class="debug-doc-link">${this.escapeHtml(label)}</a>`
+            : this.escapeHtml(label);
+          return `<tr>
+            <td>${i + 1}</td>
+            <td>${docCell}</td>
+            <td>${d.score != null ? Number(d.score).toFixed(3) : '?'}</td>
+          </tr>`;
+        }).join('');
+        const body = docs.length === 0
+          ? '<em class="debug-stats">Nenhum documento retornado para esta subquery.</em>'
+          : `<table class="debug-eval-table">
+              <thead><tr><th>#</th><th>Documento</th><th>Score</th></tr></thead>
+              <tbody>${docRows}</tbody>
+            </table>`;
+        return `
+          <div class="debug-gen-doc">
+            <div class="debug-gen-doc-header" onclick="
+              const body = document.getElementById('${docId}');
+              const icon = this.querySelector('.debug-toggle-icon');
+              if (body.style.display === 'none') {
+                body.style.display = 'block'; icon.textContent = '▼';
+              } else {
+                body.style.display = 'none'; icon.textContent = '▶';
+              }
+            ">
+              <span class="debug-toggle-icon">▶</span>
+              <strong>[${qIdx + 1}] ${this.escapeHtml(q.text || '')}</strong>
+              <span class="debug-gen-doc-meta">${docs.length} docs</span>
+            </div>
+            <div id="${docId}" class="debug-gen-doc-body" style="display:none">
+              ${body}
+            </div>
+          </div>`;
+      }).join('');
+      return `<div class="debug-gen-docs" style="margin-top:0.5rem">${items}</div>`;
+    },
+
     renderGeneratorDocuments(docs) {
       if (!docs || docs.length === 0) return '';
       const items = docs.map((doc, i) => {
