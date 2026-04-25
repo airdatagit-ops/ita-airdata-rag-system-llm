@@ -333,10 +333,27 @@ class ICAChunker:
         chunks = []
         current_chunk = []
         current_size = 0
-        
+
         for part in parts:
             part_size = len(part.split())
-            
+
+            # Hard cap: a single part must never exceed max_tokens. Without this
+            # guard, monolithic paragraphs (no §/inciso markers) leak through as
+            # oversized chunks that silently truncate at the embedder/reranker.
+            if part_size > max_tokens:
+                if current_chunk:
+                    chunk_text = '\n'.join(current_chunk)
+                    if not chunk_text.startswith(context):
+                        chunk_text = f"{context} (continuação)\n{chunk_text}"
+                    chunks.append(chunk_text)
+                    current_chunk = []
+                    current_size = 0
+                for sub in self._split_by_size(part, max_tokens):
+                    if not sub.startswith(context):
+                        sub = f"{context} (continuação)\n{sub}"
+                    chunks.append(sub)
+                continue
+
             if current_size + part_size > max_tokens and current_chunk:
                 # Save current chunk with context
                 chunk_text = '\n'.join(current_chunk)
@@ -395,32 +412,47 @@ class ICAChunker:
         chunks = []
         current_chunk = []
         current_size = 0
-        
-        for part in parts:
-            part_size = len(part.split())
-            
-            if current_size + part_size > self.max_tokens and current_chunk:
-                chunk = article.copy()
-                chunk["text"] = '\n'.join(current_chunk)
-                chunk["chunk_index"] = len(chunks)
-                chunk["regulation_id"] = f"{article.get('regulation_id', 'unknown')}-chunk-{len(chunks)}"
-                chunks.append(chunk)
-                
-                current_chunk = [part]
-                current_size = part_size
-            else:
-                current_chunk.append(part)
-                current_size += part_size
-        
-        if current_chunk:
+
+        def _flush_current() -> None:
+            if not current_chunk:
+                return
             chunk = article.copy()
             chunk["text"] = '\n'.join(current_chunk)
             chunk["chunk_index"] = len(chunks)
             chunk["regulation_id"] = f"{article.get('regulation_id', 'unknown')}-chunk-{len(chunks)}"
             chunks.append(chunk)
-        
+
+        for part in parts:
+            part_size = len(part.split())
+
+            # Hard cap: a single part must never exceed max_tokens. Without this
+            # guard, free-form documents with no \n\n markers leak through as a
+            # single oversized chunk (root cause of the historical 4K+ subword
+            # outliers seen in the token audit).
+            if part_size > self.max_tokens:
+                _flush_current()
+                current_chunk = []
+                current_size = 0
+                for sub_text in self._split_by_size(part, self.max_tokens):
+                    chunk = article.copy()
+                    chunk["text"] = sub_text
+                    chunk["chunk_index"] = len(chunks)
+                    chunk["regulation_id"] = f"{article.get('regulation_id', 'unknown')}-chunk-{len(chunks)}"
+                    chunks.append(chunk)
+                continue
+
+            if current_size + part_size > self.max_tokens and current_chunk:
+                _flush_current()
+                current_chunk = [part]
+                current_size = part_size
+            else:
+                current_chunk.append(part)
+                current_size += part_size
+
+        _flush_current()
+
         return chunks
-    
+
     def _create_chunk(
         self,
         article: Dict,

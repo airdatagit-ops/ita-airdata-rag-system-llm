@@ -272,8 +272,8 @@ cp env.example .env
 
 | Variável | Tipo | Padrão | Descrição |
 |----------|------|--------|-----------|
-| `CHUNK_MAX_TOKENS` | int | `512` | Máximo de tokens por chunk |
-| `CHUNK_OVERLAP` | int | `50` | Overlap entre chunks (tokens) |
+| `CHUNK_MAX_TOKENS` | int | `270` | Máximo de **palavras** por chunk (variável mal-nomeada; o chunker mede palavras). 270 ≈ 480 subwords no BGE-M3, alinhado à janela de 512 do `bge-reranker-base`. |
+| `CHUNK_OVERLAP` | int | `50` | Overlap entre chunks (palavras) |
 
 #### Servidor da API
 
