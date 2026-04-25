@@ -13,7 +13,7 @@ O projeto é composto por múltiplos componentes que trabalham juntos:
 - **Scrapers e Parsers** — Extraem documentos normativos de fontes oficiais (LexML, DECEA)
 - **Pipeline de Ingestão** — Processa, divide em chunks e indexa os documentos no banco vetorial
 - **Banco Vetorial (Qdrant)** — Armazena embeddings dos documentos para busca semântica
-- **Modelo de Embeddings** — Legal-BERTimbau, modelo treinado para textos jurídicos em português
+- **Modelo de Embeddings** — BAAI/bge-m3, modelo multilingual retrieval-tuned (1024-d, contexto 8192)
 - **LLM (Ollama)** — Modelos de linguagem locais para geração de respostas
 - **API RAG** — Servidor FastAPI que expõe endpoints de chat, busca e estatísticas
 - **Interface Web** — Frontend FastAPI/Jinja2 para interação do usuário
@@ -41,7 +41,7 @@ O projeto é composto por múltiplos componentes que trabalham juntos:
             │                                              │
             │   1. Parsing (LexMLParser / PDFParser)        │
             │   2. Chunking (ArticleChunker / ICAChunker)   │
-            │   3. Embedding (Legal-BERTimbau)              │
+            │   3. Embedding (BGE-M3)                       │
             │   4. Upload para Qdrant                       │
             └──────────────────┬───────────────────────────┘
                                │
@@ -104,7 +104,7 @@ aviation-rag-system/
 │   └── session_manager.py   # Gerenciador de sessões de chat
 │
 ├── models/                  # Wrappers de modelos de IA
-│   ├── embeddings.py        # Legal-BERTimbau (sentence-transformers)
+│   ├── embeddings.py        # BGE-M3 (sentence-transformers)
 │   └── llm.py               # Ollama/Llama (geração de texto)
 │
 ├── database/                # Banco vetorial

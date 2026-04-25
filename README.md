@@ -10,7 +10,7 @@
 2. [Pré-requisitos e Dependências Externas](#2-pré-requisitos-e-dependências-externas)
 3. [Configuração Central (.env)](#3-configuração-central-env)
 4. [Banco Vetorial (Qdrant)](#4-banco-vetorial-qdrant)
-5. [Modelo de Embeddings (Legal-BERTimbau)](#5-modelo-de-embeddings-legal-bertimbau)
+5. [Modelo de Embeddings (BGE-M3)](#5-modelo-de-embeddings-bge-m3)
 6. [LLM (Ollama)](#6-llm-ollama)
 7. [Extração de Documentos Normativos](#7-extração-de-documentos-normativos)
 8. [Pipeline de Ingestão](#8-pipeline-de-ingestão)
@@ -76,7 +76,7 @@ O pipeline de ingestão é composto por 3 fases que extraem, processam e indexam
 | Generator | LLM response generation | `search/generator/` |
 | Schemas compartilhados | Pydantic models | `search/shared/schemas.py` |
 | Exceções do pipeline | Custom exceptions | `search/shared/exceptions.py` |
-| Embeddings | Legal-BERTimbau (sentence-transformers) | `models/embeddings.py` |
+| Embeddings | BGE-M3 (sentence-transformers, multilingual, retrieval-tuned) | `models/embeddings.py` |
 | LLM | Ollama (llama3, phi3, etc.) | `models/llm.py` |
 | Banco vetorial | Qdrant | `database/qdrant_manager.py` |
 | Scraper base (ABC) | Interface async + registry | `crawler/scrapers/base.py` |
@@ -245,7 +245,7 @@ cp env.example .env
 
 | Variável | Tipo | Padrão | Descrição |
 |----------|------|--------|-----------|
-| `EMBEDDING_MODEL` | string | `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Modelo HuggingFace |
+| `EMBEDDING_MODEL` | string | `BAAI/bge-m3` | Modelo HuggingFace de embedding (1024-d, cosine, contexto até 8192 subwords). Promovido a partir de `rufimelo/Legal-BERTimbau-sts-large-ma-v3` em 2026-04-25 — ver `docs/migrations/2026-04-25_BGE_M3_PROMOTION.md`. |
 | `EMBEDDING_BATCH_SIZE` | int | `32` | Batch size para encoding |
 | `EMBEDDING_MAX_LENGTH` | int | `512` | Comprimento máximo de sequência |
 | `EMBEDDING_DIMENSION` | int | `1024` | Dimensão dos vetores |
@@ -317,7 +317,7 @@ make index RECREATE=1
 ```
 
 Isso cria a coleção `aviation_regulations` com:
-- Vetores de **1024 dimensões** (dimensão do Legal-BERTimbau)
+- Vetores de **1024 dimensões** (dimensão do BGE-M3)
 - Distância **Cosine**
 - Índice HNSW otimizado (M=16, ef_construct=100)
 - Índices de payload para: `regulation_id`, `effective_date`, `expiry_date`, `source`, `doc_type`
@@ -435,18 +435,21 @@ make index RECREATE=1   # recria a coleção no Qdrant
 
 ---
 
-## 5. Modelo de Embeddings (Legal-BERTimbau)
+## 5. Modelo de Embeddings (BGE-M3)
 
-O sistema usa o modelo **rufimelo/Legal-BERTimbau-sts-large-ma-v3**, um modelo de sentence-transformers treinado especificamente para textos jurídicos em português brasileiro.
+O sistema usa o modelo **BAAI/bge-m3**, um modelo de sentence-transformers multilingual treinado contrastivamente para retrieval denso (M3 = Multilinguality, Multi-functionality, Multi-granularity).
+
+> **Histórico:** o sistema usava `rufimelo/Legal-BERTimbau-sts-large-ma-v3` até 2026-04-25. A promoção foi motivada por um estudo A/B (golden set de 66 queries, sample de 20 K chunks com cobertura forçada do gold) que mostrou ganhos de **+112% em Hit@5** e **+228% em MRR**. Detalhes, root-cause e procedimento de re-index em [`docs/migrations/2026-04-25_BGE_M3_PROMOTION.md`](docs/migrations/2026-04-25_BGE_M3_PROMOTION.md).
 
 ### Características:
 
 | Propriedade | Valor |
 |-------------|-------|
-| Modelo base | BERTimbau Large |
-| Treinamento | Textos jurídicos em PT-BR |
+| Modelo base | XLM-RoBERTa Large |
+| Treinamento | Multilingual + retrieval-tuned (contrastivo) |
 | Dimensão dos vetores | 1024 |
-| Max sequence length | 512 tokens |
+| Max sequence length | 8192 subwords |
+| Tokenizer | SentencePiece (XLM-R) |
 | Distância | Cosine similarity |
 
 ### Como funciona:
@@ -547,7 +550,7 @@ O script `scripts/download_models.py` baixa:
 
 | Modelo | Tipo | Usado por |
 |--------|------|-----------|
-| `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Sentence-Transformer | Embedding (busca vetorial) |
+| `BAAI/bge-m3` | Sentence-Transformer | Embedding (busca vetorial) |
 | `BAAI/bge-reranker-base` | Cross-Encoder | Evaluator (re-ranking) |
 | `gemma4:26b` | Ollama LLM | Generator (geração de respostas) |
 | `qwen2.5:7b` | Ollama LLM | Rewriter (reescrita de queries) |
@@ -1934,7 +1937,7 @@ server {
 | `GPU_SERVER_HOST` | `0.0.0.0` | Interface de bind do servidor |
 | `GPU_SERVER_PORT` | `8090` | Porta do servidor |
 | `GPU_SERVER_API_KEY` | *(vazio)* | Chave de autenticação (desabilitada se vazia) |
-| `EMBEDDING_MODEL` | `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Modelo SentenceTransformer |
+| `EMBEDDING_MODEL` | `BAAI/bge-m3` | Modelo SentenceTransformer |
 | `CROSS_ENCODER_MODEL` | `BAAI/bge-reranker-base` | Modelo CrossEncoder |
 | `MODEL_CACHE_DIR` | `/dados/airdata/models_cache` | Cache de modelos HuggingFace |
 | `OLLAMA_HOST` | `http://localhost:11434` | Endpoint do Ollama local |
@@ -2110,6 +2113,6 @@ Causas comuns:
 - [FastAPI](https://fastapi.tiangolo.com)
 - [Qdrant](https://qdrant.tech/documentation)
 - [Ollama](https://ollama.com)
-- [Legal-BERTimbau](https://huggingface.co/rufimelo/Legal-BERTimbau-sts-large-ma-v3)
+- [BGE-M3](https://huggingface.co/BAAI/bge-m3)
 - [Portal AirData](https://www.airdata.ita.br)
 - [GitHub AirData](https://github.com/ita-airdata)

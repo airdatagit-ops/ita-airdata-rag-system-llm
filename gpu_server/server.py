@@ -37,7 +37,7 @@ GPU_SERVER_HOST = os.getenv("GPU_SERVER_HOST", "0.0.0.0")
 GPU_SERVER_PORT = int(os.getenv("GPU_SERVER_PORT", "8090"))
 
 EMBEDDING_MODEL_NAME = os.getenv(
-    "EMBEDDING_MODEL", "rufimelo/Legal-BERTimbau-sts-large-ma-v3",
+    "EMBEDDING_MODEL", "BAAI/bge-m3",
 )
 CROSS_ENCODER_MODEL_NAME = os.getenv(
     "CROSS_ENCODER_MODEL", "BAAI/bge-reranker-base",
