@@ -8,3 +8,7 @@ data/
 web/chat_history
 qdrant_storage/
 docs/diagnostico-apis-coleta.md
+
+# Local outputs of one-off retrieval/embedding studies (reproducible from scripts)
+evaluation/results/_retrieve_study/
+evaluation/results/_gen_study/

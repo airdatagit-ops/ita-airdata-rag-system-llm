@@ -229,6 +229,24 @@ class TestRetrievalEvaluator:
         assert len(data["query_results"]) == 3
 
 
+class TestSelectQueryIds:
+    def test_no_sample_returns_all(self, evaluator):
+        ids = evaluator._select_query_ids(None)
+        assert set(ids) == {"Q1", "Q2", "Q3"}
+        assert len(ids) == 3
+
+    def test_zero_sample_returns_all(self, evaluator):
+        assert set(evaluator._select_query_ids(0)) == {"Q1", "Q2", "Q3"}
+
+    def test_sample_caps_only_retrieval_keeps_coverage(self, evaluator):
+        ids = evaluator._select_query_ids(1)
+        assert ids == ["Q1", "Q3"]
+
+    def test_sample_larger_than_retrieval_returns_all(self, evaluator):
+        ids = evaluator._select_query_ids(99)
+        assert set(ids) == {"Q1", "Q2", "Q3"}
+
+
 class TestPrintReport:
     @patch("evaluation.evaluate_retrieval.QdrantManager")
     @patch("evaluation.evaluate_retrieval.create_embedding_model")
@@ -245,3 +263,93 @@ class TestPrintReport:
         captured = capsys.readouterr()
         assert "RETRIEVAL QUALITY" in captured.out
         assert "COVERAGE" in captured.out
+
+
+class TestEvaluatePipelineMode:
+    """Validate that --use-pipeline mode collects pipeline-specific metrics."""
+
+    @patch("search.orchestrator.pipeline.RAGPipeline")
+    def test_pipeline_evaluate_collects_stage_timings_and_subqueries(
+        self, MockPipeline, evaluator,
+    ):
+        mock_pipeline = MockPipeline.return_value
+
+        def fake_query(question, **kwargs):
+            assert kwargs.get("include_generation") is False
+            assert kwargs.get("debug") is True
+            return {
+                "answer": "",
+                "sources": [{"regulation_id": "doc_1", "score": 12.5}],
+                "search_time_ms": 11,
+                "llm_time_ms": 0,
+                "total_time_ms": 1234,
+                "trace": {
+                    "rewritten_queries": [{"text": "a"}, {"text": "b"}],
+                    "documents_after_dedup": 8,
+                    "documents_accepted": 5,
+                    "timings": {
+                        "rewriter_ms": 900,
+                        "searcher_ms": 11,
+                        "evaluator_ms": 200,
+                        "generator_ms": 0,
+                        "total_ms": 1234,
+                    },
+                },
+            }
+
+        mock_pipeline.query.side_effect = fake_query
+
+        result = evaluator.evaluate_pipeline(k=1, workers=1)
+
+        assert result.mode == "pipeline"
+        assert result.total_queries == 3
+        assert result.avg_rewriter_subqueries == pytest.approx(2.0)
+        assert result.avg_evaluator_filter_rate == pytest.approx((8 - 5) / 8)
+        assert result.avg_rewriter_ms == 900
+        assert result.avg_searcher_ms == 11
+        assert result.avg_evaluator_ms == 200
+        assert result.avg_total_ms == 1234
+
+        q1 = next(r for r in result.query_results if r.query_id == "Q1")
+        assert q1.hit is True
+        assert q1.first_relevant_rank == 1
+        assert q1.rewriter_subqueries == 2
+        assert q1.docs_before_evaluator == 8
+        assert q1.docs_after_evaluator == 5
+
+    @patch("search.orchestrator.pipeline.RAGPipeline")
+    def test_pipeline_save_results_includes_pipeline_columns(
+        self, MockPipeline, evaluator, tmp_path,
+    ):
+        MockPipeline.return_value.query.return_value = {
+            "answer": "",
+            "sources": [],
+            "trace": {
+                "rewritten_queries": [],
+                "documents_after_dedup": 0,
+                "documents_accepted": 0,
+                "timings": {
+                    "rewriter_ms": 0, "searcher_ms": 0,
+                    "evaluator_ms": 0, "generator_ms": 0, "total_ms": 0,
+                },
+            },
+        }
+
+        result = evaluator.evaluate_pipeline(k=1, workers=1)
+        summary, details, json_path = evaluator.save_results(result, str(tmp_path))
+
+        assert "pipeline" in Path(summary).name
+        with open(summary, encoding="utf-8") as f:
+            content = f.read()
+        assert "avg_rewriter_subqueries" in content
+        assert "avg_evaluator_filter_rate" in content
+
+        with open(details, encoding="utf-8") as f:
+            header = f.readline()
+        assert "rewriter_subqueries" in header
+        assert "rewriter_ms" in header
+
+        with open(json_path, encoding="utf-8") as f:
+            data = json.load(f)
+        assert data["mode"] == "pipeline"
+        assert "avg_rewriter_subqueries" in data["metrics"]

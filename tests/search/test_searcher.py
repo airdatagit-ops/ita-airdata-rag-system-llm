@@ -9,7 +9,9 @@ from search.shared.exceptions import SearchBackendError
 from search.shared.schemas import (
     RewrittenQuery,
     SearchFilter,
+    SearchSort,
     FilterOperator,
+    SortOrder,
 )
 
 
@@ -130,6 +132,68 @@ class TestSearchBackendFailure:
 
         with pytest.raises(SearchBackendError):
             searcher.search(queries)
+
+
+class TestSortFetchAmpliation:
+    """Verify SEARCH_SORT_FETCH_MULTIPLIER widens the per-sub-query fetch
+    only when a sort is present, and caps the deduped pool back to the
+    original size."""
+
+    def _make_docs(self, n: int):
+        return [
+            {"text": f"chunk-{i}", "regulation_id": f"doc-{i}",
+             "score": 1.0 - i * 0.01, "effective_date": f"2020-01-{i + 1:02d}"}
+            for i in range(n)
+        ]
+
+    def test_no_sort_keeps_baseline_limit(self, mock_vector_search):
+        from config import config as global_config
+
+        original = global_config.SEARCH_SORT_FETCH_MULTIPLIER
+        global_config.SEARCH_SORT_FETCH_MULTIPLIER = 3
+        try:
+            mock_vector_search.search.return_value = self._make_docs(5)
+            searcher = DocumentSearcher(
+                vector_search=mock_vector_search, default_limit=5,
+            )
+            queries = [RewrittenQuery(text="q1"), RewrittenQuery(text="q2")]
+            searcher.search(queries)
+
+            for call in mock_vector_search.search.call_args_list:
+                assert call.kwargs["limit"] == 5, "no sort: limit must be unchanged"
+        finally:
+            global_config.SEARCH_SORT_FETCH_MULTIPLIER = original
+
+    def test_sort_widens_qdrant_limit_and_caps_pool(self, mock_vector_search):
+        from config import config as global_config
+
+        original = global_config.SEARCH_SORT_FETCH_MULTIPLIER
+        global_config.SEARCH_SORT_FETCH_MULTIPLIER = 3
+        try:
+            mock_vector_search.search.return_value = self._make_docs(15)
+            searcher = DocumentSearcher(
+                vector_search=mock_vector_search, default_limit=5,
+            )
+            queries = [
+                RewrittenQuery(
+                    text="q1",
+                    sorts=[SearchSort(field="effective_date", order=SortOrder.DESC)],
+                ),
+                RewrittenQuery(text="q2"),
+            ]
+            result = searcher.search(queries)
+
+            for call in mock_vector_search.search.call_args_list:
+                assert call.kwargs["limit"] == 15, "sort: limit must be 5 * 3"
+
+            assert len(result.documents) <= 5 * len(queries), (
+                "sorted pool must be capped to default_limit * n_queries"
+            )
+
+            dates = [d.get("effective_date") for d in result.documents]
+            assert dates == sorted(dates, reverse=True), "must be sorted desc"
+        finally:
+            global_config.SEARCH_SORT_FETCH_MULTIPLIER = original
 
 
 if __name__ == "__main__":

@@ -201,3 +201,39 @@ class TestSearchVectorFallback:
 
         with pytest.raises(SearchBackendError, match="No usable vectors"):
             mgr.search(dense_vector=[0.1])
+
+
+class TestHybridPrefetchMultiplier:
+    """Verify SEARCH_PREFETCH_MULTIPLIER drives the per-branch prefetch size."""
+
+    def _hybrid_call_kwargs(self, multiplier: int, limit: int):
+        from config import config as global_config
+
+        original = global_config.SEARCH_PREFETCH_MULTIPLIER
+        global_config.SEARCH_PREFETCH_MULTIPLIER = multiplier
+        try:
+            mgr = _make_manager(dense=True, sparse=True)
+            mgr.client.query_points.return_value = MagicMock(points=[])
+            mgr.search(
+                dense_vector=[0.1, 0.2],
+                sparse_vector=MagicMock(),
+                limit=limit,
+            )
+            return mgr.client.query_points.call_args[1]
+        finally:
+            global_config.SEARCH_PREFETCH_MULTIPLIER = original
+
+    def test_default_multiplier_three(self):
+        kwargs = self._hybrid_call_kwargs(multiplier=3, limit=5)
+        prefetch = kwargs["prefetch"]
+        assert all(p.limit == 15 for p in prefetch), "expected 5*3=15 per branch"
+
+    def test_custom_multiplier_propagates(self):
+        kwargs = self._hybrid_call_kwargs(multiplier=8, limit=5)
+        prefetch = kwargs["prefetch"]
+        assert all(p.limit == 40 for p in prefetch), "expected 5*8=40 per branch"
+
+    def test_final_limit_unchanged_by_multiplier(self):
+        """The fused top-K must remain ``limit``, regardless of prefetch."""
+        kwargs = self._hybrid_call_kwargs(multiplier=12, limit=5)
+        assert kwargs["limit"] == 5

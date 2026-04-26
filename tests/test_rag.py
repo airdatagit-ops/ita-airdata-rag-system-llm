@@ -44,6 +44,7 @@ def mock_searcher():
 @pytest.fixture
 def mock_evaluator():
     ev = MagicMock()
+    ev.max_eval_tokens = 480
     ev.evaluate.return_value = [
         EvaluatedDocument(
             document={"text": "Art. 1", "regulation_id": "doc-1", "score": 0.9},
@@ -162,6 +163,21 @@ class TestDebugTrace:
         trace = result["trace"]
         assert "evaluation_scores" in trace
         assert trace["documents_accepted"] == 1
+
+    def test_trace_evaluation_scores_include_eval_text(self, rag):
+        """Each evaluation entry must carry the exact text the
+        cross-encoder scored, so the offline extractor can surface it."""
+        result = rag.query("teste", debug=True)
+        scores = result["trace"]["evaluation_scores"]
+        assert scores, "expected at least one evaluation entry"
+        for entry in scores:
+            assert "eval_text" in entry
+            assert "eval_max_tokens" in entry
+            assert entry["eval_max_tokens"] == 480
+        accepted = next(e for e in scores if e["accepted"])
+        # _build_eval_text prepends metadata; for our mock doc we only
+        # have ``text`` so the eval_text must at least contain it.
+        assert "Art. 1" in accepted["eval_text"]
 
 
 class TestStreamingMode:

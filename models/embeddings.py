@@ -1,8 +1,8 @@
 """
 Embedding Model Module for Aviation RAG System.
 
-This module provides a wrapper around Legal-BERTimbau for generating
-embeddings of regulatory texts.
+This module provides a wrapper around the configured dense embedding model
+(default: BAAI/bge-m3) for generating embeddings of regulatory texts.
 
 Usage:
     from models.embeddings import EmbeddingModel
@@ -24,7 +24,7 @@ from config import config
 
 class EmbeddingModel:
     """
-    Wrapper for Legal-BERTimbau embedding model.
+    Wrapper for the configured dense embedding model (default: BAAI/bge-m3).
 
     This class provides a simple interface for generating embeddings with
     caching, batching, and GPU support.

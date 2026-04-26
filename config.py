@@ -65,6 +65,11 @@ class Settings(BaseSettings):
     SEARCH_SCORE_THRESHOLD: float = getenv('SEARCH_SCORE_THRESHOLD')
     SEARCH_DENSE_ENABLED: bool = getenv('SEARCH_DENSE_ENABLED', 'true')
     SEARCH_SPARSE_ENABLED: bool = getenv('SEARCH_SPARSE_ENABLED', 'false')
+    # RRF prefetch pool size (hybrid only) = limit * SEARCH_PREFETCH_MULTIPLIER.
+    SEARCH_PREFETCH_MULTIPLIER: int = getenv('SEARCH_PREFETCH_MULTIPLIER', '3')
+    # When a sub-query carries a sort, fetch limit * this many candidates
+    # before in-memory sorting; the deduped pool is then capped back to limit.
+    SEARCH_SORT_FETCH_MULTIPLIER: int = getenv('SEARCH_SORT_FETCH_MULTIPLIER', '3')
     SPARSE_EMBEDDING_MODEL: str = getenv('SPARSE_EMBEDDING_MODEL', 'Qdrant/bm25')
     HNSW_EF_SEARCH: int = getenv('HNSW_EF_SEARCH')
     HNSW_M: int = getenv('HNSW_M')
@@ -196,15 +201,16 @@ class Settings(BaseSettings):
     REWRITER_MAX_QUERY_LENGTH: int = int(getenv('REWRITER_MAX_QUERY_LENGTH', '500'))
     REWRITER_TEMPERATURE: float = float(getenv('REWRITER_TEMPERATURE', '0.3'))
     REWRITER_TIMEOUT: int = int(getenv('REWRITER_TIMEOUT', '60'))
+    REWRITER_PROMPT_VERSION: str = getenv('REWRITER_PROMPT_VERSION', 'v1')
 
     # ========================================
     # RAG Pipeline — Evaluator (Cross-Encoder)
     # ========================================
     EVALUATOR_ENABLED: bool = getenv('EVALUATOR_ENABLED', 'true').lower() in ('true', '1', 'yes')
     CROSS_ENCODER_MODEL: str = getenv(
-        'CROSS_ENCODER_MODEL', 'cross-encoder/mmarco-mMiniLMv2-L12-H384-v1',
+        'CROSS_ENCODER_MODEL', 'BAAI/bge-reranker-base',
     )
-    EVALUATOR_THRESHOLD: int = int(getenv('EVALUATOR_THRESHOLD', '25'))
+    EVALUATOR_THRESHOLD: int = int(getenv('EVALUATOR_THRESHOLD', '55'))
     EVALUATOR_BATCH_SIZE: int = int(getenv('EVALUATOR_BATCH_SIZE', '32'))
     EVALUATOR_MAX_TOKENS: int = int(getenv('EVALUATOR_MAX_TOKENS', '480'))
 
@@ -217,6 +223,9 @@ class Settings(BaseSettings):
     GENERATOR_MAX_DOCS: int = int(getenv('GENERATOR_MAX_DOCS', '7'))
     GENERATOR_GROUNDED_ONLY: bool = getenv('GENERATOR_GROUNDED_ONLY', 'true').lower() in ('true', '1', 'yes')
     GENERATOR_TIMEOUT: int = int(getenv('GENERATOR_TIMEOUT', '120'))
+
+    # Judge model for evaluation/llm_judge.py; empty falls back to GENERATOR_MODEL.
+    JUDGE_MODEL: str = getenv('JUDGE_MODEL', '')
 
     # ========================================
     # RAG Pipeline — General

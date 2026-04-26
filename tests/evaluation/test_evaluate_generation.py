@@ -10,8 +10,11 @@ import pytest
 from evaluation.evaluate_generation import (
     GenerationEvaluator,
     analyze_response,
+    compute_grounding,
+    extract_citations,
     print_report,
 )
+from evaluation.llm_judge import JudgeVerdict, _parse_verdict
 
 
 @pytest.fixture
@@ -172,6 +175,180 @@ class TestGenerationEvaluator:
 
         call_kwargs = MockQdrant.return_value.search.call_args
         assert "dense_vector" in call_kwargs.kwargs or "dense_vector" in (call_kwargs[1] if len(call_kwargs) > 1 else {})
+
+
+class TestCitationExtractionAndGrounding:
+    def test_extracts_bracketed_citations(self):
+        text = "Conforme [ICA 100-40], complementado por [MCA 56-5]."
+        cites = extract_citations(text)
+        assert "ICA 100-40" in cites
+        assert "MCA 56-5" in cites
+
+    def test_extracts_bracketed_with_article(self):
+        text = "Ver [ICA 100-40-art10] e [Decreto 97.464]."
+        cites = extract_citations(text)
+        assert "ICA 100-40-art10" in cites
+        assert "Decreto 97.464" in cites
+
+    def test_falls_back_to_unbracketed_when_no_brackets(self):
+        text = "Conforme ICA-96-1-art10 e ICA-100-47, ..."
+        cites = extract_citations(text)
+        assert len(cites) >= 1
+
+    def test_grounding_marks_cited_doc_as_grounded(self):
+        cites = ["ICA 100-40"]
+        retrieved = ["ica_100-40/2023-art1", "ica_7-58/2020-art1"]
+        result = compute_grounding(cites, retrieved)
+        assert result["grounded"] == 1
+        assert result["hallucinated"] == 0
+
+    def test_grounding_flags_hallucinated_citation(self):
+        cites = ["ICA 999-99"]
+        retrieved = ["ica_100-40/2023-art1"]
+        result = compute_grounding(cites, retrieved)
+        assert result["grounded"] == 0
+        assert result["hallucinated"] == 1
+        assert "ICA 999-99" in result["hallucinated_list"]
+
+    def test_grounding_doc_level_matches_any_chunk(self):
+        cites = ["ICA 7-58"]
+        retrieved = ["ica_7-58/2020-art2-0", "ica_7-58/2020-art5-1"]
+        result = compute_grounding(cites, retrieved)
+        assert result["grounded"] == 1
+
+    def test_analyze_response_populates_grounding_fields(self):
+        retrieved = ["ica_100-40/2023-art1"]
+        text = "Conforme [ICA 100-40], a regra é... também ver [ICA 999-99]."
+        a = analyze_response("Q1", "q", text, retrieved, 0, 0)
+        assert a.has_citation is True
+        assert a.citations_grounded == 1
+        assert a.citations_hallucinated == 1
+        assert "ICA 999-99" in a.hallucinated_citations
+
+
+class TestLLMJudgeParseVerdict:
+    def test_parses_clean_json(self):
+        v = _parse_verdict('{"score": 4, "reasoning": "good"}')
+        assert v.score == pytest.approx(0.8)
+        assert v.raw_score == 4
+        assert v.parse_error is None
+
+    def test_normalizes_score_to_unit_interval(self):
+        for raw, expected in [(0, 0.0), (3, 0.6), (5, 1.0)]:
+            v = _parse_verdict(f'{{"score": {raw}, "reasoning": "x"}}')
+            assert v.score == pytest.approx(expected)
+
+    def test_rejects_out_of_range_score(self):
+        v = _parse_verdict('{"score": 9, "reasoning": "x"}')
+        assert v.score is None
+        assert v.parse_error is not None
+
+    def test_handles_code_fence_wrap(self):
+        v = _parse_verdict('```json\n{"score": 2, "reasoning": "ok"}\n```')
+        assert v.raw_score == 2
+
+    def test_invalid_json_returns_parse_error(self):
+        v = _parse_verdict("not json at all")
+        assert v.score is None
+        assert "json_decode" in v.parse_error
+
+
+class TestEvaluatePipelineMode:
+    @patch("search.orchestrator.pipeline.RAGPipeline")
+    def test_pipeline_mode_collects_grounding(self, MockPipeline, evaluator):
+        mock_pipeline = MockPipeline.return_value
+
+        def fake_query(question, **kwargs):
+            return {
+                "answer": "Conforme [ICA 100-40], a regra é tal.",
+                "sources": [{"regulation_id": "ica_100-40/2023-art1", "score": 5.0}],
+                "trace": {
+                    "rewritten_queries": [{"text": "x"}],
+                    "documents_after_dedup": 5,
+                    "documents_accepted": 3,
+                    "timings": {
+                        "rewriter_ms": 100, "searcher_ms": 10,
+                        "evaluator_ms": 50, "generator_ms": 500, "total_ms": 660,
+                    },
+                },
+            }
+
+        mock_pipeline.query.side_effect = fake_query
+        result = evaluator.evaluate_pipeline(k=5)
+
+        assert result.mode == "pipeline"
+        assert result.judge_used is False
+        assert result.citation_grounding_rate == pytest.approx(1.0)
+        assert result.mean_citations_per_response == pytest.approx(1.0)
+        for a in result.analyses:
+            assert a.citations_grounded == 1
+            assert a.citations_hallucinated == 0
+
+    @patch("search.orchestrator.pipeline.RAGPipeline")
+    def test_pipeline_mode_with_judge_populates_scores(self, MockPipeline, evaluator):
+        mock_pipeline = MockPipeline.return_value
+        mock_pipeline.query.return_value = {
+            "answer": "Conforme [ICA 100-40], regra X.",
+            "sources": [{"regulation_id": "ica_100-40/2023-art1"}],
+            "trace": {
+                "rewritten_queries": [],
+                "documents_after_dedup": 1,
+                "documents_accepted": 1,
+                "timings": {
+                    "rewriter_ms": 0, "searcher_ms": 0,
+                    "evaluator_ms": 0, "generator_ms": 0, "total_ms": 0,
+                },
+            },
+        }
+
+        judge = MagicMock()
+        judge.model_name = "test-judge-model"
+        judge.judge_faithfulness.return_value = JudgeVerdict(
+            score=0.8, raw_score=4, reasoning="grounded ok",
+        )
+        judge.judge_relevance.return_value = JudgeVerdict(
+            score=1.0, raw_score=5, reasoning="on topic",
+        )
+
+        result = evaluator.evaluate_pipeline(k=1, judge=judge)
+
+        assert result.judge_used is True
+        assert result.judge_model == "test-judge-model"
+        assert result.mean_faithfulness == pytest.approx(0.8)
+        assert result.mean_relevance == pytest.approx(1.0)
+        assert result.judge_unparseable_rate == 0.0
+        for a in result.analyses:
+            assert a.faithfulness_score == pytest.approx(0.8)
+            assert a.relevance_score == pytest.approx(1.0)
+
+    @patch("search.orchestrator.pipeline.RAGPipeline")
+    def test_pipeline_mode_judge_unparseable_tracked(self, MockPipeline, evaluator):
+        MockPipeline.return_value.query.return_value = {
+            "answer": "x",
+            "sources": [],
+            "trace": {
+                "rewritten_queries": [],
+                "documents_after_dedup": 0,
+                "documents_accepted": 0,
+                "timings": {
+                    "rewriter_ms": 0, "searcher_ms": 0,
+                    "evaluator_ms": 0, "generator_ms": 0, "total_ms": 0,
+                },
+            },
+        }
+
+        judge = MagicMock()
+        judge.model_name = "m"
+        judge.judge_faithfulness.return_value = JudgeVerdict(
+            score=None, raw_score=None, reasoning="", parse_error="x",
+        )
+        judge.judge_relevance.return_value = JudgeVerdict(
+            score=None, raw_score=None, reasoning="", parse_error="x",
+        )
+
+        result = evaluator.evaluate_pipeline(k=1, judge=judge)
+        assert result.mean_faithfulness is None
+        assert result.judge_unparseable_rate == 1.0
 
 
 class TestPrintReport:
