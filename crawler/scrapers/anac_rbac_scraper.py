@@ -32,9 +32,12 @@ from typing import Dict, List, Optional
 from bs4 import BeautifulSoup
 from loguru import logger
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 from crawler.scrapers import register_scraper
@@ -58,8 +61,13 @@ _RETRYABLE_EXCEPTIONS = (WebDriverException, OSError)
 _RETRY_BASE_DELAY = 1.0
 _MAX_RETRIES = 3
 
-# Tempo de espera após carregamento de página (bot protection precisa de JS)
-_PAGE_LOAD_WAIT = 3.0
+# Timeout para WebDriverWait aguardar elemento aparecer no DOM.
+# O TSPD pode demorar até ~15s para resolver o desafio JS.
+_ELEMENT_WAIT_TIMEOUT = 30.0
+
+# Seletores CSS que indicam que a página de conteúdo carregou.
+# Aguardamos qualquer um deles aparecer.
+_READY_SELECTORS = ["#tabela-normas", "#content-core"]
 
 _OUTPUT_DIR = ORIGINALS_DIR / "anac"
 
@@ -106,6 +114,10 @@ class ANACRBACscraper(BaseScraper):
         self._lock = threading.Lock()
         _OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         logger.info("ANACRBACscraper initialized (Selenium/Chrome mode)")
+
+    def make_doc_id(self, doc: Dict) -> str:
+        """ID estável e consistente com o retornado por fetch_document."""
+        return f"anac_rbac_{doc['rbac_id']}"
 
     # ── Context manager ─────────────────────────────────────────────────────
 
@@ -159,13 +171,17 @@ class ANACRBACscraper(BaseScraper):
     def _get_sync(self, url: str) -> str:
         """Carrega URL com Selenium e retorna o page_source.
 
+        Aguarda ativamente (WebDriverWait) um dos ``_READY_SELECTORS`` aparecer
+        no DOM antes de retornar, garantindo que o desafio TSPD já foi resolvido
+        e o conteúdo real está carregado.
+
         Aplica retry com backoff exponencial para erros de carregamento.
         """
         for attempt in range(1, _MAX_RETRIES + 1):
             try:
                 with self._lock:
                     self._driver.get(url)
-                    time.sleep(_PAGE_LOAD_WAIT)
+                    self._wait_for_content(url)
                     return self._driver.page_source
             except _RETRYABLE_EXCEPTIONS as exc:
                 if attempt == _MAX_RETRIES:
@@ -179,6 +195,27 @@ class ANACRBACscraper(BaseScraper):
                 )
                 time.sleep(delay)
         return ""  # nunca alcançado
+
+    def _wait_for_content(self, url: str) -> None:
+        """Aguarda um dos _READY_SELECTORS aparecer no DOM.
+
+        O TSPD executa um desafio JavaScript antes de servir o conteúdo real;
+        sem esse wait, o page_source pode ser capturado ainda na página de
+        desafio, que não contém a tabela nem o conteúdo do RBAC.
+        """
+        wait = WebDriverWait(self._driver, _ELEMENT_WAIT_TIMEOUT)
+        for selector in _READY_SELECTORS:
+            try:
+                wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
+                logger.debug(f"[anac_rbac] Elemento '{selector}' encontrado para {url}")
+                return
+            except TimeoutException:
+                continue
+        # Nenhum seletor encontrado — loga diagnóstico e continua com o que tiver
+        logger.warning(
+            f"[anac_rbac] Nenhum seletor de conteúdo encontrado após {_ELEMENT_WAIT_TIMEOUT}s "
+            f"para {url}. Título: {self._driver.title!r}"
+        )
 
     def _fetch_document_sync(
         self, doc: Dict, save_original: bool = True
