@@ -39,6 +39,7 @@ from crawler.scrapers.base import (
     compute_canonical_id,
     ORIGINALS_DIR,
 )
+from parsers.pdf_parser import extract_text_from_bytes
 
 # ── Constantes ──────────────────────────────────────────────────────────────
 
@@ -132,11 +133,23 @@ class ANACRBACscraper(BaseScraper):
 
         try:
             if is_pdf_direct:
-                # Salva o PDF original em disco para extração posterior no
-                # pipeline de chunking/embeddings. Não extrai texto aqui.
+                pdf_bytes = await self._get_bytes(url)
+                if not pdf_bytes or pdf_bytes[:4] != b"%PDF":
+                    logger.warning(f"[anac_rbac] {rbac_id}: PDF inválido ou vazio")
+                    return None
+
                 if save_original:
-                    await self._save_pdf(url, rbac_id)
-                return None
+                    pdf_path = _OUTPUT_DIR / f"{rbac_id}.pdf"
+                    pdf_path.write_bytes(pdf_bytes)
+                    logger.success(
+                        f"[anac_rbac] Saved {pdf_path.name} ({len(pdf_bytes)/1024:.1f} KB)"
+                    )
+
+                content = extract_text_from_bytes(pdf_bytes) or ""
+                content = re.sub(r"\n{3,}", "\n\n", content.strip())
+                if not content:
+                    logger.warning(f"[anac_rbac] {rbac_id}: sem texto extraível do PDF")
+                    return None
             else:
                 html = await self._get(url)
                 content = self._extract_content(html, rbac_id)
@@ -148,7 +161,7 @@ class ANACRBACscraper(BaseScraper):
             logger.warning(f"[anac_rbac] Conteúdo vazio para {rbac_id}, pulando")
             return None
 
-        if save_original:
+        if save_original and not is_pdf_direct:
             self._save_txt(rbac_id, content, url)
 
         number = rbac_id.replace("rbac-", "")
@@ -320,25 +333,6 @@ class ANACRBACscraper(BaseScraper):
                 )
                 await asyncio.sleep(delay)
         return b""
-
-    async def _save_pdf(self, pdf_url: str, rbac_id: str) -> Optional[Path]:
-        """Baixa o PDF original e salva em data/originals/anac/rbac-XX.pdf.
-
-        A extração do texto é delegada ao pipeline de chunking/embeddings.
-        """
-        pdf_bytes = await self._get_bytes(pdf_url)
-        if not pdf_bytes:
-            logger.warning(f"[anac_rbac] {rbac_id}: PDF vazio")
-            return None
-        if pdf_bytes[:4] != b"%PDF":
-            logger.warning(f"[anac_rbac] {rbac_id}: resposta não é PDF válido")
-            return None
-        path = _OUTPUT_DIR / f"{rbac_id}.pdf"
-        path.write_bytes(pdf_bytes)
-        logger.success(
-            f"[anac_rbac] Saved {path.name} ({len(pdf_bytes) / 1024:.1f} KB)"
-        )
-        return path
 
     def _save_txt(self, rbac_id: str, content: str, source_url: str) -> Path:
         """Salva conteúdo em data/originals/anac/rbac-XX.txt."""

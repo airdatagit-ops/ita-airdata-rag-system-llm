@@ -1,4 +1,4 @@
-.PHONY: test lint lint-fix eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models backup restore
+.PHONY: test lint lint-fix eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy collect-anac embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models backup restore
 
 PYTHON ?= python
 K ?= 5
@@ -31,8 +31,13 @@ help:
 	@echo "  make collect SOURCES=sislaer                       Collect only SISLAER (primary source)"
 	@echo "  make collect SOURCES=lexml                        Collect only LexML"
 	@echo "  make collect SOURCES=decea LIMIT=50               Collect only DECEA, limit to 50 docs"
+	@echo "  make collect SOURCES=anac_rbac                    Collect only ANAC RBACs"
 	@echo "  make collect-sislaer                              Shortcut: SISLAER only"
 	@echo "  make collect-legacy                               Shortcut: DECEA + LexML (fallback)"
+	@echo "  make collect-anac                                 Shortcut: ANAC RBACs only"
+	@echo "  make collect-anac CHECK=1                         Re-download all ANAC RBACs and verify hashes"
+	@echo "  make collect-anac FORCE=1                         Wipe ANAC docs and re-collect from scratch"
+	@echo "  make collect-anac LIMIT=5                         Collect only the first N RBACs (useful for tests)"
 	@echo "  make collect SOURCES=pdf PDF_DIR=./data/pdfs      Collect local PDFs from directory"
 	@echo "  make collect ALL_LOCALITIES=1                     Include state/municipal docs (default: federal only)"
 	@echo "  make embed                                        Phase 2: generate embeddings (incremental)"
@@ -125,6 +130,9 @@ collect-sislaer:
 
 collect-legacy:
 	$(PYTHON) -m scripts.collect --sources decea,lexml --limit $(LIMIT) --concurrency $(CONCURRENCY) $(if $(DOC_TYPES),--doc-types $(DOC_TYPES),) $(if $(KEYWORDS),--keywords $(KEYWORDS),) $(if $(CHECK),--check,) $(if $(FORCE),--force,) $(if $(ALL_LOCALITIES),--no-federal-only,)
+
+collect-anac:
+	$(PYTHON) -m scripts.collect --sources anac_rbac --limit $(LIMIT) --concurrency $(CONCURRENCY) $(if $(CHECK),--check,) $(if $(FORCE),--force,)
 
 embed:
 	$(PYTHON) -m scripts.embed $(if $(MODE),--mode $(MODE),) $(if $(FORCE),--force,) $(if $(BATCH_SIZE),--batch-size $(BATCH_SIZE),) $(if $(EMBED_BATCH),--embed-batch $(EMBED_BATCH),)

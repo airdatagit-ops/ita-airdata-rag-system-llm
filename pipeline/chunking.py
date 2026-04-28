@@ -474,6 +474,7 @@ _ICA_CHUNKER_TYPES = frozenset([
     'ica', 'mca', 'pca', 'nsca', 'dca', 'tca', 'fca', 'oca',
     'rca', 'roca', 'rica', 'rima', 'rma', 'npa', 'bca', 'bma',
     'ima', 'circea', 'decea',
+    'rbac',  # Regulamentos Brasileiros da Aviação Civil (ANAC)
 ])
 
 _ICA_TYPE_RE = re.compile(
