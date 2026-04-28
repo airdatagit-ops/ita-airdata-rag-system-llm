@@ -4,9 +4,9 @@ ANAC RBAC Scraper — Extrai Regulamentos Brasileiros da Aviação Civil (RBAC).
 Acessa a listagem de RBACs da ANAC, extrai os links de todos os documentos
 da tabela e coleta o conteúdo textual de cada página individual.
 
-O site da ANAC é protegido por sistema anti-bot (TSPD), o que impede o uso
-direto de aiohttp. Por isso este scraper utiliza Selenium (Chrome headless)
-para renderizar as páginas com JavaScript antes de extrair o conteúdo.
+O TSPD da ANAC bloqueia User-Agents de browsers reais mas permite requisições
+com o User-Agent padrão do Python/aiohttp. Por isso este scraper usa aiohttp
+sem User-Agent customizado — simples, rápido e sem dependência de Selenium.
 
 Saída: data/originals/anac/rbac-XX.txt (plain text, UTF-8)
 
@@ -23,28 +23,19 @@ Usage:
 
 import asyncio
 import re
-import threading
-import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import aiohttp
+from aiolimiter import AsyncLimiter
 from bs4 import BeautifulSoup
 from loguru import logger
-from selenium import webdriver
-from selenium.common.exceptions import TimeoutException, WebDriverException
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-from webdriver_manager.chrome import ChromeDriverManager
 
 from crawler.scrapers import register_scraper
 from crawler.scrapers.base import (
     BaseScraper,
     ScrapedDocument,
-    DEFAULT_USER_AGENT,
     compute_canonical_id,
     ORIGINALS_DIR,
 )
@@ -57,63 +48,29 @@ _RBAC_URL_RE = re.compile(
     re.IGNORECASE,
 )
 
-_RETRYABLE_EXCEPTIONS = (WebDriverException, OSError)
+_RETRYABLE_STATUSES = {429, 500, 502, 503, 504}
 _RETRY_BASE_DELAY = 1.0
 _MAX_RETRIES = 3
 
-# Timeout para WebDriverWait aguardar elemento aparecer no DOM.
-# O TSPD pode demorar até ~15s para resolver o desafio JS.
-_ELEMENT_WAIT_TIMEOUT = 30.0
-
-# Seletores CSS que indicam que a página de conteúdo carregou.
-# Aguardamos qualquer um deles aparecer.
-_READY_SELECTORS = ["#tabela-normas", "#content-core"]
-
 _OUTPUT_DIR = ORIGINALS_DIR / "anac"
-
-
-def _make_driver(page_timeout: int = 30) -> webdriver.Chrome:
-    """Cria um Chrome headless com webdriver-manager."""
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument(f"--user-agent={DEFAULT_USER_AGENT}")
-    driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=chrome_options,
-    )
-    driver.set_page_load_timeout(page_timeout)
-    return driver
 
 
 @register_scraper
 class ANACRBACscraper(BaseScraper):
     """Scraper para RBACs da ANAC.
 
-    Usa Selenium (Chrome headless) para contornar o sistema anti-bot TSPD
-    da ANAC, que bloqueia requisições HTTP diretas (aiohttp/requests).
-
-    Notes:
-        - Todas as navegações do Selenium são serializadas via threading.Lock
-          para garantir thread-safety com driver único.
-        - O método fetch_all() herdado de BaseScraper controla a concorrência
-          via asyncio.Semaphore; as chamadas chegam ao Selenium de forma
-          serializada pelo lock.
+    Usa aiohttp sem User-Agent customizado. O TSPD da ANAC bloqueia
+    User-Agents de browsers reais mas permite o UA padrão do Python/aiohttp.
     """
 
     source_name = "anac_rbac"
 
     def __init__(self, timeout: int = 30, rate: float = 3.0):
-        # rate mantido por compatibilidade de interface, não usado diretamente
-        # (a taxa é limitada naturalmente pelo tempo de carregamento do Selenium)
-        self._page_timeout = timeout
-        self._driver: Optional[webdriver.Chrome] = None
-        self._lock = threading.Lock()
+        self.timeout = aiohttp.ClientTimeout(total=timeout)
+        self._limiter = AsyncLimiter(rate, 1.0)
+        self._session: Optional[aiohttp.ClientSession] = None
         _OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-        logger.info("ANACRBACscraper initialized (Selenium/Chrome mode)")
+        logger.info("ANACRBACscraper initialized")
 
     def make_doc_id(self, doc: Dict) -> str:
         """ID estável e consistente com o retornado por fetch_document."""
@@ -122,17 +79,13 @@ class ANACRBACscraper(BaseScraper):
     # ── Context manager ─────────────────────────────────────────────────────
 
     async def __aenter__(self):
-        """Inicializa o driver Chrome headless em thread dedicada."""
-        self._driver = await asyncio.to_thread(_make_driver, self._page_timeout)
-        logger.debug("[anac_rbac] Chrome driver started")
+        # Sem headers customizados: User-Agent padrão do aiohttp passa pelo TSPD
+        self._session = aiohttp.ClientSession(timeout=self.timeout)
         return self
 
     async def __aexit__(self, *_):
-        """Encerra o driver Chrome."""
-        if self._driver:
-            await asyncio.to_thread(self._driver.quit)
-            self._driver = None
-            logger.debug("[anac_rbac] Chrome driver quit")
+        if self._session:
+            await self._session.close()
 
     # ── BaseScraper interface ────────────────────────────────────────────────
 
@@ -145,7 +98,7 @@ class ANACRBACscraper(BaseScraper):
         Returns:
             Lista de dicts: ``{"url": str, "rbac_id": str, "title": str}``
         """
-        html = await asyncio.to_thread(self._get_sync, _INDEX_URL)
+        html = await self._get(_INDEX_URL)
         docs = self._extract_links(html)
         if limit > 0:
             docs = docs[:limit]
@@ -164,63 +117,6 @@ class ANACRBACscraper(BaseScraper):
         Returns:
             ScrapedDocument ou None em caso de falha.
         """
-        return await asyncio.to_thread(self._fetch_document_sync, doc, save_original)
-
-    # ── Sync implementation (executado em threads via asyncio.to_thread) ─────
-
-    def _get_sync(self, url: str) -> str:
-        """Carrega URL com Selenium e retorna o page_source.
-
-        Aguarda ativamente (WebDriverWait) um dos ``_READY_SELECTORS`` aparecer
-        no DOM antes de retornar, garantindo que o desafio TSPD já foi resolvido
-        e o conteúdo real está carregado.
-
-        Aplica retry com backoff exponencial para erros de carregamento.
-        """
-        for attempt in range(1, _MAX_RETRIES + 1):
-            try:
-                with self._lock:
-                    self._driver.get(url)
-                    self._wait_for_content(url)
-                    return self._driver.page_source
-            except _RETRYABLE_EXCEPTIONS as exc:
-                if attempt == _MAX_RETRIES:
-                    logger.error(
-                        f"[anac_rbac] Falha ao carregar {url} após {_MAX_RETRIES} tentativas: {exc}"
-                    )
-                    raise
-                delay = _RETRY_BASE_DELAY * (2 ** (attempt - 1))
-                logger.warning(
-                    f"[anac_rbac] Retry {attempt}/{_MAX_RETRIES} para {url}: {exc}"
-                )
-                time.sleep(delay)
-        return ""  # nunca alcançado
-
-    def _wait_for_content(self, url: str) -> None:
-        """Aguarda um dos _READY_SELECTORS aparecer no DOM.
-
-        O TSPD executa um desafio JavaScript antes de servir o conteúdo real;
-        sem esse wait, o page_source pode ser capturado ainda na página de
-        desafio, que não contém a tabela nem o conteúdo do RBAC.
-        """
-        wait = WebDriverWait(self._driver, _ELEMENT_WAIT_TIMEOUT)
-        for selector in _READY_SELECTORS:
-            try:
-                wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
-                logger.debug(f"[anac_rbac] Elemento '{selector}' encontrado para {url}")
-                return
-            except TimeoutException:
-                continue
-        # Nenhum seletor encontrado — loga diagnóstico e continua com o que tiver
-        logger.warning(
-            f"[anac_rbac] Nenhum seletor de conteúdo encontrado após {_ELEMENT_WAIT_TIMEOUT}s "
-            f"para {url}. Título: {self._driver.title!r}"
-        )
-
-    def _fetch_document_sync(
-        self, doc: Dict, save_original: bool = True
-    ) -> Optional[ScrapedDocument]:
-        """Implementação síncrona de fetch_document para uso em thread."""
         url = doc["url"]
         rbac_id = doc["rbac_id"]
         title = doc.get("title", rbac_id.upper())
@@ -228,7 +124,7 @@ class ANACRBACscraper(BaseScraper):
         logger.info(f"[anac_rbac] Fetching {rbac_id} — {url}")
 
         try:
-            html = self._get_sync(url)
+            html = await self._get(url)
         except Exception as exc:
             logger.error(f"[anac_rbac] Error on {rbac_id}: {exc}")
             return None
@@ -241,7 +137,6 @@ class ANACRBACscraper(BaseScraper):
         if save_original:
             self._save_txt(rbac_id, content, url)
 
-        # Extrai número (ex: "11" de "rbac-11", "e-94" de "rbac-e-94")
         number = rbac_id.replace("rbac-", "")
 
         return ScrapedDocument(
@@ -256,7 +151,31 @@ class ANACRBACscraper(BaseScraper):
             canonical_id=compute_canonical_id("RBAC", number),
         )
 
-    # ── Helpers ─────────────────────────────────────────────────────────────
+    # ── Helpers ──────────────────────────────────────────────────────────────
+
+    async def _get(self, url: str) -> str:
+        """GET com rate limiting e retry + backoff exponencial."""
+        for attempt in range(1, _MAX_RETRIES + 1):
+            try:
+                async with self._limiter:
+                    async with self._session.get(url) as resp:
+                        if resp.status in _RETRYABLE_STATUSES:
+                            raise aiohttp.ClientResponseError(
+                                resp.request_info,
+                                resp.history,
+                                status=resp.status,
+                            )
+                        resp.raise_for_status()
+                        return await resp.text(encoding="utf-8", errors="replace")
+            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+                if attempt == _MAX_RETRIES:
+                    raise
+                delay = _RETRY_BASE_DELAY * (2 ** (attempt - 1))
+                logger.warning(
+                    f"[anac_rbac] Retry {attempt}/{_MAX_RETRIES} para {url}: {exc}"
+                )
+                await asyncio.sleep(delay)
+        return ""  # nunca alcançado
 
     def _extract_links(self, html: str) -> List[Dict]:
         """Parseia a tabela da listagem e extrai todos os links de RBAC.
