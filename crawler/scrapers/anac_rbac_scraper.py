@@ -47,6 +47,11 @@ _RBAC_URL_RE = re.compile(
     r"https?://www\.anac\.gov\.br/assuntos/legislacao/legislacao-1/rbha-e-rbac/rbac/rbac-[\w-]+$",
     re.IGNORECASE,
 )
+_ARQUIVO_NORMA_RE = re.compile(
+    r"/rbac/(rbac-[\w-]+)/@@display-file/arquivo_norma/[^/]+\.pdf",
+    re.IGNORECASE,
+)
+_BASE_URL = "https://www.anac.gov.br"
 
 _RETRYABLE_STATUSES = {429, 500, 502, 503, 504}
 _RETRY_BASE_DELAY = 1.0
@@ -120,16 +125,25 @@ class ANACRBACscraper(BaseScraper):
         url = doc["url"]
         rbac_id = doc["rbac_id"]
         title = doc.get("title", rbac_id.upper())
+        is_pdf_direct = doc.get("pdf_direct", False)
 
-        logger.info(f"[anac_rbac] Fetching {rbac_id} — {url}")
+        mode_label = "(PDF direto)" if is_pdf_direct else "(HTML)"
+        logger.info(f"[anac_rbac] Fetching {rbac_id} {mode_label} — {url}")
 
         try:
-            html = await self._get(url)
+            if is_pdf_direct:
+                # Salva o PDF original em disco para extração posterior no
+                # pipeline de chunking/embeddings. Não extrai texto aqui.
+                if save_original:
+                    await self._save_pdf(url, rbac_id)
+                return None
+            else:
+                html = await self._get(url)
+                content = self._extract_content(html, rbac_id)
         except Exception as exc:
             logger.error(f"[anac_rbac] Error on {rbac_id}: {exc}")
             return None
 
-        content = self._extract_content(html, rbac_id)
         if not content:
             logger.warning(f"[anac_rbac] Conteúdo vazio para {rbac_id}, pulando")
             return None
@@ -206,20 +220,41 @@ class ANACRBACscraper(BaseScraper):
             td_num = tr.find("td", class_="tbNumero")
             title = td_num.get_text(strip=True) if td_num else ""
 
-            # URL: primeiro link válido na linha (sem display-file, sem ?visao)
-            url: Optional[str] = None
-            for a in tr.find_all("a", href=True):
-                href = a["href"]
-                if _RBAC_URL_RE.search(href) and "display-file" not in href:
-                    url = href
+            # URL: prioridade para link arquivo_norma (PDF direto); fallback: página HTML
+            # Nota: a linha pode ter AMBOS os links — HTML primeiro, depois arquivo_norma.
+            # Por isso varremos todos os hrefs da linha antes de decidir.
+            all_hrefs = [a["href"] for a in tr.find_all("a", href=True)]
+
+            pdf_href: Optional[str] = None
+            for href in all_hrefs:
+                if _ARQUIVO_NORMA_RE.search(href):
+                    pdf_href = href
                     break
+
+            url: Optional[str] = None
+            is_pdf_direct = False
+
+            if pdf_href is not None:
+                # Caso 1: existe link direto para PDF de arquivo_norma
+                url = pdf_href if pdf_href.startswith("http") else f"{_BASE_URL}{pdf_href}"
+                is_pdf_direct = True
+            else:
+                # Caso 2: apenas página HTML do RBAC
+                for href in all_hrefs:
+                    if _RBAC_URL_RE.search(href):
+                        url = href
+                        break
 
             if not url or url in seen_urls:
                 continue
 
             seen_urls.add(url)
-            slug = url.rstrip("/").split("/")[-1]  # ex: "rbac-11", "rbac-e-94"
-            results.append({"url": url, "rbac_id": slug, "title": title})
+            if is_pdf_direct:
+                m = _ARQUIVO_NORMA_RE.search(url)
+                slug = m.group(1) if m else url.split("/")[-1]
+            else:
+                slug = url.rstrip("/").split("/")[-1]  # ex: "rbac-11", "rbac-e-94"
+            results.append({"url": url, "rbac_id": slug, "title": title, "pdf_direct": is_pdf_direct})
 
         logger.info(f"[anac_rbac] {len(results)} links extraídos da tabela")
         return results
@@ -261,6 +296,49 @@ class ANACRBACscraper(BaseScraper):
             return ""
 
         return text
+
+    async def _get_bytes(self, url: str) -> bytes:
+        """GET com rate limiting e retry + backoff, retorna bytes brutos."""
+        for attempt in range(1, _MAX_RETRIES + 1):
+            try:
+                async with self._limiter:
+                    async with self._session.get(url) as resp:
+                        if resp.status in _RETRYABLE_STATUSES:
+                            raise aiohttp.ClientResponseError(
+                                resp.request_info,
+                                resp.history,
+                                status=resp.status,
+                            )
+                        resp.raise_for_status()
+                        return await resp.read()
+            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+                if attempt == _MAX_RETRIES:
+                    raise
+                delay = _RETRY_BASE_DELAY * (2 ** (attempt - 1))
+                logger.warning(
+                    f"[anac_rbac] Retry {attempt}/{_MAX_RETRIES} para {url}: {exc}"
+                )
+                await asyncio.sleep(delay)
+        return b""
+
+    async def _save_pdf(self, pdf_url: str, rbac_id: str) -> Optional[Path]:
+        """Baixa o PDF original e salva em data/originals/anac/rbac-XX.pdf.
+
+        A extração do texto é delegada ao pipeline de chunking/embeddings.
+        """
+        pdf_bytes = await self._get_bytes(pdf_url)
+        if not pdf_bytes:
+            logger.warning(f"[anac_rbac] {rbac_id}: PDF vazio")
+            return None
+        if pdf_bytes[:4] != b"%PDF":
+            logger.warning(f"[anac_rbac] {rbac_id}: resposta não é PDF válido")
+            return None
+        path = _OUTPUT_DIR / f"{rbac_id}.pdf"
+        path.write_bytes(pdf_bytes)
+        logger.success(
+            f"[anac_rbac] Saved {path.name} ({len(pdf_bytes) / 1024:.1f} KB)"
+        )
+        return path
 
     def _save_txt(self, rbac_id: str, content: str, source_url: str) -> Path:
         """Salva conteúdo em data/originals/anac/rbac-XX.txt."""
