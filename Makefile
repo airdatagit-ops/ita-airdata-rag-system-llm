@@ -1,4 +1,4 @@
-.PHONY: test lint lint-fix eval eval-retrieval eval-generation validate-data validate-lexml clean help collect collect-sislaer collect-legacy collect-anac embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models backup restore
+.PHONY: install install-backend install-web test lint lint-fix eval eval-retrieval eval-generation extract-pipeline validate-data validate-lexml clean help collect collect-sislaer collect-legacy collect-anac embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models backup restore
 
 PYTHON ?= python
 K ?= 5
