@@ -1398,6 +1398,43 @@ html[data-theme="dark"] .empty-state p {
   color: #333 !important;
 }
 
+/* Expandable evaluator rows (eval_text drilldown) */
+.debug-eval-row-clickable {
+  cursor: pointer;
+}
+
+.debug-eval-row-clickable:hover td {
+  background: var(--bg-tertiary, #e9ecef);
+}
+
+.debug-eval-toggle {
+  display: inline-block;
+  width: 0.9rem;
+  font-size: 0.65rem;
+  color: var(--text-secondary, #6c757d);
+}
+
+.debug-eval-text-row td {
+  padding: 0.4rem 0.5rem !important;
+  background: var(--bg-primary, #fff);
+  border-top: 1px dashed var(--border-color, #e0e0e0);
+}
+
+.debug-eval-text-meta {
+  font-size: 0.68rem;
+  color: var(--text-secondary, #6c757d);
+  margin-bottom: 0.3rem;
+}
+
+[data-theme="dark"] .debug-eval-row-clickable:hover td {
+  background: var(--bg-tertiary, #1f3460);
+}
+
+[data-theme="dark"] .debug-eval-text-row td {
+  background: var(--bg-primary, #0d1117);
+  border-top-color: var(--border-color, #333);
+}
+
 [data-theme="dark"] .debug-gen-doc {
   border-color: var(--border-color, #333);
 }

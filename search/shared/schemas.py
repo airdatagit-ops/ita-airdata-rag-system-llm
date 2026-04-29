@@ -59,7 +59,12 @@ class SearchSort(BaseModel):
 
 VALID_FACET_TYPES = ["general", "temporal", "authority", "document_type"]
 
-ALLOWED_FILTER_FIELDS = frozenset({"metadata.type", "metadata.authority", "effective_date"})
+ALLOWED_FILTER_FIELDS = frozenset({
+    "metadata.type",
+    "metadata.authority",
+    "metadata.number",
+    "effective_date",
+})
 
 
 class FilterRegistry:
@@ -222,6 +227,14 @@ class SearchResults(BaseModel):
         default_factory=dict,
         description="Map of query text -> number of results returned",
     )
+    documents_per_query: Dict[str, List[Dict[str, Any]]] = Field(
+        default_factory=dict,
+        description=(
+            "Per sub-query result list (pre-dedup). Only populated when the "
+            "caller passes capture_per_query=True to DocumentSearcher.search() "
+            "— used by the debug trace and offline analysis tooling."
+        ),
+    )
     total_before_dedup: int = 0
     total_after_dedup: int = 0
 
@@ -249,6 +262,14 @@ class PipelineTrace(BaseModel):
     rewritten_queries: List[RewrittenQuery] = Field(default_factory=list)
 
     search_results_per_query: Dict[str, int] = Field(default_factory=dict)
+    search_documents_per_query: Dict[str, List[Dict[str, Any]]] = Field(
+        default_factory=dict,
+        description=(
+            "Per sub-query result documents (pre-dedup), with minimal fields "
+            "(regulation_id, url, score, type, number, title). Only populated "
+            "when debug=True so production traces stay lean."
+        ),
+    )
     total_documents_found: int = 0
     documents_after_dedup: int = 0
 

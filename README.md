@@ -10,7 +10,7 @@
 2. [Pré-requisitos e Dependências Externas](#2-pré-requisitos-e-dependências-externas)
 3. [Configuração Central (.env)](#3-configuração-central-env)
 4. [Banco Vetorial (Qdrant)](#4-banco-vetorial-qdrant)
-5. [Modelo de Embeddings (Legal-BERTimbau)](#5-modelo-de-embeddings-legal-bertimbau)
+5. [Modelo de Embeddings (BGE-M3)](#5-modelo-de-embeddings-bge-m3)
 6. [LLM (Ollama)](#6-llm-ollama)
 7. [Extração de Documentos Normativos](#7-extração-de-documentos-normativos)
 8. [Pipeline de Ingestão](#8-pipeline-de-ingestão)
@@ -76,7 +76,7 @@ O pipeline de ingestão é composto por 3 fases que extraem, processam e indexam
 | Generator | LLM response generation | `search/generator/` |
 | Schemas compartilhados | Pydantic models | `search/shared/schemas.py` |
 | Exceções do pipeline | Custom exceptions | `search/shared/exceptions.py` |
-| Embeddings | Legal-BERTimbau (sentence-transformers) | `models/embeddings.py` |
+| Embeddings | BGE-M3 (sentence-transformers, multilingual, retrieval-tuned) | `models/embeddings.py` |
 | LLM | Ollama (llama3, phi3, etc.) | `models/llm.py` |
 | Banco vetorial | Qdrant | `database/qdrant_manager.py` |
 | Scraper base (ABC) | Interface async + registry | `crawler/scrapers/base.py` |
@@ -245,7 +245,7 @@ cp env.example .env
 
 | Variável | Tipo | Padrão | Descrição |
 |----------|------|--------|-----------|
-| `EMBEDDING_MODEL` | string | `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Modelo HuggingFace |
+| `EMBEDDING_MODEL` | string | `BAAI/bge-m3` | Modelo HuggingFace de embedding (1024-d, cosine, contexto até 8192 subwords). Promovido a partir de `rufimelo/Legal-BERTimbau-sts-large-ma-v3` em 2026-04-25 — ver `docs/migrations/2026-04-25_BGE_M3_PROMOTION.md`. |
 | `EMBEDDING_BATCH_SIZE` | int | `32` | Batch size para encoding |
 | `EMBEDDING_MAX_LENGTH` | int | `512` | Comprimento máximo de sequência |
 | `EMBEDDING_DIMENSION` | int | `1024` | Dimensão dos vetores |
@@ -259,6 +259,8 @@ cp env.example .env
 | `SEARCH_DENSE_ENABLED` | bool | `true` | Habilita busca semântica (dense vectors) |
 | `SEARCH_SPARSE_ENABLED` | bool | `true` | Habilita busca por keywords/BM25 (sparse vectors via fastembed) |
 | `SPARSE_EMBEDDING_MODEL` | string | `Qdrant/bm25` | Modelo de sparse embeddings (usado quando `SEARCH_SPARSE_ENABLED=true`) |
+| `SEARCH_PREFETCH_MULTIPLIER` | int | `3` | RRF prefetch pool size per branch in hybrid mode = `SEARCH_TOP_K * mul`. |
+| `SEARCH_SORT_FETCH_MULTIPLIER` | int | `3` | When a sub-query carries a sort, fetch `SEARCH_TOP_K * mul` candidates, sort in-memory, then cap back to the pool size. |
 | `DEFAULT_EMBEDDING_MODE` | string | `hybrid` | Modo padrão para `make embed` (`dense`, `sparse`, `hybrid`) |
 | `HNSW_M` | int | `16` | Parâmetro M do índice HNSW |
 | `HNSW_EF_CONSTRUCT` | int | `100` | Parâmetro ef_construct do HNSW |
@@ -270,8 +272,8 @@ cp env.example .env
 
 | Variável | Tipo | Padrão | Descrição |
 |----------|------|--------|-----------|
-| `CHUNK_MAX_TOKENS` | int | `512` | Máximo de tokens por chunk |
-| `CHUNK_OVERLAP` | int | `50` | Overlap entre chunks (tokens) |
+| `CHUNK_MAX_TOKENS` | int | `270` | Máximo de **palavras** por chunk (variável mal-nomeada; o chunker mede palavras). 270 ≈ 480 subwords no BGE-M3, alinhado à janela de 512 do `bge-reranker-base`. |
+| `CHUNK_OVERLAP` | int | `50` | Overlap entre chunks (palavras) |
 
 #### Servidor da API
 
@@ -315,7 +317,7 @@ make index RECREATE=1
 ```
 
 Isso cria a coleção `aviation_regulations` com:
-- Vetores de **1024 dimensões** (dimensão do Legal-BERTimbau)
+- Vetores de **1024 dimensões** (dimensão do BGE-M3)
 - Distância **Cosine**
 - Índice HNSW otimizado (M=16, ef_construct=100)
 - Índices de payload para: `regulation_id`, `effective_date`, `expiry_date`, `source`, `doc_type`
@@ -433,18 +435,21 @@ make index RECREATE=1   # recria a coleção no Qdrant
 
 ---
 
-## 5. Modelo de Embeddings (Legal-BERTimbau)
+## 5. Modelo de Embeddings (BGE-M3)
 
-O sistema usa o modelo **rufimelo/Legal-BERTimbau-sts-large-ma-v3**, um modelo de sentence-transformers treinado especificamente para textos jurídicos em português brasileiro.
+O sistema usa o modelo **BAAI/bge-m3**, um modelo de sentence-transformers multilingual treinado contrastivamente para retrieval denso (M3 = Multilinguality, Multi-functionality, Multi-granularity).
+
+> **Histórico:** o sistema usava `rufimelo/Legal-BERTimbau-sts-large-ma-v3` até 2026-04-25. A promoção foi motivada por um estudo A/B (golden set de 66 queries, sample de 20 K chunks com cobertura forçada do gold) que mostrou ganhos de **+112% em Hit@5** e **+228% em MRR**. Detalhes, root-cause e procedimento de re-index em [`docs/migrations/2026-04-25_BGE_M3_PROMOTION.md`](docs/migrations/2026-04-25_BGE_M3_PROMOTION.md).
 
 ### Características:
 
 | Propriedade | Valor |
 |-------------|-------|
-| Modelo base | BERTimbau Large |
-| Treinamento | Textos jurídicos em PT-BR |
+| Modelo base | XLM-RoBERTa Large |
+| Treinamento | Multilingual + retrieval-tuned (contrastivo) |
 | Dimensão dos vetores | 1024 |
-| Max sequence length | 512 tokens |
+| Max sequence length | 8192 subwords |
+| Tokenizer | SentencePiece (XLM-R) |
 | Distância | Cosine similarity |
 
 ### Como funciona:
@@ -492,7 +497,7 @@ curl -fsSL https://ollama.com/install.sh | sh
 make download-models
 
 # Ou manualmente:
-ollama pull llama3.1:8b    # Generator (modelo principal)
+ollama pull gemma4:26b     # Generator (modelo principal)
 ollama pull qwen2.5:7b     # Rewriter (reescrita de queries)
 ```
 
@@ -503,8 +508,9 @@ Qualquer modelo disponível no Ollama funciona. O modelo padrão é configurado 
 | Modelo | Tamanho | Uso no pipeline | Observação |
 |--------|---------|-----------------|------------|
 | `qwen2.5:7b` | ~4.7GB | Rewriter (padrão) | Boa qualidade de reescrita, respeita filtros |
-| `llama3.1:8b` | ~4.7GB | Generator (padrão) | Bom equilíbrio qualidade/velocidade |
-| `llama3.1:70b` | ~40GB | Generator (GPU) | Melhor qualidade, requer GPU com ~48GB VRAM |
+| `gemma4:26b` | ~17GB | **Generator (padrão)** | Vencedor do A/B vs `qwen2.5:14b` (100% citation grounding em E2E, ~5s med. latência, +108% citações por resposta, zero alucinações) |
+| `qwen2.5:14b` | ~9GB | Generator (alt.) | Baseline anterior. Disponível via UI/API change endpoint |
+| `llama3.1:70b` | ~40GB | Generator (GPU) | Maior, requer GPU com ~48GB VRAM |
 | `llama3.2:3b` | ~2GB | Alternativa leve | Para ambientes com recursos limitados |
 
 ### 6.3. Troca de modelo em tempo real
@@ -544,9 +550,9 @@ O script `scripts/download_models.py` baixa:
 
 | Modelo | Tipo | Usado por |
 |--------|------|-----------|
-| `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Sentence-Transformer | Embedding (busca vetorial) |
-| `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` | Cross-Encoder | Evaluator (re-ranking) |
-| `llama3.1:8b` | Ollama LLM | Generator (geração de respostas) |
+| `BAAI/bge-m3` | Sentence-Transformer | Embedding (busca vetorial) |
+| `BAAI/bge-reranker-base` | Cross-Encoder | Evaluator (re-ranking) |
+| `gemma4:26b` | Ollama LLM | Generator (geração de respostas) |
 | `qwen2.5:7b` | Ollama LLM | Rewriter (reescrita de queries) |
 
 > **Dica:** Execute `make download-models` após clonar o repositório ou alterar modelos no `.env`. O deploy (`make deploy`) já faz o download automático dos modelos HuggingFace.
@@ -942,13 +948,14 @@ search/
 |----------|---------|-----------|
 | `REWRITER_ENABLED` | `true` | Habilita o módulo Rewriter (desabilitar para pipeline mais leve) |
 | `REWRITER_MODEL` | `qwen2.5:7b` | Modelo LLM para reescrita de queries |
+| `REWRITER_PROMPT_VERSION` | `v1` | System prompt version: `v1` (legacy) or `v2` (structured sorts/filters incl. `metadata.number`). |
 | `REWRITER_MAX_QUERIES` | `3` | Máximo de sub-queries geradas |
 | `REWRITER_MAX_QUERY_LENGTH` | `500` | Tamanho máximo por query reescrita (chars) |
 | `REWRITER_TEMPERATURE` | `0.3` | Temperatura do LLM no rewriter |
 | `REWRITER_TIMEOUT` | `60` | Timeout (s) para o LLM do rewriter |
 | `EVALUATOR_ENABLED` | `true` | Habilita o módulo Evaluator (desabilitar para pipeline mais leve) |
-| `CROSS_ENCODER_MODEL` | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` | Modelo cross-encoder multilíngue para avaliação |
-| `EVALUATOR_THRESHOLD` | `35` | Score mínimo (0-100) para aceitar documento |
+| `CROSS_ENCODER_MODEL` | `BAAI/bge-reranker-base` | Cross-encoder multilíngue (280M, 512 token window). |
+| `EVALUATOR_THRESHOLD` | `55` | Score mínimo (0-100). Calibrado para `bge-reranker-base`; para o legado `cross-encoder/mmarco-mMiniLMv2-L12` use 35. |
 | `EVALUATOR_BATCH_SIZE` | `32` | Batch size do cross-encoder |
 | `EVALUATOR_MAX_TOKENS` | `480` | Máximo de tokens na entrada do cross-encoder |
 | `GENERATOR_MODEL` | `OLLAMA_MODEL` | Modelo LLM para geração de resposta (herda de `OLLAMA_MODEL` se vazio) |
@@ -1344,6 +1351,71 @@ Q061,Minha nova pergunta sobre o tema X?,ICA-XX-YY-artWW,moderate,retrieval,Doc 
 | Citation Rate baixo | LLM não cita fontes. Ajustar prompt |
 | Hedging Rate alto | LLM inseguro nas respostas. Verificar qualidade do contexto recuperado |
 
+### 12.9. Extração de dados do pipeline (debug fim-a-fim em XLSX)
+
+Para análises mais profundas (auditoria por etapa, comparação manual de prompts, qualificação de subqueries) o script `scripts/extract_pipeline_data.py` executa o `RAGPipeline` completo para cada query de uma planilha de entrada e materializa **todos os estágios** em um único `.xlsx` no formato *exploded* (uma linha por subquery × documento recuperado).
+
+**Quando usar:**
+
+- Investigar por que uma resposta cita (ou deixa de citar) certo documento.
+- Diagnosticar reescritas do Rewriter (filtros, sorts, facetas) por subquery.
+- Comparar score do searcher vs. score do evaluator para o mesmo doc.
+- Inspecionar o **texto exato** que cada documento contribuiu ao contexto do gerador (apenas para os docs efetivamente enviados ao LLM).
+
+**Formato de entrada (`.csv` ou `.xlsx`):**
+
+| Coluna | Obrigatória | Comportamento |
+|--------|-------------|----------------|
+| `query` | Sim | Pergunta enviada ao pipeline. |
+| `query_id` | Não | Usado se presente; caso contrário gera-se `Q001`, `Q002`, … |
+| _quaisquer outras_ | Não | Repassadas para a saída como colunas `input__<nome>` (útil para cruzar com o golden set). |
+
+**Como executar:**
+
+```bash
+# Via Makefile (recomendado)
+make extract-pipeline INPUT=evaluation/golden_set_gen_sample.csv
+
+# Saída customizada + K menor + amostra
+make extract-pipeline INPUT=evaluation/golden_set.csv \
+    OUTPUT=data/pipeline_extracts/run1.xlsx K=3 SAMPLE=5
+
+# Pular a etapa de geração (muito mais rápido — final_answer fica vazio)
+make extract-pipeline INPUT=minhas_queries.xlsx NO_GENERATE=1
+
+# Direto
+python -m scripts.extract_pipeline_data --input minhas_queries.xlsx --k 5
+```
+
+**Saída** (default `data/pipeline_extracts/extract_<timestamp>.xlsx`, aba única `exploded`):
+
+| Grupo | Colunas | Descrição |
+|-------|---------|-----------|
+| Identificação | `query_id`, `query`, `input__*` | Query original + colunas extras propagadas. |
+| Rewriter | `subquery_idx`, `subquery_text`, `facet_type`, `filters_json`, `sorts_json` | Saída do `QueryRewriter` (uma linha por subquery × doc). |
+| Searcher | `doc_rank_in_subquery`, `regulation_id`, `doc_url`, `doc_type`, `doc_number`, `doc_title`, `search_score` | Documentos retornados antes da deduplicação, ordenados pelo rank dentro da subquery. |
+| Evaluator | `evaluator_score`, `evaluator_accepted`, `evaluator_text`, `evaluator_text_chars`, `evaluator_max_tokens` | Score (0-100) e flag de aprovação no threshold + **texto exato** (título/identificadores + corpo truncado por `EVALUATOR_MAX_TOKENS` palavras) que o cross-encoder enxergou para gerar a nota. Vazio quando o evaluator está desabilitado. |
+| Generator | `sent_to_generator`, `generator_text_chars`, `generator_truncated`, `generator_text` | `sent_to_generator=True` apenas para os docs que o pipeline efetivamente passou ao LLM (após `select_top_docs`). `generator_text` traz o texto integral enviado ao gerador apenas nesses casos. |
+| Resposta | `final_answer`, `generator_model`, `generator_grounded_only` | Resposta gerada (repetida por linha do grupo para facilitar pivots). |
+| Timings | `rewriter_ms`, `searcher_ms`, `evaluator_ms`, `generator_ms`, `total_time_ms` | Latência por estágio. |
+| Diagnóstico | `errors` | Mensagens do `PipelineTrace.errors` (rewriter caiu, evaluator falhou, generator timeout, etc.). |
+
+**Garantias do extrator:**
+
+- Toda query da entrada gera **pelo menos uma linha** (mesmo quando o pipeline retorna 0 docs ou crasha — nesse caso a linha vai com `errors` populado).
+- O extrator usa `RAGPipeline.query(..., debug=True)` e lê o `PipelineTrace`, então mudanças nos módulos do pipeline (rewriter, searcher, evaluator, generator) são automaticamente refletidas no .xlsx sem alterar este script.
+- Tamanho do arquivo controlado: o texto integral só é gravado para os docs marcados como `sent_to_generator=True` (tipicamente `GENERATOR_MAX_DOCS` por query).
+
+**Parâmetros (`make extract-pipeline ...`):**
+
+| Parâmetro | Padrão | Descrição |
+|-----------|--------|-----------|
+| `INPUT` | _obrigatório_ | Caminho `.csv` ou `.xlsx` com a coluna `query`. |
+| `OUTPUT` | `data/pipeline_extracts/extract_<ts>.xlsx` | Arquivo `.xlsx` de saída. |
+| `K` | `5` | `limit` por subquery (passado a `pipeline.query`). |
+| `SAMPLE` | _todas_ | Limita às primeiras N linhas da entrada. |
+| `NO_GENERATE` | _off_ | Quando `=1`, pula o gerador (`include_generation=False`). |
+
 ---
 
 ## 13. Testes e Automação (Makefile)
@@ -1374,6 +1446,8 @@ tests/
 ├── search/
 │   ├── test_prompts.py                 # Templates e funções de prompt
 │   └── test_vector_search.py           # DI, encoding paralelo, error handling
+├── scripts/
+│   └── test_extract_pipeline_data.py   # Extrator do RAG → XLSX (load, explode, write)
 ├── test_embeddings.py
 ├── test_parsers.py
 └── test_rag.py                         # RAGPipeline com DI e SearchBackendError
@@ -1429,6 +1503,10 @@ O linter **ruff** é configurado via `pyproject.toml` e verifica:
 
 | Comando | Descrição |
 |---------|-----------|
+| `make install` | Cria os venvs (`venv/` e `web/venv/`) e instala backend + web |
+| `make install-backend` | Apenas backend (`venv/` + `requirements.txt`) |
+| `make install-web` | Apenas web (`web/venv/` + `web/requirements.txt`) |
+| `make install FORCE=1` | Apaga e recria os venvs do zero |
 | `make download-models` | Pré-baixa todos os modelos ML (embeddings, cross-encoder, Ollama) |
 | `make download-models SKIP_OLLAMA=1` | Pré-baixa apenas modelos HuggingFace (sem Ollama) |
 | `make start` | Inicia API + Web (Ctrl+C para ambos) |
@@ -1448,6 +1526,7 @@ O linter **ruff** é configurado via `pyproject.toml` e verifica:
 | `make eval` | Executa ambas as avaliações (retrieval + geração) |
 | `make eval-retrieval` | Avaliação de retrieval |
 | `make eval-generation` | Avaliação de geração |
+| `make extract-pipeline INPUT=...` | Extrai dados de todas as etapas do RAG em um `.xlsx` exploded (ver §12.9) |
 | `make clean` | Remove arquivos de resultado das avaliações |
 
 **Parâmetros configuráveis:**
@@ -1463,6 +1542,9 @@ O linter **ruff** é configurado via `pyproject.toml` e verifica:
 | `K` | `5` | `make eval-retrieval K=10` |
 | `WORKERS` | `4` | `make eval-retrieval WORKERS=8` |
 | `SAMPLE` | todos | `make eval-generation SAMPLE=10` |
+| `INPUT` | — | `make extract-pipeline INPUT=evaluation/golden_set.csv` |
+| `OUTPUT` | timestamped | `make extract-pipeline INPUT=in.csv OUTPUT=out.xlsx` |
+| `NO_GENERATE` | — | `make extract-pipeline INPUT=in.csv NO_GENERATE=1` |
 | `FILE` | `tests/` | `make test FILE=tests/evaluation/` |
 | `LIMIT` | `0` (sem limite) | `make collect LIMIT=50` |
 | `CONCURRENCY` | `10` | `make collect CONCURRENCY=3` |
@@ -1855,8 +1937,8 @@ server {
 | `GPU_SERVER_HOST` | `0.0.0.0` | Interface de bind do servidor |
 | `GPU_SERVER_PORT` | `8090` | Porta do servidor |
 | `GPU_SERVER_API_KEY` | *(vazio)* | Chave de autenticação (desabilitada se vazia) |
-| `EMBEDDING_MODEL` | `rufimelo/Legal-BERTimbau-sts-large-ma-v3` | Modelo SentenceTransformer |
-| `CROSS_ENCODER_MODEL` | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` | Modelo CrossEncoder |
+| `EMBEDDING_MODEL` | `BAAI/bge-m3` | Modelo SentenceTransformer |
+| `CROSS_ENCODER_MODEL` | `BAAI/bge-reranker-base` | Modelo CrossEncoder |
 | `MODEL_CACHE_DIR` | `/dados/airdata/models_cache` | Cache de modelos HuggingFace |
 | `OLLAMA_HOST` | `http://localhost:11434` | Endpoint do Ollama local |
 
@@ -2031,6 +2113,6 @@ Causas comuns:
 - [FastAPI](https://fastapi.tiangolo.com)
 - [Qdrant](https://qdrant.tech/documentation)
 - [Ollama](https://ollama.com)
-- [Legal-BERTimbau](https://huggingface.co/rufimelo/Legal-BERTimbau-sts-large-ma-v3)
+- [BGE-M3](https://huggingface.co/BAAI/bge-m3)
 - [Portal AirData](https://www.airdata.ita.br)
 - [GitHub AirData](https://github.com/ita-airdata)

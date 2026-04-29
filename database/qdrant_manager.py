@@ -21,8 +21,6 @@ from qdrant_client.models import (
 from config import config
 from search.shared.exceptions import SearchBackendError
 
-PREFETCH_MULTIPLIER = 3
-
 
 class QdrantManager:
     """Manager for Qdrant vector database operations."""
@@ -313,8 +311,13 @@ class QdrantManager:
             raise SearchBackendError(f"Qdrant search failed: {e}") from e
 
     def _search_hybrid(self, dense_vector, sparse_vector, limit, filters, with_payload):
-        """Hybrid search: prefetch from both branches, fuse with RRF."""
-        prefetch_limit = limit * PREFETCH_MULTIPLIER
+        """Hybrid search: prefetch from both branches, fuse with RRF.
+
+        The prefetch pool size is ``limit * SEARCH_PREFETCH_MULTIPLIER``.
+        Higher multipliers give RRF more candidates to fuse without
+        changing the final top-K.
+        """
+        prefetch_limit = limit * config.SEARCH_PREFETCH_MULTIPLIER
         return self.client.query_points(
             collection_name=self.collection_name,
             query=FusionQuery(fusion=Fusion.RRF),

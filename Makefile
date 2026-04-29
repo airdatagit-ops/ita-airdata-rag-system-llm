@@ -1,6 +1,9 @@
 .PHONY: install install-backend install-web test lint lint-fix eval eval-retrieval eval-generation extract-pipeline validate-data validate-lexml clean help collect collect-sislaer collect-legacy collect-anac embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models backup restore
 
 PYTHON ?= python
+PYTHON3 ?= python3
+VENV_DIR ?= venv
+WEB_VENV_DIR ?= web/venv
 K ?= 5
 WORKERS ?= 4
 SAMPLE ?=
@@ -16,6 +19,8 @@ MODE ?=
 BATCH_SIZE ?=
 STORE_DB ?= data/store.db
 SQL ?=
+INPUT ?=
+OUTPUT ?=
 QDRANT_HOST ?= localhost
 QDRANT_PORT ?= 6333
 QDRANT_COLLECTION ?= aviation_regulations
@@ -60,6 +65,9 @@ help:
 	@echo "  make eval-retrieval SEARCH_MODE=hybrid            Evaluate with hybrid search"
 	@echo "  make eval-generation                              Run generation evaluation"
 	@echo "  make eval-generation SAMPLE=10                    Limit generation to 10 queries"
+	@echo "  make extract-pipeline INPUT=path.csv              Extract per-stage RAG data into a single .xlsx"
+	@echo "  make extract-pipeline INPUT=p.xlsx OUTPUT=out.xlsx K=3 SAMPLE=5"
+	@echo "  make extract-pipeline INPUT=p.csv NO_GENERATE=1   Skip the generator stage (much faster)"
 	@echo ""
 	@echo "  ── analytics ─────────────────────────────────────────────────────────"
 	@echo "  make query                                        Open interactive SQL console"
@@ -67,6 +75,10 @@ help:
 	@echo "  make explore                                      Open datasette web UI for the store"
 	@echo ""
 	@echo "  ── development ──────────────────────────────────────────────────────"
+	@echo "  make install                                      Create venvs + install backend & web deps"
+	@echo "  make install-backend                              Only backend (root) venv + requirements.txt"
+	@echo "  make install-web                                  Only web/ venv + web/requirements.txt"
+	@echo "  make install FORCE=1                              Re-create venvs from scratch"
 	@echo "  make download-models                              Pre-download all ML models"
 	@echo "  make download-models SKIP_OLLAMA=1                Skip Ollama pulls"
 	@echo "  make start                                        Start API + Web (Ctrl+C to stop)"
@@ -91,6 +103,46 @@ help:
 	@echo "  make deploy-first                                 First-time setup + deploy"
 	@echo "  make deploy-nginx                                 Deploy + update nginx snippet"
 
+install: install-backend install-web
+
+install-backend:
+ifdef FORCE
+	@echo "→ Removing existing $(VENV_DIR)/ ..."
+	@rm -rf $(VENV_DIR)
+endif
+	@if [ ! -d "$(VENV_DIR)" ]; then \
+		echo "→ Creating backend venv at $(VENV_DIR)/ ..."; \
+		$(PYTHON3) -m venv $(VENV_DIR); \
+	else \
+		echo "→ Reusing existing $(VENV_DIR)/ (use FORCE=1 to recreate)"; \
+	fi
+	@echo "→ Upgrading pip ..."
+	@$(VENV_DIR)/bin/pip install --upgrade pip -q
+	@echo "→ Installing backend requirements ..."
+	@$(VENV_DIR)/bin/pip install -r requirements.txt
+	@echo "✓ Backend ready. Activate with: source $(VENV_DIR)/bin/activate"
+
+install-web:
+ifdef FORCE
+	@echo "→ Removing existing $(WEB_VENV_DIR)/ ..."
+	@rm -rf $(WEB_VENV_DIR)
+endif
+	@if [ ! -f web/requirements.txt ]; then \
+		echo "× web/requirements.txt not found — skipping web install"; \
+		exit 0; \
+	fi
+	@if [ ! -d "$(WEB_VENV_DIR)" ]; then \
+		echo "→ Creating web venv at $(WEB_VENV_DIR)/ ..."; \
+		$(PYTHON3) -m venv $(WEB_VENV_DIR); \
+	else \
+		echo "→ Reusing existing $(WEB_VENV_DIR)/ (use FORCE=1 to recreate)"; \
+	fi
+	@echo "→ Upgrading pip ..."
+	@$(WEB_VENV_DIR)/bin/pip install --upgrade pip -q
+	@echo "→ Installing web requirements ..."
+	@$(WEB_VENV_DIR)/bin/pip install -r web/requirements.txt
+	@echo "✓ Web ready. Activate with: source $(WEB_VENV_DIR)/bin/activate"
+
 test:
 	$(PYTHON) -m pytest $(or $(FILE),tests/) -v --tb=short
 
@@ -107,6 +159,10 @@ eval-retrieval:
 
 eval-generation:
 	$(PYTHON) -m evaluation.evaluate_generation --k $(K) $(if $(SAMPLE),--sample $(SAMPLE),)
+
+extract-pipeline:
+	@test -n "$(INPUT)" || (echo "Usage: make extract-pipeline INPUT=<path.csv|.xlsx> [OUTPUT=<path.xlsx>] [K=5] [SAMPLE=N] [NO_GENERATE=1]" && exit 1)
+	$(PYTHON) -m scripts.extract_pipeline_data --input "$(INPUT)" $(if $(OUTPUT),--output "$(OUTPUT)",) --k $(K) $(if $(SAMPLE),--sample $(SAMPLE),) $(if $(NO_GENERATE),--no-generate,)
 
 validate-data:
 ifdef CLEAN

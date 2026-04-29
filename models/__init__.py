@@ -2,7 +2,7 @@
 Models module for Aviation RAG System.
 
 This module provides interfaces to ML models:
-- Embedding models (Legal-BERTimbau)
+- Embedding models (BGE-M3)
 - LLM models (Llama via Ollama)
 - GPU client (remote inference via HTTP)
 

@@ -17,7 +17,7 @@ def test_single_encoding(model):
     embedding = model.encode(text)
 
     assert isinstance(embedding, np.ndarray)
-    assert embedding.shape == (1024,)  # Legal-BERTimbau dimension
+    assert embedding.shape == (1024,)  # BGE-M3 dimension
 
 
 def test_batch_encoding(model):

@@ -41,7 +41,7 @@ class TestCreateEmbeddingModel:
         mock_cfg.INFERENCE_MODE = "cpu"
         with patch("models.embeddings.EmbeddingModel") as MockEmbed:
             MockEmbed.return_value = MagicMock()
-            model = create_embedding_model()
+            create_embedding_model()
             MockEmbed.assert_called_once_with(device="cpu")
 
     @patch("models.gpu_client.config")
@@ -49,7 +49,7 @@ class TestCreateEmbeddingModel:
         mock_cfg.INFERENCE_MODE = "local"
         with patch("models.embeddings.EmbeddingModel") as MockEmbed:
             MockEmbed.return_value = MagicMock()
-            model = create_embedding_model()
+            create_embedding_model()
             MockEmbed.assert_called_once_with()
 
 

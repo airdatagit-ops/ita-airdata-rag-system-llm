@@ -113,6 +113,7 @@ class RAGPipeline:
         grounded_only: Optional[bool] = None,
         max_queries: Optional[int] = None,
         evaluation_threshold: Optional[int] = None,
+        include_generation: bool = True,
     ) -> Dict:
         """Answer a question using the full RAG pipeline.
 
@@ -121,6 +122,11 @@ class RAGPipeline:
             grounded_only: Override generator groundedness.
             max_queries: Override rewriter max sub-queries.
             evaluation_threshold: Override evaluator threshold.
+            include_generation: When False, return after the
+                Evaluator stage (no LLM generation). Used by
+                offline retrieval evaluators to measure the docs
+                the Generator would actually receive without
+                paying the generation cost.
         """
         enable_debug = debug if debug is not None else config.PIPELINE_DEBUG
 
@@ -129,6 +135,7 @@ class RAGPipeline:
             and history is None
             and not stream
             and not enable_debug
+            and include_generation
         )
         if use_cache:
             cache_key = make_cache_key("rag", question, str(date), str(limit))
@@ -170,6 +177,7 @@ class RAGPipeline:
         try:
             search_results = self.searcher.search(
                 rewritten, limit=limit, date=date,
+                capture_per_query=trace is not None,
             )
         except SearchBackendError:
             logger.error("Search backend unavailable during RAG query")
@@ -208,6 +216,20 @@ class RAGPipeline:
             trace.search_results_per_query = search_results.results_per_query
             trace.total_documents_found = search_results.total_before_dedup
             trace.documents_after_dedup = search_results.total_after_dedup
+            trace.search_documents_per_query = {
+                qtext: [
+                    {
+                        "regulation_id": doc.get("regulation_id", ""),
+                        "url": (doc.get("metadata") or {}).get("url", ""),
+                        "score": doc.get("score", 0.0),
+                        "type": (doc.get("metadata") or {}).get("type", ""),
+                        "number": (doc.get("metadata") or {}).get("number", ""),
+                        "title": (doc.get("metadata") or {}).get("title", ""),
+                    }
+                    for doc in docs
+                ]
+                for qtext, docs in search_results.documents_per_query.items()
+            }
 
         if not search_results.documents:
             elapsed = int((time.time() - pipeline_start) * 1000)
@@ -275,12 +297,33 @@ class RAGPipeline:
         effective_threshold = evaluation_threshold or config.EVALUATOR_THRESHOLD
         if trace:
             trace.evaluation_threshold = effective_threshold if self.evaluator_enabled else 0
+            # The evaluator (local or remote) sees a query-independent
+            # enriched text built by ``DocumentEvaluator._build_eval_text``
+            # — capture it so the offline extractor can show exactly
+            # what the cross-encoder scored. When the evaluator is
+            # disabled we leave the field empty (no eval happened).
+            eval_max_tokens = (
+                getattr(self.evaluator, "max_eval_tokens", config.EVALUATOR_MAX_TOKENS)
+                if self.evaluator_enabled
+                else 0
+            )
+
+            def _eval_text_for(doc: Dict) -> str:
+                if not self.evaluator_enabled or not eval_max_tokens:
+                    return ""
+                try:
+                    return DocumentEvaluator._build_eval_text(doc, eval_max_tokens)
+                except Exception:  # pragma: no cover - never break the pipeline for tracing
+                    return ""
+
             trace.evaluation_scores = [
                 {
                     "regulation_id": ed.document.get("regulation_id", ""),
                     "score": ed.relevance_score,
                     "accepted": True,
                     "url": (ed.document.get("metadata") or {}).get("url", ""),
+                    "eval_text": _eval_text_for(ed.document),
+                    "eval_max_tokens": eval_max_tokens,
                 }
                 for ed in evaluated
             ]
@@ -295,6 +338,8 @@ class RAGPipeline:
                             "score": 0,
                             "accepted": False,
                             "url": (doc.get("metadata") or {}).get("url", ""),
+                            "eval_text": _eval_text_for(doc),
+                            "eval_max_tokens": eval_max_tokens,
                         })
             trace.documents_accepted = len(evaluated)
             trace.documents_discarded = len(search_results.documents) - len(evaluated)
@@ -317,6 +362,22 @@ class RAGPipeline:
         sources = (
             [ed.document for ed in evaluated] if return_sources else []
         )
+
+        if not include_generation:
+            elapsed = int((time.time() - pipeline_start) * 1000)
+            if timings:
+                timings.total_ms = elapsed
+                trace.timings = timings
+            response = {
+                "answer": "",
+                "sources": sources,
+                "search_time_ms": int(search_time * 1000),
+                "llm_time_ms": 0,
+                "total_time_ms": elapsed,
+            }
+            if trace:
+                response["trace"] = trace.to_dict()
+            return response
 
         # --------------------------------------------------------
         # 4. GENERATE

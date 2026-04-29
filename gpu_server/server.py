@@ -23,11 +23,11 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import torch
 import uvicorn
-from fastapi import FastAPI, HTTPException, Header, Request
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from loguru import logger
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
 # Configuration via environment variables
@@ -37,10 +37,10 @@ GPU_SERVER_HOST = os.getenv("GPU_SERVER_HOST", "0.0.0.0")
 GPU_SERVER_PORT = int(os.getenv("GPU_SERVER_PORT", "8090"))
 
 EMBEDDING_MODEL_NAME = os.getenv(
-    "EMBEDDING_MODEL", "rufimelo/Legal-BERTimbau-sts-large-ma-v3",
+    "EMBEDDING_MODEL", "BAAI/bge-m3",
 )
 CROSS_ENCODER_MODEL_NAME = os.getenv(
-    "CROSS_ENCODER_MODEL", "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+    "CROSS_ENCODER_MODEL", "BAAI/bge-reranker-base",
 )
 MODEL_CACHE_DIR = os.getenv("MODEL_CACHE_DIR", "/dados/airdata/models_cache")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
