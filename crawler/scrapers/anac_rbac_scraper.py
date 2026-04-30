@@ -145,7 +145,7 @@ class ANACRBACscraper(BaseScraper):
                         f"[anac_rbac] Saved {pdf_path.name} ({len(pdf_bytes)/1024:.1f} KB)"
                     )
 
-                content = extract_text_from_bytes(pdf_bytes) or ""
+                content = await asyncio.to_thread(extract_text_from_bytes, pdf_bytes) or ""
                 content = re.sub(r"\n{3,}", "\n\n", content.strip())
                 if not content:
                     logger.warning(f"[anac_rbac] {rbac_id}: sem texto extraível do PDF")
@@ -180,8 +180,14 @@ class ANACRBACscraper(BaseScraper):
 
     # ── Helpers ──────────────────────────────────────────────────────────────
 
-    async def _get(self, url: str) -> str:
-        """GET com rate limiting e retry + backoff exponencial."""
+    async def _request(self, url: str, *, as_bytes: bool = False) -> str | bytes:
+        """GET com rate limiting e retry + backoff exponencial.
+
+        Args:
+            url: URL a ser requisitada.
+            as_bytes: Se True, retorna bytes brutos (``resp.read()``);
+                      caso contrário, retorna texto UTF-8 (``resp.text()``).
+        """
         for attempt in range(1, _MAX_RETRIES + 1):
             try:
                 async with self._limiter:
@@ -193,6 +199,8 @@ class ANACRBACscraper(BaseScraper):
                                 status=resp.status,
                             )
                         resp.raise_for_status()
+                        if as_bytes:
+                            return await resp.read()
                         return await resp.text(encoding="utf-8", errors="replace")
             except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
                 if attempt == _MAX_RETRIES:
@@ -202,7 +210,11 @@ class ANACRBACscraper(BaseScraper):
                     f"[anac_rbac] Retry {attempt}/{_MAX_RETRIES} para {url}: {exc}"
                 )
                 await asyncio.sleep(delay)
-        return ""  # nunca alcançado
+        return b"" if as_bytes else ""  # nunca alcançado
+
+    async def _get(self, url: str) -> str:
+        """Atalho para _request retornando texto."""
+        return await self._request(url, as_bytes=False)  # type: ignore[return-value]
 
     def _extract_links(self, html: str) -> List[Dict]:
         """Parseia a tabela da listagem e extrai todos os links de RBAC.
@@ -311,28 +323,8 @@ class ANACRBACscraper(BaseScraper):
         return text
 
     async def _get_bytes(self, url: str) -> bytes:
-        """GET com rate limiting e retry + backoff, retorna bytes brutos."""
-        for attempt in range(1, _MAX_RETRIES + 1):
-            try:
-                async with self._limiter:
-                    async with self._session.get(url) as resp:
-                        if resp.status in _RETRYABLE_STATUSES:
-                            raise aiohttp.ClientResponseError(
-                                resp.request_info,
-                                resp.history,
-                                status=resp.status,
-                            )
-                        resp.raise_for_status()
-                        return await resp.read()
-            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
-                if attempt == _MAX_RETRIES:
-                    raise
-                delay = _RETRY_BASE_DELAY * (2 ** (attempt - 1))
-                logger.warning(
-                    f"[anac_rbac] Retry {attempt}/{_MAX_RETRIES} para {url}: {exc}"
-                )
-                await asyncio.sleep(delay)
-        return b""
+        """Atalho para _request retornando bytes brutos."""
+        return await self._request(url, as_bytes=True)  # type: ignore[return-value]
 
     def _save_txt(self, rbac_id: str, content: str, source_url: str) -> Path:
         """Salva conteúdo em data/originals/anac/rbac-XX.txt."""
