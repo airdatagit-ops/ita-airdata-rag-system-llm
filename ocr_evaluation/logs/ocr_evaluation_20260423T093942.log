@@ -1,0 +1,3 @@
+2026-04-23 09:39:42.032 | DEBUG    | ocr_evaluation._logging:configure_file_logging:59 - File logging active → /home/vitor-lucas/airdata/ita-airdata-rag-system-llm/ocr_evaluation/logs/ocr_evaluation_20260423T093942.log
+2026-04-23 09:39:42.051 | INFO     | __main__:main:364 - PDFs a processar: 9
+2026-04-23 09:39:42.051 | INFO     | __main__:main:365 - Modelos selecionados: ['tesseract', 'easyocr', 'doctr', 'unstructured', 'chandra', 'paddleocr']

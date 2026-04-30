@@ -1,0 +1,405 @@
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+PSICOLOGIA
+NSCA 38-15
+PSICOLOGIA ORGANIZACIONAL E DO TRABALHO
+2023
+
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+INSTITUTO DE PSICOLOGIA DA AERONAUTICA
+PSICOLOGIA
+NSCA 38-15
+PSICOLOGIA ORGANIZACIONAL E DO TRABALHO
+2023
+
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+COMANDO-GERAL DO PESSOAL
+PORTARIA COMGEP No 353/SLE, DE 18 DE DEZEMBRO DE 2023.
+Aprova a reediçao da Norma de Sistema
+que
+dispôe
+sobre
+"Psicologia
+Organizacional e do Trabalho".
+0 COMANDANTE-GERAL DO PESSOAL, no uso da atribuiçao que lhe
+confere O inciso VII do art. 7°, do ROCA 20-3, "Regulamento do Comando-Geral do Pessoal",
+aprovado pela Portaria no 2.103/GC3, de 3 de dezembro de 2019, e considerando 0 que consta no
+Processo no 67450.0010112/2020- 31 resolve:
+Art. 1° 1° Aprovar a reediçao da NSCA 38-15, que dispôe sobre "Psicologia
+Organizacional e do Trabalho".
+Art. 2° Revoga-se a Portaria COMGEP no 89/ALE, DE 6 de Outubro de 2020.
+Art 3° Esta Portaria entra em vigor na data de sua publicaçâo.
+Ten Brig Ar RICARDO REIS TAVARES
+Comandante-Geral do Pessoal
+(Publicada no BCA no XX de de de 2023).
+
+
+
+NSCA 38-15/2023
+SUMARIO
+1 DISPOSIÇOES PRELIMINARES
+7
+1.1 FINALIDADE.
+/
+1.2 AMBITO
+7
+1.3 CONCEITUACAO,
+7
+2 PRINCIPIOS NORTEADORES.
+9
+3 ATIVIDADES REGULARES
+10
+3.1 ATIVIDADES REGULARES GERAIS.
+10
+3.2 ATIVIDADES REGULARES ESPECIFICAS POR AREA DE ATUAÇAO
+10
+4 ORIENTAÇAO DOS PSICOLOGOS ORGANIZACIONAIS
+15
+4.1 ORIENTAÇAO TÉCNICA.
+15
+4.2 ORIENTAÇAO DECORRENTE DE VINCULAÇAO AO SISPA
+15
+4.3 ORIENTAÇAO DECORRENTE DE VINCULAÇAO À AREA ORGANIZACIONAL 15
+5 DISPOSIÇOES FINAIS.
+16
+REFERENCIAS.
+17
+
+
+
+NSCA 38-15/2023
+1 DISPOSIÇOES PRELIMINARES
+1.1 FINALIDADE
+A presente Norma tem por finalidade estabelecer OS principios fundamentais
+das atividades técnicas da psicologia organizacional e do trabalho e normatizar as atribuiçôes
+dos agentes de Psicologia do Sistema de Psicologia da Aeronautica (SISPA) em favor da
+Psicologia Organizacional e do Trabalho.
+1.2 ÂMBITO
+A presente Norma é de observância obrigatoria dos Orgâos Executivos afins do
+SISPA e dos Psicologos Organizacionais e do Trabalho.
+1.3 CONCEITUACAO
+1.3.1 ANALISE DO TRABALHO
+Procedimento sistematico que visa à definiçao e ao exame de todas as variaveis
+de uma atividade e das condiçôes sob as quais se realiza, com 0 objetivo de determinar 0 seu
+conteudo e OS requisitos exigidos para 0 desempenho da mesma.
+1.3.2 ANALISE PROFISSIOGRAFICA
+Tipo de proposta metodologica que tem como objetivo norteador 0
+levantamento do perfil profissiografico de um determinado cargo, sendo a realizaçao de uma
+analise detalhada de suas caracteristicas ej peculiaridades.
+1.3.3 CORPORATE RESOURCE MANAGEMENT (CRM)
+É uma ferramenta de treinamento que, através de atividades teoricas e prâticas,
+se propôe a trabalhar com atitudes e, consequentemente, OS comportamentos de todos OS
+profissionais ligados à atividade aérea, visando à Segurança Operacional.
+1.3.4 ENTREVISTA INFORMATIVA
+Tem por finalidade esclarecer ao candidato 0 motivo pelo qual foi considerado
+inapto, sendo realizada mediante solicitaçao, apos O término do processo de EAP (Exame de
+Aptidao Psicologica).
+1.3.5 ERGONOMIA
+Estudo das interaçoes entre OS seres humanos e outros elementos ou sistemas, e
+à aplicaçao de teorias, principios e métodos a fim de otimizar O bem-estar humano e 0
+desempenho global do sistema.
+1.3.6 FATOR HUMANO
+Estudo das capacidades e das limitaçoes humanas oferecidas pelo local de
+trabalho. É O estudo da interaçâo humana em suas situaçôes de trabalho e de vida: entre as
+pessoas e as maquinas e equipamentos utilizados, OS procedimentos escritos e verbais, as
+regras que devem ser seguidas, as condiçôes ambientais ao seu redor e as interaçôes com as
+outras pessoas. Todos esses aspectos podem influenciar no comportamento no trabalho de
+maneira a afetar a saude e a segurança.
+
+8/17
+NCSA 38-15/2023
+1.3.7 LEVANTAMENTO DE PERFIL ORGANIZACIONAL
+Processo que busca identificar, a partir da analise do cotidiano de trabalho da
+OM, as potencialidades, necessidades e limitaçôes dos recursos humanos e seus respectivos
+instrumentos de trabalho, bem como compreender a dinâmica da interaçâo e as condiçôes de
+trabalho existentes. Tem por objetivo assessorar O Comando solicitante com indicadores que
+lhe permitam promover mudanças na organizaçao do trabalho e/ou aperfeiçoar O
+gerenciamento dos processos organizacionais em curso, com vistas à promoçao da Saude e da
+Segurança Operacional.
+1.3.8 LINE-ORIENTED FLIGHT TRAINING (LOFT)
+Método de treinamento util que propicia aos membros da tripulaçao a
+oportunidade para praticarem as operaçôes de linhas (manobras, habilidades de operaçôes,
+etc).
+1.3.9 MAINTENANCE RESOURCE MANAGEMENT (MRM)
+Processo de treinamento que tem por objetivo a minimizaçao de erros nos
+serviços de manutençào, por meio do aprimoramento dos recursos humanos disponiveis.
+1.3.10 PSICOLOGIA ORGANIZACIONAL E DO TRABALHO (POT)
+Area de atuaçâo profissional da Psicologia referente à anâlise de fenomenos
+psicologicos concernentes às organizaçôes, ao desenvolvimento organizacional, à gestào de
+pessoas, à prevençâo e promoçao da saude e à relaçao do ser humano com 0 trabalho.
+1.3.11 PSICOLOGO ORGANIZACIONAL E DO TRABALHO (PSO)
+Profissional psicologo da FAB que, inserido em organizaçôes, atua buscando
+estratégias que articulem a satisfaçao das necessidades da organizaçâo com a satisfaçao das
+necessidades e da qualidade de vida dos trabalhadores / militares.
+1.3.12 SEGURANÇA OPERACIONAL
+estado em que 0 risco de lesdes às pessoas ou de danos aos bens se reduz e
+se mantém em um nivel aceitàvel, ou abaixo deste, por meio de um processo continuo de
+identificaçào de perigos e gerenciamento de riscos.
+1.3.13 SISTEMA DE PSICOLOGIA DA AERONAUTICA (SISPA)
+Sistema instituido por meio da Portaria no 1.478/GM3, de 20 de dezembro de
+1982 e alterado pelas Portarias no 131/GM3, de 8 de março de 1989, e no 176/GC3, de 17 de
+março de 2009, com a finalidade de planejar, orientar, coordenar, controlar e executar as
+atividades de Psicologia no Comando da Aeronautica.
+
+NCSA 38-15/2023
+9/17
+2 PRINCIPIOS NORTEADORES
+2.1 O PSO deve pautar sua atuaçao nos preceitos éticos e técnicos emanados pelo Conselho
+Federal de Psicologia, respectivos Conselhos Regionais de Psicologia e em Normas
+especificas da FAB.
+2.2 A aplicaçào da Psicologia às organizaçoes deve ter como 0 objetivo a contribuiçao para a
+elevaçâo da qualidade, da eficiência e da eficacia das açôes organizacionais.
+2.3 O PSO deve promover interaçoes produtivas entre OS agentes que atuam nos diferentes
+campos dos quais depende a relaçao Homem-Trabalho-Organizaçao, de modo a possibilitar a
+convergência de suas açôes para as finalidades organizacionais e profissionais almejadas.
+2.40 PSO deve buscar continuo aprimoramento na area da saude e segurança de trabalho,
+quanto aos aspectos psicossociais, para proporcionar melhores condiçoes de trabalho.
+2.5 A atuaçao do PSO deve estar desvinculada do modelo clinico de atendimento psicologico
+tradicional, uma vez que seu enfoque deve ser em todos OS componentes da relaçâo Homem-
+Trabalho-Organizaçao e nâo em demandas individuais.
+
+10/17
+NCSA 38-15/2023
+3 ATIVIDADES REGULARES
+3.1 ATIVIDADES REGULARES GERAIS
+No âmbito da Força Aérea, a atuaçâo do PSO compreende:
+a) atuar em atividades relacionadas à anâlise e desenvolvimento
+organizacional, açâo humana nas organizaçôes, desenvolvimento de
+equipes, seleçao, acompanhamento e desenvolvimento de pessoal;
+b) estudar e planejar as condiçoes de trabalho;
+c) realizar intervençoes dirigidas à saude do trabalhador;
+d) atuar como facilitador de processos grupais e de intervençao psicossocial
+nos diferentes niveis hierarquicos de organizaçoes;
+e) colaborar em projetos de construçao e adaptaçao dos instrumentos e
+equipamentos de trabalho ao homem, bem como de outras iniciativas
+relacionadas à ergonomia;
+f) desenvolver estudos e pesquisas nas areas de Psicologia da Aviaçao, do
+Fator Humano e da Fadiga de Voo;
+g) elaborar programas de melhoria de desempenho, aproveitando O potencial e
+considerando OS aspectos motivacionais relacionados ao trabalho;
+h) utilizar métodos e técnicas da psicologia aplicada ao trabalho, como
+entrevistas, testes, provas, dinâmicas de grupo, etc. para subsidiar as
+decisôes na area de recursos humanos e promover, em consequência, a
+autorrealizaçao no trabalho;
+i) zelar pela saude e bem-estar psiquicos dos militares através de intervençôes
+psicologicas, observando aspectos individuais, psicossociais e
+organizacionais; e
+j) realizar, quando necessario, encaminhamento para atendimento clinico,
+assim como estabelecer contato com a OSA e Junta Especial de Saude (JES)
+no tocante ao aspecto psicologico.
+As atividades apontadas acima visam definir de forma ampla a area de atuaçâo
+do PSO, quer subsidiando OS Comandos, quer apoiando 0 IPA.
+3.2 ATIVIDADES REGULARES ESPECIFICAS POR AREA DE ATUAÇAO
+A atuaçao do PSO na Força Aérea Brasileira varia em funçao do ODSA ao
+qual a OM é submetida e da estrutura e da dinâmica da Organizaçao, tendo como base as
+areas de atuaçâo apontadas a seguir. Destaca-se que a lista de atividades abaixo nâo é
+exaustiva e serve apenas como orientaçao de algumas atividades. Além disso, resssalta-se a
+necessidade de todos OS PSO conhecerem e executarem as suas funçôes sistemicas de acordo
+com a NSCA 38-1/2023 "Organizaçào e Funcionamento do Sistema de Psicologia da
+Aeronautica".
+
+NCSA 38-15/2023
+11/17
+3.2.1 IPA
+A atuaçao do PSO inserido no IPA compreende:
+a) elaborar, revisar e atualizar as normas que regem a atuaçâo dos psicologos
+nas atividades de Psicologia aplicada às Organizaçôes;
+b) planejar e coordenar OS treinamentos e as açôes de desenvolvimento e
+acompanhamento de pessoal na area de Psicologia;
+c) desenvolver estudos de Analise do Trabalho e Analise Profissiografica com
+vistas à elaboraçâo dos Padroes Seletivos para OS Exames de Aptidao
+Psicologica (EAP), bem como desenvolver estudos de validaçao dos
+processos seletivos realizados;
+d) orientar e supervisionar tecnicamente OS psicologos do SISPA na execuçao
+de EAP, bem como participar da aplicaçao dos EAP, conselhos técnicos de
+primeira e segunda instância, entrevistas informativas e elaboraçâo de
+laudos técnicos;
+e) realizar Levantamento de Perfil Organizacional (LPO), com vistas à
+prevençâo de acidentes e promoçao da saude e Segurança Operacional;
+f) realizar atividades de suporte psicologico apos a ocorrência de acidentes
+aeronauticos, catàstrofes, desastres e emergências diversas no âmbito do
+COMAER, e/ou supervisionar tecnicamente a atuaçao dos psicologos nesse
+contexto;
+g) integrar as Comissôes de Investigaçào de Ocorrência Aeronautica,
+realizando a anâlise do Fator Humano - Aspecto Psicologico na ocorrência
+de acidentes e incidentes aeronauticos e ocorrências de solo;
+h) coordenar projetos conjuntos que envolvam atividades dos Elos Executivos; e
+i) fomentar a integraçào dos bancos de dados de Fatores Humanos.
+3.2.2 BASES E UNIDADES AÉREAS (UAE)
+A atuaçao do PSO inserido nas BASES e UAE compreende:
+a) assessorar 0 Comandante da BASE e/ou das OM inseridas na BASE e UAE
+nos assuntos relativos ao Fator Humano, em aspectos relacionados à
+Psicologia da Aviaçao;
+b) atuar junto aos Oficiais de Segurança de Voo, à Seçâo de Investigaçâo e
+Prevençào de Acidentes Aeronauticos (SIPAA) e Comissâo Interna de
+Prevençao de Acidentes (CIPA), nas atividades que envolvam a prevençao
+de ocorrências aeronauticas e acidentes de trabalho, relativas ao Fator
+Humano;
+c) contribuir com 0 incremento do Corporate Resource Management (CRM) e
+Maintenance Resource Management (MRM), no tocante aos aspectos
+psicologicos da tripulaçao em voo, LOFT e em simuladores, desenvolvendo
+habilidades nào técnicas, principalmente dos individuos funcionalmente
+inseridos no VOO e na manutençao das aeronaves;
+d) ministrar aulas e palestras sobre temas relacionados aos aspectos
+psicologicos, com ênfase na prevençao de ocorrências aeronauticas;
+
+12/17
+NCSA 38-15/2023
+e) participar dos Conselhos Operacionais e dos briefings e debriefings
+operacionais; e
+acompanhar a readaptaçào e reintegraçâo de militares afastados de suas
+atividades, sobretudo O VOO e a manutençào de aeronaves, atentando-se para
+0 estado psiquico e emocional bem como para possivel necessidade de
+mudança de funçao.
+3.2.3 CENTRO DE INVESTIGAÇAO E PREVENÇAODE
+ACIDENTES
+AERONAUTICOS (CENIPA)
+A atuaçao do PSO inserido no CENIPA compreende:
+a) acompanhar e apoiar OS processos de investigaçâo realizados pelos
+Elementos Credenciados Fator Humano - Aspecto Psicologico;
+b) assessorar a emissao de Recomendaçoes de Segurança de Voo;
+c) analisar e revisar OS registros e OS relatorios finais no âmbito dos Fatores
+Humanos - Aspectos Psicologicos;
+d) prestar apoio aos Serviços Regionais de Investigaçao e Prevençao de
+Acidentes Aeronauticos (SERIPAS), durante OS processos de prevençao e de
+investigaçào por eles conduzidos; e
+e) contribuir na supervisao das atividades desempenhadas pelos Elementos
+Certificados em Fator Humano - Aspecto Psicologico nas atuaçoes
+referentes à segurança de vOo.
+3.2.4 SERVIÇOS REGIONAIS DE INVESTIGAÇAO E PREVENÇAO DE ACIDENTES
+AERONAUTICOS (SERIPA)
+A atuaçao do PSO inserido nos SERIPAS compreende:
+a) prestar assessoria nos assuntos ligados ao Aspecto Psicologico;
+b) acompanhar e apoiar OS processos de prevençào e investigaçâo de acidentes
+aeronauticos;
+c) confeccionar as minutas dos Relatorios Finais, no âmbito do Fator Humano
+Aspecto Psicologico, referentes às investigaçoes das ocorrências
+aeronauticas conduzidas pela OM;
+d) participar do levantamento dos fatores contribuintes do Aspecto
+Psicologico, das ocorrências aeronauticas, com a finalidade de promover a
+prevençào de acidentes aeronauticos na area de responsabilidade do
+SERIPAS; e
+e) assessorar na proposiçao e desenvolvimento de açôes voltadas para a
+prevençao de ocorrências aeronauticas, no âmbito do Fator Humano -
+Aspecto Psicologico.
+3.2.5 DEPARTAMENTO DE CONTROLE DO ESPAÇO AÉREO (DECEA)
+A atuaçao do PSO inserido nos orgaos do DECEA compreende:
+
+NCSA 38-15/2023
+13/17
+a) participar da investigaçao do aspecto psicologico nos incidentes de trafego
+aéreo;
+b) realizar a anâlise descritiva dos dados estatisticos relativos aos Fatores
+Humanos - Aspecto Psicologico, contribuintes nos incidentes de trafego
+aéreo;
+c) participar das equipes de gerenciamento de risco;
+d) prestar apoio técnico no gerenciamento de mudanças;
+e) analisar Relatorios de Prevençao (RELPREV) e Relatos ao CENIPA para a
+Segurança de Voo (RCSV);
+f realizar Pesquisas de Fatores Humanos (PFH);
+g) participar de Vistorias de Segurança Operacional em orgaos de Controle de
+Trafego Aéreo (ATC);
+h) organizar O Programa de Desenvolvimento das Habilidades Nao Técnicas;
+i) prestar suporte psicologico pos-acidente/incidente de trafego aéreo;
+J) assessorar O Conselho Operacional;
+k) realizar orientaçao psicologica;
+) fazer avaliaçao psicologica para analise de perfil e indicaçao para funçôes
+operacionais;
+m)acompanhar 0 estagio prâtico operacional dos Controladores de Trafego
+Aéreo (ATCO); e
+n) capacitar 0 efetivo operacional.
+3.2.6 SECPROM
+A atuaçao do PSO inserido na Secretaria de Promoçoes compreende:
+a) realizar analises de militares para Prestaçao de Tarefa por Tempo Certo
+(PTTC), designaçao para 0 serviço ativo e convocaçôes posteriores;
+b) realizar anâlises de candidatos para concursos e processos seletivos de
+convocaçâo de militares temporarios;
+c) realizar anâlises dos conceitos profissional e moral de militares cogitados
+para comando, chefia e direçao e missao no exterior;
+d) realizar anâlises de oficiais cogitados para Promoçao, CAP e CCEM, e de
+graduados para Promoçao, Reengajamento, Curso de Aperfeiçoamento de
+Sargentos e Curso de Graduado-Master, bem como OS recursos requeridos
+pelos militares participantes destes processos;
+e) realizar anâlises para promoçào dos Aspirantes a Oficial;
+f) confeccionar ficha de orientaçâo para correçao de discrepância de
+preenchimento (CPO-6, para oficiais, e Ficha de Revisao de Conceitos-
+FRC, para graduados);
+g) realizar 0 Briefing de Reuniao Plenaria da CPO e analise de Votaçao
+Simplificada das Reunides Plenarias da CPO;
+
+14/17
+NCSA 38-15/2023
+h) analisar fichas de oficiais e graduados com baixo desempenho, e
+confeccionar, respectivamente, as Cartas de Acompanhamento e Ficha de
+Orientaçâo de Graduado (FOG);
+1) analisar Ficha de Transcriçào de Elogio (FTE), CPO-4, Ficha de Registro de
+Justiça e Disciplina (FRJD) e Fato Novo;
+j) confeccionar a memoria das fichas de avaliaçao com discrepância;
+k) elaborar, aplicar e analisar OS resultados da Pesquisa de Clima
+Organizacional na SECPROM;
+1) participar da instruçao "Capacitaçao de Avaliadores" aos Oficiais-Alunos
+do Curso de Aperfeiçoamento de Oficiais; e participar de Grupo de
+Trabalho relativo ao desenvolvimento do novo Sistema de Avaliaçâo de
+Desempenho da Aeronautica.
+
+NCSA 38-15/2023
+15/17
+4 ORIENTAÇAO DOS PSICOLOGOS ORGANIZACIONAIS
+4.1 ORIENTAÇAO TÉCNICA
+A supervisao das atividades técnicas do PSO cabera ao Instituto de Psicologia
+da Aeronautica, Orgao central do SISPA, de acordo com a NSCA 38-1/2023
+Em relaçâo às atividades de Fatores Humanos - Aspecto Psicologico, OS PSO
+inseridos nos SERIPA, serao supervisionados também pelo CENIPA, e OS PSO inseridos no
+DECEA e seus orgaos subordinados, pela Assessoria Segurança de Controle do Espaço Aéreo
+(ASEGCEA).
+Cabe ao PSO participar de processos, programas e projetos de iniciativa do
+IPA e oferecer a este Orgâo sugestôes com vistas ao aperfeiçoamento dessas atividades, e à
+realizaçao de outras que julguem poder contribuir com a area de POT.
+4.2 ORIENTAÇAO DECORRENTE DE VINCULACAO AO SISPA
+Quando solicitado, 0 PSO prestara assessoria aos psicologos e orgaos do
+SISPA no tocante aos assuntos que envolvam conhecimentos e técnicas proprias da sua area,
+ou podera ser indicado pelo IPA para assessoria a orgaos de outros sistemas da Aeronautica;
+da mesma forma, O PSO podera solicitar e receber a assessoria de psicologos da area
+educacional e clinica, quando suas atividades exigirem.
+4.3 ORIENTAÇAO DECORRENTE DE VINCULACAO À ÀREA ORGANIZACIONAL
+O PSO deve promover formas de atualizaçao profissional, recorrendo ao IPA
+para apoia-los em suas necessidades e iniciativas, quando necessario. Na medida do possivel,
+deve ser estimulada e apoiada, pelo IPA e pelos Orgâos em que O psicologo esta inserido, a
+produçao cientifica desses profissionais, inclusive no que se refere à apresentaçao da mesma,
+em congresso, seminarios, e a sua publicaçao.
+
+16/17
+NCSA 38-15/2023
+5 DISPOSIÇÔES FINAIS
+Os casos nâo previstos nesta Norma serao submetidos ao Comandante-Geral
+do Pessoal, apos assessoramento do IPA.
+
+NCSA 38-15/2023
+17/17
+REFERENCIAS
+BRASIL. Comando da Aeronautica. Centro de Investigaçao e Prevençào de Acidentes
+Aeronauticos. Portaria CENIPA No 1/DAM, de 03 de dezembro de 2012. Aprova a ediçao do
+Manual de Prevençao do SIPAER = MCA 3-3. Boletim do Comando da Aeronautica, no
+072, de 16. ABR 2013.
+BRASIL. Comando da Aeronautica. Centro de Investigaçâo e Prevençâo de Acidentes
+Aeronauticos. Portaria CENIPA No 19/DA-SRH, de 8 de setembro de 2022. Aprova a
+reediçao do Regimento Interno do Centro de Investigaçao e Prevençào de Acidentes
+Aeronauticos = RICA 21-119. Boletim do Comando da Aeronautica, n°176, 19 set. 2022.
+BRASIL. Comando da Aeronautica. Centro de Investigaçao e Prevençao de Acidentes
+Aeronauticos. Portaria CENIPA No 31/ASGOV, de 23 de mar. de 2023. Aprova a reediçao do
+Regimento Interno do Segundo Serviço Regional de Investigaçâo e Prevençâo de Acidentes
+Aeronauticos = RICA 21-224. Boletim do Comando da Aeronautica, n'60, de 31 de mar.
+de 2023.
+BRASIL. Comando da Aeronautica. Comando Geral do Pessoal. Portaria COMGEP No
+247/ALE, de 15 de ago. de 2022. Aprova a reediçao do Regimento Interno do Instituto de
+Psicologia da Aeronautica = RICA 21-165. Boletim do Comando da Aeronautica, no157, de
+22 de ago. de 2022.
+CONSELHO FEDERAL DE PSICOLOGIA. Resoluçao n.o 013/2007, de 14 de setembro de
+2007. Institui a Consolidaçao das Resoluçoes relativas ao Titulo Profissional de Especialista
+em Psicologia e dispôe sobre normas eprocedimentos para seu registro.
+CONSELHO FEDERAL DE PSICOLOGIA. Resoluçao n.o 023/2022, de 13 de outubro de
+2022. Institui condiçoes para concessao e registro de psicologa e psicologo especialistas;
+reconhece as especialidades da Psicologia e revoga as Resoluçôes CFP no 13, de 14 de
+setembro de 2007; no 3, de 5 de fevereiro de 2016; no 18, de 5 de setembro de 2019.

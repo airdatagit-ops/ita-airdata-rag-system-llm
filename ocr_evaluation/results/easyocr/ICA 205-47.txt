@@ -1,0 +1,325 @@
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONÁUTICA
+GABINETE DO COMANDANTE DA AERONÁUTICA
+PORTARIA GABAER/GC3 Nª 1.060, DE 30 DE SETEMBRO DE 2025
+Aprova a Instrução que versa sobre a Salvaguarda de Assuntos Sigilosos.
+COMANDANTE DA AERONÁUTICA, no uso das atribuições que Ihe conferem OS incisos e XIV do art. 23, Anexo I, Estrutura Regimental do Comando da Aeronáutica; aprovada pelo Decreto nª 11.237, de 18 de outubro de 2022, e considerando 0 que consta do Processo nª 67002.002650/2025-15, procedente do Centro de Inteligência da Aeronáutica , resolve:
+Art. 1ª Fica aprovada a ICA 205-47, "Instrução para Salvaguarda de Assuntos Sigilosos da Aeronáutica" na forma dos Anexos I, II, III, IV, V, VI e VII. Art. 2ª Revoga-se a Portaria nª 1.869/GC3, de 15 de dezembro de 2015, publicada no Boletim do Comando da Aeronáutica nª 232, de 17 de dezembro de 2015.
+Art. 39 Esta Portaria entra em vigor na data de sua publicação.
+Ten Brig MARCELO KANITZ DAMASCENO Comandante da Aeronáutica
+
+
+
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONÁUTICA
+CENTRO DE INTELIGÊNCIA DA AERONÁUTICA
+INTELIGÊNCIA
+ICA 205-47
+INSTRUÇÃO PARA SALVAGUARDA DE ASSUNTOS SIGILOSOS DA AERONÁUTICA ISAS
+2025
+
+
+
+ANEXO
+SALVAGUARDA DE ASSUNTOS SIGILOSOS ICA 205-47
+SUMÁRIO
+Art. CAPÍTULO / DISPOSIÇÕES PRELIMINARES 1ª/39 CAPÍTULO II DAS RESTRIÇÕES DE ACESSO À INFORMAÇÃO 4/55 Seção / Informações Classificadas 5 Subseção / Condições para Classificação; Graus de Sigilo e Prazos Máximos 62/10 Subseção II - Competência para Classificar 11/14 Subseção IIl Indexação de Documento com Informação Classificada_ 15/18 Subseção IV Procedimentos para Classificação _ 19/24 Subseção V Desclassificação e Reavaliação da Informação Classificada 25/29 Seção I/ Outras Hipóteses de Sigilo 30 Subseção / Informações Pessoais 31/35 Subseção Il - Informações de Pesquisa e Desenvolvimento. 36/38 Subseção IIl Informações Contidas em Documentos Preparatórios 39/41 Subseção IV Informações Contidas em Documentos de Inteligência 42/45 Subseção V - Informações Sobre 0 Sistema de Defesa Aeroespacial Brasileiro _ 46/48 Subseção VI Informações Relativas ao Sistema de Investigação e Prevenção de Acidentes Aeronáuticos 49 Seção Ill Materiais e Áreas de Acesso Restrito_ 50/55 Subseção | Materiais de Acesso Restrito _ 50/53 Subseção Il Áreas e Instalações de Acesso Restrito 54/55 CAPÍTULO III DO TRATAMENTO DE INFORMAÇÃO SOB RESTRIÇÃO DE ACESSO 56/58 Seção Documento e Material Controlado 59/63 Seção Il Marcações 64/65 Seção IIl Expedição; Tramitação e Comunicação . 66/73 Seção IV Reprodução _ 74/75 Seção V Preservação e Guarda 76/78 Seção VI Sistemas de Informação_ 79/82 Seção VII Celebração de Contratos. 83/86 Subseção / Contratos com Informações Classificadas _ 83 Subseção Il Contratos com Dados Pessoais. 84/86 CAPÍTULO IV DISPOSIÇÕES FINAIS. 87/91
+CAPÍTULO
+DISPOSIÇÕES PRELIMINARES
+Art. 1ª A presente Instrução tem a finalidade de regular 0 tratamento e 0 acesso à informação sigilosa, classificada ou sob restrição de acesso, no âmbito do Comando da Aeronáutica COMAER:
+Art. 2ª Esta Instrução é balizada pelos seguintes dispositivos legais: a Lei nª 12.527, de 18 de novembro de 2011, Lei de Acesso à Informação LAI, regula 0 acesso a informações previsto n0 inciso XXXIII do art:. 59, no inciso Il do $ 38 do art. 37 e no $ 2ª do art. 216 da Constituição Federal; 0 Decreto nª 7.724, de 16 de maio de 2012, regulamenta, no âmbito do Poder
+
+Executivo federal, os procedimentos para a garantia do acesso à informação e para a classificação de informações sob restrição de acesso; observados grau e prazo de sigilo; conforme 0 disposto na LAI;
+0 Decreto nª 7.845, de 14 de novembro de 2012, estabelece dispositivos para 0 tratamento da informação classificada; IV a Portaria Normativa nª 3.07O/GM-MD, de 22 de julho de 2021, estabelece os procedimentos aplicáveis à disponibilização; à classificação; a0 tratamento e à gestão da informação no âmbito da administração central do Ministério da Defesa; V OS princípios , as conceituações e os   requisitos para 0 tratamento de Dados Pessoais são estabelecidos por meio da Lei nª 13.709, de 14 de agosto de 2018 Lei Geral de Proteção de Dados Pessoais LGPD; e VI a estrutura adotada no âmbito do COMAER, a fim de permitir a gestão adequada dos dados pessoais, é estabelecida por meio da DCA 16-6 Governança da Proteção de Dados Pessoais do Comando Da Aeronáutica_
+Art. 3ª A presente Instrução aplica-se a todas as Organizações do Comando da Aeronáutica; além de poder ser cedida, a título de orientação; às empresas e órgãos com os quais 0 COMAER mantenha contrato; convênio, acordo, ajuste, termo de cooperação ou protocolo de intenção cujo objeto contenha informação classificada em qualquer grau de sigilo; ou cuja execução envolva informação classificada ou informações pessoais.
+CAPÍTULO II
+DAS RESTRIÇÕES DE ACESSO À INFORMAÇÃO
+Art. 4ª Este capítulo apresenta as principais hipóteses que podem indicar que uma informação ou um documento devam ser submetidos a restrições de acesso. Essa não é uma lista exaustiva, ou seja, pode haver outros   motivos, de acordo com a legislação em vigor; que recomendem a restrição de acesso.
+Parágrafo único. Este Capítulo também define áreas e materiais de acesso restrito e define diretrizes para medidas cautelares.
+Seção |
+Informações Classificadas
+Art. 5ª A classificação da informação deve ser feita considerando 0 disposto na legislação em vigor; com atenção aos efeitos que a atribuição de determinada classificação trará às atividades do Estado e à sociedade em geral. Parágrafo único. Na classificação da informação; deve-se buscar 0 grau de sigilo menos restritivo possível, considerando 0 interesse público e a gravidade do risco ou dano à segurança da sociedade e do Estado_
+Subseção
+Condições para Classificação, Graus de Sigilo e Prazos Máximos
+Art. 6ª Somente será passível de classificação a informação considerada imprescindível à segurança da sociedade ou do Estado; cuja divulgação ou acesso irrestrito possa: pôr em risco a defesa e a soberania nacionais ou a integridade do território
+
+nacional;
+prejudicar ou pôr em risco a condução de negociações ou as relações internacionais do País, ou as que tenham sido fornecidas em caráter sigiloso por outros Estados e organismos internacionais; III pôr em risco a vida, a segurança ou a saúde da população; IV oferecer elevado risco à estabilidade financeira, econômica ou monetária do País; V - prejudicar ou causar risco a planos ou operações estratégicos das Forças Armadas; VI prejudicar ou causar risco a projetos de pesquisa e desenvolvimento científico ou tecnológico; assim como a sistemas, bens, instalações ou áreas de interesse estratégico nacional; VII pôr em risco a segurança de instituições ou de altas autoridades nacionais ou estrangeiras e seus familiares; ou VIII comprometer atividades de   inteligência, bem como de investigação ou fiscalização em andamento; relacionadas com a prevenção ou repressão de infrações. Art. 7 A informação em poder dos órgãos e entidades, observado 0 seu teor e em razão de sua imprescindibilidade à segurança da sociedade ou do Estado; poderá ser classificada no grau ULTRASSECRETO, SECRETO ou RESERVADO. Art. 8ª Para a classificação da informação em grau de sigilo; deverá ser observado 0 interesse público da informação e utilizado 0 critério menos restritivo possível, considerados: a gravidade do risco ou dano à segurança da sociedade e do Estado; e 0 prazo máximo de classificação em grau de sigilo ou 0 evento que defina seu termo final.
+Art. 9ª Quanto à gravidade do risco ou dano à sociedade e ao estado; deve-se considerar passíveis de classificação nos graus: ULTRASSECRETO aquelas informações cujo conhecimento não autorizado possa acarretar dano excepcionalmente grave; SECRETO as informações cuja divulgação indevida possa acarretar dano grave; e RESERVADO para as informações cujo conhecimento não autorizado possa causar dano_ Art. 10 Os prazos máximos de classificação são os seguintes: grau ULTRASSECRETO: vinte e cinco anos; grau SECRETO: quinze anos; e
+grau RESERVADO: cinco anos.
+$ 19 Poderá ser estabelecida como termo final de restrição de acesso a ocorrência de determinado evento, observados os prazos máximos de classificação. $ 2ª Transcorrido 0 prazo de classificação ou consumado 0 evento que defina 0 seu termo final, a informação tornar-se-á, automaticamente, de acesso público. $ 32 Após a desclassificação, a Controladoria-Geral da União CGU notificará a autoridade competente para providenciar a publicidade dos documentos desclassificados em até trinta dias, caso isso ainda não tenha sido feito.
+
+Subseção Il
+Competência para Classificar Art. 11 0 Comandante da Aeronáutica tem competência para classificar a informação sigilosa nos graus de sigilo ULTRASSECRETO, SECRETO e RESERVADO, sendo vedada a delegação de competência. Art. 12. Os Oficiais-Generais, os Comandantes Cmt, Chefes Chf ou Diretores Dir de OM e os Adidos Aeronáuticos têm competência para classificar informação sigilosa no grau RESERVADO; sendo vedada a delegação de competência. Art. 13. É proibido classificar-se informação "no impedimento" , independentemente do grau de sigilo. Parágrafo único. Em caso de substituição; publicada em boletim interno da OM, 0 substituto da autoridade competente pode realizar 0 ato de classificação. Art. 14 A classificação de informação no grau de sigilo ULTRASSECRETO deverá ser ratificada pelo Ministro da Defesa, no prazo de trinta dias. Enquanto não é ratificada a classificação considerada válida para todos os efeitos.
+Subseção II
+Indexação de Documento com Informação Classificada
+Art. 15. 0 Código de Indexação de Documento que contém Informação Classificada CIDIC deverá ser incluído no Termo de Classificação da Informação TCI. 0 CIDIC será composto por elementos que garantirão a proteção e a restrição temporária de acesso à informação classificada, e será estruturado em duas partes. Art. 16. A primeira parte do CIDIC será composta pelo Número Único de Protocolo NUP, originalmente cadastrado conforme legislação de gestão documental. Parágrafo único. A informação classificada em qualquer grau de sigilo ou 0 documento que a contenha; quando de sua desclassificação; manterá apenas 0 NUP Art. 17. A segunda parte do CIDIC será composta dos seguintes elementos: grau de sigilo: indicação do grau de sigilo; ultrassecreto (U), secreto (S) ou reservado (R), com as iniciais na cor vermelha, quando possível; categorias: indicação; com dois dígitos, da categoria relativa; exclusivamente; a0 primeiro nível do Vocabulário Controlado do Governo Eletrônico VCGE. No COMAER, está padronizado 0 uso do número "05" , referente à DEFESA E SEGURANÇA; III data de produção da informação classificada: registro da data de produção da informação classificada, de acordo com a seguinte composição: dia (dois dígitos) /mês (dois dígitos) lano (quatro dígitos); IV data de desclassificação da informação classificada em qualquer grau de sigilo: registro do potencial data de desclassificação da informação classificada, efetuado no ato da classificação; de acordo com a seguinte composição: dia (dois dígitos) /mês (dois dígitos) /ano (quatro dígitos); e V indicação de reclassificação: indicação de ocorrência ou não; S (sim) ou N (não) de reclassificação da informação classificada, respectivamente; conforme as seguintes situações: a) reclassificação da informação resultante de reavaliação; ou
+
+b) primeiro registro da classificação; e c) indicação da data de prorrogação da manutenção da classificação: indicação; exclusivamente, para informação classificada no grau de sigilo ultrassecreto; de acordo com a seguinte composição: dia (dois dígitos) /mês (dois dígitos) /ano (quatro dígitos) na cor vermelha; quando possível. Art. 18. Para fins de gestão documental, deverá ser guardado 0 histórico das alterações do CIDIC.
+Subseção IV
+Procedimentos para Classificação
+Art. 19 0 ato formal que classifica uma informação é a assinatura do TCI pela autoridade competente, conforme 0 modelo contido no Anexo II, contendo os seguintes elementos: CDIC;
+Il grau de sigilo; categoria na qual se enquadra a informação; IV tipo de documento; V - data da produção; VI - indicação de dispositivo legal que fundamenta a classificação; VII razões da classificação, observados os critérios estabelecidos no art. 6ª, com a justificativa para 0 grau de sigilo adotado: a) nesse campo não deve ser transcrito 0 conteúdo do dispositivo   legal que fundamentou a classificação; b) deve ser registrado de forma breve, 0 real motivo pelo qual a informação foi classificada em grau de sigilo; e c) esse campo é classificado no mesmo grau de sigilo do documento; VIII assunto a que se refere a informação; com a descrição de elementos mínimos que permitam a identificação do tema de que trata a classificação; IX indicação do prazo de sigilo; contado a partir da data de produção em anos, meses ou dias, ou do evento que defina 0 seu termo final, observados os limites previstos de vinte e cinco quinze e cinco anos para informações ULTRASSECRETAS, SECRETAS e RESERVADAS , respectivamente; X - data da classificação; e XI - identificação da autoridade que classificou a informação. 8 1ª 0 TCI deve seguir anexo à informação. 8 2ª As informações previstas no inciso VII do caput deverão ser mantidas no mesmo grau de sigilo da informação classificada. $ 32 A ratificação da classificação de que trata 0 art. 14 deverá ser registrada no TCI. $ 4ª Para confecção do TCI, a informação deverá receber número único de protocolo NUP , mesmo que não seja um documento padrão; como; por exemplo; esboço; desenho, mapa, carta, fotografia, imagem, etc. 8 5ª 0 TCI deverá ser confeccionado em duas vias. A primeira via permanecerá na
+
+Organização Militar OM responsável pela produção; junto a uma cópia do documento . A segunda seguirá com a informação original. $ 6ª 0 responsável pela produção da   informação a ser classificada no grau ULTRASSECRETO ou SECRETO deve providenciar despacho com 0 Comandante da Aeronáutica para assinatura do TCI.
+Art. 20. Após a classificação da informação; formalizada pela assinatura do TCI, a Subcomissão Permanente de Avaliação de Documentos Sigilosos SPADS da Organização Militar que produziu 0 documento deverá enviar  Cópia do TCI à Comissão Permanente de Avaliação de Documentos Sigilosos CPADS do respectivo Órgão de Direção-Geral, Setorial e de Assessoria direta ao Comandante da Aeronáutica ODGSA. Após tomar conhecimento da classificação e realizar breve exame do TCI, a CPADS deve enviá-lo de imediato:
+ao CIAER, que providenciará 0 trâmite para a Comissão Mista de Reavaliação de Informações CMRI, no caso de informações classificadas no grau ULTRASSECRETO ou SECRETO; ou à Controladoria-Geral da União CGu, no caso de informações classificadas em qualquer grau de sigilo; ressalvado 0 envio das informações do campo "razões da classificação" . $ 19 0 trâmite do TCI entre a OM que produziu 0 documento e 0 respectivo ODGSA; deve ser realizado por meio da Rede de Comunicações Seguras do COMAER (Rede Mercúrio) até 0 grau SECRETO. 8 2 Oenvio do TCI ao CIAER no grau SECRETO deve ser realizado pela Rede Mercúrio. Termos de Classificação no grau ULTRASSECRETO devem ser sempre entregues por portador credenciado.
+8 39 0 envio das informações à CGU deverá ser realizado por meio de sistema fornecido pela CMRI para esse fim. 8 4 Os procedimentos deste artigo serão detalhados em legislação específica. Art. 21. A CGU, no desempenho de suas competências estabelecidas no art. 68 do Decreto nª 7.724, realizará 0 exame dos elementos públicos que compõem 0 TCI, em busca de indícios de erros na classificação da informação. Parágrafo único. Os indícios de erro a que se refere 0 caput serão considerados quanto: ao não enquadramento do assunto de que trata 0 inciso VIII do caput do art. 19 nas hipóteses legais de sigilo; e UI à não adequação do grau de sigilo. Art. 22. Havendo erros na classificação; a CGU deverá: notificar a autoridade classificadora, que decidirá sobre a reavaliação da classificação no prazo de trinta dias; e informar a Comissão Mista de Reavaliação de Informações, no caso de informações classificadas no grau ULTRASSECRETO ou SECRETO, para que a CMRI efetue a revisão da classificação; de acordo com 0 inciso do caput do art. 47 do Decreto nª 7.724. Art. 23. Na hipótese de documento que contenha informações classificadas em diferentes graus de sigilo; será atribuído a0 documento tratamento do grau de sigilo mais elevado; ficando assegurado 0 acesso às partes não classificadas por meio de certidão; extrato ou cópia, com ocultação da parte sob sigilo _
+
+Art. 24. Nos casos de processos, cada documento classificado deverá possuir seu próprio TCI e receber as marcações adequadas. Além disso; 0 Processo deverá ser marcado em suas capas e receber medidas cautelares adequadas ao maior grau de sigilo envolvido.
+Subseção V
+Desclassificação e Reavaliação da Informação Classificada em Grau de Sigilo
+Art. 25. A
+classificação das informações será reavaliada pela autoridade classificadora ou por autoridade hierarquicamente superior; mediante provocação ou de ofício, para desclassificação ou redução do prazo de sigilo. Parágrafo único. Para 0 cumprimento do disposto no caput; além do disposto no art. 8ª, deverá ser observado: 0 prazo máximo de restrição de acesso à informação, previsto no art. 10; - 0 prazo máximo de quatro anos para   revisão de ofício das informações classificadas no grau ultrassecreto ou secreto; a permanência das razões da classificação; IV a possibilidade de danos ou riscos decorrentes da divulgação ou acesso irrestrito da informação; e V - a peculiaridade das informações  produzidas no exterior por autoridades ou agentes públicos. Art. 26. Os procedimentos para reavaliação e desclassificação de informação classificada serão os previstos na ICA 200-12 Avaliação de Documentos Classificados no Comando da Aeronáutica.
+Art. 27. 0 pedido de desclassificação ou de reavaliação da classificação poderá ser apresentado à autoridade  classificadora, independente de existir   prévio pedido de acesso à informação. 8 19 No caso de informações produzidas por autoridades ou agentes públicos no exterior, 0 requerimento de desclassificação e reavaliação será   apreciado pela autoridade hierarquicamente superior que estiver em território brasileiro. 8 22 A autoridade que recebe 0 pedido do caput deve tomar uma decisão no prazo de trinta dias. Art. 28. Negado 0 pedido de desclassificação ou de reavaliação da informação pela autoridade classificadora; 0 requerente poderá apresentar recurso no prazo de dez dias, contado da ciência da negativa, primeiramente perante 0 Comandante da Aeronáutica e, em caso de negativa; ao Ministro de Estado da Defesa.
+$ 1ª Será apresentada uma decisão em até trinta dias para cada um dos recursos apresentados. 8 2ª Desprovidos os recursos de que trata 0 caput; 0 requerente poderá apresentar recurso à CMRI, no prazo de 10 (dez) dias, contado da ciência da decisão do Ministro da Defesa. Art. 29 A decisão sobre a desclassificação; a reclassificação ou a redução do prazo de sigilo de informação classificada deverá constar do campo apropriado no TCI.
+Seção Il
+Outras Hipóteses de Sigilo
+
+Art. 30. 0 Decreto nª 7.724/2012 prevê, no art. 6ª, que informações protegidas por legislação específica, como fiscal, bancário, de operações e serviços no mercado de capitais, comercial, profissional, industrial e segredo de justiça; entre outras, não estão sujeitas a divulgação. Os tipos mais comuns em uso no COMAER são: informações pessoais; informações de pesquisa e desenvolvimento; informações contidas em documentos preparatórios; IV informações contidas em documentos de Inteligência; V informações sobre 0 Sistema de Defesa Aeroespacial Brasileiro; e VI informações relativas ao Sistema de Investigação e Prevenção de Acidentes Aeronáuticos.
+Subseção |
+Informações Pessoais
+Art. 31. 0 tratamento das informações pessoais deve ser feito de forma transparente e com respeito à intimidade, à vida privada, à honra e à imagem das pessoas, bem como às liberdades e garantias individuais. 8 1ª Informações ou dados pessoais são todos aqueles relativos à pessoa natural identificada ou identificável.
+8 2ª Considera-se dado pessoal sensível todo dado pessoal sobre origem racial ou étnica, convicção religiosa; opinião política; filiação a sindicato oua organização de caráter religioso; filosófico ou político; dado referente à saúde ou à vida sexual, dado genético ou biométrico, quando vinculado a uma pessoa natural. 8 32 As informações pessoais, a que se refere este artigo, relativas à intimidade, à vida privada, à honra e à imagem: terão seu acesso restrito; independentemente de classificação de sigilo e pelo prazo máximo de 100 (cem) anos a contar da sua data de produção; a agentes públicos legalmente autorizados e à pessoa a que elas se referirem; e poderão ter autorizada sua divulgação ou acesso por terceiros diante de previsão legal ou consentimento expresso da pessoa a que elas se referirem. Art. 32. No COMAER, terão acesso à informação pessoal os militares ou servidores que, devidamente autorizados; têm a necessidade de conhecer seu conteúdo por força de atribuição funcional. Também terá acesso a pessoa a quem essa informação se refere. 8 19 0 acesso a que se refere 0 caput deverá ser realizado observando-se as disposições da Lei nª 13.709, de 14 de agosto de 2018 (LGPD) os termos do art. 31 da Lei nª 12.527, de 18 de novembro de 2011 (LAI), e dos art. 55 a 62 do Decreto nª 7.724, de 2012. 8 2 Além da necessidade de conhecer, para garantir 0 acesso à informação pessoal, deve ser preenchido Termo de Compromisso de Manutenção de Sigilo TCMS , de acordo com a ICA 200-13 Credenciamento de Segurança. Art. 33. Aquele que obtiver acesso à informação; de que trata esta Seção, será responsabilizado por seu uso indevido nos termos da LGPD; nos art. 52 a 54. Art. 34 0 documento que contenha informação pessoal deverá receber marcação na
+
+parte superior e inferior de todas as páginas, existindo ou não classificação de sigilo; conforme modelo do Anexo III.
+Art. 35. Os sistemas informatizados utilizados para 0 tratamento da informação pessoal não possuem requisitos legais de criptografia. Contudo; devem ser capazes de implementar 0 princípio da necessidade de conhecer
+Subseção Il
+Informações de Pesquisa e Desenvolvimento
+Art. 36. Assuntos que possam prejudicar ou causar risco a quaisquer projetos de pesquisa e desenvolvimento científico ou tecnológico podem, a critério da autoridade competente, ser classificados em grau de sigilo; de acordo com 0 inciso VI do art. 6ª. Art. 37. A LAI, em seu art. 7ª 819, define que 0 acesso à informação coberto por aquela lei não se aplica a informações referentes a 'projetos de pesquisa e desenvolvimento científicos ou tecnológicos cujo sigilo seja imprescindível à segurança da sociedade e do Estado" . Art. 38. No Comando da Aeronáutica, informações referentes à pesquisa desenvolvimento serão consideradas de acesso restrito àqueles que possuam necessidade de conhecer
+8 1ª Os documentos e materiais com esse tipo de informação deverão receber marcações, conforme modelo do Anexo III. $ 2ª Caso os documentos tenham sido classificados em grau de sigilo; permanecerão sob restrição de acesso mesmo após sua desclassificação. 8 3ª A restrição de acesso perdurará pelo período que for necessário à consecução de projeto ou até que sua divulgação não possibilite vantagem de qualquer natureza a terceiros, não envolvidos na pesquisa.
+Subseção
+Informações Contidas em Documentos Preparatórios
+Art. 39. De acordo com 0 Decreto nª 7.724, documento preparatório é 0 documento formal utilizado como fundamento da tomada de decisão ou de ato administrativo. Parágrafo único. São exemplos de documentos preparatórios: pareceres; notas técnicas; sindicância,   inquérito  policial militar; processo administrativo ou disciplinar; tomada de contas ou de qualquer espécie de ação investigativa ou correcional; e IV documentos de assessoramento relativos a quaisquer outras ações na área de competência do Comando da Aeronáutica, quando ainda não concluídos OS respectivos procedimentos . Art. 40. Documentos preparatórios devem permanecer sob restrição de acesso, para evitar que sua divulgação indevida possa interferir negativamente na decisão. Parágrafo único. 0 acesso a documento preparatório ou informação nele contida; utilizados como fundamento de tomada de decisão ou de ato administrativo; será assegurado a partir da edição do ato ou decisão; se não cobertos por outras hipóteses de sigilo.
+
+Art. 41. Os documentos preparatórios deverão receber marcações, conforme modelo do Anexo III.
+Subseção IV
+Informações Contidas em Documentos de Inteligência
+Art. 42 Os documentos referentes à atividade de Inteligência são; essencialmente, documentos preparatórios, uma vez que têm 0 objetivo de assessorar os diversos níveis decisórios no COMAER Parágrafo único. São exemplos de documentos de Inteligência: informe; informação; apreciação; IV estimativa; V relatório; mensagem e síntese de Inteligência; VI levantamento estratégico de área; VII conjuntura e suas avaliações; e VIII demais documentos, informações ou conhecimentos produzidos pela atividade de Inteligência. Art. 43- Em virtude de sua natureza sigilosa e da possibilidade de conterem dados sensíveis ou sigilosos; os documentos de Inteligência não podem: ser utilizados como documentos integrantes de processos, de inquéritos; de sindicâncias, ou seja, de quaisquer documentos de natureza administrativa, tampouco ser neles referenciado; ensejar quaisquer atividades, mesmo regulamentares, que coloquem em risco 0 seu sigilo e a proteção da fonte; e ser usados com finalidade administrativa, disciplinar ou de qualquer natureza diversa da atividade de inteligência. Art. 44 Ao contrário dos demais documentos preparatórios, OS documentos de Inteligência devem permanecer sob restrição de acesso mesmo após sua utilização para tomada de decisão
+Parágrafo único. A restrição de acesso às informações de Inteligência é mantida fundamentada no art. 22 da LAI, que acolhe outras hipóteses de sigilo. Essas informações são protegidas com base no art. 9ª da Lei nª 9.887, de 7 de dezembro de 1999. Art. 45. Os documentos de   Inteligência deverão receber marcações, conforme modelo do Anexo III.
+Subseção V
+Informações Sobre 0 Sistema de Defesa Aeroespacial Brasileiro
+Art. 46. Outra categoria de informações protegidas por outras hipóteses legais de sigilo; conforme 0 art. 22 da LAI, são aquelas referentes ao Sistema de Defesa Aeroespacial Brasileiro SISDABRA.
+
+Art. 47. 0 Decreto-Lei nª 1.778, de 18 de março de 1980, que cria 0 Sistema de Defesa Aeroespacial Brasileiro; estabelece, em seu art. 3ª que "0 Sistema de Defesa Aeroespacial Brasileiro é isento de quaisquer prescrições que determinem a publicação ou divulgação ostensiva de sua organização e funcionamento" . Art. 48. No Comando da Aeronáutica, informações referentes à organização e ao funcionamento do SISDABRA deverão ser consideradas de acesso restrito
+8 19 Os documentos e materiais com esse tipo de informação deverão receber marcações, conforme modelo do Anexo III. $ 2ª Caso os documentos tenham sido classificados em grau de sigilo, permanecerão sob restrição de acesso mesmo após sua desclassificação.
+Subseção VI
+Informações Relativas ao Sistema de Investigação e Prevenção de Acidentes Aeronáuticos
+Art. 49. A Lei nª 7.565, de 19 de dezembro de 1986, que dispõe sobre 0 Código Brasileiro de Aeronáutica, foi alterada pela Lei nª 12.970, de 8 de maio de 2014, e passou a tratar sobre as investigações do Sistema de Investigação e Prevenção de Acidentes Aeronáuticos SIPAER. Ficou estabelecido; na seção IlI, do capítulo VI, do título IIl , que são protegidas as fontes e informações SIPAER. Esses dados somente serão fornecidos mediante requisição judicial. Parágrafo único. Os documentos e materiais com esse tipo de informação deverão receber marcações, conforme modelo do Anexo III.
+Seção IIl
+Materiais e Áreas de Acesso Restrito
+Subseção 1
+Materiais de Acesso Restrito
+Art. 50. Os materiais, documentos ou outros suportes de quaisquer naturezas que contenham informações protegidas por quaisquer hipóteses de sigilo são considerados material de acesso restrito.
+Art. 51. No âmbito do COMAER, com a finalidade de indicar 0 nível das medidas protetivas a serem empregadas na salvaguarda dos materiais de acesso restrito, eles foram, a exemplo das informações classificadas, distribuídos em três níveis: MATERIAL DE ACESSO RESTRITO NÍVEL 3: que contenha informação cuja divulgação indevida possa acarretar em dano excepcionalmente grave; MATERIAL DE ACESSO RESTRITO NÍVEL 2: que contenha informação cuja divulgação indevida possa acarretar em dano grave; e MATERIAL DE ACESSO RESTRITO NÍVEL 3: que contenha   informação cuja divulgação indevida possa acarretar em dano. Art. 52 Ao material de acesso restrito devem ser fornecidos os mesmos mecanismos de segurança providos às informações classificadas equivalentes: MATERIAL DE ACESSO RESTRITO NÍVEL 3: medidas equivalentes a ULTRASSECRETO; MATERIAL DE ACESSO RESTRITO NÍVEL 2: medidas equivalentes a SECRETO; e
+
+MATERIAL DE ACESSO RESTRITO NÍVEL 1: medidas equivalentes a RESERVADO. Art. 53. Além dos documentos; são exemplos de material de acesso restrito: equipamentos,   máquinas, modelos, moldes , maquetes,   protótipos,  artefatos, aparelhos, dispositivos, instrumentos;   representações   cartográficas; sistemas,   suprimentos e manuais de instrução; veículos terrestres, aquaviários e aéreos, suas partes, peças e componentes; armamentos e seus acessórios, as munições e OS aparelhos,  equipamentos, suprimentos e insumos correlatos; IV aparelhos; equipamentos, suprimentos e programas relacionados a tecnologia da informação e comunicações, inclusive à inteligência de sinais e imagens; V recursos criptográficos; e VI explosivos, líquidos e gases.
+Subseção II
+Áreas e Instalações de Acesso Restrito
+Art. 54 As áreas e instalações que contenham documento com informação classificada em qualquer grau de sigilo; ou que, por sua utilização ou finalidade, demandarem proteção; terão seu acesso restrito às pessoas autorizadas pelo órgão ou entidade, terão acesso restrito a militar ou servidor que possuam necessidade de conhecer e estejam autorizados pelo Cmt, Chefe ou Diretor da OM.
+Parágrafo único. No COMAER, as visitas a áreas ou instalações de acesso restrito são disciplinadas por meio da ICA 205-22 Visitas às Organizações Militares do Comando da Aeronáutica. Art. 55. Na área ou instalação de acesso restrito deverá ser fixada, em local visível, uma ou mais placas indicativas, conforme modelos constantes do Anexo III, de modo a possibilitar sua visualização por qualquer pessoa que tente abordá-la.
+CAPÍTULO III
+DO TRATAMENTO DE INFORMAÇÃO SOB RESTRIÇÃO DE ACESSO
+Art. 56. 0 tratamento da informação constitui 0 conjunto de ações referentes à produção; recepção; classificação; utilização; acesso, reprodução, transporte, transmissão; distribuição; arquivamento; armazenamento; eliminação; avaliação; destinação ou controle da informação sob restrição de acesso _ Art. 57. 0 acesso, a divulgação e 0 tratamento de informação classificada ficarão restritos a pessoas com necessidade de conhecê-la e que sejam credenciadas. 8 1ª 0 acesso à informação classificada em qualquer grau de sigilo a pessoa não credenciada ou não autorizada por legislação poderá, excepcionalmente, ser permitido mediante assinatura de Termo de Compromisso de Manutenção de Sigilo TCMS, constante do Anexo VI, pelo qual a pessoa obrigar-se-á a manter 0 sigilo da informação; sob pena de responsabilidade penal, civil e administrativa, na forma da lei. 8 2 0 credenciamento de segurança no âmbito do COMAER é regulado pela ICA 200-13
+Art. 58. A publicação de atos normativos relativos à informação classificada em
+
+qualquer grau de sigilo ou sob restrição de acesso poderá limitar-se, quando necessário; aos seus respectivos números, datas de expedição e ementas, redigidos de modo a não comprometer 0 sigilo. 8 19 0 conteúdo classificado em grau de sigilo pode ser publicado em Boletim classificado (SECRETO ou RESERVADO) 8 22 Outro tipo de conteúdo com restrição de acesso, quando cabível, deverá ser publicado no Boletim de Acesso Restrito; à exceção das informações pessoais que serão publicadas no Boletim Interno de Informações Pessoais, de acordo com a ICA 35-1 Padronização de Processos Administrativos.
+Seção /
+Documento e Material Controlado
+Art. 59. Para 0 tratamento de documento ou material com informação sob restrição de acesso a autoridade responsável pela produção poderá torná-lo CONTROLADO. Art. 60. 0 documento ou 0 material controlado devem receber OS seguintes procedimentos adicionais de controle: identificação dos destinatários em protocolo e recibo específicos; lavratura de termo de custódia e registro em protocolo específico; lavratura anual de termo de inventário; pelo órgão ou entidade expedidor e pelo órgão ou entidade receptor; de acordo com 0 modelo no Anexo IV; e IV lavratura de termo de transferência de custódia ou guarda, conforme modelo no anexo V
+Parágrafo único. 0 documento/material previsto no caput será denominado Documento Controlado DC Material Controlado MC.
+Art. 61- 0 documento ultrassecreto é considerado DC desde sua classificação ou reclassificação. Art. 62- 0 material criptográfico deverá ser considerado MC. Art. 63. A eliminação de documentos e materiais controlados será autorizada pelo Órgão Produtor e observará os seguintes requisitos: lavratura do Termo de Eliminação de Documento Material Controlado; e encaminhamento do Termo a0 Órgão Produtor:
+Seção Il Marcações
+Art. 64 A marcação será feita nos cabeçalhos e rodapés das páginas e das capas do documento.
+8 1ª As páginas serão numeradas seguidamente devendo cada uma conter indicação do total de páginas que compõe 0 documento. 8 2 A marcação deverá ser feita de modo a não prejudicar a compreensão da informação. Art. 65. 0 DC MC possuirá a marcação de que trata 0 art. 64 e conterá, na capa e em todas as páginas, a expressão "Documento Controlado DC" e 0 número de controle, que
+
+indicará 0 agente público custodiante, conforme exemplo no Anexo III.
+Seção Ill
+Expedição, Tramitação e Comunicação
+Art. 66. A expedição e a tramitação de documentos classificados deverão observar OS seguintes procedimentos: serão acondicionados em envelopes duplos; no envelope externo não constará indicação do grau de sigilo ou do teor do documento; no envelope interno constarão 0 destinatário e 0 grau de sigilo do documento, de modo a serem identificados logo que removido 0 envelope externo; IV 0 envelope interno será fechado, lacrado e expedido mediante recibo; que indicará remetente, destinatário e número ou outro indicativo que identifique 0 documento; e V será inscrita a palavra "PESSOAL" no envelope que contiver documento de interesse exclusivo do destinatário, que deve ser nominado nesse envelope. Art. 67 A expedição, a condução e a entrega de documento com informação classificada em grau de sigilo ULTRASSECRETO serão efetuadas pessoalmente, por agente público credenciado; vedada sua postagem. Art. 68. A expedição de documento com informação classificada em grau de sigilo secreto ou reservado será feita pelos meios de comunicação informatizados padronizados pelo Centro de Inteligência da Aeronáutica CIAER, com recursos de criptografia compatíveis com 0 grau de sigilo ou, se for 0 caso, por via diplomática sem prejuízo da entrega pessoal por portador credenciado_
+Art. 69. 0 transporte de equipamento criptográfico deve ser realizado por portador credenciado
+Art. 70. Cabe aos responsáveis pelo recebimento do documento com informação classificada em qualquer grau de sigilo ou sob restrição de acesso; independente do meio e formato: registrar 0 recebimento do documento; verificar a integridade do meio de recebimento e registrar indícios de violação ou de irregularidade, comunicando a0 destinatário; que informará imediatamente ao remetente; e informar ao remetente 0 recebimento da informação; no prazo mais curto possível. 8 1ª Caso a tramitação ocorra por expediente ou correspondência, 0 envelope interno somente será aberto pelo destinatário; seu representante autorizado ou autoridade hierarquicamente superior. 8 2ª Envelopes internos contendo a marca "PESSOAL" somente poderão ser abertos pelo destinatário nominado no envelope . Art. 71. A informação sob restrição de acesso será mantida ou arquivada em condições especiais de segurança. $ 1ª Para manutenção e arquivamento de informação classificada no grau de sigilo ULTRASSECRETO e SECRETO ou sob restrição de acesso equivalente é obrigatório 0 Uso de equipamento; ambiente ou estrutura que ofereça segurança compatível com 0 grau de sigilo:
+
+Para 0 armazenamento deve ser usado cofre, cujas dimensões e peso impeçam a remoção do ambiente onde estão localizados; Caso não haja disponibilidade desse tipo de armazenamento; as instalações devem ser protegidas por guarda armada; 24 horas. $ 2ª Para manutenção e arquivamento de informação sob restrição de acesso equivalente ao grau de sigilo RESERVADO deve ser utilizado; no mínimo, compartimento dotado de dispositivo de trancamento como armário, arquivo, gaveta, etc. $ 3ª Para armazenamento em meio eletrônico de documento com informação sob restrição de acesso é obrigatória a utilização de sistemas de tecnologia da informação atualizados de forma a prevenir ameaças de quebra de segurança, observado 0 disposto no art. 72. Art. 72. Os meios eletrônicos de armazenamento de informação classificada em qualquer grau de sigilo, inclusive os dispositivos móveis, devem utilizar recursos criptográficos adequados ao grau de sigilo. Art. 73 0 meio de transporte utilizado para deslocamento de material de acesso restrito é de responsabilidade do custodiante e deverá considerar 0 grau de sigilo das informações 8 1ª 0 material de acesso restrito   poderá ser transportado por empresas contratadas, adotadas as medidas necessárias à manutenção do sigilo das informações. 8 2 As medidas necessárias para a segurança do material transportado serão prévia explicitamente estabelecidas em contrato.
+Seção IV Reprodução
+Art. 74. A reprodução do todo ou de parte de documento com informação classificada em qualquer grau de sigilo ou sob restrição de acesso estará sujeita à mesma restrição de acesso do documento original. 8 1ª A reprodução total ou parcial de informação classificada em qualquer grau de sigilo condiciona-se à autorização expressa da autoridade classificadora ou autoridade hierarquicamente superior com igual prerrogativa. $ 2 As cópias serão autenticadas pela autoridade classificadora ou autoridade hierarquicamente superior. Art. 75. Caso a preparação; impressão ou reprodução de informação classificada em qualquer grau de sigilo for efetuada em tipografia, impressora; oficina gráfica ou similar; essa operação será acompanhada por pessoa oficialmente designada; responsável pela garantia do sigilo durante a confecção do documento.
+Seção V
+Preservação e Guarda
+Art. 76. Os documentos classificados em grau de sigilo; após 0 término do prazo de restrição de acesso e consequente desclassificação; deverão ser encaminhados à Subcomissão Permanente de Avaliação de Documentos do Comando da Aeronáutica SPADAER para aplicação das Tabelas de Temporalidade, com vistas à definição do prazo de guarda e da destinação final (eliminação ou recolhimento para guarda permanente) conforme disposto na ICA 200- 12 Avaliação de Documentos Classificados no Comando Da Aeronáutica e a NSCA 214-1 Avaliação
+
+de Documentos Classificados no Comando da Aeronáutica .
+Art. 77. 0 documento de guarda permanente que contiver informação classificada em qualquer grau de sigilo será encaminhado; em caso de desclassificação; ao Centro de Documentação da Aeronáutica CENDOC; para fins de organização; preservação e acesso. Parágrafo único. 0 documento de guarda permanente não pode ser desfigurado ou destruído; sob pena de responsabilidade penal, civil e administrativa, na forma da lei. Art. 78. Os documentos classificados nos graus de sigilo ULTRASSECRETO e SECRETO são de guarda permanente. Seção VI Sistemas de Informação
+Art. 79. No tratamento da informação classificada ou sob restrição de acesso deverão ser utilizados sistemas de informação e canais de comunicação seguros que atendam aos padrões mínimos de qualidade e segurança definidos pelo Poder Executivo Federal, aprovados pelo CIAER:. 8 1ª No caso de informação pessoal, os sistemas e canais utilizados devem garantir somente a aplicação do princípio da necessidade de conhecer. Requisitos referentes à criptografia listados a seguir não se aplicam a esse tipo de informação. 8 22 A transmissão de informação classificada em qualquer grau de sigilo ou sob restrição de acesso por meio de sistemas de informação; deverá ser realizada, no âmbito da rede corporativa; por meio de canal seguro; como forma de mitigar 0 risco de quebra de segurança _ $ 32 A autenticidade da identidade do usuário da rede deverá ser garantida, no mínimo, pelo uso de certificado digital. 8 4ª Os sistemas de informação de que trata 0 caput deverão ter níveis diversos de controle de acesso e utilizar recursos criptográficos adequados aos graus de sigilo. 8 5ª Os sistemas de informação de que trata 0 caput deverão manter controle e registro dos acessos autorizados e não autorizados e das transações realizadas por prazo igual ou superior ao de restrição de acesso à informação. Art. 80. Os equipamentos e sistemas utilizados para a produção de documento com informação sob restrição de acesso deverão estar isolados ou ligados a canais de comunicação seguros, que estejam física ou logicamente isolados de qualquer outro; e que possuam recursos criptográficos e de segurança adequados à sua proteção. Art. 81. A cifração e a decifração de informação sob restrição de acesso deverão utilizar recurso criptográfico baseado em algoritmo de Estado. Art. 82. Os procedimentos de tratamento DC/MC aplicam-se aos recursos criptográficos; atendidas as seguintes exigências: realização de vistorias periódicas, com a finalidade de assegurar a execução das operações criptográficas; manutenção de inventários completos e atualizados do material de criptografia existente; designação de sistemas criptográficos adequados a cada destinatário; IV comunicação; ao superior hierárquico ou à autoridade competente; de anormalidade relativa ao sigilo; à inviolabilidade, à integridade, à autenticidade, à legitimidade e à disponibilidade de informações criptografadas; e
+
+identificação de indícios de violação; de interceptação ou de irregularidades na transmissão ou recebimento de informações criptografadas.
+Seção VII
+Celebração de Contratos
+Subseção |
+Contratos com Informações Classificadas
+Art. 83. A celebração de contrato; convênio; acordo; ajuste, termo de cooperação ou protocolo de intenção cujo objeto contenha informação classificada em qualquer grau de sigilo; ou cuja execução envolva informação classificada; é condicionada à habilitação de segurança da contratada e ao estabelecimento de cláusulas contratuais que incluam: obrigação de manter sigilo relativo a0 objeto e a sua execução; possibilidade de alteração contratual para inclusão ou alteração de cláusula de segurança não estipulada previamente; obrigação de adotar procedimentos de segurança adequados, no âmbito das atividades sob seu controle para a manutenção do sigilo relativo a0 objeto; IV identificação, para fins de concessão de credencial de segurança, das pessoas que poderão ter acesso à informação classificada em qualquer grau de sigilo e material de acesso restrito; V - obrigação de receber inspeções para habilitação de segurança e sua manutenção;
+VI responsabilidade em relação aos procedimentos de segurança, relativa à subcontratação; no todo ou em parte.
+Subseção Il
+Contratos com Dados Pessoais
+Art. 84 A DCA 16-6 estabelece a estrutura adotada no âmbito do COMAER a fim de permitir a gestão adequada dos dados pessoais. Essa legislação apresenta as considerações basilares da LGPD; 0 ciclo de vida dos dados pessoais, além de boas práticas nos tratamentos desses dados. Art. 85. Ao definir as responsabilidades conforme a LGPD; apresenta; entre outras, as definições das figuras do controlador e do operador dos dados pessoais: 0 controlador "é definido pela Lei como a 'pessoa natural ou jurídica, de direito público ou privado; a quem competem as decisões referentes ao tratamento de dados pessoais' (art. 59, VI). Na prática, é a figura que determina como deve ser realizado 0 tratamento dos dados pessoais. É também 0 responsável pela indicação do encarregado de dados (art. 41)". No COMAER; 0 Controlador é 0 Comandante da Aeronáutica; e 0 operador "é compreendido como 'pessoa natural ou jurídica, de direito público ou privado; que realiza 0 tratamento de dados pessoais em nome do controlador' (art. 59, VII), ou seja, é aquele que realizará 0 tratamento conforme definido pelo controlador". No caso de contratos nos quais 0 contratado realize tratamento de dados pessoais em nome do COMAER; esse contratado; pessoa física ou jurídica; será 0 OPERADOR. Art. 86. Nos casos desses contratos, deve haver cláusula que estabeleça a necessidade de 0 operador observar as prescrições da LGPD; além de conhecer e respeitar as
+
+previsões da DCA 16-6 e de outras que venham a ser aprovadas acerca desse tema.
+CAPÍTULO IV DAS DISPOSIÇÕES FINAIS
+Art. 87. A segurança da  informação classificada ou sob restrição de acesso responsabilidade do militar que tenha acesso a essas informações, estando sujeito às regras referentes ao sigilo profissional, em razão do ofício; da legislação vigente e do Estatuto dos Militares. Art. 88. A segurança da  informação classificada ou sob restrição de acesso é responsabilidade do servidor civil que tenha acesso a essas informações, no âmbito do COMAER, estando sujeito às regras referentes a0 sigilo profissional, em razão do ofício, da legislação vigente e do Código de Ética Profissional do Servidor Público Civil do Poder Executivo Federal. Art. 89. Constituem condutas ilícitas que ensejam responsabilidade civil , administrativa elou penal da pessoa física ou jurídica, as previstas nos art. 32, 33 e 34 da Lei nª 12.527/2011.
+Art. 90. Os responsáveis pelo tratamento de dados pessoais que cometam infrações à Lei nª 13.709/2018, ficam sujeitos às sanções previstas no art. 52. Art. 91 0 tratamento de informações classificadas ou sob restrição de acesso resultante de tratados, acordos ou atos internacionais atenderão às normas estabelecidas nesses atos.
+
+ANEXO II
+TERMO DE CLASSIFICAÇÃO DA INFORMAÇÃO TCI GRAU DE SIGILO
+TERMO DE CLASSIFICAÇAO DE INFORMAÇAO
+ÓRGAOIENTIDADE: CODIGO DE INDEXAÇÃO: GRAU DE SIGILO: CATEGORIA: TIPO DE DOCUMENTO: DATA DE PRODUÇAO: FUNDAMENTO LEGAL PARA CLASSIFICAÇÃO:
+RAZOES DA CLASSIFICAÇÃO:
+(GRAU DE SIGILO IDÊNTICO AO GRAU DE SIGILO DO DOCUMENTO) ASSUNTO DA INFORMAÇAO CALSSIFICADA: PRAZO DA RESTRIÇÃO DE ACESSO: DATA DE CLASSIFICAÇÃO: INome: AUTORIDADE CLASSIFICADORA [cargo: AUTORIDADE RATIFICADORA INome: (quando aplicável) [cargo: DESCLASSIFICAÇÃO em INome: (quando aplicável) lcargo: RECLASSIFICAÇÃO em Nome: (quando aplicável) Kcargo: REDUÇÃO DE PRAZO em Nome: (quando aplicável) [Cargo: PRORROGAÇÃO DE PRAZO em Nome: (quando aplicável) kargo:
+ASSINATURA DA AUTORIDADE CLASSIFICADORA
+ASSINATURA DA AUTORIDADE RATIFICADORA (quando aplicável)
+ASSINATURA DA AUTORIDADE responsável por DESCLASSIFICAÇÃO (quando aplicável)
+ASSINATURA DA AUTORIDADE responsável por RECLASSIFICAÇÃO (quando aplicável)
+ASSINATURA DA AUTORIDADE responsável por REDUÇÃO DE PRAZO (quando aplicável)
+ASSIMATURA DA AUTORIDADE responsável por PRORROGAÇÃO DE PRAZO (quando aplicável)
+GRAU DE SIGILO
+
+ANEXO
+MARCAÇÕES DE SIGILO a Documentos Classificados em Grau de Sigilo
+ULTRASSECRETO
+SECRETO
+RESERVADO
+b Documento Preparatório Acesso Restrito
+DOCUMENTO PREPARATÓRIO ACESSO RESTRITO
+Art. 3ª, Inciso XII e Art. 20 do Decreto n 7.724, de 16 de maio de 2012
+c. Informação Pessoal
+INFORMAÇÃO PESSOAL ACESSO RESTRITO Art. 5ª, Inciso X, da Constituição Federal do Brasil/1988 Art. 55 ao Art. 62 do Decreto nª 7.724, de 16 de maio de 2012
+d. Informação de Pesquisa e Desenvolvimento Acesso Restrito
+INFORMAÇÃO DE PESQUISA E DESENVOLVIMENTO ACESSO RESTRITO
+81ª do Art. 7ª da Lei nª 12.527, de 18 de novembro de 2011 Inciso II do Art. 6ª do Decreto nª 7.724, de 16 de maio de 2012
+e Informação Sobre 0 Sistema de Defesa Aeroespacial Brasileiro (outras   hipóteses de sigilo) Acesso Restrito
+INFORMAÇÃO SOBRE 0 SISTEMA DE DEFESA AEROESPACIAL BRASILEIRO ACESSO RESTRITO
+Art. 3ª do Decreto-Lei nª 1.778, de 18 de março de 1980 Art. 22 da Lei nª 12.527, de 18 de novembro de 2011
+
+CONTINUAÇÃO DO ANEXO
+f Fonte e Informação do Sistema de Investigação e Prevenção de Acidentes Aeronáuticos (outras hipóteses de sigilo) Acesso Restrito
+FONTE INFORMAÇÃO DO SISTEMA DE INVESTIGAÇÃO E PREVENÇÃO DE ACIDENTES AERONÁUTICOS ACESSO RESTRITO Seção III do Capítulo VI do Título III da Lei nª 7.565, de 19 de dezembro de 1986 Art. 22 da Lei nª 12.527, de 18 de novembro de 2011
+g. Material de Acesso Restrito Nível 1, 2 ou 3
+MATERIAL DE ACESSO RESTRITO Art. 44, 45 e 46 do Decreto n" 7.845, de 14 de novembro de 2012
+NÍVEL 1
+h Área de Acesso Restrito
+ÁREA DE ACESSO RESTRITO
+ENTRADA PROIBIDA A PESSOAS NÃO AUTORIZADAS Art. 42 do Decreto n 7.845, de 14 de novembro de 2012
+L.
+Cópias
+CÓPIA No
+1 .
+Documentos Controlados (DC) e Materiais Controlados (MC)
+DOCUMENTO CONTROLADO
+MATERIAL CONTROLADO
+DC nª (nª do exemplar)
+(ano)
+MC nª (nª do material) (ano)
+
+ANEXO IV
+MODELO DE TERMO DE INVENTÁRIO DE DOCUMENTOS/MATERIAIS CONTROLADOS
+MATERIAL DE ACESSO RESTRITO
+Art:. 44,45 e 46 do Decreto nª 7.845, de 14 de novembro de 2012
+NÍVEL 1
+MINISTÉRIO DA DEFESA COMANDODA AERONÁUTICA
+CENTRO DE INTELIGÊNCIA DA AERONÁUTICA
+TERMO DE INVETÁRIO DE DOCUMENTOS MATERIAIS CONTROLADOS
+Numeração Sequencial:
+Órgão Produtor: Órgão Custodiante:
+Motivo:
+DOCUMENTO MATERIAL CONTROLADO
+NÚMERO
+de
+de
+Local
+Data
+Autoridade Custodiante
+MATERIAL DE ACESSO RESTRITO
+Art. 44,45 e 46 do Decreto nª 7.845,de 14 de novembro de 2012
+NÍVEL1
+
+ANEXO V
+MODELO DE TERMO DE TRANSFERÊNCIA E CUSTÓDIA DE DOCUMENTOS /MATERIAIS CONTROLADOS
+MATERIAL DE ACESSO RESTRITO
+Art. 44,45 e 46 do Decreto nª 7.845,de 14 de novembro de 2012
+NÍVEL 1
+MINISTÉRIO DA DEFESA COMANDODA AERONÁUTICA
+CENTRO DE INTELIGÊNCIA DA AERONÁUTICA
+TERMO DE TRANSFERÊNCIA E CUSTÓDIA DE DOCUMENTOS MATERIAIS
+CONTROLADOS
+Numeração Sequencial:
+Agente Substituto:
+Público
+Agente Substituído:
+Público
+IDENTIFICAÇÃO DOS DOCUMENTOS MATERIAIS CONTROLADOS TRANSFERIDOS OU TERMO DE INVENTÁRIO
+1.
+2
+3
+de
+de
+Local
+Data
+Agente Público Substituto
+Agente Público Substituído
+MATERIAL DE ACESSO RESTRITO
+Art. 44,45 e 46 do Decreto nª 7.845,de 14 de novembro de 2012
+NÍVEL 1
+
+ANEXO VI TERMO DE COMPROMISSO E MANUTENÇÃO DE SIGILO
+INFORMAÇÃO PESSOAL ACESSO RESTRITO Art: 5ª, Inciso X, da Constituição Federal do Brasil/1988 Art. 55 ao Art. 62 do Decreto nª 7.724,de 16 de maio de 2012
+MINISTÉRIO DA DEFESA COMANDO DA AERONÁUTICA
+CENTRO_DE INTELIGÊNCIA DAAERONÁUTICA
+TERMO DE COMPROMISSO DE MANUTENÇÃO DE SIGILO ~ TCMS
+CPF
+perante 0 Comando da Aeronáutica; declaro ter ciência inequívoca da
+legislação:
+1 . Sobre tratamento de dados pessoais; OS requisitos   para tratamento de dados pessoais de terceiros; conforme estabelecido pela Lei nª 13.709, de 14 de agosto de 2018; 2 Sobre 0 tratamento de informação classificada em grau de sigilo; cuja divulgação possa causar risco ou dano à segurança da sociedade ou do Estado; e
+Comprometo-me a guardar 0 sigilo necessário; nos termos da Lei n 12.527, 18 de novembro de 2011,
+a:
+a) Tratar as informações classificadas em qualquer grau de sigilo ou os materiais de acesso restrito que me forem fornecidos pelo Ministério da Defesa e preservar 0 seu sigilo; de acordo com a legislação vigente; b) Preservar 0 conteúdo das informações classificadas em qualquer  grau de sigilo; oudos materiais de acesso restrito, sem divulga-los a terceiros; Não praticar quaisquer atos que possam afetar 0 sigilo ou a integridade das informações classificadas em qualquer grau de sigilo; ou dos materiais de acesso restrito e Não copiar ou reproduzir; por qualquer meio ou modo: (i) informações classificadas em qualquer grau de sigilo; (ii) informações relativas aos materiais de acesso   restrito do Ministério da Defesa; salvo com autorização da autoridade competente.
+INFORMAÇÃO PESSOAL ACESSO RESTRITO Art. 5ª, Inciso X, da Constituição Federal do Brasil/1988 Art. 55 ao Art. 62 do Decreto nª 7.724, de 16 de maio de 2012
+Eu;
+
+CONTINUAÇÃO DO ANEXO VI
+INFORMAÇÃO PESSOAL - ACESSO RESTRITO Art. 5ª, Inciso X, da Constituição Federal do BrasiV/l988 Art. 55 a0 Art. 62 do Decreto nª 7.724,de 16 de maio de 2012
+Declaro que tive acesso ao à) documento ou material entregue ou exibido a0 signatário; e por estar de acordo com 0 presente Termo; 0 assino na presença de testemunhas abaixo.
+Local
+Data
+Assinatura do declarante
+1
+Testemunha:
+Nome, CPF, Rubrica
+2
+Testemunha:
+Nome, CPF, Rubrica
+Aviso de privacidade: Suas informações pessoais serão tratadas pelo Comando da Aeronáutica conforme a Lei nª 13.709, de 14 de agosto de 2018, com a finalidade de efetuar apuração legal em caso de descumprimento do presente Termo, seguindo 0 princípio da necessidade; limitando-se ao mínimo de dados para a realização da finalidade declarada. A temporalidade de utilização dos dados coletados será de acordo com as leis arquivísticas vigentes.
+INFORMAÇÃO PESSOAL ACESSO RESTRITO Art: 5ª, Inciso X, da Constituição Federal do Brasil/1988 Art. 55 ao Art. 62 do Decreto nª 7.724,de 16 de maio de 2012
+
+ANEXO VII
+MODELO DE TERMO DE ELIMINAÇÃO DE DOCUMENTOS E MATERIAIS CONTROLADOS
+MATERIAL DE ACESSO RESTRITO
+Art. 44,45 e 46 do Decreto nª 7.845,de 14 de novembro de 2012
+NÍVEL 1
+MINISTÉRIO DA DEFESA COMANDO DA AERONÁUTICA
+CENTRO DE INTELIGÊNCIA DA AERONÁUTICA
+TERMO DE ELIMINAÇÃO DE DOCUMENTOS MATERIAIS CONTROLADOS Órgão Produtor:
+Órgão Custodiante:
+IDENTIFICAÇÃO DOS ITENS ELIMINADOS
+1
+2
+DECLARAÇÃO DAAUTORIDADE CUSTODIANTE Declaro, na qualidade de responsável pela custódia dos Documentos Materiais Controlados identificados neste termo, que procedi à sua eliminação de forma definitiva e segura, utilizando método compatível com 0 tipo e a natureza dos itens.
+Local
+Data
+Assinatura da Autoridade Custodiante
+10
+Testemunha:
+Nome, CPF, Rubrica
+2
+Testemunha:
+Nome, CPF, Rubrica
+MATERIAL DE ACESSO RESTRITO
+Art:. 44,45 e 46 do Decreto nª 7.845,de 14 de novembro de 2012
+NÍVEL 1

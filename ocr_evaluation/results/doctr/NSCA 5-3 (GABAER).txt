@@ -1,0 +1,3508 @@
+MINISTERIO DA DEFESA
+COMANDO DA AERONAUTICA
+GABINETE DO COMANDANTE DA AERONAUTICA
+PORTARIA GABAER/GC3 No 1.574, DE 4 DE FEVEREIRO DE 2026
+Aprova a Norma de Sistema que dispôe sobre
+as comunicaçoes oficiais e atos normativos no
+âmbito do Comando da Aeronautica.
+COMANDANTE DA AERONAUTICA, no uso da atribuiçao que lhe confere O inciso
+XIV do art. 23, Anexo I, Estrutura Regimental do Comando da Aeronautica, aprovada pelo Decreto
+no 11.237, de 18 de outubro de 2022, tendo em vista O disposto no Decreto no 12.002, de 22 de
+abril de 2024, na Portaria n94.044/MD-GM, de 3 de dezembro de 2020, e considerando O que consta
+do Processo no 67401.002606/2026-02, procedente do Centro de Documentaçao da Aeronautica,
+resolve:
+Art. 10 Fica aprovada a NSCA 5-3 "Norma de Sistema que dispôe sobre as
+comunicaçoes oficiais e atos normativos no âmbito do Comando da Aeronautica" na forma dos
+Anexos I ao XXV.
+Art. 2° Ficam revogadas:
+I-a Portaria no 661/GC3, de 21 de dezembro de 2023, publicada no Boletim do
+Comando da Aeronautica no 234, de 22 de dezembro de 2023; e
+II- a Portaria no 836/DLE, de 10 de maio de 2019, publicada no Boletim do Comando
+da Aeronautica no 72, de 2 de maio de 2019.
+Art. 30 Esta Portaria entra em vigor na data de sua publicaçao.
+Paragrafo unico. Entre a data de publicaçao e 31 de março de 2026, sera admitida,
+transitoriamente, a estrutura das Portarias acima revogadas.
+Ten Brig Ar MARCELO KANITZ DAMASCENO
+Comandante da Aeronautica
+
+
+
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+CENTRO DE DOCUMENTAÇAO DA AERONAUTICA
+I
+U
+COMUNICAÇOES OFICIAIS E ATOS NORMATIVOS
+NSCA 5-3
+NORMA DE SISTEMA DE COMUNICAÇOES
+OFICIAIS E ATOS NORMATIVOS NO ÂMBITO
+DO COMANDO DA AERONAUTICA
+2026
+
+
+
+ANEXO I
+COMUNICAÇOES OFICIAIS DO COMANDO DA AERONAUTICA (NSCA 5-3)
+SUMARIO
+Art.
+CAPITULO I- DISPOSIÇOES PRELIMINARES
+19/69
+Seçâo I - Finalidade e conceituaçao.
+19/30
+Seçao II - Das regras gerais das comunicaçôes oficiais e dos atos normativos 49/59
+Seçâo III - Dos documentos de comunicaçao oficial
+69
+CAPITULO II - CLASSIFICAÇAO DOS DOCUMENTOS
+70
+CAPITULO III - TIMBRES
+80
+CAPITULO IV - FORMAS DE TRATAMENTO.
+99/10
+CAPITULO V - ABREVIATURAS, SIGLAS E OUTRAS CONVENÇOES
+11/18
+Seçâo I - Abreviaturas e Siglas
+11
+Seçao II - Horas e datas.
+12
+Seçao III - Numeros e simbolos
+13
+Seçao IV - Pontos cardeais e coordenadas geograficas
+14
+Seçao V - Estados e O Distrito Federal
+15
+Seçao VI Alfabeto fonético
+16
+Seçao VII - Unidades de medida.
+17
+Seçao VIII - Postos e graduaçoes
+18
+CAPITULO VI - ELEMENTOS COMPLEMENTARES DAS COMUNICAÇOES OFICIAIS.
+19/33
+Seçâo I - Comunicaçôes oficiais endereçadas ao exterior
+19
+Seçao Il - Apresentagao grafica das comunicaçoes oficiais
+20
+Seçao III - Anexos das comunicaçoes oficiais
+21
+Seçao IV - Transcriçoes nas comunicaçoes oficiais.
+22
+Seçao V - Mençâo a Pessoal
+23/26
+Seçao VI - Referências a Autoridades nas comunicaçoes oficiais.
+27/29
+Seçao VII - Fecho de cortesia das comunicaçoes oficiais
+30
+Seçao VIII - Numeraçâo das comunicaçoes oficiais
+31
+Seçao IX - Autenticaçao das comunicaçoes oficiais.
+32
+Seçao X Quadros e tabelas
+33
+CAPITULO VII - REDAÇAO DAS COMUNICAÇOES OFICIAIS
+34/42
+
+Seçao I- Formataçao padrao
+34
+Seçao Il - Epigrafe
+35
+Seçao III - Preambulo
+36
+Seçao IV - Ementa
+37
+Seçao V - Texto..
+38
+Seçao VI - Divisôes do texto.
+39
+Seçao VII - Identificaçao do signatario
+40
+Seçao VIII - Do uso dos simbolos comemorativos
+41
+Seçao IX Continuaçâo de documento..
+42
+CAPITULO VIII - ESPÉCIES DE COMUNICAÇOES OFICIAIS PADRONIZADAS
+43/55
+Seçao I- Apostila
+43
+Seçao II - Ata
+44
+Seçao III - Carta.
+45
+Seçâo IV Certidao
+46
+Seçao V - Declaraçâo
+47
+Seçâo VI - Despacho
+48
+Seçâo VII - Despacho Decisorio
+49
+Seçao VIII - Norma Padrao de Açâo.
+50
+Seçâo IX - Oficio.
+51
+Seçao X - Ordem Técnica
+52
+Seçao XI - Parecer
+53
+Seçao XII - Portaria Ordinatoria
+54
+Seçao XIII - Requerimento
+55
+CAPITULO IX - ESPÉCIES DE COMUNICAÇOES OFICIAIS NAO PADRONIZADAS 56/59
+Seçao I- Edital..
+56
+Seçao II - Exposiçao de Motivos
+57
+Seçao III - Nota de Serviço - NS..
+58
+Seçao IV Ordem do Dia - OD.
+59
+CAPITULO X DISPOSIÇOES FINAIS.
+60/63
+CAPITULO
+DISPOSIÇOES PRELIMINARES
+
+Seçao I
+Finalidade e conceituaçao
+Art. 10 Esta Norma de Sistema adapta OS principios gerais e as regras constantes do
+Manual de Redaçao da Presidência da Republica ao Comando da Aeronautica - COMAER.
+Art. 29 Sera considerado comunicaçào oficial O gênero que compreende OS
+expedientes e documentos utilizados na correspondência entre OS orgaos da administraçao publica
+e entre estes e particulares, para tratar de assuntos administrativos; sendo, para efeitos desta
+norma, divididos em: padronizados e nâo padronizados.
+Art. 30 Serao considerados atos normativos aqueles que contêm um comando geral
+que tenha por finalidade especifica estabelecer regras de conduta entre a propria Administraçao e
+OS administrados, ou entre estes, visando à correta aplicaçâo da lei, convencionados por esta Norma
+como:
+I- técnico: documento estabelecido por consenso e aprovado por um organismo
+reconhecido, que fornece, para uso comum e repetido, regras, diretrizes ou caracteristicas para
+produtos, processos ou serviços, regidos com padrâo ABNT; e
+II - administrativo ou organizacional: documento que visa disciplinar procedimentos
+ou diretrizes da instituiçào, regidos com padrâo legislativo.
+Seçao II
+Das regras gerais das comunicaçoes oficiais e dos atos normativos
+Art. 40 A redaçâo de documentos oficiais no COMAER deve atender aos atributos de
+clareza e precisao, objetividade, concisao, coesao e coerència, impessoalidade, formalidade e
+padronizaçao.
+Art. 50 A redaçâo oficial requer objetividade, sendo essencial uma linguagem clara e
+simples, sem, contudo, prescindir da utilizaçao do padrâo culto da lingua.
+S 10 A redaçâo oficial apresentara carâter de impessoalidade, prescrevendo as
+seguintes caracteristicas:
+I- padrao culto da lingua: a redaçâo oficial exige que seja empregada a norma culta
+da lingua;
+II- clareza: expressâo do pensamento com nitidez, facilitando a compreensao
+imediata, nâo deixando espaço a outras interpretaçoes;
+III - concisao: é a qualidade que O texto possui quando consegue transmitir O maximo
+de conteudo com O minimo de palavras. O que deve ser suprimido sâo redundâncias, palavras e
+trechos inuteis que nada acrescentam ao texto;
+IV - harmonia: disposiçao ordenada e adequada do conteudo nas frases e periodos;
+V-formalidade e padronizaçao: respeito às normas para elaboraçâo de documentos,
+sempre visando à uniformidade das comunicaçoes, respeitando nâo somente a maneira séria,
+cortês e educada de se tratar O assunto veiculado pelo documento oficial, mas também a forma de
+cada espécie documental descrita na presente norma; e
+VI - impessoalidade: a redaçao oficial sempre tera como destinatario orgaos publicos,
+privados e/ou pessoas fisicas e, via de regra, sempre transmitira uma manifestaçao institucional.
+Portanto, nâo cabe a impressao individual do redator em se tratando de documento oficial, devendo
+
+ser isento de interferências pessoais, quer em seu conteudo, quer em seu estilo.
+S 2° Na redaçâo das comunicaçoes oficiais e dos atos normativos, deverao ser
+evitadas as seguintes situaçoes:
+I-a repetiçao e O emprego de palavras cognatas, tais como: "designagâo" e
+"designado", , "compete"e"competente",
+II-0 uso de expressâo ou palavra que configure duplo sentido no texto;
+III - O uso de expressôes locais ou regionais; e
+IV- O emprego de palavras ou expressôes de lingua estrangeira, exceto quando
+indispensaveis em razao de serem designaçôes ou expressôes de uso jà consagrado ou que nao
+tenham exata traduçao:
+a) nesses casos excepcionais, a palavra ou expressao sera grafada em italico, tal como
+ovocabulo bullying; e
+b) no entanto, se houver um termo equivalente em português, prefira-o à palavra
+estrangeira.
+Seçao III
+Dos documentos de comunicaçao oficial
+Art. 69 Os documentos de comunicaçao oficial sâo a forma padronizada e formal de
+a administraçao publica se comunicar.
+S 10 Sera classificada como oficial toda comunicaçao emanada pelo serviço publico.
+S 29 Sera uma portaria ordinatoria O ato que determina uma açâo da Administraçao
+Publica, que visa disciplinar O funcionamento da administraçao e a conduta funcional de seus
+agentes, nos seguintes termos:
+I- podem ser expedidas por qualquer chefe de serviço aos seus subordinados; e
+II - nâo criam, normalmente, direitos e obrigaçôes para OS administrados, mas geram
+deveres e prerrogativas para OS agentes administrados a que se dirigem.
+S 30 Toda espécie de comunicaçao escrita que circula entre OS orgaos da
+Administraçao e/ou pessoas fisicas.
+S 40 A classificaçao quanto ao grau de sigilo é a atribuiçao, conferida pela autoridade
+competente, a dado, informaçào, documento, material, area ou instalaçao que requeiram medidas
+especiais de salvaguarda.
+S 50 O despacho é toda decisao proferida pela autoridade administrativa no caso
+que Ihe é submetido à apreciaçao, podendo ser favoravel ou desfavoravel à pretensâo solicitada.
+S 69 Denomina-se documento a informaçao registrada em um suporte material
+suscetivel de consulta, estudo, prova e pesquisa, pois comprova fatos, fenomenos e pensamentos
+do homem numa determinada época e lugar, sendo:
+I- documento arquivistico: todo aquele produzido ou recebido por pessoa fisica ou
+juridica, publica ou privada, no exercicio de suas atividades, constituindo elementos de prova ou
+informaçao; e
+II- documento oficial: O registro padronizado do ato oficial que emana de autoridade
+
+administrativa no exercicio legal de suas funçoes, abrangendo documentos administrativos e
+normativos.
+S 70 Aos documentos, avulsos ou processos, serao atribuidos um Numero Unico de
+Protocolo - NUP na Unidade Protocolizadora - UP:
+I-os procedimentos relativos à sua utilizaçao devem ser observados em norma
+especifica relativa às atividades de protocolo no COMAER;
+II- O NUP é O padrâo oficial de numeraçao utilizada para controle dos documentos,
+produzidos ou recebidos pelos orgaos e entidades da Administraçao Publica Federal; e
+III- O NUP tem uma funçao de grande relevancia, pois viabiliza a padronizaçao na
+gestâo documental, desde a produçao ao arquivamento dos documentos, assim como facilita as
+comunicaçoes entre as unidades administrativas dos orgaos e entidades ou destas com a sociedade,
+promovendo a simplificaçao do acesso às informaçôes sobre OS documentos publicos federais.
+S 80 Para fins de trâmite processual, a procedência consiste na instituiçao, OM ou
+pessoa que originou o processo ou documento.
+S 99 Sera definido como processo, O conjunto de documentos oficialmente reunidos
+no decurso de uma açâo administrativa ou judicial que constitui uma unidade de arquivamento, que
+exige um estudo mais detalhado, bem como procedimentos expressados por despachos, pareceres,
+anexos ou, ainda, instruçôes para pagamento de despesas, composto de documentos protocolados
+e autuados pelos orgaos autorizados a executar tais procedimentos.
+S 10. Considera-se tramitaçao O curso do documento, avulso ou processo, desde a
+sua produçâo ou recepçao, até O cumprimento de sua funçao administrativa.
+S 11. Unidade Protocolizadora - UP é a unidade administrativa que tenha, dentre
+suas competências, independentemente de sua denominaçao e posiçao hierarquica, a
+responsabilidade do recebimento, classificaçao, registro, distribuiçao, controle da tramitaçâo e
+expediçao de documentos, avulsos ou processos.
+S 12. No âmbito do COMAER, cabera ao Centro de Documentaçao da
+Aeronautica - CENDOC O fornecimento e O controle de numero de codificaçào de UP às OM
+solicitantes, mediante a anâlise técnica do pleito, bem como O cancelamento da reserva desse
+numero de codificaçao.
+CAPITULO II
+CLASSIFICAÇAO DOS DOCUMENTOS
+Art. 70 Os documentos do COMAER classificam-se:
+S 1° Quanto ao âmbito:
+I-i interno: é O documento que tramita no âmbito do COMAER (entre OM, de pessoa
+fisica para OM e vice-versa); e
+II- externo: é O documento que tramita para fora do âmbito do COMAER (de OM para
+orgao externo ou pessoa fisica estranha ao COMAER).
+S 20 Quanto à natureza do assunto:
+I- ostensivo: é aquele que nâo possui restriçao de acesso, ou seja, sua divulgaçào nâo
+prejudica O orgao ou entidade, nem seus membros, podendo ser de dominio publico;
+II- sigiloso: é aquele que, pela natureza do seu conteudo, O acesso é restrito a um
+
+determinado grupo de pessoas, necessitando de medidas especiais de salvaguarda para custôdia e
+divulgaçào:
+a) sâo categorizados como sigilosos dados ou informaçôes cujo conhecimento
+irrestrito ou divulgaçao possa acarretar qualquer risco à segurança da sociedade e do Estado, bem
+como aqueles necessarios ao resguardo da inviolabilidade da intimidade da vida privada, da honra
+e da imagem das pessoas; e
+b) OS graus de sigilo sâo reservado, secreto e ultrassecreto, devendo ser observada a
+Lei no 12.527, de 18 de novembro de 2011, Lei de Acesso à Informaçâo - LAI; e
+III - informaçâo pessoal: é aquela relacionada à pessoa natural identificada ou
+identificavel, relativa à intimidade, vida privada, honra e imagem do efetivo (militares e servidores
+civis) do COMAER.
+S 30 Quanto à prioridade:
+I- de rotina: é aquele cujo encaminhamento, estudo e expediçao sâo feitos
+regularmente, devendo ser observado O prazo maximo de oito dias uteis para despacho ou
+conclusao; ou
+II- urgente: é aquele cujo encaminhamento, estudo e expediçao devem ocorrer com
+precedência sobre OS demais.
+CAPITULO III
+TIMBRES
+Art. 80 O timbre é composto por uma das seguintes combinaçoes:
+I- as Armas Nacionais, encimando OS dizeres "MINISTÉRIO DA DEFESA" e na linha
+subsequente "COMANDO DA AERONAUTICA" "; ou
+II - OS dizeres "MINISTÉRIO DA DEFESA" seguidos de "COMANDO DA AERONAUTICA".
+S 1° Consideram-se tipos de timbre:
+I- OS timbres 1 a 4, em relevo branco, sâo de uso privativo do Presidente da
+Republica, do Ministro Chefe da Casa Civil da Presidência da Republica, dos dirigentes dos orgaos
+integrantes da Presidência da Republica, dos Ministros de Estado e dos presidentes de autarquias
+federais;
+II-O timbre 5, impresso em preto, composto do emblema S2 e dos dizeres
+"MINISTÉRIO DA DEFESA" e "COMANDO DA AERONAUTICA" (Anexo III);
+III -0 timbre 6, impresso em preto, composto do emblema S3 e dos dizeres
+"MINISTÉRIO DA DEFESA" e "COMANDO DA AERONAUTICA" (Anexo III); e
+IV- O timbre 7, impresso em preto, sem emblema, composto de uma linha com OS
+dizeres "MINISTÉRIO DA DEFESA" e "COMANDO DA AERONAUTICA", separados entre si por um
+traço (Anexo III).
+S 20 Os timbres impressos em preto, com ou sem emblema, sâo usados nos papéis,
+impressos, formulàrios e demais publicaçôes oficiais expedidas pelo Comandante da Aeronautica e
+demais autoridades do COMAER.
+
+CAPITULO IV
+FORMAS DE TRATAMENTO
+Art. 90 As formas de tratamento utilizadas na comunicaçao oficial sâo compativeis
+com O cargo do destinatario e suas abreviaturas obedecem ao estabelecido em manuais e
+gramaticas da lingua portuguesa.
+S 10 Nos documentos dirigidos a pessoas ou orgaos externos ao COMAER, deverao
+ser empregadas por extenso.
+S 2° No âmbito do Poder Executivo Federal, a forma de tratamento empregada na
+comunicaçao, oral ou escrita, com agentes publicos da Administraçao Publica Federal direta e
+indireta, conforme legislaçao vigente.
+S 30 O unico pronome de tratamento utilizado na comunicaçao com agentes
+publicos federais é "Senhor" (Sr.), independentemente do nivel hierarquico, da natureza do cargo
+ou da funçâo ou da ocasiao, podendo ser flexionado para O feminino e para O plural, sendo aplicado:
+I - aos servidores publicos ocupantes de cargo efetivo;
+II - aos militares das Forças Armadas ou das forças auxiliares;
+III - aos empregados publicos;
+IV - ao pessoal temporario;
+V - aos empregados, aos conselheiros, aos diretores e aos presidentes de empresas
+publicas e sociedades de economia mista;
+VI - aos empregados terceirizados que exercem atividades diretamente para OS entes
+da administraçao publica federal;
+VII - aos ocupantes de cargos em comissâo e de funçoes de confiança;
+VIII - às autoridades publicas de qualquer nivel hierarquico, incluidos OS Ministros de
+Estado; e
+IX - ao Vice-Presidente e ao Presidente da Republica.
+S 40 Évedado, na comunicaçao com agentes publicos federais, O uso das seguintes
+formas de tratamento, ainda que abreviadas:
+I- Vossa Excelència ou Excelentissimo;
+Il - Vossa Magnificência;
+III - doutor;
+IV - ilustre ou ilustrissimo;
+V - digno ou dignissimo; e
+VI - respeitavel.
+S 50 É vedado negar a realizaçao de ato administrativo ou admoestar O interlocutor
+nos autos do expediente caso haja erro na forma de tratamento empregada.
+S 69 O endereçamento das comunicaçoes dirigidas a agentes publicos federais nâo
+contera pronome de tratamento ou O nome do agente publico, podendo constar O pronome de
+tratamento e O nome do destinatario nas hipôteses de:
+l-a mera indicaçâo do cargo ou da funçao e do setor da administraçâo ser
+
+insuficiente para a identificaçao do destinatario; ou
+Il-a comunicaçao ser dirigida à pessoa de agente publico especifico.
+S 7° Nào se aplica a regra dos paragrafos 30 e 40:
+I - às comunicaçôes entre agentes publicos federais e autoridades estrangeiras ou de
+organismos internacionais; e
+II-à às comunicaçoes entre agentes publicos da Administraçao Publica Federal e
+agentes publicos do Poder Judiciario, do Poder Legislativo, do Tribunal de Contas, da Defensoria
+Publica, do Ministério Publico ou de outros entes federativos, na hipôtese de exigência de
+tratamento especial pela outra parte, com base em norma aplicavel ao orgao, à entidade ou aos
+ocupantes dos cargos.
+S 80 Nestes casos devera ser observado O seguinte regramento:
+I- Vossa Excelência (V.Exa./V.Ex.2) é a forma de tratamento mais elevada, utilizada
+para outros niveis de autoridade, como as autoridades dos Poderes Legislativo, Judiciario e do
+Ministério Publico da Uniâo, a seguir explicitadas:
+a) Poder Legislativo:
+1. Deputados Federais e Senadores;
+2. Ministros do Tribunal de Contas da Uniao;
+3. Deputados Estaduais e Distritais;
+4. Conselheiros dos Tribunais de Contas Estaduais; e
+5. Presidentes das Câmaras Legislativas Municipais;
+b) Poder Judiciario:
+1. Ministros de Tribunais Superiores e do Supremo Tribunal Federal;
+2. Membros dos Tribunais;
+3. Juizes; e
+4. Auditores da Justiça Militar; e
+c) Ministério Publico da Uniao:
+1. Ministério Publico Federal:
+1.1. Procurador-Geral da Republica;
+1.2. Subprocuradores-Gerais da Republica;
+1.3. Procuradores Regionais da Republica; e
+1.4. Procuradores da Republica;
+2. Ministério Publico do Trabalho:
+2.1. Procurador-Geral do Trabalho;
+2.2. Subprocuradores-Gerais do Trabalho;
+2.3. Procuradores Regionais do Trabalho; e
+2.4. Procuradores do Trabalho;
+
+3. Ministério Publico Militar:
+3.1. Procurador-Geral da Justiça Militar;
+3.2. Subprocuradores-Gerais da Justiça Militar;
+3.3. Procuradores da Justiça Militar; e
+3.4. Promotores da Justiça Militar; e
+4. Ministério Publico do Distrito Federal e Territorios:
+4.1. Procurador-Geral de Justiça;
+4.2. Procuradores de Justiça;
+4.3. Promotores de Justiça; e
+4.4. Promotores de Justiça Adjuntos;
+II - Vossa Santidade (V.S.): aplicar-se-a ao Sumo Pontifice;
+III - Vossa Eminência ou Vossa Eminência Reverendissima (V.Ema./V.Em.e): aplicar-
+se-a aos Cardeais;
+IV - Vossa Excelência Reverendissima (V.Exa.Revma./V.Ex.@Rev.ma): aplicar-se-a aos
+Arcebispos e Bispos;
+V- Vossa Reverendissima ou Vossa Senhoria Reverendissima (V.Revma./V.Rev.ma):
+aplicar-se-a aos Monsenhores, Cônegos e superiores religiosos;
+VI - Vossa Reverência (V.Reva./V.Rev.?): aplicar-se-a aos sacerdotes, clérigos e
+demais religiosos;
+VII - Vossa Magnificência (V.Maga./V.Mag.?): aplicar-se-a aos reitores; e
+VIII - Vossa Senhoria (V.Sa./V.S.2): quando dirigido àqueles que nâo façam jus aos
+tratamentos acima, desde que nao pertençam à estrutura do poder executivo federal.
+S 90 As abreviaturas das formas de tratamento flexionam-se de acordo com numero
+e gênero.
+Exemplos: Exmo., Exma., Exmos., Exmas.; Sr., Sra., Srs., Sras.; V.Sa., V.Sas.
+S 10. Embora O pronome de tratamento se dirija à segunda pessoa, toda a
+concordância deve ser feita com a terceira pessoa.
+S 11. Usa-se Vossa, quando conversamos com a pessoa, e Sua, quando falamos da
+pessoa.
+Exemplo: Vossa Senhoria deveria preocupar-se com suas
+responsabilidades e nâo com as de Sua Excelència, O Juiz, que se encontra
+ausente.
+Art 10. Utiliza-se vocativo ou invocaçào num discurso direto para chamar-lhe a
+atençâo para O que se diz, sendo:
+Tratamento
+Vocativo ou Invocaçao
+Excelentissimo Senhor (Exmo.Sr./Ex.mo Sr.) ou Vossa
+Excelència
+Excelência (V.Exa./V.Ex.2)
+
+Senhoria
+Senhor (Sr.) ou Vossa Senhoria (V.Sa./V.S.2)
+Eminentissimo Senhor (Emmo.Sr./Em.mo Sr.),
+Eminentissimo (Emmo./Em.mo), Reverendissimo
+Eminência
+Senhor (Revmo.Sr./Rev.mo Sr.), Vossa Eminência
+(V.Ema./V.Em.e)
+ou
+Vossa
+Reverendissima
+(V.Revma./V.Rev.ma)
+Meritissimo (MM/M.mo) ou Vossa Excelência
+Juiz
+(V.Exa./V.Ex.2)
+Membros dos
+Tribunais
+de Egrégio ou Colendo ou Vossa Excelència (V.Exa./V.Ex.2)
+Justiça
+Reitor
+de Magnifico Reitor ou Vossa Magnificência
+Universidade
+(V.Maga./V.Mag.*)
+Sumo Pontifice
+Santissimo Padre ou Vossa Santidade (V.S.)
+(Papa)
+S 10 Quanto ao vocativo "doutor" nâo se trata de forma de tratamento, e sim titulo
+acadèmico. Portanto:
+I- evite usa-lo indiscriminadamente;
+II- empregue-o, como regra geral, apenas em comunicaçoes dirigidas a pessoas que
+tenham tal grau por terem concluido curso universitario de doutorado; e
+III - é costume designar por "doutor" OS bacharéis, especialmente OS bacharéis em
+Direito e em Medicina.
+S 29 Nos demais casos, O tratamento "Senhor" confere a desejada formalidade às
+comunicaçoes.
+S 30 O vocativo a ser empregado em comunicaçoes dirigidas aos Chefes dos Poderes
+Legislativo e Judiciario é "Excelentissimo Senhor", seguido do cargo respectivo.
+Exemplos:
+Excelentissimo Senhor Presidente do Congresso Nacional; e
+Excelentissimo Senhor Presidente do Supremo Tribunal Federal.
+S 40 As demais autoridades sâo tratadas com O vocativo "Senhor" ou "Senhora",
+seguido do cargo respectivo.
+Exemplos: Senhora Senadora; e Senhor Juiz.
+S 50 No envelope, caso seja necessaria a sua utilizaçao, O endereçamento das
+comunicaçoes dirigidas às autoridades tratadas por "Vossa Excelência" obedece à forma que se
+segue:
+
+Exemplo:
+À Sua Excelència O Senhor FULANO DE TAL
+Juiz de Direito da 10a Vara Civel
+Rua ABC, no 123
+CEP 01010-000 - Sâo Paulo - SP.
+CAPITULO V
+ABREVIATURAS, SIGLAS E OUTRAS CONVENÇOES
+Seçao I
+Abreviaturas e siglas
+Art.11. As abreviaturas e as siglas a serem usadas na comunicaçao oficial seguirao as
+regras estabelecidas no Manual de Abreviaturas, Siglas, Simbolos e Convençôes Cartograficas das
+Forças Armadas, do Ministério da Defesa, exceto as abreviaturas das formas de tratamento, as quais
+obedecem ao estabelecido no Capitulo IV.
+S 10 As siglas de identificaçao de OM e documentos serao estabelecidas no ato de
+criaçao da OM ou de aprovaçâo do documento, sendo distinguidas pelo emprego preferencial de
+letras maiusculas, como abaixo segue:
+Exemplos:
+CENDOC, COMPREP, COMGEP, RCONT, RDAER e RISAER.
+S 2° As abreviaturas e as siglas nos documentos destinados a orgaos externos ao
+COMAER restringir-se-ao às de uso comum e de entendimento geral, visando nâo prejudicar a
+clareza do texto:
+I- quanto às siglas, somente aparecerào isoladas quando repetidas; e
+II - a primeira vez em que constem no texto, serao grafadas por extenso, seguidas de
+travessao e da sigla, conforme abaixo:
+Exemplo:
+Centro de Documentaçao da Aeronautica - CENDOC.
+S 30 As palavras ou grupos de palavras nao constantes das abreviaturas e siglas do
+Manual de Abreviaturas, Siglas, Simbolos e Convençôes Cartograficas das Forças Armadas, quando
+nos trabalhos comuns entre as Forças Armadas e entre essas e O Ministério da Defesa, deverao ser
+escritos por extenso.
+S 40 As abreviaturas serao usadas sem pontuaçao.
+S 59 As letras iniciais das abreviaturas serao maiusculas, salvo as exceçoes previstas
+no Manual de Abreviaturas citado acima.
+S 69 O gênero e O numero nâo alteram as abreviaturas e siglas.
+S 79 A abreviatura de uma expressào, em geral, é formada pelo conjunto de
+abreviaturas das palavras que a constituem, separadas por um espaço, da seguinte forma:
+
+Exemplo:
+Esquadrâo Aéreo - Esqd Ae; e
+Informaçâo Militar - Info Mil.
+S 80 As abreviaturas de grupos de palavras deverao ser usadas apenas como tais, nâo
+podendo ser fracionadas, no seguinte molde:
+Exemplo:
+Coordenaçao do Espaço Aéreo - Coor Esp Ae.
+S 90 Nos textos de manuais ou mensagens, quando nao especificado, as abreviaturas
+dos tempos dos verbos serao as mesmas que as dos substantivos correspondentes, conforme
+abaixo:
+Exemplo:
+Abastecer e abastecido tem a mesma abreviatura de abastecimento (Abst).
+S 10. Quando constituirem siglas, as abreviaturas serao compactadas, ou seja, nao
+havera espaços entre as letras que representam cada palavra, conforme segue:
+Exemplo:
+Escola de Guerra Naval (EGN).
+S 11. As siglas sâo formadas, em geral, por letras maiusculas tiradas da expressao
+que representam e, no que for possivel, formam um conjunto pronunciavel, salvo no caso de siglas
+de uso consagrado, cuja formaçâo fuja às regras gerais, tal como exemplo abaixo:
+Exemplo:
+Grupo de Artilharia Antiaérea (GAAAe).
+S 12. As siglas de expressôes originais em lingua estrangeira, de uso consagrado,
+deverao estar entre parênteses, em italico, logo apos a expressao em portuguès, conforme abaixo:
+Exemplo:
+RWR - Receptor de Alerta Radar (Radar Warning Receiver).
+Seçao II
+Horas e datas
+Art.12. O horario é indicado pelo sistema de 24 horas, das 0 h às 23 h, seguido de
+minutos e segundos, quando necessario, obedecendo ao fuso horario do local.
+S 19 Quando vigorar O horario brasileiro de verao, a sigla "HBV", entre parênteses,
+devera seguir a indicaçao do horario, conforme abaixo exemplificado:
+Exemplo:
+2 h;
+81 h 32 min;
+14 h 1 min 23 s; e
+
+20 h 10 min (HBV).
+S 2° Em textos operacionais especificos, as horas sâo representadas por quatro
+algarismos, nos quais OS dois primeiros indicarao a hora e OS dois ultimos OS minutos, seguidos da
+letra, em maiusculo, indicativa do fuso horario, conforme abaixo:
+Exemplo:
+1515R significa quinze horas e quinze minutos no fuso Romeo.
+0900Z significa nove horas no fuso horario de Greenwich.
+S 30 As datas serao escritas na seguinte ordem: dia, mês, ano e, quando necessario,
+dia da semana:
+Exemplo:
+25 de setembro de 1983, domingo; e
+19 de julho de 2004, 2a feira.
+S 40 As datas devem ser expressas por extenso nos textos externos, na forma que
+segue:
+Exemplo:
+16 de dezembro de 1982;
+10 de julho de 1957;
+3 de setembro de 2024, e nao, 03 de setembro de 2024; e
+19 de julho de 2016, e nao 01 de julho de 2016.
+S 50 Em textos internos, admite-se que as datas, quando abreviadas, sejam
+expressas:
+I-n na sua totalidade por algarismos arabicos, sendo O dia e O mês expressos por dois
+algarismos seguidos de ponto ou barra e O ano expresso por quatro algarismos, acrescida, se
+necessario, da abreviatura do dia da semana, conforme segue; e
+Exemplo:
+04.08.1980;
+25/04/1932;
+24.09.1961 dom.
+II- com O dia expresso por dois algarismos arabicos, O mês expresso por meio das três
+primeiras letras seguidas de ponto quando minusculas e sem ponto quando maiusculas,
+excetuando-se O mês de maio, que é escrito sempre por extenso e O ano expresso por quatro
+algarismos, acrescida, se necessario, da abreviatura do dia da semana, abaixo:
+Exemplo:
+a) 01 abr. 1972,
+b) 12 ABR 1972;
+c) 12 maio 1972;
+d) 12 MAIO 1972;
+e) 28 jul. 2004 seg.
+S 60 O ano pode ser indicado por extenso ou em algarismos arabicos, com quatro
+digitos sem ponto entre a casa do milhar e da centena, conforme abaixo:
+
+Exemplo:
+Dois mil nove, 2009; e
+Mil novecentos e quarenta e um, 1941.
+S 79 Quando for O caso de admitir-se abreviatura, OS dias da semana, somente para
+completar a designaçao de datas, sâo assim abreviados:
+Exemplo:
+2a feira - seg;
+3a feira - ter;
+4a feira - qua;
+5a feira - qui;
+6a feira - sex;
+Sâbado - sâb;
+Domingo - dom.
+S 80 Em mensagens telegraficas administrativas ou operacionais, as designaçôes de
+datas com horas sâo escritas da seguinte maneira, consoante O previsto no Manual do Serviço de
+Telecomunicaçdes do Comando da Aeronautica, bem como no Manual de Abreviaturas, Siglas,
+Simbolos e Convençôes Cartograficas das Forças Armadas, ambos em vigor:
+Exemplo:
+011400P Set 1999 - 2 horas da tarde, fuso horario de Brasilia (Papa), em 1° de
+setembro de 1999;
+110930Z Abr 1957 - 9 horas e trinta minutos, no fuso Zulu (HMG), em 11 de
+abril de 1957; e
+151200 Dez 2001 - 12 horas, fuso horario local, em 15 de dezembro de 2001.
+S 99 Devem ser observadas as divisoes do ano em 12 meses, dos meses em 28 a 31
+dias, do dia em 24 horas, começando à meia-noite em cada fuso horario, da hora em 60 minutos e
+do minuto em 60 segundos, completadas com a divisao decimal do segundo, quando necessario
+para indicar microdatas, conforme abaixo:
+Exemplo:
+Eclipse total do sol, em 30 de junho de 1954, às 12 h 21 min 32,3 S.
+Seçao III
+Numeros e simbolos
+Art. 13. O numero (representaçao de quantidade) sera dividido em grupos de três
+algarismos, a contar da virgula para a esquerda, separados por ponto, conforme abaixo:
+Exemplo:
+127.123;
+0,35235;
+7.123,3523;
+R$ 5.600,00;
+
+Lei no 9.796, de 5 de maio de 1999;
+Decreto no 2.954, de 29 de janeiro de 1999;
+Medida Provisoria no 1.824, de 30 de abril de 1999.
+$10 A regra acima nao se aplica aos numeros identificadores, tais como: OS de
+telefone, do Cadastro de Pessoa Fisica - CPF, do CEP, dos anos e outros, conforme abaixo:
+Exemplo:
+(21) 2157-2296;
+121452560-86;
+21740-001;
+1983.
+S 2° A virgula sera usada exclusivamente para separar a parte inteira da decimal,
+conforme abaixo:
+Exemplo:
+1,52.
+S 30 Os simbolos sâo grafados com letra minuscula, com um espaço entre a unidade
+e 0 simbolo, sem ponto abreviativo, sem adiçâo do "s" quando no plural e sempre na mesma linha
+horizontal em que O numero estiver escrito.
+Exemplo:
+320 g;
+80 kg.
+S 40 Os simbolos das unidades de ângulo plano: grau (), minuto ("') e segundo ("),
+conforme abaixo:
+Exemplo:
+8° 20' 30".
+$50 O simbolo de unidade de temperatura (9) sera acompanhado da letra designativa
+do sistema de mediçao, sem espaço, conforme abaixo:
+Exemplo:
+37°C;
+45°F.
+S 60 Os simbolos que denotam unidades de medida virao sempre no fim do numero,
+com um espaço entre a unidade e O simbolo, e nunca intercalados entre a parte inteira e a decimal,
+conforme abaixo:
+Exemplo:
+42,35 km;
+38,5 m.
+S 70 Os simbolos representativos de unidades monetarias sempre precederao O
+numero inteiro e O decimal, com um espaço entre O simbolo e a unidade monetaria, conforme
+abaixo:
+
+Exemplo:
+R$ 1,25 (um Real e vinte e cinco centavos);
+US$ 1,25 (um Dolar e vinte e cinco centavos).
+S 80 Os valores monetarios sâo expressos em algarismos seguidos sempre da
+indicaçao, por extenso, entre parênteses, devendo ser expressa a denominaçao da moeda, com a
+primeira letra maiuscula, conforme abaixo:
+Exemplo:
+R$ 2.000,00 (dois mil Reais).
+S 99 Os numerais sâo escritos:
+I- por extenso: quando constituirem uma unica palavra; e
+Exemplo:
+um, dez, quinze, cem e duzentos.
+II - em algarismos arabicos: quando constituirem mais de uma palavra, conforme
+abaixo:
+Exemplo:
+22, 45, 110 e 11.955.
+S 10. Nas indicaçoes de porcentagem, a expressao "por cento" e O simbolo (%)
+seguem a mesma regra dos numerais, conforme abaixo:
+Exemplo:
+Um por cento, dez por cento e cem por cento.
+22%, 45%, 38% e 55%.
+S 11. Quando houver referência a um documento ou uma espécie normativa, a grafia
+dos numeros devera ser feita de acordo com a escrita e nâo com a leitura, conforme abaixo:
+Exemplo:
+Escreve-se "ICA 5-1" e nâo "ICA cinco traço um"; I
+"Portaria no 5" e nâo "Portaria numero cinco".
+Seçao IV
+Pontos cardeais e coordenadas geograficas
+Art. 14. Os pontos cardeais e as coordenadas geograficas sâo abreviados da seguinte
+maneira:
+I- Norte - N;
+II - Sul - S;
+III - Este ou Leste - E;
+
+IV - Oeste - O ou - W;
+V - Nordeste - NE;
+VI - Noroeste - NO ou NW;
+VII - Sudeste ou Sueste - SE;
+VIII - Sudoeste - SO ou SW;
+IX - Nor-Nordeste - NNE;
+X - Les-Nordeste ENE;
+XI - Les-Sudeste - ESE;
+XII - Sul-Sudeste - SSE;
+XIII - Sul-Sudoeste - SSO ou SSW;
+XIV - Oes-Sudoeste - OSO ou WSW;
+XV - Oes-Noroeste - ONO ou WNW; e
+XVI - Nor-Noroeste - NNO ou NNW.
+S 10 As coordenadas geograficas usarao as abreviaturas "Lat" para Latitude e "Long"
+para Longitude e serao representadas da seguinte maneira:
+I- latitude: a abreviatura "Lat" seguida de quatro algarismos (os dois primeiros
+referindo-se ao numero de graus e OS dois ultimos aos minutos) e da letra que designa O hemisfério
+em que se encontra O ponto geografico, conforme abaixo; e
+Exemplo:
+Lat2345S;
+Lat4533N.
+II - longitude: a abreviatura "Long" seguida de cinco algarismos (os três primeiros
+referindo-se ao numero de graus e OS dois ultimos aos minutos) e da letra que indica se O ponto
+geografico se encontra a Leste ou a Oeste do meridiano de Greenwich, conforme abaixo:
+Exemplo:
+Long04630E;
+Long14315W.
+Seçao V
+Estados e O Distrito Federal
+Art. 15. Os Estados e O Distrito Federal serao abreviados conforme tabela abaixo:
+
+Acre - AC
+Espirito Santo - ES
+Paraiba - PB
+Rondônia - RO
+Alagoas - AL
+Goiâs = GO
+Parana - PR
+Roraima - RR
+Amapa AP
+Maranhâo - MA
+Pernambuco - PE
+Santa Catarina - SC
+Amazonas - AM
+Mato Grosso - MT
+Piaui - PI
+Sâo Paulo - SP
+Bahia - BA
+Mato Grosso do Sul - MS Rio de Janeiro - RJ
+Sergipe - SE
+Ceara - CE
+Minas Gerais - MG
+Rio Grande do Norte - RN Tocantins - TO
+Distrito Federal - DF Para - PA
+Rio Grande do Sul - RS
+Seçao VI
+Alfabeto fonético
+Art. 16. O alfabeto fonético utilizado é O seguinte:
+A - Alfa
+H - Hotel
+O - Oscar
+V - Victor
+B-I Bravo
+I- Îndia
+P. - Papa
+W - Whiskey
+C- Charlie
+J- Juliet
+Q Quebec
+X - X-ray
+D - Delta
+K-I Kilo
+R - Romeo
+Y. - Yankee
+E- Echo
+L- Lima
+S - Sierra
+Z-Zulu
+F-I Foxtrot
+M - Mike
+T - Tango
+G- Golf
+N - November
+U - Uniform
+Seçao VII
+Unidades de medida
+Art. 17. As unidades de medida sâo assim definidas:
+I- de tempo, conforme abaixo:
+Dia - d
+Hora - h
+Minuto - min
+Segundo - S
+II - lineares, conforme abaixo:
+Metro m
+Milha nautica MN
+Decimetro - dm
+Milha terrestre mite
+Centimetro - cm
+Jarda - yd ou jd
+Milimetro - mm
+Pé ft ou pé
+Quilometro - km
+Polegada - in ou po
+Milha - mi
+III - de superficie, conforme abaixo:
+
+Metro quadrado - m2
+Are - a
+Quilômetro quadrado - km2 Hectare ha
+IV - de volume, conforme abaixo:
+Metro cubico - m3
+Centimetro cubico - cm3
+Litro - L ou I
+Galao - gal
+Barril - brl
+V - de massa ou peso, conforme abaixo:
+Grama - g
+Quilograma - kg
+Tonelada - t
+Libra - lb
+VI - angulares, conforme abaixo:
+Grau sexagesimal - o
+Minuto sexagesimal - 1
+Segundo sexagesimal - 1
+VII - de velocidade, conforme abaixo:
+Metro por segundo - m/s
+Quilômetro por hora - km/h
+Milha terrestre por hora - mite/h
+Milha nautica por hora (knot) - kt ou no
+Mach - M
+Seçâo VIII
+Postos e graduaçoes
+Art. 18. Os postos e graduaçoes sâo assim definidos:
+I- postos:
+a) Marinha, conforme abaixo:
+Almirante - Alte
+Almirante de Esquadra - Alte Esq ou AE
+Vice-Almirante - V Alte ou VA
+Contra-Almirante - C Alte ou CA
+
+Capitâo de Mar e Guerra - CMG
+Capitâo de Fragata - CF
+Capitâo de Corveta - CC
+Capitao-Tenente - CT
+Primeiro-Tenente - 10 Ten ou 1T
+Segundo-Tenente - 20 Ten ou 2T
+Guarda-Marinha - GM
+b) Exército, conforme abaixo:
+Marechal - Mar
+General de Exército - Gen Ex
+General de Divisao - Gen Div
+General de Brigada Gen Bda
+Coronel - Cel
+Tenente-Coronel - Ten Cel ou TC
+Major Maj
+Capitâo - Cap
+Primeiro-Tenente - 10 Ten
+Segundo-Tenente - 29 Ten
+Aspirante a Oficial - Asp
+c) Aeronautica, conforme abaixo:
+Marechal do Ar - Mar Ar
+Tenente-Brigadeiro - Ten Brig
+Major-Brigadeiro - Maj Brig
+Brigadeiro - Brig
+Coronel - Cel
+Tenente-Coronel - Ten Cel
+Major - Maj
+Capitâo - Cap
+Primeiro-Tenente - 10 Ten
+Segundo-Tenente - 29 Ten
+Aspirante a Oficial - Asp
+II- graduaçoes:
+a) Marinha, conforme abaixo:
+
+Aspirante - Asp
+Suboficial - SO
+Primeiro-Sargento - 10 SG
+Segundo-Sargento - 29 SG
+Terceiro-Sargento - 30 SG
+Cabo - CB
+Soldado (CFN) - SD
+Marinheiro MN
+b) Exército, conforme abaixo:
+Cadete - Cad
+Subtenente - S Ten
+Primeiro-Sargento - 10 Sgt
+Segundo-Sargento - 29 Sgt
+Terceiro-Sargento 30 Sgt
+Cabo - Cb
+Soldado - Sd
+Taifeiro-mor - TM
+Taifeiro de primeira-classe T1
+Taifeiro de segunda-classe - T2
+c) Aeronautica, conforme abaixo:
+Cadete - Cad
+Suboficial - SO
+Primeiro-Sargento - 1S
+Segundo-Sargento - 2S
+Terceiro-Sargento - 3S
+Cabo - Cb
+Soldado de Primeira-Classe S1
+Soldado de Segunda-Classe S2
+Taifeiro-Mor - TM
+Taifeiro de Primeira-Classe - T1
+Taifeiro de Segunda-Classe - T2
+Aluno - Al
+S 1° Havendo coincidência na denominaçao do posto ou da graduaçâo na
+identificaçao do pessoal de cada uma das Forças, podera ser utilizada, apos a respectiva abreviatura,
+aquela indicadora da Força, entre parênteses, conforme abaixo;
+
+Exemplo:
+Cel (Aer) Fulano de Tal;
+Cel (EB) Fulano de Tal;
+10 Ten (MB) Fulano de Tal; e
+CB (MB) Fulano de Tal.
+S 2° Para fins de padronizaçao dos documentos elaborados no âmbito deste
+Comando, a citaçâo do Quadro, Especialidade e Subespecialidade do militar obedecera aos
+exemplos abaixo, considerando O Quadro do militar:
+I- militares de carreira e temporarios, conforme abaixo:
+QUADRO
+Exemplos
+QOAV
+Ten Brig Ar, Maj Brig Ar, Brig Ar e Cel Av
+QOInt
+Maj Brig Int, Brig Int e Cel Int
+QOInf
+Brig Inf, Cel Inf e Ten Cel Inf
+QOEng
+Maj Brig Eng, Brig Eng e Cel Eng
+QOMed
+Maj Brig Med, Brig Med e Cel Med
+QODent
+Cel Dent
+QOFarm
+Cel Farm
+QOCapl
+Cel Capl
+QOEArm
+Ten Cel Esp Arm
+QOEAV
+Ten Cel Esp Av
+QOECom
+Ten Cel Esp Com
+QOECTA
+Ten Cel Esp CTA
+QOEFot
+Ten Cel Esp Fot
+QOEMet
+Ten Cel Esp Met
+QOESup
+Ten Cel Esp Sup Tec
+QFO
+Ten Cel QFO Bib
+QOEA
+Cap Esp Aer SVA
+QOAP
+10 Ten QOAP Psi
+QCOA
+1° Ten QCOA SJU
+QOCon
+29Ten QOCon Med,2° Ten QOCon AQV
+QSS/QFG
+SO SAD
+QESA
+3S QESA SAD
+QSCon
+3S TAD
+QCb
+Cb SAD
+
+QCBCon
+Cb TAD
+QTA
+TM TAR
+QSD
+S1 SAD
+II- Podera ser utilizada a subespecialidade dos postos que possuem a mesma
+especialidade em diferentes quadros, conforme abaixo:
+Exemplos:
+10 Ten Med (CLM);
+10 Ten QOCon Med (CLM).
+III - Para OS oficiais de carreira, quando na Reserva Remunerada, acrescenta-se "R/1"
+apos O quadro e especialidade;
+IV - Para as praças, utiliza-se somente a especialidade seguida da expressao "R/1",
+conforme abaixo:
+Exemplos:
+Cel Av R/1;
+Ten Cel Esp Com R/1;
+Cap Esp Aer SVA R/1;
+1S SAD R/1.
+V - Para OS oficiais de carreira, quando reformados, acrescenta-se "Refm" apos O
+quadro e especialidade; e
+VI - Para as praças, utiliza-se somente a especialidade seguida da expressao "Refm",
+conforme abaixo:
+Exemplos:
+Cel Av Refm;
+Ten Cel Esp Av Refm;
+Maj Inf R/1;
+10 Ten Esp Aer SVA Refm;
+SO SAD Refm.
+CAPITULO VI
+ELEMENTOS COMPLEMENTARES DAS COMUNICAÇOES OFICIAIS
+Seçao I
+Comunicaçoes oficiais endereçadas ao exterior
+Art. 19. O idioma utilizado nas comunicaçoes oficiais endereçadas a autoridades
+estrangeiras é a lingua portuguesa, podendo ser acrescida, quando possivel, de versao para a lingua
+considerada.
+
+Paragrafo unico. Para OS paises de lingua pouco usual, podera ser acrescida à
+comunicaçao oficial em lingua portuguesa a versao em inglês, francês ou espanhol, caso nâo haja
+condiçôes de traduçao para O idioma original.
+Seçao II
+Apresentagao grafica das comunicaçoes oficiais
+Art. 20. As comunicaçoes oficiais do COMAER serao confeccionadas, observando as
+seguintes medidas:
+I - as margens serao definidas da seguinte forma:
+a) superior - 2,0 cm;
+b) inferior - minimo 2,0 cm;
+c) esquerda - 3,0 cm; e
+d) direita - 2,0 cm; e
+II - quanto à formataçâo do texto, serao observados OS seguintes critérios:
+a) paragrafos: serao numerados com algarismos arabicos, seguidos de ponto, e O
+inicio do texto tera 2,5 cm de distância da margem esquerda;
+b) fonte: Calibri ou Carlito (utilizar itâlico, quando necessario, para destacar as
+palavras ou expressôes estrangeiras, inclusive em latim);
+c) tamanho da fonte: 12 no texto, 11 nas citaçôes e 10 nas notas de rodapé; e
+d) espaçamento: simples entre as linhas e de seis pontos (0,21 cm) entre cada
+paragrafo.
+S 10 Para simbolos nâo existentes nas fontes acima indicadas, poder-se-a utilizar as
+fontes Symbol e Wingdings, ou correspondentes dos softwares livres.
+S 2° Nào é recomendavel O uso excessivo de negrito, italico, sublinhado, letras
+maiusculas, sombreadas, sombra, relevo, bordas, caixas de texto, ou qualquer outra forma de
+formataçâo que afete a elegância e a sobriedade dos documentos.
+S 30 A impressao dos textos deve ser feita na cor preta em papel branco.
+S 40 A impressao colorida deve ser usada apenas para graficos e ilustraçôes.
+S 5° No caso de documentos classificados em graus de sigilo, devera ser observado
+op previsto nas normas para a salvaguarda de assuntos sigilosos da Aeronautica.
+Seçao III
+Anexos das comunicaçoes oficiais
+Art. 21. Documento, avulso ou processo, juntado em carâter definitivo, a outro
+documento ou processo, eventualmente de mesma procedência (autoria), por afinidade de
+conteudo, constituindo uma unidade de arquivamento, que serve de fundamentaçao, comprovaçao
+ou ilustraçao, para dar continuidade a uma açâo administrativa.
+S 10 Pode ser em meio fisico ou em meio digital.
+S 2° Os anexos sâo identificados por letras maiusculas consecutivas, ponto e pelos
+
+respectivos titulos.
+S 30 Utilizam-se letras maiusculas dobradas na identificaçao dos anexos, quando
+esgotadas as 26 letras do alfabeto.
+S 40 É desejavel que OS anexos em meio fisico sejam impressos em ambas as faces
+do papel, desde que a leitura do mesmo nâo seja prejudicada.
+Seçao IV
+Transcriçôes nas comunicaçôes oficiais
+Art. 22. Quando for necessaria a remissao a texto legal, observar-se-a para que a
+primeira referência indique O seu numero, seguido da data, sem abreviar mês e ano, conforme
+abaixo:
+Exemplo: Lei no 12.527, de 18 de novembro de 2011.
+S 10 Nas referências subsequentes, poderao ser indicados apenas O numero e O ano,
+conforme abaixo:
+Exemplo: Lei no 12.527, de 2011.
+S 20 Quando for indispensavel fazer transcriçoes de textos de leis, decretos e outros
+documentos, serao observadas as seguintes instruçoes:
+I - iniciar a transcriçao, deixando um espaço vertical de doze pontos (0,42 cm);
+II- usando 'aspas", 1 O texto da transcriçao iniciara a 2,5 cm da margem esquerda do
+texto e a sua continuaçao tera 1,5 cm de recuo;
+III - a margem direita coincidira com a do texto;
+IV se a transcriçao constar de mais de um paragrafo, usar um espaço de seis
+pontos/0,21 cm entre eles;
+V-as partes do documento a serem transcritas, julgadas desnecessarias, serao
+substituidas por linhas pontilhadas; e
+VI - terminar a transcriçao com "aspas".
+Exemplo:
+Art. 29
+"Transcriçao.
+Seçâo V
+Mençao a pessoal
+Art. 23. Na mençao a militar, constarao posto ou graduaçao, quadro ou
+especialidade, nome completo em letras maiusculas, numero de ordem, OM a que pertencer e O
+cargo.
+Art. 24. Na mençao a servidor civil, constarao cargo, côdigo, nome completo em
+
+letras maiusculas e numero de ordem e de matricula no Sistema Integrado de Administraçao de
+Recursos Humanos - SIAPE.
+Art. 25. Se O nome do militar ou do servidor civil tiver que ser repetido no mesmo
+documento, serao citados, para O militar, apenas O posto ou graduaçao e O nome de guerra e, para
+o servidor, O primeiro nome.
+Art. 26. Quando O documento for dirigido a orgao externo ao COMAER, as
+referências ou citaçoes de posto ou graduaçâo deverao ser grafadas por extenso, sendo dispensada
+a referência à especialidade.
+Exemplos:
+a) Primeiro-Tenente;
+b) Terceiro-Sargento;
+c) Soldado de Primeira-Classe.
+Seçào VI
+Referências a Autoridades nas comunicaçôes oficiais
+Art. 27. Na comunicaçao oficial, quando for citado O nome da autoridade, este sera
+precedido do pronome de tratamento, do posto e do quadro; em seguida sera mencionado O cargo
+da referida autoridade, conforme abaixo:
+Exemplo:
+Senhor Ten Brig Ar FULANO DE TAL, Comandante-Geral do Pessoal.
+Art. 28. Nos textos, ao ser mencionada uma autoridade, também podera ser feita
+referência somente ao cargo que exerce. Neste caso, precedido do pronome de tratamento
+correspondente, conforme abaixo:
+Exemplo:
+Incumbiu-me O Sr. Comandante-Geral do Pessoal de...
+Art. 29. Quando a referência é relativa a ato de uma autoridade, sera feita
+simplesmente mençao ao cargo, conforme abaixo:
+Exemplos:
+"Autorizado por Despacho do Comandante-Geral do Pessoal, ";
+"Conforme a Ordem Técnica no x/xxx/xx, de 22 set. 2026, do Diretor de Saude I
+Seçao VII
+Fecho de cortesia das comunicaçoes oficias
+Art.30. O fecho de cortesia podera ser usado quando a comunicaçao oficial for
+dirigida a destinatàrios externos ao COMAER da seguinte forma:
+I- iniciando-se a 2,5 cm da margem esquerda, seguido de virgula e a doze pontos
+(0,42 cm) do final do texto;
+
+II- para autoridades superiores, inclusive O Presidente da Republica, O termo
+"Respeitosamente';e
+III - para autoridades da mesma hierarquia ou de hierarquia inferior, O termo
+"Atenciosamente".
+Paragrafo unico. Na comunicaçao oficial entre OM do COMAER, O fecho de cortesia
+nâo deve ser empregado.
+Seçao VIII
+Numeraçao das comunicaçoes oficiais
+Art. 31. A comunicaçao oficial recebera numeraçâo sequencial, dentro de cada ano
+civil, por espécie e grau de sigilo distintos, exceto quando se tratar de Portarias Normativas.
+S 19 A numeraçâo constara de:
+I- espécie do documento (por extenso com inicial maiuscula);
+II- numeraçâo sequencial do setor que elabora O documento, sem a utilizaçao de
+zeros à esquerda do numeral representativo;
+III - indicativo do setor; e
+IV - numeraçao de ordem geral da organizaçao.
+Exemplo:
+Oficio no 34/GAB/255.
+$2 o Quando se tratar de expediente classificado com grau de sigilo, a numeraçao
+sequencial do setor que elabora O documento é precedida e separada por um traço da letra
+maiuscula correspondente ao grau de sigilo do documento: R-, S- e US-, conforme abaixo:
+Exemplos:
+Oficio R-34/GAB/255;
+Oficio S-34/GAB/255;
+Oficio US-34/GAB/255.
+Seçao IX
+Autenticaçao das comunicaçoes oficiais
+Art. 32. Os documentos que, porventura, necessitem de autenticaçao, serao
+assinados pela autoridade competente com a aposiçao do sinete.
+S 10 Para OS documentos ostensivos usar-se-a O sinete na cor azul, para OS sigilosos
+na cor vermelha.
+S 20 As comunicaçoes oficiais, quando circulando no âmbito interno do COMAER,
+serao autenticadas apenas por meio da assinatura ou da rubrica da autoridade competente.
+S 30 Para autenticar OS atos de governo, OS diplomas e OS certificados expedidos
+pelos estabelecimentos de ensino, usar-se-a, como sinete, O Selo Nacional, considerando:
+I-0 Selo Nacional é constituido por um circulo representando uma esfera celeste
+
+igual à que se acha no centro da Bandeira Nacional, tendo em volta as palavras REPUBLICA
+FEDERATIVA DO BRASIL, e
+II - para a confecçào do Selo Nacional, observar-se-a O previsto no art. 99 da Lei no
+5.700, de 10 de setembro de 1971.
+HAT
+$40 Para autenticar OS documentos nâo incluidos no S 39, tais como atestados,
+declaraçôes e outros, sera utilizado, como sinete, o Selo da Organizaçao, considerando:
+1-0 Selo da Organizaçao é constituido por dois circulos concêntricos de 3,0 cm e 3,8
+cm de diâmetro, respectivamente;
+II - no interior do menor, consta O Gladio Alado, com 2,5 cm de largura, envolto pela
+constelaçâo do Cruzeiro do Sul; e
+III - na coroa, formada pelos dois circulos, aparece, na parte superior, a inscriçao
+COMANDO DA AERONAUTICA e, na inferior, O nome ou a sigla da OM.
+A
+RENEO FOUSGLADAS 6
+S 50 O Selo da Organizaçao, quando necessario, sera incluso no documento de forma
+manual, por meio de carimbo, considerando:
+I-a localizaçao do carimbo no documento sera livre, recomendando-se, para este
+fim, a utilizaçao de espaços em branco disponiveis;
+II - nâo havendo espaço em branco disponivel, O carimbo devera ser inserido no verso
+do documento;
+III - se O documento a ser autenticado com O Selo da Organizaçao for composto de
+mais de uma folha, todas as folhas subsequentes deverao ser carimbadas; e
+IV - para OS documentos ostensivos usar-se-a O Selo da Organizaçao na cor azul, para
+OS classificados com grau de sigilo, na cor vermelha.
+S 69 As fotocopias de documentos, quando apresentados OS originais, serao
+autenticadas de acordo com O Decreto no 83.936, de 6 de setembro de 1979, e tera a mesma
+validade de Copia Autêntica, sendo a sua formalistica a mesma da Certidao.
+Exemplo:
+MINISTERIO DA DEFESA
+COMANDO DA AERONAUTICA
+CENTRO DE DOCUMENTAÇAO DA AERONAUTICA
+CERTIFICO, de acordo como disposto no Art. 50 paragrafo unico do Decreto no 83.936, de 6
+
+de setembro de 1979, que a presente copia é reproduçao fiel do documento original que me foi
+apresentado.
+Rio de Janeiro, 7 de julho de 2026.
+FULANO DE TAL Primeiro-Tenente Intendente
+Chefe da Subdivisao de Pessoal
+S 70 Cumpre ressaltar a necessidade de observância da Lei no 13.726, de 18 de
+outubro de 2018, alusiva à racionalizaçao de atos e procedimentos administrativos dos Poderes da
+Uniao, dos Estados, do Distrito Federal e dos Municipios e à instituiçao do Selo de Desburocratizaçao
+e Simplificaçao.
+Seçao X
+Quadros e tabelas
+Art. 33. Os quadros e as tabelas sâo impressos de acordo com as normas aprovadas
+pela Assembleia Geral do Conselho Nacional de Estatistica.
+S 10 Os quadros, sempre que possivel, serao dispostos de maneira que sua leitura
+seja facilitada, sem necessidade de deslocar-se O documento de sua posiçao normal, conforme
+Anexo IV.
+$2° As partes componentes dos quadros e das tabelas sâo:
+I- titulo: resumo do assunto tratado;
+Il - cabeçalho: parte em que sâo colocados OS titulos de cada coluna;
+III - coluna: cada uma das divisôes verticais do quadro;
+IV - coluna indicadora: primeira coluna da esquerda que sintetiza a designaçào do
+conteudo das linhas;
+V- linha: cada uma das divisoes horizontais do quadro; e
+VI - casa: espaço destinado a cada informaçào, e toda casa contera uma informaçào
+ou um dos seguintes sinais:
+a) traço (-) - quando O valor for nulo;
+b) três pontos (...) quando nâo se conhecer OS dados;
+c) interrogaçao (?) - quando houver duvida quanto à exatidao do valor;
+d) paragrafo ( S )- quando certo valor, anteriormente indicado com sinal de
+interrogaçao ( ?) ),ja tenha sido corrigido; e
+e) zero (0) - quando O valor for menor do que a unidade utilizada.
+CAPITULO VII
+REDAÇAO DAS COMUNICAÇOES OFICIAIS
+Seçao I
+Formataçâo padrâo
+Art. 34. O Despacho, O Oficio e O Parecer se diferenciam mais pela finalidade do que
+
+pela formataçâo, e possuem OS seguintes campos em comum:
+I- timbre;
+II - epigrafe;
+III - preambulo;
+IV - ementa;
+V - texto; e
+VI - identificaçao do signatario.
+Paragrafo unico. É utilizado O timbre 5 ou O timbre 7 para documentos que adotam
+af formataçâo padrao.
+Seçao II
+Epigrafe
+Art. 35. É a parte do documento em que constam:
+I - nome, em letras maiusculas da OM expedidora;
+II - linha de numeraçào e data; e
+III - começa horizontalmente na margem esquerda e é composta de:
+a) numeraçao;
+b) localidade e data, sendo a localidade a cidade em que O documento esta sendo
+elaborado e expedido e a data constituida pelo dia, mês por extenso e ano em que foi assinado O
+documento;
+c) a data terminara com ponto e coincidira com a margem direita do documento; e
+d) identificaçao do Protocolo do COMAER.
+Exemplo:
+SECRETARIA DE ECONOMIA, FINANÇAS E ADMINISTRAÇAO DA AERONAUTICA
+Oficio no 96/GABSEFA/18087
+Brasilia, 03 de julho de 2026.
+Protocolo COMAER no 68000.000000/2026-00
+Exemplo: Oficio classificado com grau de sigilo (neste exemplo, Reservado):
+DIRETORIA DE ADMINISTRAÇAO DO PESSOAL
+Oficio no R-5/DSM/115
+Rio de Janeiro, 03 de julho de 2026.
+Protocolo COMAER no: 67410.000000/2026-00
+Seçao III
+Preambulo
+Art. 36. É a parte do documento em que consta O cargo do remetente e do
+destinatàrio, seguido do nome da organizaçao.
+
+Exemplos:
+Do Chefe do Grupamento de Apoio dos Afonsos
+À Diretora do Hospital de Aeronautica dos Afonsos
+Da CO-DCTA
+À ASOCEA
+Paragrafo unico. O preâmbulo é iniciado na margem esquerda, ocupando toda a
+extensao da linha, obedecendo às seguintes regras:
+I- no documento enviado a mais de um destinatario, estes sâo identificados pelas
+siglas das respectivas OM, em ordem de antiguidade, separados entre eles por virgula, sendo O
+penultimo acompanhado pelo conectivo"e", indicando que a OM seguinte sera a ultima da listagem;
+II-os documentos dirigidos ao CMTAER, quando nao forem oriundos das
+organizaçôes cujo cargo de Comando, Chefia ou Direçao corresponda ao posto de Tenente-
+Brigadeiro, devem, obrigatoriamente, tramitar via cadeia de comando; e
+III - se um documento necessitar transitar por autoridade intermediaria que deva
+conhecer ou se manifestar sobre O assunto, sera mencionada, apos O destinatàrio, a palavra "via"
+seguida do cargo da autoridade ou do nome da OM por intermédio da qual O documento deva
+transitar.
+Exemplos
+Da Diretora
+Ao Chefe do Estado-Maior da Aeronautica, via Comandante-Geral do Pessoal
+ou
+Ao Chefe do Estado-Maior da Aeronautica, via Comando-Geral do Pessoal
+Seçâo IV
+Ementa
+Art. 37. É a parte do documento que sintetiza O conteudo deste, a fim de permitir,
+de modo imediato, O conhecimento do objeto tratado.
+$19 Da ementa, constarao O resumo do assunto, a(s) referência(s) e a discriminaçao
+do(s) anexo(s), se houver, terminada com ponto final.
+$2° Deve-se observar:
+I- o inicio das linhas da ementa coincidira com O inicio das linhas do preambulo;
+II - a indicaçao do assunto é feita por meio de uma expressâo substantiva sucinta ou
+palavra-chave que dê a ideia mais clara e completa possivel do que esta sendo tratado no
+documento, e terminara com ponto;
+III - as "referências" sâo numeradas com algarismos arabicos, seguidos de ponto.
+Quando se desdobrarem em mais de um item, terminarao por ponto e virgula, exceto na ultima,
+onde terminarao por ponto;
+IV- O inicio da frase da referência é em letra maiuscula e O restante, quando nao
+contrariar as regras gramaticais, sera em minuscula;
+V- OS anexos seguem a mesma disposiçao das referências, sendo que para estes nao
+sâo utilizados numeros arabicos e sim letras maiusculas consecutivas, com ponto, seguido dos
+respectivos titulos, conforme abaixo:
+
+Exemplo:
+Assunto: Alteraçâo de periodo de férias.
+Referência: 1.
+e
+2.
+Anexo:
+A..
+;e
+B..
+VI - as referências a processos sâo feitas citando-se O seu numero, quando:
+a) a referência for especifica a determinado documento, O seu numero e a sigla da
+organizaçao que O emitiu precedem O do processo; e
+b) na referência a Oficios, sâo mencionados O seu numero, data e sigla da organizaçâo
+expedidora.
+Exemplo:
+Referência: 1. Proc no 67400.001529/2026-DV;
+2. Oficio no R-9/1EM/ 475, do COMGEP, no Proc no 67410.000250/2026-DV; e
+3. Oficio no 136/DP/1288, de 06 mar. 2026, do GAP-AF.
+VII - quando se puder resumir conteudos de outros documentos no texto, a
+referência podera ser eliminada;
+VII - quando da citaçao de documentos, sugere-se a anexaçâo de suas copias,
+excetuando-se OS casos em que a reproduçào é vedada;
+VII - OS anexos das comunicaçoes oficiais sâo identificados por letras maiusculas
+consecutivas, ponto e pelos respectivos titulos, e excepcionalmente, utilizam-se letras maiusculas
+dobradas na identificaçao dos anexos, quando esgotadas as 26 letras do alfabeto;
+Exemplos:
+Anexo A. Modelo de Oficio;
+Anexo Z. Modelo de Portaria;
+Anexo AA. Modelo de Errata.
+VIII - quando O anexo nâo puder ser assinalado da forma prescrita na alinea "i",
+devido à sua natureza (diploma, certificado, pen-drive etc.), sera colocado na parte externa do seu
+invôlucro, de forma visivel, a sua vinculaçao com O documento que O encaminha; e
+Exemplo:
+Anexo ao Oficio no 13/DP/8087, de 04 MAIO 2019, do GAP-AF.
+IX se necessario anexar algum documento interno, este sera anexado ao oficio na
+forma de copia simples ou autenticada, dependendo da situaçao.
+Seçao V
+Texto
+
+Art. 38. É a parte principal do documento. De forma geral, O texto é assim
+estruturado:
+I- introduçao: é a parte do texto onde é apresentado O assunto que motiva a
+comunicaçao, observando-se as seguintes orientaçôes:
+a) nâo é recomendavel O uso das formas: "Tenho a honra de", "Tenho O prazer de",
+"Cumpre-me informar que"; e
+b) prefira O emprego da forma direta;
+II - desenvolvimento: inclui esclarecimentos e informaçôes que O detalhem e
+fundamentem. Caso O texto contenha mais de uma ideia sobre O assunto, elas devem ser tratadas
+em paragrafos distintos, O que confere maior clareza à exposiçao; e
+III - conclusao: parte em que é reafirmada ou simplesmente reapresentada a posiçao
+recomendada sobre O assunto. Trata-se do encerramento do texto de forma clara e precisa, sem
+acréscimo ou novidades ao que jà fora exposto anteriormente.
+Paragrafo unico. Na elaboraçâo do texto devem ser observados OS parâmetros
+contidos no Capitulo VII desta NSCA.
+Seçao VI
+Divisoes do texto
+Art. 39. O texto dos documentos, sempre que necessario, sera dividido em:
+I- paragrafos: sâo as principais divisoes do texto;
+II - itens: sâo as divisoes dos paragrafos;
+III - alineas: sâo as divisoes dos itens; e
+IV - subalineas: sâo as divisoes das alineas.
+Paragrafo unico. A numeraçâo e O posicionamento do inicio das divisôes seguem as
+seguintes regras:
+I-OS paragrafos sâo numerados com algarismos arabicos, na margem esquerda da
+folha. Quando O documento tiver somente um paragrafo, essa numeraçao sera facultativa;
+II - OS itens sâo numerados com algarismos arabicos, intercalados por ponto;
+III - as alineas sâo ordenadas alfabeticamente por letras minusculas, seguidas de
+parênteses, iniciando sob a primeira letra da divisao que Ihe deu origem; e
+IV - as subalineas começam por um travessao colocado sob a primeira letra do texto
+da alinea.
+Exemplo:
+1. Paragrafo
+1.1 Item
+a) alinea
+- subalinea
+
+Seçao VII
+Identificaçao do signatario
+Art. 40. A identificaçao do signatario é escriturada com O nome da autoridade por
+extenso, em letras maiusculas, com O posto e O quadro precedendo-0, no caso de Oficiais-Generais,
+ou sucedendo-o para as demais autoridades, postos e quadros, graduaçôes e especialidades.
+S 10 Sob esse conjunto, constarao, de forma abreviada, quando aplicavel, O cargo da
+autoridade e a sigla da respectiva OM.
+S 2° Nos documentos externos ao COMAER, O cargo da autoridade e O nome da
+respectiva OM deverao ser escritos por extenso.
+Exemplo de identificaçao do signatario para documento interno ao COMAER:
+Brig Ar FULANO DE TAL
+Cmt do CINDACTA
+Exemplos de identificaçao do signatario para documento externo ao COMAER:
+Tenente-Brigadeiro do Ar FULANO DE TAL
+Comandante-Geral do Pessoal
+FULANO DE TAL Coronel Aviador
+Comandante da Base Aérea dos Afonsos
+S 30 A identificaçao do signatario é grafada a quarenta pontos/1,41 cm abaixo do
+final do texto.
+S 40 A linha contendo O nome e O posto ou a que contém O cargo, a maior delas, tera
+oseu final coincidindo com a margem direita do documento.
+S 50 A menor ficara centralizada em relaçao à maior.
+S 69 Somente em caso de insuficiência de espaço, este sera reduzido sem que
+prejudique a estética.
+S 70 No impedimento do Comandante da OM, OS documentos serao assinados por
+seu substituto legal que colocara, à esquerda do nome da autoridade substituida, a expressao "No
+Imp" e, abaixo deste, seu nome, posto e quadro, por extenso, para documentos externos ao
+COMAER, ou abreviados, para documentos internos ao COMAER. O cargo da autoridade e O nome
+da respectiva OM constarao somente sob O nome da autoridade substituida, nao sendo
+mencionados sob O nome da autoridade substituta.
+Exemplo:
+No Imp FULANO DE TAL Coronel Intendente
+Diretora do Centro de Documentaçao da Aeronautica
+FULANO DE TAL Coronel Intendente
+S 8° A assinatura da autoridade substituta é acima do nome da autoridade
+substituida.
+
+S 99 Desde que autorizados, OS documentos internos e externos de rotina poderao
+ser assinados por outras autoridades, referenciando O pronome de tratamento e O cargo, devendo
+otexto do documento ser iniciado com a expressao "Por ordem do I ou "Incumbiu-me o".
+Exemplo:
+Por ordem do Comandante-Geral de Apoio :
+Maj Brig Ar FULANO DE TAL
+Chefe do Estado-Maior do COMGAP
+Exemplo:
+Incumbiu-me a Diretora do Centro de Documentaçao da Aeronautica..
+FULANO DE TAL Ten Cel Int
+Chefe da DOC
+S 10. Qualquer documento remetido por ordem produz OS mesmos efeitos daquele
+remetido pela autoridade que O ordenou, ficando entendido que quem assina, nesse caso, esta
+apenas servindo de intermediario.
+S 11. Quando O documento remetido por ordem for endereçado à autoridade
+hierarquicamente superior a quem assina, a linguagem sera compativel com a hierarquia existente.
+S 12. Os Oficios ou Despachos em resposta aos remetidos por ordem serao
+endereçados ao Comandante, Chefe ou Diretor da OM.
+Seçao VIII
+Do uso dos simbolos comemorativos
+Art. 41. Os simbolos comemorativos, devidamente aprovados pela autoridade
+competente, deverao obedecer, preferencialmente, à proporçao de 1:1 e ser utilizados em uma das
+seguintes posiçoes:
+I - acima do documento, à direita, ao centro ou à esquerda da pagina;
+Il - abaixo da assinatura, à direita ou ao centro da pagina; e
+III - abaixo da identificaçao do signatario, nas mesmas posiçoes, esquerda, direita ou
+centro.
+Seçao IX
+Continuaçao de documento
+Art. 42. Quando O texto de um documento for muito longo, nao cabendo numa sô
+folha, passar-se-a para outra que sera anexada à primeira, e assim por diante.
+S 10 Em cada folha suplementar de documento constarao, entre parênteses, O
+numero da folha e O total de folhas, separados por barra (/), a identificaçao do documento e a
+identificaçao do processo.
+Exemplo:
+(FI 3/6 do Oficio no 123/SEC/1245 - SEFA, de 09 JUN 2019, Proc no 67800.000065/2026-58)
+
+S 20 Nos documentos fisicos, todas as paginas, exceto a ultima em que consta a
+assinatura, serao rubricadas pela autoridade remetente, no canto inferior direito.
+CAPITULO VIII
+ESPÉCIES DE COMUNICAÇOES OFICIAIS PADRONIZADAS
+Seçao I
+Apostila
+Art. 43 É a averbaçâo feita em documentos ordinatorios, abaixo dos textos ou no
+verso de decretos e portarias de cunho pessoal, no sentido de corrigir alguma inexatidâo do texto
+original, desde que:
+I-a correçao nâo altere a substância de ato jà publicado; ou
+II - acrescente informaçâo nova a esse registro, deixando-o completo, como:
+a) erro na grafia de nomes proprios; e
+b) lapso na especificaçao de datas.
+S 10 Ao apostilar titulo, a administraçâo nâo cria direito, pois apenas reconhece a
+existência de um direito criado por norma legal.
+S 20 O registro, em diploma oficial, de ato baixado por autoridade competente que
+venha a atualizar O documento também constitui uma apostila.
+S 30 Se O lapso houver ocorrido em portaria de cunho pessoal, a correçào por
+apostilamento estara a cargo da autoridade signataria da portaria.
+S 40 A apostila devera sempre ser publicada em boletim.
+S 50 O numero e a data da publicaçâo serao mencionados no original do ato
+administrativo proximo à apostila.
+S 69 As apostilas sâo impressas em espaço vertical, no verso do documento, em
+posiçao que seja observada sua sequência. Caso O documento nao tenha espaço suficiente, dado O
+numero de alteraçoes, a apostila devera ser expedida separadamente, em folha contendo O timbre
+5.
+S 7° As apostilas sâo compostas das seguintes partes, conforme modelo constante
+do Anexo V:
+I - titulo (onde constara APOSTILA", em letras maiusculas, centralizado);
+II- texto (resumo onde consta O ato que a motivou, com OS esclarecimentos que se
+fizerem necessarios);
+III - localidade;
+IV - data; e
+V - assinatura.
+Seçao II
+Ata
+
+Art. 44. É o registro de fatos ou ocorrências verificadas e resoluçôes tomadas por
+seus membros, numa assembleia, sessâo ou reuniao.
+S 10 A ata possui estrutura propria e pode conter anexos, mencionados em seu
+corpo.
+S 2° Conforme modelo constante do Anexo VI, a ata é composta de:
+I - timbre 5;
+II - epigrafe; e
+III - titulo (onde constara: "ATA", em letras maiusculas, centralizado).
+Exemplo:
+MINISTERIO DA DEFESA
+COMANDO DA AERONAUTICA
+CENTRO DE DOCUMENTAÇAO DA AERONAUTICA
+ATA
+S 30 O texto da ata pode ser continuo ou conter espaçamento e numeraçào de
+paragrafos, apresentando, nas linhas iniciais, OS seguintes dados, respectivamente:
+I - data (constituida do dia, mês e ano, por extenso);
+II - hora e local onde ocorreu a reuniao;
+III - descriçao do evento;
+IV - relaçao nominal dos participantes (constituida de nome completo, posto ou
+graduaçâo - quando for O caso de militares - com OS respectivos cargos e/ou funçoes);
+V- assunto em pauta;
+VI - anexo(s), se houver;
+VII - ocorrências e resoluçoes; e
+VIII - encerramento da assembleia, sessao ou reuniao, realizado pelo Presidente,
+além da lavratura da Ata, efetuada pelo Secretario.
+S 40 As assinaturas da ata serao dispostas em ordem de antiguidade, com exceçao
+do Secretàrio, que sera O ultimo nome constante da lista.
+S 50 As assinaturas serao, ainda, organizadas em duas colunas no final da ata, com O
+texto centralizado dentro de cada coluna e, caso O numero de assinaturas seja impar, a ultima
+assinatura ficara localizada do lado esquerdo.
+Seçao III
+Carta
+Art. 45. É a forma alternativa de comunicaçao externa à OM, de carâter social,
+endereçada exclusivamente a particulares (pessoas fisicas), por meio da qual as autoridades tratam
+de assunto cuja essência dispensa a utilizaçao de Oficio.
+
+S 10 Conforme modelo constante do Anexo VII, a carta é redigida em papel formato
+A4 e consta de:
+I- timbre 5;
+II- epigrafe;
+III - linha de numeraçâo e data abaixo do nome da OM, começando horizontalmente
+na margem esquerda;
+IV - localidade e data (a data terminara com ponto e coincidira com a margem direita
+do documento);
+V - numero de Protocolo do COMAER (localizado logo abaixo da linha de numeraçao,
+alinhado com a margem esquerda do documento);
+VI - nome do destinatario (precedido do tratamento cerimonioso compativel e
+endereço postal, com seu inicio na margem esquerda);
+VII - vocativo (de uso facultativo);
+VIII - texto (os paragrafos nao sâo numerados e têm inicio a 2,5 cm da margem
+esquerda);
+IX - fecho de cortesia;
+X - identificaçao do signatario; e
+XI - dados da organizaçao emitente (inserido no rodapé, com O texto alinhado à
+esquerda, constituido de logradouro, C complemento, bairro, cidade e estado, CEP, telefone com DDD
+ee e-mail institucional).
+Seçào IV
+Certidao
+Art. 46. Éo documento legal que certifica algo jà registrado e de que se tem provas.
+S 10 A certidao expressa O conteudo de outro documento oficial e original.
+S 2° É fornecida mediante requerimento do interessado, desde que satisfaça OS
+seguintes pressupostos:
+I- legitimo interesse;
+II - ausência de sigilo, atendidos OS critérios da Lei de Acesso à Informaçao; e
+III - indicaçao da finalidade.
+S 30 O requerente deve informar se é a primeira vez que requer. No caso de
+reiteraçao, deve ser esclarecido O motivo.
+$40 Conforme modelo constante do Anexo VIII, a Certidao confeccionada consta de:
+I- timbre 5;
+II - epigrafe;
+III - titulo (onde constara "CERTIDAO", em letras maiusculas, centralizado, seguido da
+numeraçao sequencial do setor que elabora O documento, do indicativo do setor e da numeraçao
+de ordem geral da organizaçao);
+IV - texto, que iniciara com a expressao: "Certifico, para fins de I,
+
+V - localidade e data, com o seu término coincidindo com a margem direita;
+VI - identificaçao do signatario;
+VII - dados da organizaçao emitente (inserido no rodapé, com O texto justificado,
+constituido de logradouro, complemento, bairro, cidade e estado, CEP, telefone com DDD e e-
+mail institucional); e
+VIII - selo da organizaçao, inserido manualmente.
+S 50 Para a confecçao de Certidoes de Tempo de Serviço, deve ser observado O
+disposto em norma que verse sobre emissao de certidao de tempo de serviço militar, de serviço de
+guerra e de inteiro teor, que trata desse tipo de documento no âmbito do COMAER.
+Seçâo V
+Declaraçâo
+Art. 47. Éo documento de natureza testemunhal pelo qual um servidor, em razao do
+cargo, fornece informaçào, afirmando, ou nào, a veracidade de um fato ou de uma situaçao de que
+tenha conhecimento.
+S 10 É, em geral, a favor de uma pessoa e confeccionado a seu pedido.
+S 2° A declaraçâo possui duraçâo transitoria, devendo constar no texto O prazo de
+validade do mesmo, bem como O fim a que se presta.
+S 30 Como normalmente se destina a um orgao externo ao COMAER, O posto e O
+cargo do signatario sera impresso, obrigatoriamente, por extenso.
+S 40 Conforme modelo constante do Anexo IX, a declaraçao confeccionada consta
+de:
+I - timbre 5;
+II - epigrafe;
+III - titulo (onde constara "DECLARAÇAO", em letras maiusculas, centralizado);
+IV - texto iniciado com a expressao: "Declaro, para fins de
+V - localidade e data, com O seu término coincidindo com a margem direita;
+VI - identificaçao do signatario;
+VII - dados da organizaçao emitente (inserido no rodapé, com O texto justificado,
+constituido de logradouro, complemento, bairro, cidade e estado, CEP, telefone com DDD e e-
+mail institucional); e
+VIII - selo da organizaçao, inserido manualmente.
+Seçâo VI
+Despacho
+Art. 48. É O documento de natureza interlocutoria pelo qual a autoridade
+competente determina, solicita ou informa O que for de sua alçada em determinado processo.
+S 19 Nesse contexto, é expedido em continuaçao a outro documento, geralmente a
+um Oficio ou Requerimento, de qualquer origem ou natureza, que venha a exigir a abertura de um
+processo administrativo para O seu equacionamento. Aqui, a autoridade informa, consulta, indica
+
+ou propôe medidas em relaçao ao assunto do documento principal, inicial do processo.
+S 2° O despacho instruindo processo permite manter junto ao documento principal
+(inicial) toda a correspondência trocada entre as Organizaçôes pelas quais O expediente tramita, até
+a resoluçao final.
+S 30 O despacho, conforme Anexo X, é composto de:
+I - timbre 7;
+II - epigrafe: redigida em seguida ao timbre, compreendendo:
+a) nome da organizaçâo expedidora em letras maiusculas;
+b) em seguida, a inscriçao, entre parênteses, do numero do Processo e da
+identificaçao da Referência do documento que deu origem ao processo, data e sigla da organizaçâo
+que expediu O documento inicial;
+c) no centro da pagina, a inscriçao 10 (ou 29, 39, etc.) DESPACHO;
+d) abaixo do termo DESPACHO e no inicio da margem esquerda, O numero do
+Despacho, O indicativo do setor que elaborou O documento e a numeraçào de ordem geral da
+organizaçao, tudo separado por barra; e
+e) na mesma linha, a localidade, dia, mês por extenso e ano da expediçao do
+documento, com O final coincidindo com a margem direita;
+Exemplo:
+MINISTERIO DA DEFESA - COMANDO DA AERONAUTICA - COMANDO-GERAL DO PESSOAL
+(Proc no 67430.008330/2018-87- Ref Oficio no 8/DLE/2045, de 22 abr. 2018, do COMGEP).
+40 DESPACHO
+No 183/GABGEP/2377
+Brasilia, 22 de junho de 2019.
+III - O preambulo, O texto e a identificaçao do signatario seguem as normas utilizadas
+na formataçào padrâo, conforme capitulo VII;
+IV-0 documento nâo contera ementa, pois é a mesma do documento
+inicial. Entretanto, serao citados OS anexos, quando O despacho OS contiver;
+Exemplo:
+Do Comandante da Universidade da Força Aérea
+Ao Comandante da Academia da Força Aérea
+Anexo: A. Três folhas de alteraçoes.
+V- O primeiro paragrafo do Despacho é um extrato ou resumo do assunto em pauta;
+Exemplo:
+1. Trata O presente expediente (ou processo)
+VI - OS Despachos sâo juntados ao processo em ordem cronologica crescente; e
+VII - a folha suplementar do Despacho segue as mesmas instruçoes previstas para
+continuaçâo de documentos, capitulo VII.
+
+S 40 Ressalta-se que a identificaçao dos processos sera sempre feita por meio do
+NUP.
+S 50 Cada processo tem apenas um unico NUP até O seu arquivamento final, mesmo
+que tramite por varias OM ou orgaos em anos diferentes, ou que tenha sido arquivado e,
+posteriormente, desarquivado ou, ainda, que nele sejam juntados documentos que possuam
+numero proprio de protocolo.
+S 69 Os documentos a que se refere O paragrafo anterior, quando acrescentados ao
+processo, passarao a fazer parte deste, sem alterar O numero de processo inicial; e
+S 70 A numeraçao de protocolo e a organizaçao de processos serao tratadas em
+norma especifica versando sobre Atividades de Protocolo no âmbito do COMAER.
+Seçao VII
+Despacho decisorio
+Art. 49. Documento de carâter decisorio, expedido pelos Comandantes, Secretarios,
+Chefes e Diretores de OM, em virtude de competência regimental ou delegada, com a finalidade de
+proferir decisao sobre requerimentos ou processos administrativos submetidos à sua apreciaçâo ou
+ordenar a execuçào de serviços. Os Despachos Decisorios serao devidamente fundamentados.
+Exemplo:
+"DEFERIDO, de acordo com O Art. 50 das Instruçoes Gerais, aprovadas pela
+Portaria no 48/GC3, de 22 de junho de 2026.'
+S 19 Na confecçao dos despachos decisorios, sera observado O seguinte:
+I - sera lançado em folha à parte e anexado ao processo;
+II - OS despachos decisorios serao publicados em Boletim Interno, no BCA, caso seja
+necessaria a divulgaçâo no âmbito do COMAER, ou no DOU, se necessaria a divulgaçao externa; e
+III - OS despachos decisorios que tenham sido originados de militares veteranos ou
+civis na inatividade, ou mesmo provenientes de pessoas sem vinculo com O COMAER, serao
+informados ao requerente, pelas vias de comunicaçao julgadas mais apropriadas.
+$20 O despacho decisorio, confeccionado conforme Anexo X, é composto de:
+I - timbre 7;
+Il - epigrafe: redigida em seguida ao timbre, compreendendo nome da organizaçâo
+expedidora em letras maiusculas:
+a) doze pontos/0,42 cm abaixo e no centro da pagina, a inscriçao "DESPACHO", e logo
+em seguida, O numero do Despacho, O indicativo do setor que elabora O documento e a numeraçào
+de ordem geral da organizaçao, tudo separado por barra;
+b) doze pontos/0,42 cm abaixo, a localidade, dia, mês por extenso e ano da expediçao
+do documento, com O final coincidindo com a margem direita; e
+c) doze pontos/0,42 cm abaixo da linha de localidade e data, a inscriçao centralizada,
+entre parênteses, do numero do Processo e da identificaçao da Referência do documento que deu
+origem ao processo, data e sigla da organizaçao que expediu esse documento de origem;
+III - texto: localizado a vinte pontos/0,71 cm da inscriçao do processo, com
+
+espaçamento de paragrafo de 2,5 cm, sem qualquer numeraçao, iniciado com as expressoes
+"DEFERIDO" / "DEFERIDA", "INDEFERIDO" / "INDEFERIDA" ou ARQUIVE-SE, em letras maiusculas
+seguido de virgula e a explicaçao do despacho final; e
+IV - identificaçao do signatario: a quarenta pontos/1,41 cm do texto, conforme
+descrito no Capitulo VII.
+Seçâo VIII
+Norma Padrao de Açâo - NPA
+Art. 50. Usada para padronizar OS procedimentos rotineiros a serem seguidos em
+uma atividade determinada, conforme Anexo XII.
+S 10 Éaprovada pelo Comandante da OM e/ou da Guarniçao de Aeronautica, quando
+elaborada por subordinado.
+S 2° Sua efetivaçao, alteraçôes e cancelamento devem ser objeto de publicaçâo em
+boletim interno da OM apoiadora.
+Seçao IX
+Oficio
+Art. 51. O Oficio é O documento padrâo de comunicaçao administrativa no âmbito
+do Comando da Aeronautica, que segue, no que couber, O estabelecido pelo Manual de Redaçao da
+Presidência da Republica.
+S 10 Seus tipos sâo diferenciados mais pelo destinatario e pela finalidade que pela
+formataçao.
+S 29 Conforme se observa nos modelos anexos a esta norma, O Oficio expedido a
+orgao externo ao COMAER segue a diagramaçao do Oficio contido no Manual de Redaçâo da
+Presidència da Republica.
+S 30 O Oficio expedido a outra OM do COMAER, bem como O Oficio tramitado entre
+OS setores de uma mesma OM podem ser destinados a superior nierarquico, subordinado ou a
+colateral (ascendente, descendente ou horizontal).
+S 40 Pode conter ordens, instruçôes, informaçoes, solicitaçâo de informaçôes ou
+providências, exposiçao circunstanciada de ocorrências ou de atividades realizadas, com a
+finalidade de prestar contas (caracteristica de um relatorio), ou ainda comunicar fatos ou
+acontecimentos nas esferas disciplinar ou administrativa.
+S 50 O Oficio interno, aquele tramitado no âmbito da propria Organizaçao Militar,
+segue as mesmas normas e instruçôes previstas na formataçao padrâo, tratada no capitulo VII desta
+norma. O destinatario deve ser mencionado pelo cargo que ocupa e nâo pelo nome.
+I- conforme modelo constante do Anexo XIII, O oficio de trâmite interno à OM é
+composto das seguintes partes:
+a) timbre 5;
+b) epigrafe (nome, em letras maiusculas, da OM expedidora, sublinhado e logo abaixo
+do timbre;
+c) neste tipo de Oficio, a epigrafe sera acrescida do nome do setor emissor,
+sublinhado, abaixo do nome da OM;
+
+d) linha de numeraçào e data abaixo do nome do setor emissor, começando
+horizontalmente na margem esquerda (a numeraçào é composta, apenas, do numero sequencial e
+sigla do setor expedidor;
+Exemplo:
+Oficio no 7/GAB
+e) localidade e data (a data terminara com ponto e coincidira com a margem direita
+do documento); e
+f) NUP (localizado logo abaixo da linha de numeraçào, alinhado à margem esquerda
+do documento).
+II-O preambulo, a ementa, O texto e a identificaçao do signatario seguem OS
+parametros definidos na formataçao padrào, conforme capitulo VII.
+S 69 A espécie Oficio devera conter O termo s/no, ao invés da numeraçâo sequencial
+do setor elaborador (todavia contendo NUP), quando estiverem presentes razoes de carâter
+eminentemente particular, pessoal, do agente publico, contudo com desdobramento de açoes na
+esfera administrativa:
+S 70 Quando O assunto a ser tratado for de interesse particular e nao de razoes
+vinculadas ao cargo ou funçao do signatario, sera observada a seguinte formataçao, conforme
+Anexo XIV:
+a) na epigrafe, constara somente O nome da OM;
+b) nao recebera numero, devendo ser preenchido com a abreviatura s/ne;
+C) no preambulo, em vez do cargo ou funçao do signatario, constara seu nome
+completo, antecedido do posto ou graduaçao, quadro e especialidade; e
+d) na identificaçao do signatârio, serao omitidos O cargo ou a funçao.
+S 80 Tramitado entre Organizaçoes Militares do COMAER, conforme Anexo XV:
+1-0 oficio, ao ser encaminhado a um unico destinatario, podera ser peça inaugural
+(inicial) de um processo, O qual adotara O NUP aquela peça inaugural, preservando, assim, a
+caracteristica da unicidade do documento de arquivo, bem como da integridade do numero
+atribuido ao documento, avulso ou processo, na UP de origem;
+II- O oficio também podera ser endereçado simultaneamente a varios destinatarios,
+adotando O carâter de CIRCULAR, ser encaminhado a uma coletividade pré-definida de
+destinatârios, ou ainda, em carater de difusao geral DIFRAL (e.g. DIFRAL COMAER; DIFRAL
+GUARNAE-AF), por meio das funcionalidades e dos procedimentos disponibilizados pelo SIGADAER;
+III - nesses contextos (CIRCULAR ou DIFRAL), O Oficio apresentara a mesma
+numeraçao, data e texto (conteudo idêntico), contudo nâo podera inaugurar processo, visando
+garantir as caracteristicas da unicidade e da integridade do documento de arquivo, avulso ou
+processo; e
+IV- O Oficio, em carater circular, nâo podera ser endereçado ao CMTAER. Nesse caso,
+devera ser confeccionado um documento especifico para a referida autoridade.
+V-o Oficio, em carater circular, quando necessitar ter O seu trâmite em suporte
+fisico, devera ter todas as suas vias assinadas pela autoridade competente.
+VI - no Oficio com carâter circular, as OM destinatarias deverao ser mencionadas, no
+
+preambulo, pelas suas respectivas siglas, em ordem de antiguidade.
+S 90 Conforme modelo constante do Anexo XVI, O Oficio tramitado para orgaos
+externos ao COMAER devera ser composto das seguintes partes:
+I- timbre 5;
+II- epigrafe: nome, em letras maiusculas, da OM expedidora, sublinhado e logo
+abaixo do timbre;
+III - logo abaixo da epigrafe, devem constar as seguintes informaçôes do remetente:
+endereço postal, telefone com DDD e e-mail;
+IV - linha de numeraçao: escriturada abaixo da linha que contém O endereço postal,
+telefone com DDD, telefone e e-mail. Nesse caso, começa horizontalmente na margem esquerda e
+é composta de numeraçào de acordo com O capitulo VI, sendo que a definiçao da espécie do
+documento constara do titulo "Oficio" , por extenso;
+Exemplo:
+Oficio no 34/GAB/255.
+V- numero de Protocolo do COMAER: localizado logo abaixo da linha de numeraçào,
+alinhado na margem esquerda do documento;
+VI - localidade e data: sendo a data escriturada abaixo da numeraçào do Protocolo,
+terminara com ponto e coincidira com a margem direita do documento;
+VII - destinatàrio abaixo da localidade e da data e com inicio na margem esquerda;
+VIII - na primeira linha sera incluso O vocativo, observando-se O seguinte:
+a) para as autoridades tratadas por "Vossa Excelència", - externas ao Poder Executivo
+Federal, serao usados OS termos "A Sua Excelência O Senhor" ou "A Sua Excelência a Senhora",
+enquanto para as demais autoridades e particulares, serao usados OS termos "A Sua Senhoria O
+Senhor" ou "A Sua Senhoria a Senhora";
+b) nas linhas abaixo, grafar por extenso e com letras maiusculas, O nome do
+destinatario precedido do seu Titulo, assim como O cargo que exerce, se for O caso; e
+c) na linha subsequente, deve constar O endereço completo do destinatario;
+IX - Na ementa constara somente O assunto, em negrito, iniciando-se na margem
+esquerda e abaixo do destinatàrio. As citaçoes das referências e anexos deverao constar, caso seja
+necessario, no texto do documento;
+X - vocativo, seguido de virgula;
+XI - texto: com numeraçào de paragrafo abaixo do vocativo;
+XII - fecho de cortesia, seguido de virgula, conforme capitulo VI; e
+XIII - identificaçao do signatario: abaixo do fecho de cortesia, conforme capitulo VII.
+Seçao X
+Ordem Técnica
+Art. 52. Ordem Técnica é a comunicaçao que estabelece padroes e procedimentos
+
+técnicos, de interesse interno de uma OM ou de carâter geral do COMAER.
+S 1° Essa espécie possui estrutura propria e pode conter anexos, mencionados em
+seu corpo.
+S 20 Conforme modelo constante do Anexo XVII, a espécie é composta de:
+I- timbre 5;
+II- epigrafe; e
+III - titulo (onde constara: "ORDEM TÉCNICA", em letras maiusculas, centralizado).
+Exemplo:
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+CENTRO DE DOCUMENTAÇAO DA AERONAUTICA
+ORDEM TÉCNICA
+S 30 O texto da OT pode ser continuo ou conter espaçamento e numeraçào de
+paragrafos, apresentando, OS seguintes dados, respectivamente:
+I- sumario;
+II-f finalidade;
+III - âmbito;
+IV - legislaçao pertinente;
+V-I procedimentos a serem adotados; e
+VI - anexos, se houver.
+S 40 Quando a Ordem Técnica for de carater interno da OM devera ser publicada em
+Boletim interno - BI, se de carater geral ao COMAER, devera ser publicada em Boletim do Comando
+da Aeronautica - BCA.
+Seçao XI
+Parecer
+Art. 53. É O documento pelo qual O signatario emite uma opiniao especializada
+fundamentada, técnica ou cientifica, sobre determinado assunto, que podera dar suporte à tomada
+de decisao.
+S 10 Os pareceres recebem numeraçâo corrida dentro de cada orgao, seguindo-se a
+indicaçao do ano.
+S 29 O parecer é composto das seguintes partes, conforme Anexo XVIII:
+I - timbre 5;
+II - epigrafe (nome, em letras maiusculas, da OM expedidora, sublinhado e logo
+abaixo do timbre);
+III - Linha de numeragâo (composta do numero do Parecer dentro da OM, da
+
+numeraçao de ordem geral da organizaçao e da indicaçao do ano); e
+Exemplo:
+Parecer no 237/2098/2026.
+IV - Localidade e data:
+a) na mesma linha da numeraçao; e
+b) a data terminara com ponto e coincidira com a margem direita do documento.
+S 30 O Parecer nâo possui preâmbulo.
+S 40 A ementa, O texto e a identificaçao do signatario seguem OS parâmetros
+definidos na formataçâo padrâo , conforme capitulo VII.
+S 50 Na ementa, O resumo do assunto começara com a expressao "Parecer sobre.. II
+S 69 Quando O parecer, excepcionalmente, nâo puder se encaixar nas
+especificidades acima mencionadas, podera ser apresentado em forma de Oficio.
+Seçao XII
+Portaria ordinatoria
+Art. 54. As Portarias que representam atos ordinatorios de carater nominal, pessoal,
+a exemplo das que definem situaçoes funcionais (como a designaçào de servidores para funçoes ou
+cargos), habilitaçâo para ordem de matricula, promoçôes, delegaçao de competência, dentre
+outros, nâo utilizarao OS campos ementa e artigos, conforme Anexo XX.
+Seçao XIII
+Requerimento
+Art. 55. É o documento pelo qual o peticionario dirige-se a uma autoridade para
+pleitear direitos ou beneficios, buscando a satisfaçao de uma pretensao que, via de regra, esteja
+prevista em legislaçao vigente.
+S 10 O requerimento é redigido em linguagem simples, comedida e dirigido à
+autoridade competente, com base em fatos e fundamentos relatados.
+S 20 Conforme modelo do Anexo XXI 1 no requerimento de militares e civis do
+COMAER, constarao OS seguintes elementos:
+I - timbre 7, centralizado;
+II - titulo (no centro da pagina, constituido da inscriçao "REQUERIMENTO", em letras
+maiusculas);
+III - numero de Protocolo do COMAER, abaixo do titulo, alinhado na margem
+esquerda do documento (na mesma linha, a localidade, dia, mês por extenso e ano da expediçao do
+documento, com o final coincidindo com a margem direita);
+IV - preambulo e ementa (conforme as normas e instruçoes previstas na formataçâo
+padrâo de documentos administrativos, conforme capitulo VII);
+V- texto (iniciado com paragrafo, numerado e seguido de ponto, a 2,5 cm da margem
+esquerda); e
+
+VI - identificaçao do signatario (apresenta a assinatura do requerente acima de seu
+nome, seguido do posto ou graduaçao, quando militar, ou côdigo, classe, padrao e matricula SIAPE,
+quando civil).
+S 30 Na confecçao dos requerimentos, deve-se observar que:
+- otexto sera redigido na terceira pessoa do singular, em forma de discurso indireto,
+informando nome, numero de ordem, posto ou graduaçao, quadro, especialidade (côdigo, classe,
+padrao e matricula SIAPE, quando civil), OM em que serve O interessado e demais informaçôes
+necessarias ao pleito;
+Exemplo:
+FULANO DE TAL, 414820-0, 1S SAD, servindo no Centro de
+Documentaçâo da Aeronautica, vem requerer ao Senhor.
+II - quando O texto do requerimento for demasiado longo, a sua continuaçao seguira
+op previsto na seçao IX do capitulo VII;
+III - quando O requerimento for firmado por procurador, a procuraçâo deve ser
+anexada; e
+IV - quando O requerente for veterano, pensionista militar ou pessoa sem vinculo
+com O COMAER, informara, no corpo do texto, O seu domicilio ou local, bem como e-mail para que
+receba comunicaçoes referentes ao processo.
+S 40 requerente deve declarar ser a primeira vez que requer no respectivo
+processo.
+I- caso contrario, informara que ordem sequencial toma O requerimento
+apresentado, esclarecendo O despacho decisorio dado ao requerimento anterior; e
+II - quando requerer, apos a primeira vez, apresentara, nas vezes posteriores,
+argumentos ou fatos novos que justifiquem a revisao do despacho anterior.
+S 50 Em casos de repetiçoes de requerimentos sobre O mesmo assunto, a autoridade
+que indeferir O ultimo requerimento podera declara-lo encerrado na esfera administrativa.
+S 69 No caso de peticionarios sem vinculo com O COMAER, O requerimento dara
+entrada na sede da respectiva OM Apoiadora. Nào residindo O peticionario em localidade da sede
+de OM Apoiadora, podera dar entrada na OM do COMAER mais proxima de seu domicilio ou
+efetuara a remessa para a OM competente para anâlise do mérito do pleito.
+S 70 A autoridade que primeiro encaminhar um requerimento, nele inserira as
+informaçôes que sejam pertinentes. Tal encaminhamento sera feito por meio de 10 Despacho,
+conforme O modelo constante do Anexo X.
+S 80 Todo requerimento devera dar entrada na OM onde O interessado serve ou
+estiver vinculado para fins de percepçao de proventos ou de pensao militar. Devera, também, sair
+da organizaçao de origem devidamente instruido, com todas as informaçôes e documentos
+necessarios à sua apreciaçâo e decisao, sendo encaminhado, via cadeia de comando, por meio de
+10 Despacho para a autoridade competente.
+S 90 Nas informaçoes, constarào, quando julgados pertinentes, OS seguintes dados
+vinculados ao assunto do requerimento:
+I- sobre O requerente informaçoes pessoais, tais como: data de nascimento, data
+de praça, data da ultima promoçao, posto, graduaçâo ou cargo atual e/ou outras que sirvam de
+
+embasamento para a soluçao;
+II - sobre O amparo - O enquadramento na legislaçâo que ampara ou nega O direito
+pretendido, citaçâo de Leis, Regulamentos, Portarias ou Despachos Ministeriais ou do CMTAER em
+que se fundamenta a pretensao do requerente; e
+III - sobre O que requer estudo fundamentado e sintético sobre O requerido e O
+parecer da autoridade que presta as informaçoes, quanto à pretensao do requerente, salvo OS
+assuntos subjetivos, em que O comandante nâo tenha OS subsidios para fundamentar seu parecer,
+quando entao submetera O pleito à apreciaçao da autoridade competente para analise.
+S 10. Os requerimentos encaminhados em desacordo com a presente publicaçao
+poderao ser restituidos aos interessados, sendo estes informados do motivo da devoluçao.
+S 11. Évedado ao militar ou civil dirigir mesmo pedido, simultaneamente, a mais de
+uma autoridade administrativa.
+CAPITULO IX
+ESPÉCIES DE COMUNICAÇOES OFICIAIS NÂO PADRONIZADAS
+Seçao I
+Edital
+Art. 56. É o meio de comunicaçào feito por intermédio de publicaçao em DOU ou
+pela Imprensa, para tornar publicos assuntos de interesse da Administraçao, tais como licitaçoes,
+citaçôes previstas no Codigo de Processo Penal Militar e demais avisos que, por sua natureza devam
+ter ampla divulgaçao, conforme legislaçao vigente.
+Paragrafo unico. Nào sera padronizado nesta NSCA, ficando a cargo das necessidades
+de cada OM.
+Seçao II
+Exposiçao de motivos
+Art. 57. Éo expediente dirigido ao Presidente da Republica ou Vice-Presidente para:
+I-i informa-lo de determinado assunto;
+Il - propor alguma medida; e
+III - submeter à sua consideraçào projeto de ato normativo.
+Paragrafo unico. Quanto à sua forma e estrutura, segue as orientaçôes preconizadas
+pelo Manual de Redaçâo da Presidência da Republica.
+Seçao III
+Nota de serviço - NS
+Art. 58. Éo documento que divulga ordens ou estabelece medidas relacionadas com
+a execuçao de serviços ou eventos pontuais, transitorios, e que prescindam de mençao e/ou
+publicaçao em boletim interno.
+S 10 Éemitida pelo Comandante e cumprida na respectiva organizaçâo ou em alguns
+de seus orgaos constitutivos.
+
+S 29 Nào sera padronizado nesta NSCA, ficando a cargo das necessidades de cada
+OM.
+Seçâo IV
+Ordem do dia - OD
+Art. 59. Éo documento pelo qual O CMTAER ou outras autoridades exaltam datas e
+fatos historicos ou fazem citaçoes meritorias.
+S 10 A Ordem do Dia nâo recebe numero. Sera identificada pela data de sua
+publicaçâo no boletim interno da OM apoiadora.
+S 20 Quando nâo couber a expediçao de Ordem do Dia, O Comandante, Secretario,
+Chefe ou Diretor da OM podera se pronunciar por meio de "Mensagem do ou "Palavras do
+Comandante".
+S 30 Nào sera padronizada nesta NSCA, ficando a cargo das necessidades de cada
+OM.
+CAPITULO X
+DISPOSIÇOES FINAIS
+Art. 60. As organizaçoes envolvidas com a elaboraçao das comunicaçoes oficiais
+abrangidas nesta norma deverao adequar-se aos novos dispositivos nela contidos, visando à
+harmonizaçâo com esta publicaçao.
+Art. 61. A revisao, a atualizaçao, as modificaçôes e a forma de apresentaçao desta
+Norma de Sistema sao de responsabilidade do COMGEP, por intermédio do CENDOC, e far-se-a
+sempre que fatos justifiquem a adoçâo dessa medida administrativa ou por determinaçao do
+Comandante-Geral do Pessoal.
+Art. 62. As disposiçoes desta Norma de Sistema aplicam-se no âmbito do COMAER,
+observado o previsto na legislaçao vigente, respeitando-se O principio da hierarquia das normas.
+Art. 63. Os casos nào previstos nesta Norma de Sistema serao submetidos ao
+Comandante-Geral do Pessoal, O qual submetera as demandas à apreciaçao do Comandante da
+Aeronautica.
+
+ANEXO II
+DOS ATOS NORMATIVOS
+SUMARIO
+Art.
+CAPITULO I- ATOS NORMATIVOS
+19/30
+CAPITULO Il  ESTRUTURA E CARACTERISTICAS DOS ATOS NORMATIVOS
+4°/19
+Seçao I - Parte preliminar
+49/79
+Seçao II - Parte normativa
+89/11
+Seçao III - Parte final
+12
+Seçao IV - Anexos dos atos normativos
+13/15
+Seçao V - Estrutura do anexo.
+16
+Seçao VI - Capa
+17
+Seçao VII - Cabeçalho
+18
+Seçao VIII - Sumario.
+19
+CAPITULO III - QUADRO DE JUSTIFICATIVAS DAS MODIFICAÇOES PROPOSTAS DE ATOS
+NORMATIVOS.
+20
+CAPITULO IV - DAS ALTERAÇOES DOS ATOS NORMATIVOS
+21/23
+Seçao I- Alteraçâo dos atos normativos
+21/22
+Seçao Il Revogaçao dos atos normativos
+23
+CAPITULO V - DA NUMERAÇAO DOS ATOS NORMATIVOS
+24/25
+Seçao I Numeraçao sequencial.
+24
+Seçao Il - Numeraçao da espécie normativa e espécie Técnica - MTCA..
+25
+CAPITULO VI - PUBLICAÇAO, VIGÈNCIA E PRODUÇAO DE EFEITO
+26/27
+Seçao I - Publicaçâo
+26
+Seçao II - Divulgaçao
+27
+CAPITULO VII - MANUAL TÉCNICO DO COMANDO DA AERONAUTICA - MTCA : 31/96
+Seçao I - Da elaboraçào
+31/34
+Seçao Il - Da numeraçâo.
+35
+Seçao III - Da capa..
+36/39
+Seçao IV - Do frontispicio.
+40/41
+Seçao V - Do sumario.
+42
+Seçao VI - Do prefacio..
+43
+
+Seçao VII - Do texto
+44/46
+Seçao VIII - Das divisoes e subdivisoes do texto
+47/52
+Seçao IX - Das disposiçoes graficas e composiçao do texto
+53/62
+Seçao X - Capitulos padronizados.
+63/85
+Seçao XI - Paginaçâo
+86/89
+Seçao VIII - Da alteraçao e revogaçao.
+90/96
+CAPITULO VIII - DISPOSIÇOES FINAIS.
+97/99
+CAPITULO
+ATOS NORMATIVOS
+Art. 10 No âmbito do COMAER, serao adotados, por força de lei, OS seguintes atos
+normativos:
+I- portaria - é editada por uma ou mais autoridades singulares, de acordo com a
+competència regimental ou delegada, estabelecendo instruçoes e procedimentos de carâter geral,
+necessarios à execuçao de leis, decretos e regulamentos externos e internos;
+II - instruçao normativa - é expedida por uma autoridade com competència
+estabelecida ou delegada para normatizar a matéria, no sentido de disciplinar a execuçao de lei,
+decreto ou regulamento, sem, no entanto, transpor ou inovar em relaçâo à norma que
+complementa. A Instruçao Normativa, tipicamente, visa a orientar as unidades administrativas em
+relaçâo a matérias mais especificas; e
+III - resoluçao é editada por colegiado com O objetivo de tomar uma decisao, impor
+uma ordem ou estabelecer uma medida.
+Paragrafo unico. As portarias podem aprovar espécies normativas, tais como
+diretrizes, normas de sistema, regulamentos, regimentos, instruçoes, manuais e outras espécies
+aplicaveis ao COMAER.
+Art. 29 É de competència do CENDOC, Orgao Central do Sistema de Documentaçao
+do Comando da Aeronautica - SISDOC, estabelecer OS procedimentos para elaboraçao, composiçao,
+aprovaçao, alteraçao, controle, numeraçào, registro e divulgaçao dos atos normativos de carâter
+geral, externos, de gestào, vinculados ou regrados.
+S 10 O controle dos atos ocorrera por meio de sistema informatizado de gestâo de
+atos normativos, publicados no Boletim do Comando da Aeronautica - BCA e/ou Diario Oficial da
+Uniâo - DOU e difundidos em sistema informatizado de divulgaçâo dos atos normativos no âmbito
+do COMAER.
+S 29 A versao em Linguagem de Marcaçao em HiperTexto HTML dos atos
+normativos sera hospedada junto ao CENDOC, para fins de divulgaçao.
+Art. 30 A ediçao, alteraçao e revogaçao parcial ou total dos atos normativos compete
+às Organizaçôes Militares do COMAER.
+S 10 OOrgao elaborador devera encaminhar a minuta do ato normativo à autoridade
+responsavel pela aprovaçao, via cadeia de Comando, onde couber.
+S 2° A competència de aprovaçâo do ato normativo ocorre em conformidade ao
+
+disposto no Anexo XXII -
+S 30 A produçao dos atos normativos em HTML, em arquivo unico, sera de
+responsabilidade da OM elaboradora, incluindo O envio do formato para o BCA.
+S 40 A revogaçao ou a revisao de atos normativos de Organizaçao Militar extinta ou
+desativada sera de responsabilidade da OM que assumiu as competências daquela Organizaçao.
+S 50 Cada OM tera competència de elaboraçao, controle, divulgaçâo sobre seus atos
+normativos internos e envio para publicaçao em Boletim interno, BCA ou DOU, no que couber.
+CAPITULO II
+ESTRUTURA E CARACTERISTICAS DOS ATOS NORMATIVOS
+Seçao I
+Parte preliminar
+Art. 40 O ato normativo sera estruturado em três partes bâsicas:
+I- parte preliminar, compreendendo:
+a) epigrafe;
+b) ementa; e
+c) preambulo, com a autoria e O fundamento de validade.
+II- parte normativa, que contera as normas que regulam O objeto; e
+III - parte final, com as demais disposiçoes.
+Art. 50 A epigrafe dos atos normativos sera constituida pelos seguintes elementos,
+nesta ordem:
+I- titulo designativo do ato normativo;
+II - sigla:
+a) do orgao ou da entidade; ou
+b) da unidade da autoridade signataria, seguida da sigla do orgao ou da entidade a
+que se vincula; ou
+c) da unidade da autoridade signataria, seguida da sigla da unidade superior daquela
+autoridade, e da sigla do orgao ou da entidade a que se vinculam;
+III - numeraçâo sequencial: a numeraçao expressa no ato normativo devera ser
+gerenciada e expedida pela OM responsavel pela aprovaçâo do ato; e
+IV - data de assinatura.
+S 10 A epigrafe, formada pelo titulo designativo do ato normativo e pela data de
+promulgaçao, é grafada em letras maiusculas, sem negrito, de forma centralizada e sem ponto final.
+S 2° As siglas empregadas serao aquelas utilizadas no Sistema de Informaçoes
+Organizacionais do Governo Federal - SIORG.
+S 30 Na hipôtese de ausência da sigla da OM da autoridade signatâria, devera ser
+utilizado O Regimento Interno do COMAER.
+
+Art. 69 A ementa explicitara, de modo conciso, O objeto do ato normativo indicando
+a natureza do assunto.
+S 10 A ementa deve ser alinhada à margem direita, com texto justificado e com recuo
+de nove centimetros de largura da pagina.
+$29 Nào deve ser utilizada identificaçao de paragrafo na primeira linha.
+S 30 No uso de anexo de espécie normativa devera ser descrito O nome da tipologia
+na ementa, conforme art. 14 deste Anexo II.
+S 40 A ementa deve ser iniciada por um verbo no presente do indicativo, flexionado
+no impessoal ou na terceira pessoa do singular.
+S 50 Deve-se utilizar formas verbais como: autoriza, cria, regulamenta, aprova,
+disciplina, institui, altera, revoga e similares.
+Art. 70 O preambulo indicara o orgao ou instituiçao competente para a pratica do
+ato e sua base legal.
+Paragrafo unico. Do preambulo, constarao:
+I-a autoria, e a denominaçao do cargo da autoridade, em letra maiuscula e em
+negrito;
+II- a atribuiçao em que se fundamenta para a ediçao do ato normativo;
+III - mencionando, se for O caso, outras normas que justificam a ediçao do ato e O
+fundamento de validade; e
+IV- a ordem de execuçao.
+Seçao II
+Parte normativa
+Art. 80 O primeiro artigo do texto do ato normativo devera indicar O objeto e âmbito
+de aplicaçao, e compor a referência do anexo editado, com a indicaçâo da espécie normativa, do
+numero bâsico e do numero secundario, se enquadradas como Anexo I.
+Paragrafo unico. A identificaçao da espécie normativa e da classificaçao tematica do
+numero basico deve ser determinada pelo Orgao Elaborador.
+Art. 99 As determinaçoes constantes no ato normativo, assim como nos anexos,
+devem ser articuladas com observância dos seguintes regramentos do Decreto no 12.002, de 2024:
+I- a unidade basica de articulaçao é O artigo, indicado pela abreviatura "Art.' n , seguida
+de numeraçâo ordinal até O nono e cardinal, acompanhada de ponto, a partir do décimo;
+II- a numeraçao do artigo é separada do texto por dois espaços em branco, sem
+traços ou outros sinais;
+III - a numeraçao do artigo do texto do Anexo I devera ser reiniciada;
+IV - O texto do artigo inicia-se com letra maiuscula e termina com ponto ou, nos casos
+em que se desdobrar em incisos, com dois-pontos;
+V-o artigo desdobra-se em paragrafos ou em incisos e O paragrafo, em incisos;
+VI - o paragrafo unico é indicado pela expressao "Paragrafo unico", I seguida de ponto
+es separada do texto normativo por dois espaços em branco;
+
+VII - OS paragrafos sâo indicados pelo simbolo "S", seguido de numeraçao ordinal até
+) nono e cardinal, acompanhada de ponto, a partir do décimo;
+VIII - a numeraçâo do paragrafo é separada do texto por dois espaços em branco, sem
+traços ou outros sinais;
+IX-0 texto do paragrafo unico e dos paragrafos numerados inicia-se com letra
+maiuscula e termina com ponto ou, nos casos em que se desdobrar em incisos, com dois-pontos;
+X - OS incisos sâo indicados por algarismos romanos seguidos de hifen, separado do
+algarismo e do texto por um espaço em branco;
+XI - O texto do inciso inicia-se com letra minuscula, exceto quando se tratar de nome
+proprio, e termina com:
+a) ponto e virgula;
+b) dois pontos, quando se desdobrar em alineas; ou
+c) ponto, caso seja O ultimo e anteceda artigo ou paragrafo;
+XII - O inciso desdobra-se em alineas, indicadas com letra minuscula na sequência do
+alfabeto e acompanhada de parêntese, separado do texto por um espaço em branco;
+XIII O texto da alinea inicia-se com letra minuscula, exceto quando se tratar de nome
+proprio, e termina com:
+a) ponto e virgula;
+b) dois-pontos, quando se desdobrar em itens; ou
+c) ponto, caso seja a ultima e anteceda artigo ou paragrafo;
+XIV - a alinea desdobra-se em itens, indicados por algarismos arabicos, seguidos de
+ponto e separados do texto por um espaço em branco;
+XV O texto do item e do subitem inicia-se com letra minuscula, exceto quando se
+tratar de nome proprio, e termina com:
+a) ponto e virgula; ou
+b) ponto, caso seja O ultimo e anteceda artigo ou paragrafo;
+XVI - OS artigos podem ser agrupados em capitulos;
+XVII - OS capitulos podem ser subdivididos em seçoes, e as seçoes em subseçoes;
+XVIII - as subseçoes e as seçoes sâo indicadas por algarismos romanos, grafadas em
+letras minusculas e em negrito;
+XIX - OS agrupamentos a que se refere O inciso XVI podem ser subdivididos em
+"Disposiçôes Preliminares", "Disposiçoes Gerais", "Disposiçôes Finais" e "Disposiçoes Transitorias";
+XX - na formataçao do texto do ato normativo, utiliza-se:
+a) fonte Calibri ou Carlito, corpo 12;
+b) margem lateral esquerda de dois centimetros de largura;
+c) margem lateral direita de dois centimetros de largura;
+d) espaçamento simples entre linhas e de seis pontos apos cada paragrafo, com uma
+linha em branco acrescida antes de cada capitulo;
+
+e) alinhamento justificado e recuo de 2,5 cm na primeira linha;
+f) margem superior de dois centimetros de largura; e
+g) margem inferior de dois centimetros de largura;
+XXI - na formataçao do texto do ato normativo, com padrâo linguagem de marcaçao
+de hipertexto HTML, sâo configurados para O tamanho A4 (duzentos e noventa e sete milimetros
+de altura por duzentos e dez milimetros de largura), alinhados à esquerda;
+XXII na formataçào do texto do ato normativo nâo se utiliza texto sublinhado,
+tachado, cabeçalho, rodapé, texto colorido, campos com atualizaçao automatica ou qualquer forma
+de caracteres ou simbolos nâo imprimiveis; e
+XXIII as palavras e as expressôes em latim ou em lingua estrangeira sao grafadas em
+itâlico.
+Art. 10. As disposiçoes normativas serao fundamentadas com observância aos
+principios da clareza, precisao e ordem logica, estabelecidas em Decreto Federal.
+Art. 11. Sera considerada a versao eletrônica do ato normativo, a Linguagem de
+Marcaçao de HiperTexto - HTML, considerando O regramento, a formataçào e a estruturaçao
+normativa descrita nesta Norma para atos normativos, assim como para OS anexos.
+Paragrafo unico. O disposto no caput nâo substitui a versao publicada em BCA, onde
+devera atender ao art. 80, ao art. 81 e ao art. 83 desta Norma.
+Seçao III
+Parte final
+Art. 12. A parte final do ato normativo devera compor:
+I- as disposiçôes gerais sobre medidas necessarias à implementaçao das normas;
+II - as disposiçoes transitorias;
+III - a clausula de revogaçào, quando couber;
+IV - a clausula de vigência indicando a data de entrada em vigor do ato normativo da
+seguinte forma:
+a) [numero cardinal por extenso] dias apos a data de sua publicaçao;
+Exemplo:
+Esta Portaria entra em vigor dez dias apos a data de sua publicaçao.
+b) no [numero ordinal por extenso] dia do [numero ordinal por extenso] mês
+subsequente ao de sua publicaçao;
+Exemplo:
+Esta Portaria entra em vigor no segundo dia do primeiro mês
+subsequente ao de sua publicaçao.
+c) em [data por extenso]; ou
+Exemplo:
+
+Esta Portaria entra em vigor em três de julho de dois mil e vinte e cinco.
+d) na data de sua publicaçao, quando nâo houver previsao de vacatio legis.
+V - nome da autoridade signataria, grafado em letras maiusculas, sem negrito, com O
+cargo da autoridade que expede O documento, redigido apenas com as iniciais maiusculas. As
+preposiçôes que ligam as palavras do cargo devem ser grafadas em letras minusculas, e O
+alinhamento da identificaçao do signatario deve ser centralizado na pagina.
+Paragrafo unico. Alternativamente, a clausula de vigência podera ser estabelecida
+em dias uteis, semanas, meses ou anos, contados da data de publicaçâo do ato normativo.
+Seçâo IV
+Anexos dos atos normativos
+Art. 13. O ato normativo podera ser complementado pela inclusao de um ou mais
+anexos mencionados nas partes, onde couber.
+S 10 Os anexos deverao compor O desdobramento do ato normativo.
+S 2° Para efeitos desta norma, OS anexos conterao espécies normativas
+convencionais ou nâo convencionais.
+Art. 14. Deverao ser enquadradas como Anexo 1, quando houver, as seguintes
+espécies normativas convencionais:
+I- Diretriz do Comando da Aeronautica - DCA - espécie destinada, precipuamente, a
+definir, estabelecer ou orientar em carâter global, setorial ou especifico, a Concepçao Estratégica
+do Comando da Aeronautica nos campos de açâo essenciais ao desenvolvimento da Aeronautica e
+ao fortalecimento e emprego do Poder Aeroespacial. Reservado apenas ao Comandante da
+Aeronautica, conforme art. 63 do Decreto-Lei no 991, de 21 de outubro de 1969;
+II- Folheto do Comando da Aeronautica - FCA - espécie destinada a informar e a
+noticiar assuntos especificos, de carater diretivo, administrativo, técnico, didatico, literario, e à
+publicaçâo de transcriçoes, reproduçôes, traduçoes de livros, artigos, reportagens, discursos,
+conferências, pronunciamentos, pareceres e relatorios;
+III - Instruçao do Comando da Aeronautica - ICA - espécie de carâter determinativo e
+diretivo destinada a divulgar regras, preceitos, critérios, recomendaçoes e procedimentos diversos,
+visando a facilitar, de maneira inequivoca, a aplicaçao de leis, decretos, portarias e regulamentos;
+IV - Manual do Comando da Aeronautica - MCA - espécie de carâter diretivo,
+informativo e/ou didatico destinada a regular e a divulgar assuntos relacionados com doutrina,
+ensino, instruçao, técnica, emprego de Unidades, de equipamentos ou de armamentos, podendo,
+ainda, completar matéria jà tratada em outros atos normativos. Os Manuais podem, também, ser
+usados para compilaçào de matérias, tais como: OS glossarios, OS dicionarios, as relaçoes de
+abreviaturas, siglas e simbolos;
+V - Norma de Sistema do Comando da Aeronautica - NSCA espécie destinada a
+disciplinar, tecnicamente, matérias e assuntos ligados à atividade-meio do sistema considerado. As
+NSCA sâo elaboradas exclusivamente pelos orgaos centrais dos sistemas, sendo aprovadas por ato
+do Comandante ou Dirigentes do Orgao Central, de acordo com a competência regimental ou
+delegada, cujos sistemas se situem em suas estruturas de comando, conforme ICA 700-1
+(Implantaçao e Gerenciamento de Sistemas no Comando da Aeronautica);
+
+VI - Ordem do Comando da Aeronautica - OCA - espécie de carâter determinativo no
+campo operacional, a qual é destinada a consubstanciar as decisôes tomadas em determinado
+momento para cumprimento de uma missao;
+VII - Plano do Comando da Aeronautica - PCA - espécie de carâter determinativo
+destinada a consubstanciar as decisôes tomadas em um determinado momento e nivel hierarquico,
+a consecuçao de objetivos finais a serem alcançados em determinado periodo especifico;
+VIII - Regulamento do Comando da Aeronautica - RCA - espécie de carâter
+determinativo e diretivo destinada a dispor sobre a execuçao de leis ou de decretos e, como tal,
+destina-se a estabelecer preceitos de administraçao e demais atividades gerais do Comando da
+Aeronautica, tais como: prescriçoes especificas relativas a recursos humanos, economia, finanças,
+material, serviços internos, patrimônio e outros assuntos cabiveis de serem regulamentados no seu
+âmbito. Sua aprovaçâo é exclusiva ao Comandante da Aeronautica;
+IX - Regimento Interno do Comando da Aeronautica - RICA espécie destinada a
+estabelecer O detalhamento da estrutura da Organizaçâo Militar, disciplinando O funcionamento e
+as competências de seus orgaos constitutivos, em complemento ao respectivo Regulamento de
+Organizaçao;
+X - Regulamento de Organizaçao do Comando da Aeronautica - ROCA - É a espécie
+destinada a estabelecer a finalidade, a subordinaçao, a sede, a estrutura basica e as atribuiçoes
+gerais de uma Organizaçao Militar. Pode referir-se a uma Organizaçâo especifica ou a um
+determinado tipo de Organizaçao. Sua aprovaçao é exclusiva do Comandante da Aeronautica; e
+XI - Tabela do Comando da Aeronautical - TCA - espécie destinada a normatizar,
+registrar, catalogar, relacionar, listar e divulgar, periodica e detalhadamente, assuntos gerais, tais
+como: cursos, câlculos, indices, publicaçôes, desdobramentos estruturais, distribuiçao de material,
+equipamento, endereços, etc; e
+XII - Manual Técnico do Comando da Aeronautica - MTCA - espécie técnica que
+fornece informaçôes detalhadas sobre um produto, serviço ou processo técnico. A elaboraçao do
+MTCA obedecera a formataçào propria, discriminada no capitulo VII.
+S 19 Os anexos deverao ser publicados na integra, seguindo O disposto no capitulo
+VII.
+S 2° Devera ser precedido da palavra anexo, centralizado, em maiusculo e negrito,
+identificado por algarismo romano consecutivo, com O respectivo titulo inserido na linha
+subsequente:
+I - quando contiver espécie normativa, sera obrigatoriamente O anexo I;
+II - no titulo constara a espécie normativa e a numeraçào bâsica e secundaria, entre
+parênteses; e
+III - quando O titulo ocupar mais de uma linha, a segunda linha e as demais iniciarao
+embaixo da primeira letra do texto do titulo.
+Art. 15. Sera admitido O uso de outras espécies para atos normativos, considerados
+pelo SISDOC como espécies nâo convencionais, exemplificados como:
+I- CIRCEA;
+II - NOSDE;
+III - NOPREP;
+IV - NOREFA;
+
+V - MANINV;
+VI - DCENS; e
+VII - qualquer outro ato normativo interno, desde que nâo se enquadre como espécie
+convencional, definida por esta norma.
+S 10 A estrutura e a competència de aprovaçâo serao definidas pelo Comando de
+subordinaçao ou Organizaçao Militar - OM, nâo cabendo ao CENDOC O controle e registro.
+S 20 A publicidade podera ser feita em Boletim interno - BI e no Boletim do Comando
+da Aeronautica - BCA entretanto, neste ultimo caso, sua busca no SISLAER estara restrita ao BCA de
+publicaçao.
+S 30 A formalistica podera ser definida pelo padrao utilizado pela Associaçao
+Brasileira de Normas Técnicas - ABNT ou modelo legislativo.
+Seçào V
+Estrutura do anexo
+Art. 16. O anexo sera estruturado em três elementos:
+I- pré-textual, compreendendo:
+a) capa;
+b) cabeçalho; e
+b) sumario;
+II - textual ou parte normativa, constituida conforme disposiçoes no art. 9°; e
+III - pos-textual, conforme art. 13, podendo conter demais anexos.
+Seçâo VI
+Capa
+Art. 17. O anexo do ato normativo, devera obrigatoriamente conter capa como
+elemento de proteçao externa e identificaçao, conforme Anexo XXIII, contendo OS elementos:
+I- MINISTERIO DA DEFESA e COMANDO DA AERONAUTICA, centralizado em
+maiusculo, negrito e corpo do texto 17;
+II - nome da OM que elaborou O ato, centralizado em maiusculo, e corpo de texto 15;
+III - gladio alado como simbolo da Força Aérea Brasileira;
+IV - assunto bâsico, em maiusculo, negrito e corpo do texto 19; e
+V - legenda, em maiusculo, negrito e corpo de texto 14, com:
+a) sigla da espécie normativa com OS numeros bâsicos e secundarios;
+b) o titulo da espécie normativa e ano de aprovaçâo abaixo; e
+c) localizado no espaço assinalado por linha demarcatoria da area de identificaçao do
+ato normativo.
+$10 Fica dispensada a utilizaçâo da capa na versao em HTML.
+
+$20 Caso a legenda seja maior que O tamanho do retângulo previsto no Anexo XXIII,
+) mesmo podera ser aumentado, desde que se mantenha a proporçao das medidas dispostas.
+Seçào VII
+Cabeçalho
+Art. 18. O cabeçalho sera utilizado na primeira pagina do ato normativo; na versao
+eletrônica - HTML, antecedera a epigrafe, centralizado na area determinada pela formataçào,
+constando OS seguintes elementos:
+I- Brasao das Armas da Republica;
+II - MINISTÉRIO DA DEFESA;
+III - COMANDO DA AERONAUTICA;
+IV - nomes dos orgaos secundarios, quando necessarios, da maior para a menor
+hierarquia; e
+V- espaçamento: entrelinhas simples (1,0).
+Paragrafo unico. Em HTML O Brasâo das Armas da Republica devera ser alinhado à
+esquerda, e OS demais elementos centralizados.
+Seçào VIII
+Sumario
+Art. 19. O sumario, que é opcional, sera utilizado para enumeraçào das principais
+divisoes, capitulos, seçôes e outras partes do anexo do ato normativo, sendo sequenciado na mesma
+ordem em que a matéria nele se sucede.
+Paragrafo unico. Fica dispensada a utilizaçao do sumario no arquivo em HTML.
+CAPITULO III
+QUADRO DE JUSTIFICATIVAS DAS MODIFICAÇOES PROPOSTAS DE ATOS NORMATIVOS
+Art. 20. O quadro de justificativas é O documento por meio do qual O Orgao
+elaborador apresenta O detalhamento das propostas de alteraçao de atos normativos, conforme
+Anexo XXIV.
+S 1° O referido quadro devera ser elaborado em orientaçâo "paisagem" e assinado
+pela autoridade ou profissional responsavel pela sua elaboraçao, seguindo como anexo ao
+documento que O encaminha.
+S 2° Para a sua elaboraçao, devem ser utilizadas as seguintes cores para a legenda
+no texto proposto:
+- a cor vermelha, para simbolizar a supressâo de artigos, paragrafos, incisos, alineas,
+itens, subitens ou vocabulos;
+II- a cor azul, para simbolizar OS acréscimos ou substituiçoes; e
+III - a cor preta, para simbolizar que O enunciado nâo sofreu qualquer mudança.
+
+CAPITULO IV
+DAS ALTERAÇOES DOS ATOS NORMATIVOS
+Seçao I
+Alteraçao dos atos normativos
+Art. 21. A alteraçao de ato normativo sera realizada por meio de:
+I- revogaçao total, quando se tratar de alteraçao consideravel;
+II - revogaçâo parcial; ou
+III - substituiçao, supressao ou acréscimo de dispositivo.
+Paragrafo unico. As alteraçoes serao realizadas em todas as versoes para publicaçâo
+e divulgaçao.
+Art. 22. Na alteraçâo de ato normativo, as seguintes regras serao observadas:
+I-0 texto de cada artigo acrescido ou alterado sera transcrito entre aspas, seguido
+da indicaçao de nova redaçao, representada pela expressao "(NR)";
+II- a expressao "revogado", I ou outra equivalente, nâo sera incluida no corpo da nova
+redaçao;
+III - a renumeraçao de paragrafo ou de unidades superiores a paragrafo é vedada;
+IV - a renumeraçao de incisos e de unidades inferiores a incisos é permitida se for
+inconveniente O acréscimo da nova unidade ao final da sequência;
+V-o aproveitamento de numero ou de letra de dispositivo revogado é vedado; e
+VI - nas hipôteses previstas no inciso III do caput do art. 21:
+a) o ato normativo a ser alterado devera ser mencionado pelo titulo designativo da
+espécie normativa e pela sua data de promulgaçao, seguidos da expressâo "passa a vigorar com as
+seguintes alteraçôes", sem especificaçao dos artigos ou subdivisoes de artigo a serem acrescidos ou
+alterados;
+b) na alteraçâo parcial de artigo, OS dispositivos que nâo terao O seu texto alterado
+serao substituidos por linha pontilhada; e
+c) a utilizaçâo de linha pontilhada sera obrigatoria para indicar a manutençào de
+dispositivo em vigor e observara O seguinte:
+1. no caso de manutençao do texto do caput, a linha pontilhada empregada sera
+precedida da indicaçao do artigo a que se refere;
+2. no caso de manutençao do texto do caput e do dispositivo subsequente, duas
+linhas pontilhadas serao empregadas e a primeira linha sera precedida da indicaçâo do artigo a que
+se refere;
+3. no caso de alteraçao do texto de unidade inferior dentro de unidade superior do
+artigo, a linha pontilhada empregada sera precedida da indicaçâo do dispositivo a que se refere; e
+4. a inexistência de linha pontilhada nâo dispensara a revogaçâo expressa de
+paragrafo;
+VII - no caso de acréscimo de paragrafos em artigo vigente com paragrafo unico:
+
+a)o paragrafo unico sera tido como transformado em S 19, sem necessidade de
+transcriçao do texto do paragrafo unico vigente;
+b) a linha pontilhada correspondente ao paragrafo unico transformado em S 1° sera
+precedida da indicaçâo "S 1";
+c) o paragrafo unico transformado em S 1° nâo sera declarado revogado.
+S 10 Nas hipôteses dos incisos III e IV do caput, caso seja necessaria a inserçao de
+novos dispositivos no ato normativo, sera utilizado, separados por hifen, O numero ou a letra do
+dispositivo imediatamente anterior acrescido de letras maiusculas, em ordem alfabética, tantas
+quantas forem necessarias para identificar OS acréscimos.
+S 29 Ato normativo de carater independente sera evitado quando existir ato
+normativo em vigor que trate da mesma matéria.
+S 30 Na hipotese de que trata O S 29, OS novos dispositivos serao incluidos no texto
+do ato normativo em vigor.
+Seçao II
+Revogaçâo dos atos normativos
+Art. 23. A clausula de revogaçâo relacionara, de forma expressa, todas as disposiçoes
+que serao revogadas.
+S 1° A expressao "revogam-se as disposiçoes em contrario" nâo sera utilizada.
+S 2° No caso de normas anteriormente alteradas, a revogaçâo expressa incluira OS
+dispositivos modificados e OS dispositivos da norma alteradora.
+CAPITULO V
+DA NUMERAÇAO DOS ATOS NORMATIVOS E MTCA
+Seçao I
+Numeraçào Sequencial
+Art. 24. As Portarias terao numeraçâo sequencial em continuidade às séries em
+curso quando da entrada em vigor desta Norma.
+Paragrafo unico. O controle da numeraçào das Portarias de conteudo normativo sera
+realizado pelo sistema informatizado de gestâo arquivistica do COMAER, sem interrupçao nos anos
+vindouros.
+Seçao II
+Numeraçao da espécie normativa e espécie técnica
+Art. 25. As espécies normativas, elencadas no art. 14 desta NSCA, serao aprovadas
+por portaria normativa e deverao ser numeradas da seguinte forma:
+I-a sigla da espécie normativa ou MTCA identificara O âmbito de atuaçâo e
+competência de aprovaçao do ato normativo, conforme esta norma;
+II-O numero bâsico determinara a area tematica do ato normativo ou MTCA,
+evitando ambiguidades, e identificara a competència de aprovaçào, constantes na Tabela de
+assuntos das Espécies Normativas do Comando da Aeronautica - TCA 5-1, do CENDOC; e
+
+III O numero secundario identificara a ordem cronologica e volumétrica do ato
+normativo ou MTCA, sob O assunto.
+Exemplo:
+ICA19-1
+Numero secundario (ordemcronologicae volumétrica fornecida pelo CENDOC)
+Numero bâsico (area temâtica)
+Espécie normativa (âmbito de atuaçao)
+$1 1° O tipo de espécie normativa ou espécie técnica - MTCA, assim como
+sua numeraçâo serao aplicados tanto para atos normativos ou MTCA ostensivos e sigilosos,
+publicados em BCA.
+S 29 A classificaçao da espécie normativa e espécie técnica sera identificada pelo
+teor normativo ou técnico, âmbito de atuaçâo e competência de aprovaçao, em observância a
+descriçao das espécies dispostas no art. 14.
+S 30 Os numeros secundarios serao fornecidos pelo CENDOC, exclusivamente por
+intermédio do Sistema Informatizado de Gestâo dos Atos Normativos, com prazo de reserva de
+noventa dias, a partir da data de fornecimento e prorrogaveis por noventa dias, nâo cabendo às
+Organizaçôes Militares adicionarem numeros secundarios à revelia.
+S 40 Nào ocorrendo a solicitaçâo de prorrogaçao, nos prazos previstos, O numero
+ficara, automaticamente, à disposiçao do CENDOC.
+S 59 Para fins de divulgaçao, O registro da publicaçâo em BCA devera ser informado
+pelo Orgao elaborador, no sistema informatizado do CENDOC, por meio da chave de acesso.
+S 69 Os dados pessoais da reserva do numero secundario obedecem à legislaçao que
+trata da proteçao de dados pessoais.
+S 7° O numero basico e O numero secundario da espécie normativa ou espécie
+técnica deverao ser mantidos nos casos previstos no art. 21, incisos I, II e III.
+S 80 Nào podera ser reutilizada a numeraçâo da espécie normativa ou técnica
+quando revogados totalmente sem substituiçao expressa do ato.
+CAPITULO VI
+PUBLICAÇAO, VIGÈNCIA E PRODUÇAO DE EFEITO
+Seçao I
+Publicaçâo
+Art. 26. Os atos normativos e MTCA editados por autoridades do Comando da
+Aeronautica deverao ser publicados de acordo com OS seguintes critérios:
+I- no Diario Oficial da Uniâo - DOU, quando nao forem de aplicaçao exclusiva no
+âmbito interno do Comando da Aeronautica, e produzirem efeitos externos ao COMAER;
+II- no Boletim do Comando da Aeronautica - BCA, quando forem de aplicaçao
+exclusiva no âmbito interno do Comando da Aeronautica e nao produzirem efeitos externos ao
+
+COMAER; ou
+III - no Boletim Interno - BI, quando forem de aplicaçâo exclusiva no âmbito interno
+da Organizaçao Militar onde foi editado e aprovado.
+S 19 As espécies normativas, MTCA e seus anexos, previamente assinados
+digitalmente, deverao ser enviados para O BCA no formato de arquivo editàvel, em PDF e HTML
+(arquivo unico), incluindo, onde couber, O registro no corpo das mesmas, das alteraçôes de
+revogaçao parcial, substituiçao, supressao ou acréscimo em atendimento ao disposto no capitulo
+XIII.
+S 2° As espécies normativas e MTCA revestidas de grau de sigilo, ou restriçao de
+acesso nâo serao convertidos, publicados e divulgados em HTML.
+Seçao II
+Divulgaçao
+Art. 27. Os atos normativos e MTCA deverao ser divulgados:
+I- com registro no corpo do ato das alteraçoes realizadas por normas esparsas, das
+revogaçoes de dispositivos e das suspensôes ou das invalidaçôes;
+II - com arquivo em formato PDF e padrao HTML, se ostensivo;
+III - com divulgaçao do respectivo BCA, através do seu endereço eletrônico ou link de
+acesso; e
+IV - em sitio eletrônico que abranja OS atos normativos e MTCA no âmbito do
+COMAER.
+Art. 28. A Seçao de Atos Normativos do CENDOC divulgara as espécies normativas e
+espécies técnicas - MTCA que se encontram em conformidade com O preconizado nesta Portaria,
+via Sistema informatizado de gestâo e divulgaçâo dos atos normativos no âmbito do COMAER.
+Art. 29. Os atos de conteudo normativo e MTCA revestidos de grau de sigilo ou de
+acesso restrito constarao na base de dados do sistema informatizado de gestâo e divulgaçâo dos
+atos normativos no âmbito do COMAER, por meio de seus metadados, sem publicaçao do conteudo,
+em observância a Lei Federal no 12.527, de 18 de novembro de 2011 - Lei de Acesso à
+Informaçâo - LAI, assim como principios da publicidade e da transparência.
+S 10 Para fins de informaçôes, reproduçào e divulgaçâo do texto original, O CENDOC
+respeitara O grau de sigilo estabelecido pelo Orgao Elaborador do ato normativo.
+S 29 Os atos normativos e MTCA sigilosos, observado O seu teor e em razao de sua
+imprescindibilidade à segurança da sociedade ou do Estado, poderao ser classificados como
+ultrassecreto, secreto ou reservado, conforme art. 27 da LAI.
+Art. 30. Nào constarao, na integra, nos sistemas informatizados de gestâo e
+divulgaçao dos atos normativos no âmbito do COMAER, OS atos normativos:
+I- em dissenso a esta normativa;
+II - atos ordinatorios ou com agentes nominalmente identificados;
+III - publicados, exclusivamente, em Boletim interno, e
+IV - com restriçao de acesso ou revestidos de grau de sigilo.
+Paragrafo unico. O prazo para divulgaçao, suspensao ou revogaçâo dos atos
+
+normativos e MTCA no sistema informatizado de divulgaçào do COMAER, obedece ao cronograma
+de analises e conferências dos anexos publicados em BCA, respeitando O critério da ordem de
+solicitaçao no sistema eletrônico de gestâo e controle de numeraçao de espécie normativa ou
+técnica.
+CAPITULO VII
+ELABORAÇAO DO MANUAL TÉCNICO DO COMANDO DA AERONAUTICA - MTCA
+Seçao I
+Da elaboraçao
+Art. 31. O Manual Técnico do Comando da Aeronautica - MTCA seguira as normas da
+Associaçao Brasileira de Normas Técnicas ABNT, sob orientaçao desta Norma de Sistema.
+Art. 32. O MTCA tera O tamanho 210 X 297 mm (A4) para O padrao de arquivo PDF.
+Art. 33. O MTCA seguira O mesmo padrâo de envio do arquivo HTML para inserçâo
+no Sistema Informatizado de Gestao dos Atos Normativos.
+Art. 34. O MTCA possui capa, frontispicio, ato de aprovaçào, sumario, prefacio, texto,
+referências, anexos e indice, nesta ordem.
+Paragrafo unico. O prefacio e OS anexos sâo elementos opcionais da publicaçào, a
+critério do Orgao elaborador.
+Seçao II
+Da numeraçào
+Art. 35. A numeraçào do MTCA seguira OS moldes das espécies normativas previstas
+no art. 14.
+Seçao III
+Da capa
+Art. 36. A capa é a proteçao externa da publicaçao, devendo conter na fachada, em
+tinta preta e em negrito, as inscriçoes:
+I- MINISTÉRIO DA DEFESA, em fonte calibri ou carlito, corpo 17;
+II - COMANDO DA AERONAUTICA, em fonte calibri ou carlito, corpo 17;
+III - Simbolo da Força Aérea Brasileira (Gladio Alado);
+IV - ASSUNTO BASICO, em fonte calibri ou carlito, corpo 19; e
+V- legenda, em fonte calibri ou carlito, corpo 11.
+Art. 37. O MTCA tera capa de cor branca e dimensoes adaptadas ao tamanho da
+publicaçâo (A4).
+Art. 38. A legenda é formada pela sigla da espécie da publicaçao, pelos numeros
+bâsico e secundario, pelo titulo e pelo ano de aprovaçâo do ato, em negrito.
+Art. 39. Localiza-se no espaço assinalado por linha demarcatoria da area de
+identificaçao da publicaçao.
+
+ICA 35-1 1
+PADRONIZAÇAO DE PROCESSOS ADMINISTRATIVOS
+5cm
+(Linha demarcatoria da
+2007
+ârea de identificaçâo da
+publicaçao)
+10 cm
+Seçâo IV
+Do frontispicio
+Art. 40. O frontispicio é a primeira pagina da publicaçao, também denominada folha
+de rosto ou pagina de rosto.
+Art. 41. O frontispicio contém apenas OS elementos essenciais à identificaçao da
+publicaçào, quais sejam:
+I- nominata (Ministério da Defesa, Comando da Aeronautica, Nome da Organizaçao
+que emitiu a Publicaçao);
+Il - simbolo da Força Aérea Brasileira (Gladio Alado);
+III - titulo do assunto basico;
+IV - sigla da espécie da publicaçao;
+V- numeros bâsico e secundario; e
+VI - titulo e ano da publicaçao em tinta preta e em negrito.
+Paragrafo unico. A nominata e O titulo do assunto bâsico deverao ser grafados em
+fonte tipo calibri ou carlito, adotando-se O corpo 17 para MINISTÉRIO DA DEFESA e para COMANDO
+DA AERONAUTICA, O 12 para O nome da Organizaçao Elaboradora e O 19 para O Assunto Basico.
+Seçao V
+Do sumario
+Art. 42. O sumario contera a enumeraçao das principais divisoes, seçôes e outras
+partes textuais de uma oublicaçao, na mesma ordem em que a matéria nela se sucede e contera O
+numero da pagina onde as divisôes se localizam.
+Paragrafo unico. Nào contera a expressao "intencionalmente em branco" no verso,
+caso este nâo venha a ser utilizado.
+Seçâo VI
+Do prefacio
+Art. 43. O prefacio precede O sumario, a introduçao ou O primeiro capitulo da
+
+publicaçao.
+Seçao VII
+Do texto
+Art. 44. O texto é a parte da publicaçâo em que é exposta a matéria. Em geral,
+compoe-se de introduçao, desenvolvimento e conclusao.
+Art. 45. As folhas do texto devem apresentar margem esquerda e superior de 3 cm;
+direita e inferior de 2 cm.
+Art. 46. A fonte adotada sera calibri ou carlito e corpo "12".
+Seçao VIII
+Das divisoes e subdivisoes do texto
+Art. 47. O MTCA tera O seu texto dividido em capitulos, itens, alineas e subalineas,
+sucessivamente, de acordo com O previsto na NBR 6024 - informaçào e documentaçao: numeraçào
+progressiva das seçôes de um documento escrito, norma da Associaçâo Brasileira de Normas
+Técnicas - ABNT:
+I- seçoes sâo partes em que se divide O texto de uma publicaçâo que contém as
+matérias consideradas afins na exposiçao ordenada do assunto;
+II- seçôes primarias sâo as principais divisoes do texto de uma publicaçao,
+denominadas "Capitulo". Cada seçao primaria pode ser dividida em seçoes secundarias, estas em
+terciarias, e assim sucessivamente;
+III oi indicativo das seçoes primarias segue a sequência dos numeros inteiros a partir
+de 1; e
+IV - seçoes Secundarias, Terciarias, Quaternarias e Quinarias sâo Divisoes do texto de
+uma seçao primaria, secundaria, terciaria, etc., respectivamente.
+Art. 48. Recomenda-se limitar O numero das seçoes até a quinaria.
+Art. 49. O indicativo de uma seçao precede O titulo ou a primeira palavra do texto,
+se nâo houver titulo, separado por um espaço.
+Art. 50. As alineas sâo ordenadas alfabeticamente por letras minusculas seguidas de
+parênteses.
+Art. 51. As subalineas começam por um hifen colocado sob a primeira letra do texto
+da alinea.
+Art. 52. Na numeraçao dos capitulos e itens, serao empregados algarismos arabicos.
+Nas alineas serao empregadas letras minusculas do alfabeto, seguidas de parênteses. Nas
+subalineas, hifen, conforme quadro abaixo:
+Seçâo Primaria Seçao Secundaria Seçâo Terciaria Seçao Quaternaria Seçao Quinaria
+1
+1.1
+1.1.1
+1.1.1.1
+1.1.1.1.1
+
+5.1.1.1.1
+5
+5.1
+5.1.1
+5.1.1.1
+10
+10.8
+10.8.1
+10.8.1.1
+10.8.1.1.1
+Seçao IX
+Das disposiçoes grâficas e composiçao do texto
+Art. 53. A seçao primaria (capitulo) começara sempre em pagina impar.
+Art. 54. O titulo da seçao sera colocado na mesma linha do respectivo indicativo.
+Art. 55. O texto do item sem titulo começa por maiuscula, na mesma linha do
+respectivo indicativo, e a segunda linha começa sob O primeiro algarismo do indicativo dessa seçao.
+Art. 56. Os titulos das seçôes devem ser destacados com recursos tipograficos.
+Exemplo:
+1 SEÇAO PRIMARIA (CAPITULO): maiuscula e negrito.
+1.1 SEÇAO SECUNDARIA (ITEM): maiuscula e sublinhada.
+1.1.1 SEÇAO TERCIARIA (ITEM): maiuscula e minuscula sublinhadas.
+1.1.1.1 Seçao quaternaria (item): maiuscula e minuscula sublinhadas.
+1.1.1.1.1 Seçao quinaria (item): maiuscula e minuscula.
+Art. 57. A disposiçao grafica das alineas e subalineas obedece às seguintes regras de
+apresentagao:
+I- as alineas sâo ordenadas alfabeticamente por letras minusculas seguidas de
+parênteses;
+II - as subalineas começam por um hifen colocado sob a primeira letra do texto da
+alinea;
+III - as alineas e subalineas nao possuem titulo quando as alineas forem cumulativas
+ou alternativas, pode ser acrescentado, apos a penultima, "e/ou", conforme O caso;
+IV - O trecho final da seçao anterior às alineas termina por dois pontos;
+V- as letras indicativas das alineas e O hifen das subalineas sâo alinhados em relaçao
+à margem esquerda;
+VI - a matéria da alinea e das subalineas começa por letra minuscula e termina por
+ponto e virgula, exceto na ultima, que termina por ponto, se O texto seguinte for enquadrado em
+um novo item;
+VII - quando uma alinea for seguida de subalineas, a matéria da alinea terminara por
+virgula;
+VIII - entre alineas, se a matéria for desdobrada em subalineas, O texto da ultima
+subalinea terminara em ponto e virgula; e
+IX - a segunda linha e as seguintes da matéria da alinea e das subalineas começam
+sob a primeira letra do texto da propria alinea ou subalineas.
+Art. 58. A area util é O espaço limitado pelas margens das paginas.
+
+Art. 59. O texto devera ser distribuido nos limites da area util, seguindo às
+disposiçôes graficas.
+Art. 60. A critério do Orgao Elaborador, algumas publicaçôes, como, por exemplo, O
+glossario da Aeronautica -MCA 10-4 e O Manual de Abreviaturas, Siglas e Simbolos da Aeronautica
+MCA 10-3, poderao ter O texto apresentado em duas colunas, à semelhança dos dicionarios.
+Art. 61. O espaçamento é O espaço empregado no texto, podendo ser simples, duplo
+ou triplo.
+Art. 62. As publicaçôes sigilosas serao marcadas em todas as paginas do texto, na
+capa e no frontispicio, conforme O grau de sigilo atribuido, de acordo com legislaçao especifica.
+Seçao X
+Capitulos padronizados
+Art. 63. As disposiçoes preliminares compôem O primeiro capitulo, de aplicaçâo
+obrigatoria, do qual constarao, pelo menos, OS topicos sobre finalidade e âmbito.
+Art. 64. No item "âmbito", devera ser claramente descrita a aplicabilidade da
+publicaçao.
+Art. 65. As disposiçoes gerais compoem O antepenultimo capitulo, de aplicaçao
+eventual, dele constando disposiçoes de carâter geral ou matéria relacionada com assuntos tratados
+em mais de um capitulo ou que interessem à publicaçâo como um todo.
+Art. 66. As disposiçoes transitorias compôem penultimo capitulo, de aplicaçao
+eventual, no qual serao incluidas providências condicionadas a eventos futuros, condiçôes a serem
+cumpridas em prazos determinados e preceitos destinados a perderem vigência, à medida que suas
+exigências forem sendo atendidas.
+Art. 67. As disposiçoes finais compôem O ultimo capitulo, de aplicaçao obrigatoria, no
+qual constarao a substituiçao de publicaçoes e a atribuiçao para a soluçao de casos nâo previstos.
+Art. 68. Os modelos relacionados às Disposiçoes Preliminares, Disposiçoes Gerais,
+Disposiçoes Transitorias e Disposiçoes Finais encontram-se elencados nos anexos.
+Art. 69. Mesmo que O verso de qualquer pagina da publicaçào nâo contenha texto,
+nâo devera ser inserida a expressao "INTENCIONALMENTE EM BRANCO".
+Art. 70. As figuras, tabelas, quadros, graficos, diagramas, desenhos, fotografias,
+mapas etc. poderao ser utilizados para explicar ou completar visualmente um texto.
+Art. 71. Qualquer que seja seu tipo, a palavra Figura, em negrito, aparece na parte
+inferior, seguida de seu numero de ordem de ocorrência no texto em algarismos arabicos e do
+respectivo titulo e/ou legenda explicativa. Deve situar-se O mais proximo possivel da sua indicaçâo
+no texto.
+Art. 72. Quando forem utilizadas Tabelas e Quadros, as respectivas palavras aparecem
+em negrito na parte superior, seguidos de seu numero de ordem de ocorrência no texto em
+algarismos arabicos. Devem situar-se O mais proximo possivel de suas indicaçoes no texto.
+Art. 73. As citaçoes de indicativos de seçao e figuras, tabelas e quadros devem ser
+citados no texto de acordo com OS seguintes exemplos:
+
+Exemplos:
+no capitulo 4
+no item 4.2
+(ver 9.2)
+na figura 5
+na tabela 1...
+no quadro 3...
+Art. 74. A referência é conjunto padronizado de elementos descritivos, retirados de
+um documento, que permite sua identificaçao individual.
+Paragrafo unico. O recurso tipografico (negrito, grifo ou italico) utilizado para
+destacar O elemento titulo deve ser uniforme em todas as referências de um mesmo documento.
+Art. 75. O indice é a lista de entradas ordenadas segundo determinado critério, que
+localiza e remete para as informaçoes contidas num texto.
+Art. 76. O indice é de aplicaçâo obrigatoria, localizado apos OS anexos, se houver. Nas
+publicaçoes que forem glossarios, abreviaturas, terminologias ou naquelas cujo texto seja reduzido,
+nâo ultrapassando 48 paginas, o indice é opcional.
+Art. 77. A indicaçao que remete para as informaçôes contidas no texto pode ser a
+pagina ou O item da publicaçao.
+Art. 78. ) anexo é O documento que nem sempre é do proprio autor, porém que
+serve de fundamentaçao, comprovaçào ou ilustraçâo.
+Exemplo:
+texto de lei, decreto, correspondência, mapas, questionarios, etc.
+Art. 79. Os anexos sâo identificados por letras maiusculas consecutivas, travessao e
+pelos respectivos titulos. Excepcionalmente utilizam-se letras maiusculas dobradas na identificaçao
+dos anexos, quando esgotadas as 26 letras do alfabeto.
+Exemplo:
+Anexo A - Modelo de oficio
+Anexo Z Modelo de memorando
+Anexo AA - Modelo de errata
+Art. 80. Quando houver somente um anexo a identificaçao devera ser constituida
+por travessao e pelos respectivos titulos.
+Exemplo: Anexo A - Modelo de ato de aprovaçâo
+Art. 81. As paginas dos anexos devem ser numeradas de maneira continua e sua
+paginaçao deve dar seguimento à do texto principal.
+Art. 82. O titulo do anexo aparecera apos a sua referência, antecedido de hifen,
+sendo a primeira letra maiuscula e as demais minusculas.
+
+Art. 83. Quando O titulo do anexo ocupar mais de uma linha, a segunda linha e as
+demais iniciarao embaixo da primeira letra do texto do titulo.
+Exemplo:
+Anexo AA - Modelo de Oficio que deve ser remetido para OS Usuarios do
+Banco de Legislaçao.
+Art. 84. Para publicaçoes com elevado numero de anexos, orienta-se a disposiçao
+dos mesmos em volumes, de maneira que cada volume possua uma Portaria propria de aprovaçao,
+conservando a numeraçào basica, secundaria, titulo e assunto da publicaçao da qual fazem parte.
+Exemplo: ICA 400-8 "Programa de Trabalho Anual da DIRMAB e de suas
+Unidades Subordinadas".
+Art. 85. Quando O conteudo do Anexo ultrapassar uma pagina da publicaçao, deve
+ser utilizado na pagina seguinte a expressao exemplificada abaixo:
+Exemplo:
+Continuaçâo do Anexo E - Disposiçoes Graficas e Composiçao do Texto.
+Seçao XI
+Paginaçao
+Art. 86. O MTCA sera impresso utilizando-se as duas faces do papel, desde que as
+ilustraçoes que venham a existir nâo prejudiquem a visibilidade das paginas anterior e/ou seguinte.
+Art. 87. Todas as folhas da publicaçao, a partir do frontispicio (folha de rosto), devem
+ser contadas sequencialmente, mas nâo numeradas.
+Art. 88. A numeraçao começa a ser colocada a partir da segunda pagina da parte
+textual (1 DISPOSIÇOES PRELIMINARES), em algarismos arabicos, no canto superior direito das
+paginas pares e impares, ficando O primeiro algarismo a 2 cm da borda direita.
+Art. 89. As paginas serao numeradas seguidamente, devendo cada uma conter,
+também, indicaçao do total de paginas que compoem O documento.
+Exemplo:
+3/70
+Seçao XII
+Da alteraçâo e revogaçâo
+Art. 90. É adotada quando se pretende alterar O texto da espécie técnica, levando-
+se em conta as alteraçoes anteriores.
+Art. 91. Diferente das espécies normativas, as espécies técnicas quando forem
+alteradas nâo utilizarao O efeito de tachado no texto. Todas as alteraçoes serao lançadas no corpo
+do manual e informadas na Folha de Alteraçâo.
+Art. 92. Otexto ou parte deste que for alterado sera substituido pelo novo e, no final,
+
+entre parênteses, figurara a inscriçao "Nova Redaçao" abreviada (NR) e O ato que aprovou a
+alteraçao, conforme Anexo XXV.
+Art. 93. A Portaria de alteraçao, nâo substituira ou revogara O ato de aprovaçâo da
+espécie técnica. Sendo assim, esta mantera O ano de vigência de sua criaçao.
+Art. 94. O Orgao Elaborador deve confeccionar a Folha de Alteraçâo, e inseri-la no
+inicio da publicaçâo alterada.
+Art. 95. A composiçao da alteraçao da espécie normativa seguira a seguinte ordem:
+I- capa;
+II - frontispicio;
+III - portaria de alteraçao;
+IV - folha de alteraçao;
+V-I portaria de aprovaçao;
+VI - sumario;
+VII - prefacio (opcional); e
+VIII - corpo da espécie técnica.
+Art. 96. A revogaçao é O cancelamento e a consequente perda de vigência do MTCA.
+CAPITULO VIII
+DISPOSIÇOES FINAIS
+Art. 97. As publicaçoes convencionais e nao convencionais previstas na NSCA 5-2, de
+2023, com carâter normativo, deverao ser adequadas a esta normativa, no que couber.
+S 19 Os atos normativos editados antes da data de entrada em vigor desta Portaria
+serao considerados vigentes e a transiçao ocorrera à medida que a OM atualizar a normativa.
+S 29 Serao admitidos tabelas, figuras e graficos no corpo do anexo da espécie
+normativa.
+S 30 Sera admitido prefacio na Espécie Normativa, em carater excepcional e
+opcional, devendo estar acima do Anexo I e sem artigo enumerado.
+Art. 98. A OM que é orgao central de sistema, cujo cargo de comando, chefia ou
+direçao for de Oficial Superior, devera encaminhar as espécies normativas e as espécies técnicas
+para a assinatura do comandante, chefe ou diretor de OM com cargo de Oficial-General, dentro da
+respectiva linha de subordinaçao, conforme competência detalhada no Anexo XXII.
+Art. 99. Os casos nâo previstos nesta Norma serao submetidos à apreciaçâo do
+Comandante do Comando-Geral do Pessoal, O qual submetera as demandas à apreciaçâo do
+Comandante da Aeronautica.
+
+ANEXO III
+TIMBRES
+TIMBRE 5
+20mm
+20 mm
+MINISTERIO DA DEFESA
+COMANDO DA AERONAUTICA
+TIMBRE 6
+MINISTERIO DA DEFESA
+COMANDO DA AERONAUTICA
+TIMBRE 7
+MINISTERIO DA DEFESA COMANDO DA AERONAUTICA
+
+ANEXO IV
+QUADROS E TABELAS
+Quadro 1 - Aeronaves tâticas em operaçao
+Europa Central e Setentrional
+Europa Meridional
+CATEGORIAS
+PACTO DE
+PACTO DE
+OTAN
+OTAN
+VARSOVIA
+VARSOVIA
+Bombardeiros
+150
+280
+30
+leves
+Ataque
+1.150
+1.400
+450
+150
+Interceptadores
+300
+275
+900
+Reconhecimento
+400
+400
+125
+100
+Fonte: Aeroespacial Internacional, dez. 1971.
+Tabela 1 - Tempo necessario à duplicaçâo da renda per capital (anos)
+Taxa de Crescimento
+Taxa de Crescimento do Produto Real
+Demografico
+4%
+5%
+6%
+7%
+8%
+9%
+10%
+1,0%
+24
+18
+14
+12
+10
+9
+8
+1,5%
+28
+20
+16
+13
+11
+10
+9
+2,0%
+36
+24
+18
+14
+12
+10
+9
+2,5%
+48
+29
+21
+16
+13
+11
+10
+3,0%
+72
+36
+24
+18
+15
+12
+11
+3,5%
+144
+48
+29
+21
+16
+13
+11
+Fonte: Brasil 2002 - Mario Henrique Simonsen
+
+ANEXO V
+APOSTILAS
+(Apostila impressa no verso do documento):
+APOSTILA
+Por Decreto de 30 de abril de 2026, publicado no Diario Oficial do dia 3 de maio de
+2026, foi promovido ao posto de CORONEL, por merecimento, O Tenente-Coronel do quadro de
+Oficiais Intendentes, do Corpo de Oficiais da Ativa da Aeronautica, FULANO DE TAL, referido nesta
+Carta Patente.
+Rio de Janeiro, 10 de maio de 2026.
+Maj Brig Ar FULANO DE TAL
+Dir da DIRAP
+(Apostila expedida separadamente por falta de espaço suficiente no verso do documento):
+MINISTERIO DA DEFESA
+COMANDO DA AERONAUTICA
+A P O S TI L A
+Por Decreto de 30 de abril de 2026, publicado no Diario Oficial do dia 3 de maio de
+2026, foi promovido ao posto de CORONEL, por merecimento, O Tenente-Coronel do quadro de
+Oficiais Intendentes, do Corpo de Oficiais da Ativa da Aeronautica, FULANO DE TAL, referido nesta
+Carta Patente.
+Rio de Janeiro, 10 de maio de 2026.
+Maj Brig Ar FULANO DE TAL
+
+ANEXO VI
+ATA
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+ESTADO-MAIOR DA AERONAUTICA
+ATA
+Aos treze dias do mês de maio do ano de dois mil e vinte e cinco, às 10 h 15 min, na Sala de
+Reunioes da Chefia do Estado-Maior da Aeronautica, reuniu-se O Grupo de Trabalho designado
+pela Portaria no 215/GC1, de 2 de maio de 2026, para elaborar a reediçao do Regulamento da
+Academia da Força Aérea. Compareceram a esta reuniao O Cel Av
+Presidente, Cel Eng
+Membro, Ten Cel Int
+Membro, Ten Cel Inf.
+Membro e Maj Av
+Secretario. Foram propostas, debatidas e aprovadas as seguintes resoluçoes: 1a as
+reunioes serao às Segundas, Quartas e Sextas-feiras; 2a - a data prevista para a conclusao dos
+trabalhos é fixada em 31 de julho de 2026; 3a - cada capitulo sera relatado por um membro do GT
+especificamente designado; 4a - nas reunides, O Grupo de Trabalho apreciara as sugestôes de cada
+relator; 5a O Secretario redigira O texto aprovado pelo Grupo e O lera na sessâo seguinte. E, nada
+mais havendo para tratar, O Sr. Presidente deu por encerrada a sessao, da qual eu,
+Maj Av, Secretario, lavro a presente Ata, que, apos lida e acordada, vai
+assinada por todos OS membros presentes.
+FULANO DE TAL Cel Av
+FULANO DE TAL Cel Eng
+Presidente
+Membro
+FULANO DE TAL Ten Cel Int
+FULANO DE TAL Ten Cel Inf
+Membro
+Membro
+FULANO DE TAL Maj Av
+Secretario
+
+ANEXO VII
+CARTA
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+BASE AÉREA DOS AFONSOS
+Carta no 55/SECCMD/100
+Rio de Janeiro, 2 de maio de 2026.
+Protocolo COMAER no 67241.000000/2026-00
+A Sua Senhoria O Senhor
+FULANO DE TAL
+Rua Carolina, no 29 - Rio de Janeiro-RJ
+CEP 21910-060
+Prezado Senhor,
+Venho, por meio desta, acusar e agradecer O recebimento do exemplar no 482 da
+Revista Epopeia.
+Cumpre enaltecer, além da excelência da impressào, a maneira séria e objetiva como
+sâo tratados OS assuntos e a linguagem utilizada, simples e direta, como convém à comunicaçao
+moderna.
+Atenciosamente,
+FULANO DE TAL Coronel Aviador
+Comandante da Base Aérea dos Afonsos
+Avenida Almirante Silva de Noronha, no 369 - Anexo - Rio de Janeiro-RJ - CEP 21740-010
+Tel: (21) 2210-1393 - E-mail: faleconosco@baaf.aer.mil.br
+
+ANEXO VIII
+CERTIDAO
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+GRUPAMENTO DE APOIO DE SAO PAULO
+CERTIDAO No 3/SPM/109
+Certifico, para fins de (especificar O fim a que se destina a certidao),
+que..
+é Cabo do Comando da Aeronautica, serve nesta Organizaçao Militar e nada
+consta em seus assentamentos, até a presente data, que desabone sua conduta.
+Rio de Janeiro, 9 de abril de 2026.
+FULANO DE TAL Coronel Intendente
+Chefe do Grupamento de Apoio de Sâo Paulo
+Avenida Monteiro Lobato, no 5.339, Cumbica - Guarulhos - SP - CEP 07184-000 Tel: (11) 6465-
+2000 - E-mail: protocolo.gapsp@fab.mil.br
+
+ANEXO IX
+DECLARAÇAO
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+GRUPAMENTO DE APOIO DE SAO PAULO
+DECLARAÇAO
+Declaro, para fins de (especificar O fim a que se destina a declaraçao), que
+é Soldado do Comando da Aeronautica, serve nesta Organizaçao Militar e nada
+consta em seus assentamentos, até a presente data, que desabone sua conduta.
+A presente declaraçâo possui a validade de trinta dias a contar da data de assinatura.
+Sao Paulo, 10 de julho de 2026.
+FULANO DE TAL Coronel Intendente
+Chefe do Grupamento de Apoio Sao Paulo
+Avenida Monteiro Lobato, no 5.339 - Cumbica - Guarulhos - SP - CEP 07184-000 Tel: (11) 6465-
+2000 - E-mail: protocolo.gapsp@fab.mil.br
+
+ANEXO X
+DESPACHO
+MINISTERIO DA DEFESA - COMANDO DA AERONAUTICA - COMANDO-GERAL DO PESSOAL (Proc no
+67400.000944/2024-71 - Ref Of no 8/1EM3/963, de 22 jul. 2024, do COMGEP)
+40 DESPACHO
+No 183/GABGEP/1377
+Rio de Janeiro, 11 de maio de 2026.
+Do Comandante
+Ao Chefe do Estado-Maior da Aeronautica
+Anexo:
+A. Modelo de carteira de identidade.
+1.
+Trata O presente expediente de solicitaçao de estudos e sugestoes sobre
+compatibilizaçao da carteira de identidade do Comando da Aeronautica.
+2.
+Encaminho-o ao Senhor informando que esta OM expressa O seu parecer favoravel
+às consideraçoes e sugestôes elaboradas pela DIRAP e constantes do presente processo.
+Ten Brig Ar FULANO DE TAL
+Comandante-Geral do Pessoal
+
+ANEXO XI
+DESPACHO DECISORIO
+MINISTÉRIO DA DEFESA - COMANDO DA AERONAUTICA - COMANDO-GERAL DO PESSOAL
+DESPACHO DECISORIO No 183/GAB/1377
+Rio de Janeiro, 11 de junho de 2026.
+(Proc no 67400.000000/2026-00 - Ref Of no 8/1EM3/963, de 22 abr. 2026, do COMGEP)
+DEFERIDO, para OS fins previstos no Art. 137, inciso I e S 10 da Lei no 6.880, de 9 de
+dezembro de 1980 (Estatuto do Militares), O tempo liquido de três anos, zero mês e treze dias de
+serviço publico federal, prestado ao Centro Federal de Educaçâo Tecnologica de Belém, no periodo
+de 01 MAR 1999 a 30 NOV 2003.
+Maj Brig Ar FULANO DE TAL
+Diretor de Administraçao do Pessoal
+
+ANEXO XII
+NORMA PADRAO DE AÇAO
+COMANDO DA AERONAUTICA
+CENTRO DE DOCUMENTAÇAO DA AERONAUTICA
+ASSESSORIA DE GOVERNANÇA
+CENDOC
+DATAS
+DISTRIBUIÇAO
+EMISSAO
+EFETIVAÇAO
+BIO 20x
+08 NOV 20xx
+OSTENSIVA
+11 NOV 20xx
+NPA-AGO-01
+ORGANIZAÇAO
+E
+FUNCIONAMENTO
+DA
+ASSUNTO
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+A- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+ANEXOS
+B- XXXXXXXXXXXXXXXXXXXXXXXXXXXX e
+C- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+10 DISPOSIÇOES PRELIMINARES
+1.1 FINALIDADE
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+1.2 ÂMBITO
+XXXXXXXXXXXXXXXXXX
+1.3 REFERENCIAS
+a) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+b) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXX,
+C) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXX;
+d) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+e) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;
+F XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX X XXXXXXXXXXXXXXXXXXXXXX
+XX;
+g) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXX, e
+h) XXXXXXXXXXXXXXXXXXXXXXXX.
+
+2 DISPOSIÇOES GERAIS
+2.1 CONCEITUACOES
+2.1.1
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXX
+31 DISPOSIÇOES FINAIS
+3.1 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+Local, de XXXXXXXXX de 20xx.
+Elaborado por:
+(a) XXXXXXXXXXXXXXXXXXXXXXXXXCap Esp Aer SVE R/1
+XXXXXXXXXXXXXXXXX
+Visto:
+(a) XXXXXXXXXXXXXXXXXXXXX Cap Esp Aer SVA
+XXXXXXXXXXXXXXXXXX
+Aprovo:
+(a) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Cel Int
+Diretora do CENDOC
+
+ANEXO XIII
+OFICIO INTERNO
+Oficio (âmbito interno à OM)
+MINISTÉRIO DE DEFESA
+COMANDO DA AERONAUTICA
+ESTADO-MAIOR DA AERONAUTICA
+GABINETE
+Oficio no 40/GABEM
+Brasilia, 16 de abril de 2026.
+Protocolo COMAER no 67050.000000/2026-00
+Do Chefe
+Ao Chefe da Subseçao de Pessoal
+Assunto:
+Previsao de Material de Expediente.
+Referência: 1.
+, e
+2.
+Anexo:
+A.
+e
+B.
+A fim de atender à solicitaçao do Grupamento de Apoio de Brasilia (GAP-BR), deve
+ser remetida a esta Chefia, até 31 de maio de 2019, a previsao do material de expediente necessario
+ae essa Subseçao para O segundo semestre do ano de 2026.
+FULANO DE TAL Cel Av
+Ch do GABEM
+
+ANEXO XIV
+OFICIO PARTICULAR
+Oficio (carâter particular, pessoal)
+MINISTERIO DE DEFESA
+COMANDO DA AERONAUTICA
+CENTRO DE DOCUMENTAÇAO DA AERONAUTICA
+Oficio s/no
+Rio de Janeiro, 18 de junho de 2026.
+Protocolo COMAER no 67401.000000/2026-00
+Do 3S QSS SAD FULANO DE TAL
+Ao Chefe da Seçao de Pessoal Militar
+Assunto:
+Comunicaçao de Concurso Publico.
+Referência: 1.
+;e
+2.
+Anexo:
+A. Uma copia de Edital de Concurso para Oficial Combatente; e
+B. Uma copia de Comprovante de Inscriçao.
+Conforme O disposto no Aviso no 1/GC1/16, de 22 SET 1999, comunico ao Senhor,
+para fins de controle, que, no dia 20 de julho de 2026, prestarei concurso para Oficial Combatente
+do Corpo de Bombeiros Militar do Estado do Rio de Janeiro (CBMERJ), conforme Edital do certame
+constante do anexo.
+FULANO DE TAL 3S SAD
+
+ANEXO XV
+OFICIO ENTRE OM
+Oficio (entre OM da Força)
+MINISTERIO DA DEFESA
+COMANDO DA AERONAUTICA
+COMANDO-GERAL DO PESSOAL
+Oficio no 12/ALE/1223
+Brasilia, 8 de março de 2026.
+Protocolo COMAER no 67400.000000/2026-00
+Do Chefe do Estado-Maior
+Ao Diretor do Centro de Documentaçao da Aeronautical
+Assunto:
+Referência: 1.
+, e
+2.
+Anexo:
+A.
+e
+B.
+1.
+2.
+3.
+4.
+Maj Brig Ar FULANO DE TAL
+CHEM do COMGEP
+
+ANEXO XVI
+OFICIO EXTERNO
+Oficio (externo ao COMAER)
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+CENTRO DE DOCUMENTAÇAO DA AERONAUTICA
+Avenida Marechal Fontenelle, no 1000 - Campo dos Afonsos
+Rio de Janeiro - RJ - CEP 21740-002
+Tel: (21) 2157-2218 / Fax: (21) 2157-2217 / e-mail: cendoc@fab.mil.br
+Oficio no.. ./CENDOC/.
+Protocolo COMAER no 67401.000000/2019-00
+Rio de Janeiro, 10 de abril de 2026.
+A Sua Excelência a Senhora
+Deputada Federal FULANO DE TAL
+Câmara dos Deputados
+70160-900 - Brasilia-DF
+Assunto: Solicitaçâo de Processo.
+Senhora Deputada,
+1.
+Em atençâo ao Oficio no 1.927/GAB/325, de 10 de março de 2017, dessa Comissao,
+informo a Vossa Excelència que, sobre O assunto, este Comando,
+2.
+Os documentos solicitados relacionados no anexo,
+3.
+Uma vez que este projeto
+Respeitosamente,
+FULANA DE TAL Coronel Intendente
+Diretora do Centro de Documentaçao da Aeronautica
+
+ANEXO XVII
+ORDEM TÉCNICA
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+DIRETORIA DE SAUDE DA AERONAUTICA
+PORTARIA DIRSA No 115/SECGAB, DE 25 DE SETEMBRO DE 2017
+Aprovar Ordem Técnica da Diretoria de
+Saude da Aeronautica.
+DIRETOR DE SAUDE DA AERONAUTICA, no uso das atribuiçoes que Ihe confere O
+inciso IX do art. 10, do Regulamento da Diretoria de Saude, aprovado pela Portaria no 1592/GC3,
+de 25 de setembro de 2014, resolve:
+Art.19 - Aprovar a Ordem Técnica no 14/DIRSA/2017, de 25 de setembro de 2017,
+"Emprego de ambulâncias nas Organizaçoes de Saude da Aeronautica".
+Art. 2 - Esta Portaria entra em vigor na data de sua publicaçao.
+Maj Brig Med ARMANDO CELENTE SOARES
+Diretor da Dirsa
+
+ANEXO XVIII
+PARECER
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+HOSPITAL DE FORÇA AÉREA DO GALEAO
+Parecer no 237/2098/2026
+Rio de Janeiro, 15 de abril de 2026.
+Assunto:
+Parecer sobre
+Referência: 1.
+- e
+2.
+Anexo:
+A.
+e
+B.
+1.
+2.
+Brig Med FULANO DE TAL
+Diretor do HFAG
+
+ANEXO XIX
+PORTARIA NORMATIVA
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+GABINETE DO COMANDANTE DA AERONAUTICA
+PORTARIA GABAER/GC3 No
+,DE XXXX DE JANEIRO DE 2026
+Aprova a Norma de Sistema que dispôe sobre
+as comunicaçoes oficiais e atos normativos no
+âmbito do Comando da Aeronautica.
+COMANDANTE DA AERONAUTICA, no uso da atribuiçao que lhe confere O inciso
+XIV do art. 23, Anexo 1, Estrutura Regimental do Comando da Aeronautica, aprovada pelo Decreto
+no 11.237, de 18 de outubro de 2022, tendo em vista O disposto no Decreto no 12.002, de 22 de
+abril de 2024; na Portaria no 4.044/MD-GM, de 3 de dezembro de 2020; e considerando O que
+consta do Processo no XXX, procedente do Centro de Documentaçao da Aeronautica, resolve:
+Art. 10 Fica aprovada a NSCA 5-3 "Norma de Sistema que dispôe sobre as
+comunicaçoes oficiais e atos normativos no âmbito do Comando da Aeronautica" na forma dos
+Anexos I ao XXV.
+Art. 20 Revogam-se as Portarias:
+I-a Portaria no 661/GC3, de 21 de dezembro de 2023, publicada no Boletim do
+Comando da Aeronautical no 234, de 22 de dezembro de 2023;e
+II- a Portaria no 836/DLE, de 10 de maio de 2019, publicada no Boletim do Comando
+da Aeronautica no 72, de 02 de maio de 2019.
+Art. 30 Esta Portaria entra em vigor na data de sua publicaçao.
+Paragrafo unico. Entre a data de publicaçao e 31 de março de 2026, sera admitida
+transitoriamente a estrutura das Portarias acima revogadas.
+Ten Brig Ar MARCELO KANITZ DAMASCENO
+Comandante da Aeronautica
+
+ANEXO XX
+PORTARIA ORDINATORIA
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+COMANDO-GERAL DO PESSOAL
+PORTARIA COMGEP No 202/DPM, DE 30 DE ABRIL DE 2026
+Protocolo COMAER no 67400.000000/2026-00
+COMANDANTE-GERAL DO PESSOAL, no uso das atribuiçoes que Ihe confere O
+Art. 99, inciso VII, do Regulamento do Comando-Geral do Pessoal, aprovado pela Portaria no
+36/GC3, de 10 de janeiro de 2013, combinado com O disposto na ICA 35-13, aprovada pela Portaria
+no 251/GC3, de 14 de março de 2016, e considerando O que consta do Processo no
+67422.000000/2026-00, resolve:
+Designar O SO QTA TAR FULANO DE TAL (Nr Ord 1234567) para a PRESTAÇAO DE
+TAREFA POR TEMPO CERTO, no GRUPAMENTO DE APOIO DOS AFONSOS, na funçâo de Encarregado
+do Refeitorio dos Oficiais, mediante aceitaçao voluntâria, pelo prazo de 24 meses, a contar da data
+de sua apresentaçao, devendo ser vinculado ao GAP-AF para efeito de percepçao de proventos,
+durante a presente prestaçao de tarefa.
+Ten Brig Ar FULANO DE TAL
+Comandante-Geral do Pessoal
+
+ANEXO XXI
+REQUERIMENTO
+MINISTERIO DA DEFESA - COMANDO DA AERONAUTICA
+REQUERIMENTO
+Protocolo COMAER no 67401.000000/2026-00
+Rio de Janeiro, 10 de abril de 2026.
+Do Cap Int FULANO DE TAL
+Ao Comandante da Academia da Força Aérea
+Assunto:
+Certidao de Graus.
+Referência: 1.
+, e
+2.
+Anexo:
+A.
+e
+B.
+1.
+FULANO DE TAL, Cap Int, no de ordem: 123456-7, servindo no Centro de
+Documentaçao da Aeronautica, requer ao Senhor, para fins de prova junto à Universidade Federal
+do Rio de Janeiro, que se digne mandar conceder-lhe Certidao de Graus obtidos nas matérias que
+cursou em 2014, no Curso de Formaçao Oficiais Intendentes.
+2.
+Éa primeira vez que requer.
+FULANO DE TAL Cap Int
+
+ESPÉCIE NORMATIVA
+CARGO
+DCA FCA ICA MCA MTCA NSCA OCA PCA RCA RICA ROCA TCA
+Comandante da Aeronautica
+Chefe do Estado-Maior da Aeronautical
+Comandantes-Gerais, Comandante de Preparo,
+Comandante de Operaçoes Aeroespaciais,
+Diretores-Gerais e Secretario de Economia,
+Finanças e Administraçâo
+Chefe do Gabinete do Comandante da
+Aeronautica
+Comandantes, Chefes e Diretores de OM: cargo
+de Oficial-General
+Chefe dos Orgaos Centrais de Sistemas: cargo de
+Oficial-General
+
+ANEXO XXIII
+CAPA
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+CENTRO DE DOCUMENTAÇAO DA AERONAUTICA
+D
+A
+COMUNICAÇÔES OFICIAIS E ATOS NORMATIVOS
+(NSCA 5-3)
+NORMA DE SISTEMA DE COMUNICAÇOES
+OFICIAIS E ATOS NORMATIVOS NO ÂMBITO
+DO COMANDO DA AERONAUTICA
+2026
+
+ANEXO XXIV
+QUADRO DE JUSTIFICATIVAS DAS MODIFICAÇOES PROPOSTAS DE ATOS NORMATIVOS
+TEXTO EM VIGOR
+TEXTO PROPOSTO
+JUSTIFICATIVA
+Item XXXXXXXXX
+Item XXXXXXXXX (novo)
+Explicitar o motivo que levou à proposta da
+alteraçao de maneira clara e concisa, citando,
+se pertinente, a legislaçao aplicavel.
+Item XXXXXXXXX
+Item XXXXXXXXX (novo)
+Explicitar o motivo que levou à proposta da
+alteraçâo de maneira clara e concisa, citando,
+se pertinente, a legislaçao aplicavel.
+Obs: Este quadro devera ser confeccionado no formato "paisagem".
+
+ANEXO XXV
+FOLHA DE ALTERAÇAO - MTCA
+CONFECÇAO, CONTROLE E NUMERAÇAO DO MTCA
+A MTCA XXXX aprovada pela Portaria COMGEP no XXXX/YYY, de XX de XXXXXXXX de
+20xx, é assim modificada:
+1 SUBSTITUIÇAO DE PAGINAS
+RETIRE
+ANO
+COLOQUE
+ANO
+28
+2011
+28
+2014
+29
+2011
+29
+2014
+34
+2011
+34
+2014
+35
+2011
+35
+2014
+2 CORREÇAO
+PAGINA
+ITEM
+ALINEA
+28
+5.3 (modificaçao)
+P (Letra)
+29
+5.4 (modificaçao)
+39 (Assunto)
+34
+5.5.1 (modificaçao)
+35 (Assunto)
+35
+5.5.1 (modificaçao)
+39 (Assunto)
+3 ARQUIVO
+Depois de efetuar as substituiçôes, arquive esta folha apos a pagina de rosto da publicaçao
+original.
+4 APROVAÇAO
+Portaria COMGEP no XXXX/DLE, de 24 de julho de XXXX.

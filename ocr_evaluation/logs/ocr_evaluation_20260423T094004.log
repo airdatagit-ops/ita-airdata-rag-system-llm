@@ -1,0 +1,524 @@
+2026-04-23 09:40:04.530 | DEBUG    | ocr_evaluation._logging:configure_file_logging:59 - File logging active → /home/vitor-lucas/airdata/ita-airdata-rag-system-llm/ocr_evaluation/logs/ocr_evaluation_20260423T094004.log
+2026-04-23 09:40:04.553 | INFO     | __main__:main:364 - PDFs a processar: 4
+2026-04-23 09:40:04.553 | INFO     | __main__:main:365 - Modelos selecionados: ['tesseract', 'easyocr', 'doctr', 'unstructured', 'chandra', 'paddleocr']
+2026-04-23 09:40:05.001 | INFO     | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:122 - [Tesseract] Processando sislaer_47365.pdf...
+2026-04-23 09:40:07.494 | INFO     | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:125 - [Tesseract] 12 páginas convertidas em imagens (DPI=300)
+2026-04-23 09:40:07.494 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 1/12: preprocessing...
+2026-04-23 09:40:09.428 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:40:10.120 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 1: 135 caracteres extraídos
+2026-04-23 09:40:10.120 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 2/12: preprocessing...
+2026-04-23 09:40:12.075 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:40:12.743 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 2: 203 caracteres extraídos
+2026-04-23 09:40:12.743 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 3/12: preprocessing...
+2026-04-23 09:40:15.616 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 3: 1001 caracteres extraídos
+2026-04-23 09:40:15.616 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 4/12: preprocessing...
+2026-04-23 09:40:17.852 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 4: 0 caracteres extraídos
+2026-04-23 09:40:17.853 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 5/12: preprocessing...
+2026-04-23 09:40:19.859 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:40:21.673 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 5: 562 caracteres extraídos
+2026-04-23 09:40:21.673 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 6/12: preprocessing...
+2026-04-23 09:40:24.061 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 6: 0 caracteres extraídos
+2026-04-23 09:40:24.061 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 7/12: preprocessing...
+2026-04-23 09:40:26.083 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:40:28.905 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 7: 1545 caracteres extraídos
+2026-04-23 09:40:28.905 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 8/12: preprocessing...
+2026-04-23 09:40:30.867 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:40:35.899 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 8: 2540 caracteres extraídos
+2026-04-23 09:40:35.900 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 9/12: preprocessing...
+2026-04-23 09:40:37.884 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:40:43.150 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 9: 2875 caracteres extraídos
+2026-04-23 09:40:43.150 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 10/12: preprocessing...
+2026-04-23 09:40:45.092 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -89.97°
+2026-04-23 09:40:49.028 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 10: 2007 caracteres extraídos
+2026-04-23 09:40:49.029 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 11/12: preprocessing...
+2026-04-23 09:40:51.721 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 11: 866 caracteres extraídos
+2026-04-23 09:40:51.721 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 12/12: preprocessing...
+2026-04-23 09:40:53.670 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:40:54.789 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 12: 461 caracteres extraídos
+2026-04-23 09:40:54.789 | INFO     | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:138 - [Tesseract] sislaer_47365.pdf: 12228 caracteres totais
+2026-04-23 09:40:54.899 | INFO     | __main__:main:444 -   tesseract → sislaer_47365.pdf: CER=75.7%, WER=236.9%, Domain F1=0.010, Tempo=49.8s
+2026-04-23 09:41:06.611 | INFO     | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:56 - [EasyOCR] Processando sislaer_47365.pdf...
+2026-04-23 09:41:08.240 | INFO     | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:59 - [EasyOCR] 12 páginas convertidas em imagens (DPI=250)
+2026-04-23 09:41:08.240 | INFO     | ocr_evaluation.ocr_easyocr:_get_reader:40 - [EasyOCR] Inicializando Reader (GPU=False)...
+2026-04-23 09:41:10.531 | INFO     | ocr_evaluation.ocr_easyocr:_get_reader:42 - [EasyOCR] Reader inicializado.
+2026-04-23 09:41:25.842 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 1/12: 134 caracteres
+2026-04-23 09:41:40.522 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 2/12: 168 caracteres
+2026-04-23 09:41:56.167 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 3/12: 982 caracteres
+2026-04-23 09:42:09.638 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 4/12: 0 caracteres
+2026-04-23 09:42:24.268 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 5/12: 349 caracteres
+2026-04-23 09:42:37.650 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 6/12: 0 caracteres
+2026-04-23 09:42:53.964 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 7/12: 1539 caracteres
+2026-04-23 09:43:11.220 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 8/12: 2157 caracteres
+2026-04-23 09:43:29.637 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 9/12: 2701 caracteres
+2026-04-23 09:43:46.436 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 10/12: 1847 caracteres
+2026-04-23 09:44:01.470 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 11/12: 868 caracteres
+2026-04-23 09:44:16.710 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 12/12: 481 caracteres
+2026-04-23 09:44:16.710 | INFO     | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:72 - [EasyOCR] sislaer_47365.pdf: 11259 caracteres totais
+2026-04-23 09:44:16.746 | INFO     | __main__:main:444 -   easyocr → sislaer_47365.pdf: CER=12.2%, WER=45.2%, Domain F1=0.019, Tempo=190.1s
+2026-04-23 09:44:20.976 | INFO     | ocr_evaluation.ocr_doctr:extract_text_from_pdf:60 - [docTR] Processando sislaer_47365.pdf...
+2026-04-23 09:44:21.100 | INFO     | ocr_evaluation.ocr_doctr:extract_text_from_pdf:63 - [docTR] 12 páginas carregadas
+2026-04-23 09:44:21.101 | INFO     | ocr_evaluation.ocr_doctr:_get_predictor:31 - [docTR] Inicializando predictor (db_resnet50 + crnn_vgg16_bn)...
+2026-04-23 09:44:24.113 | INFO     | ocr_evaluation.ocr_doctr:_get_predictor:33 - [docTR] Predictor inicializado.
+2026-04-23 09:45:05.552 | INFO     | ocr_evaluation.ocr_doctr:extract_text_from_pdf:69 - [docTR] sislaer_47365.pdf: 11269 caracteres totais
+2026-04-23 09:45:05.611 | INFO     | __main__:main:444 -   doctr → sislaer_47365.pdf: CER=12.6%, WER=42.0%, Domain F1=0.019, Tempo=44.6s
+2026-04-23 09:45:10.842 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:32 - [unstructured] Processando sislaer_47365.pdf...
+2026-04-23 09:45:48.723 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:36 - [unstructured] 86 elementos extraídos
+2026-04-23 09:45:48.723 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:58 - [unstructured] Tipos de elementos: NarrativeText: 41, Title: 25, Text: 20
+2026-04-23 09:45:48.723 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:61 - [unstructured] sislaer_47365.pdf: 11468 caracteres totais
+2026-04-23 09:45:48.795 | INFO     | __main__:main:444 -   unstructured → sislaer_47365.pdf: CER=11.0%, WER=49.1%, Domain F1=0.019, Tempo=37.9s
+2026-04-23 09:45:49.833 | INFO     | ocr_evaluation.ocr_chandra:extract_text_from_pdf:49 - [Chandra] Processando sislaer_47365.pdf...
+2026-04-23 09:45:50.110 | INFO     | ocr_evaluation.ocr_chandra:extract_text_from_pdf:53 - [Chandra] 12 páginas carregadas
+2026-04-23 09:45:50.110 | INFO     | ocr_evaluation.ocr_chandra:_get_manager:36 - [Chandra] Inicializando InferenceManager (method=hf)...
+2026-04-23 09:46:49.535 | INFO     | ocr_evaluation.ocr_chandra:_get_manager:38 - [Chandra] InferenceManager inicializado.
+2026-04-23 09:46:49.536 | ERROR    | ocr_evaluation.ocr_chandra:extract_text_from_pdf:73 - [Chandra] Erro ao processar sislaer_47365.pdf: None
+2026-04-23 09:46:49.537 | INFO     | __main__:main:444 -   chandra → sislaer_47365.pdf: CER=N/A, WER=N/A, Domain F1=0.000, Tempo=59.7s
+2026-04-23 09:47:06.151 | INFO     | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:69 - [PaddleOCR] Processando sislaer_47365.pdf...
+2026-04-23 09:47:09.021 | INFO     | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:72 - [PaddleOCR] 12 páginas convertidas em imagens (DPI=300)
+2026-04-23 09:47:09.021 | INFO     | ocr_evaluation.ocr_paddleocr:_get_ocr:51 - [PaddleOCR] Inicializando engine...
+2026-04-23 09:47:12.643 | INFO     | ocr_evaluation.ocr_paddleocr:_get_ocr:55 - [PaddleOCR] Engine inicializado.
+2026-04-23 09:47:45.750 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 1/12: 134 caracteres, confiança média: 0.986
+2026-04-23 09:48:17.272 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 2/12: 168 caracteres, confiança média: 0.991
+2026-04-23 09:48:49.574 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 3/12: 729 caracteres, confiança média: 0.992
+2026-04-23 09:49:20.393 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 4/12: 0 caracteres, confiança média: 0.000
+2026-04-23 09:49:52.859 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 5/12: 384 caracteres, confiança média: 0.967
+2026-04-23 09:50:23.722 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 6/12: 0 caracteres, confiança média: 0.000
+2026-04-23 09:50:57.125 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 7/12: 1541 caracteres, confiança média: 0.996
+2026-04-23 09:51:31.501 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 8/12: 2054 caracteres, confiança média: 0.994
+2026-04-23 09:52:06.155 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 9/12: 2552 caracteres, confiança média: 0.994
+2026-04-23 09:52:38.267 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 10/12: 1591 caracteres, confiança média: 0.992
+2026-04-23 09:53:09.753 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 11/12: 771 caracteres, confiança média: 0.989
+2026-04-23 09:53:40.973 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 12/12: 484 caracteres, confiança média: 0.991
+2026-04-23 09:53:40.974 | INFO     | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:104 - [PaddleOCR] sislaer_47365.pdf: 10441 caracteres totais
+2026-04-23 09:53:41.263 | INFO     | __main__:main:444 -   paddleocr → sislaer_47365.pdf: CER=17.1%, WER=36.7%, Domain F1=0.019, Tempo=394.8s
+2026-04-23 09:53:41.326 | INFO     | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:122 - [Tesseract] Processando sislaer_47462.pdf...
+2026-04-23 09:53:44.417 | INFO     | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:125 - [Tesseract] 31 páginas convertidas em imagens (DPI=300)
+2026-04-23 09:53:44.417 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 1/31: preprocessing...
+2026-04-23 09:53:46.354 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:53:47.432 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 1: 162 caracteres extraídos
+2026-04-23 09:53:47.432 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 2/31: preprocessing...
+2026-04-23 09:53:49.661 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 2: 0 caracteres extraídos
+2026-04-23 09:53:49.661 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 3/31: preprocessing...
+2026-04-23 09:53:51.584 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:53:52.335 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 3: 179 caracteres extraídos
+2026-04-23 09:53:52.335 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 4/31: preprocessing...
+2026-04-23 09:53:54.551 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 4: 0 caracteres extraídos
+2026-04-23 09:53:54.551 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 5/31: preprocessing...
+2026-04-23 09:53:56.455 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -51.16°
+2026-04-23 09:53:58.264 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 5: 664 caracteres extraídos
+2026-04-23 09:53:58.264 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 6/31: preprocessing...
+2026-04-23 09:54:00.486 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 6: 0 caracteres extraídos
+2026-04-23 09:54:00.486 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 7/31: preprocessing...
+2026-04-23 09:54:02.506 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -89.95°
+2026-04-23 09:54:07.075 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 7: 1690 caracteres extraídos
+2026-04-23 09:54:07.075 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 8/31: preprocessing...
+2026-04-23 09:54:10.371 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 8: 1776 caracteres extraídos
+2026-04-23 09:54:10.371 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 9/31: preprocessing...
+2026-04-23 09:54:12.314 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -89.97°
+2026-04-23 09:54:18.332 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 9: 2395 caracteres extraídos
+2026-04-23 09:54:18.332 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 10/31: preprocessing...
+2026-04-23 09:54:21.881 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 10: 2359 caracteres extraídos
+2026-04-23 09:54:21.881 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 11/31: preprocessing...
+2026-04-23 09:54:24.847 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 11: 1368 caracteres extraídos
+2026-04-23 09:54:24.847 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 12/31: preprocessing...
+2026-04-23 09:54:26.758 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:54:31.067 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 12: 2027 caracteres extraídos
+2026-04-23 09:54:31.067 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 13/31: preprocessing...
+2026-04-23 09:54:34.144 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 13: 1499 caracteres extraídos
+2026-04-23 09:54:34.145 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 14/31: preprocessing...
+2026-04-23 09:54:36.102 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:54:38.493 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 14: 901 caracteres extraídos
+2026-04-23 09:54:38.493 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 15/31: preprocessing...
+2026-04-23 09:54:40.447 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:54:46.005 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 15: 2459 caracteres extraídos
+2026-04-23 09:54:46.005 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 16/31: preprocessing...
+2026-04-23 09:54:47.939 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -89.98°
+2026-04-23 09:54:51.949 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 16: 1799 caracteres extraídos
+2026-04-23 09:54:51.949 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 17/31: preprocessing...
+2026-04-23 09:54:53.893 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:54:59.008 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 17: 2105 caracteres extraídos
+2026-04-23 09:54:59.008 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 18/31: preprocessing...
+2026-04-23 09:55:00.938 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:55:07.129 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 18: 2562 caracteres extraídos
+2026-04-23 09:55:07.129 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 19/31: preprocessing...
+2026-04-23 09:55:09.075 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:55:14.416 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 19: 2300 caracteres extraídos
+2026-04-23 09:55:14.416 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 20/31: preprocessing...
+2026-04-23 09:55:16.317 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:55:16.679 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 20: 0 caracteres extraídos
+2026-04-23 09:55:16.679 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 21/31: preprocessing...
+2026-04-23 09:55:19.539 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 21: 611 caracteres extraídos
+2026-04-23 09:55:19.539 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 22/31: preprocessing...
+2026-04-23 09:55:22.214 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 22: 333 caracteres extraídos
+2026-04-23 09:55:22.214 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 23/31: preprocessing...
+2026-04-23 09:55:24.151 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:55:29.995 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 23: 2282 caracteres extraídos
+2026-04-23 09:55:29.995 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 24/31: preprocessing...
+2026-04-23 09:55:33.704 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 24: 2472 caracteres extraídos
+2026-04-23 09:55:33.704 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 25/31: preprocessing...
+2026-04-23 09:55:37.636 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 25: 2969 caracteres extraídos
+2026-04-23 09:55:37.636 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 26/31: preprocessing...
+2026-04-23 09:55:39.571 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:55:42.933 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 26: 1297 caracteres extraídos
+2026-04-23 09:55:42.933 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 27/31: preprocessing...
+2026-04-23 09:55:44.848 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:55:46.825 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 27: 759 caracteres extraídos
+2026-04-23 09:55:46.825 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 28/31: preprocessing...
+2026-04-23 09:55:51.034 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 28: 3404 caracteres extraídos
+2026-04-23 09:55:51.035 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 29/31: preprocessing...
+2026-04-23 09:55:55.235 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 29: 3110 caracteres extraídos
+2026-04-23 09:55:55.235 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 30/31: preprocessing...
+2026-04-23 09:55:57.962 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 30: 455 caracteres extraídos
+2026-04-23 09:55:57.962 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 31/31: preprocessing...
+2026-04-23 09:55:59.884 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 09:56:00.421 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 31: 114 caracteres extraídos
+2026-04-23 09:56:00.421 | INFO     | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:138 - [Tesseract] sislaer_47462.pdf: 44141 caracteres totais
+2026-04-23 09:56:00.759 | INFO     | __main__:main:444 -   tesseract → sislaer_47462.pdf: CER=50.5%, WER=97.3%, Domain F1=0.010, Tempo=139.1s
+2026-04-23 09:56:00.759 | INFO     | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:56 - [EasyOCR] Processando sislaer_47462.pdf...
+2026-04-23 09:56:02.264 | INFO     | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:59 - [EasyOCR] 31 páginas convertidas em imagens (DPI=250)
+2026-04-23 09:56:17.804 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 1/31: 143 caracteres
+2026-04-23 09:56:31.272 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 2/31: 0 caracteres
+2026-04-23 09:56:45.156 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 3/31: 181 caracteres
+2026-04-23 09:56:58.686 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 4/31: 0 caracteres
+2026-04-23 09:57:13.709 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 5/31: 745 caracteres
+2026-04-23 09:57:27.193 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 6/31: 0 caracteres
+2026-04-23 09:57:43.287 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 7/31: 988 caracteres
+2026-04-23 09:58:00.640 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 8/31: 1771 caracteres
+2026-04-23 09:58:20.469 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 9/31: 3015 caracteres
+2026-04-23 09:58:38.773 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 10/31: 2351 caracteres
+2026-04-23 09:58:55.145 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 11/31: 1363 caracteres
+2026-04-23 09:59:14.093 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 12/31: 2555 caracteres
+2026-04-23 09:59:30.831 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 13/31: 1506 caracteres
+2026-04-23 09:59:46.909 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 14/31: 1070 caracteres
+2026-04-23 10:00:05.014 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 15/31: 2274 caracteres
+2026-04-23 10:00:22.320 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 16/31: 2049 caracteres
+2026-04-23 10:00:41.132 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 17/31: 2381 caracteres
+2026-04-23 10:01:00.183 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 18/31: 2788 caracteres
+2026-04-23 10:01:20.853 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 19/31: 3174 caracteres
+2026-04-23 10:01:34.460 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 20/31: 53 caracteres
+2026-04-23 10:01:49.938 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 21/31: 696 caracteres
+2026-04-23 10:02:05.940 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 22/31: 719 caracteres
+2026-04-23 10:02:25.189 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 23/31: 2935 caracteres
+2026-04-23 10:02:43.578 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 24/31: 2502 caracteres
+2026-04-23 10:03:03.137 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 25/31: 2978 caracteres
+2026-04-23 10:03:20.818 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 26/31: 2091 caracteres
+2026-04-23 10:03:36.532 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 27/31: 1073 caracteres
+2026-04-23 10:03:56.973 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 28/31: 3390 caracteres
+2026-04-23 10:04:17.057 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 29/31: 3115 caracteres
+2026-04-23 10:04:32.775 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 30/31: 586 caracteres
+2026-04-23 10:04:48.488 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 31/31: 594 caracteres
+2026-04-23 10:04:48.489 | INFO     | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:72 - [EasyOCR] sislaer_47462.pdf: 49176 caracteres totais
+2026-04-23 10:04:48.758 | INFO     | __main__:main:444 -   easyocr → sislaer_47462.pdf: CER=13.9%, WER=27.4%, Domain F1=0.029, Tempo=527.7s
+2026-04-23 10:04:48.758 | INFO     | ocr_evaluation.ocr_doctr:extract_text_from_pdf:60 - [docTR] Processando sislaer_47462.pdf...
+2026-04-23 10:04:49.211 | INFO     | ocr_evaluation.ocr_doctr:extract_text_from_pdf:63 - [docTR] 31 páginas carregadas
+2026-04-23 10:06:51.241 | INFO     | ocr_evaluation.ocr_doctr:extract_text_from_pdf:69 - [docTR] sislaer_47462.pdf: 47418 caracteres totais
+2026-04-23 10:06:51.501 | INFO     | __main__:main:444 -   doctr → sislaer_47462.pdf: CER=11.0%, WER=20.2%, Domain F1=0.019, Tempo=122.5s
+2026-04-23 10:06:51.501 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:32 - [unstructured] Processando sislaer_47462.pdf...
+2026-04-23 10:09:06.743 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:36 - [unstructured] 291 elementos extraídos
+2026-04-23 10:09:06.743 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:58 - [unstructured] Tipos de elementos: NarrativeText: 147, Title: 83, Text: 56, ListItem: 5
+2026-04-23 10:09:06.743 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:61 - [unstructured] sislaer_47462.pdf: 47571 caracteres totais
+2026-04-23 10:09:07.010 | INFO     | __main__:main:444 -   unstructured → sislaer_47462.pdf: CER=8.4%, WER=23.8%, Domain F1=0.029, Tempo=135.2s
+2026-04-23 10:09:07.010 | INFO     | ocr_evaluation.ocr_chandra:extract_text_from_pdf:49 - [Chandra] Processando sislaer_47462.pdf...
+2026-04-23 10:09:07.638 | INFO     | ocr_evaluation.ocr_chandra:extract_text_from_pdf:53 - [Chandra] 31 páginas carregadas
+2026-04-23 10:09:07.639 | ERROR    | ocr_evaluation.ocr_chandra:extract_text_from_pdf:73 - [Chandra] Erro ao processar sislaer_47462.pdf: None
+2026-04-23 10:09:07.642 | INFO     | __main__:main:444 -   chandra → sislaer_47462.pdf: CER=N/A, WER=N/A, Domain F1=0.000, Tempo=0.6s
+2026-04-23 10:09:07.642 | INFO     | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:69 - [PaddleOCR] Processando sislaer_47462.pdf...
+2026-04-23 10:09:09.817 | INFO     | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:72 - [PaddleOCR] 31 páginas convertidas em imagens (DPI=300)
+2026-04-23 10:09:41.012 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 1/31: 144 caracteres, confiança média: 0.868
+2026-04-23 10:10:11.485 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 2/31: 0 caracteres, confiança média: 0.000
+2026-04-23 10:10:42.730 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 3/31: 181 caracteres, confiança média: 0.994
+2026-04-23 10:11:13.237 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 4/31: 0 caracteres, confiança média: 0.000
+2026-04-23 10:11:44.913 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 5/31: 561 caracteres, confiança média: 0.988
+2026-04-23 10:12:15.571 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 6/31: 0 caracteres, confiança média: 0.000
+2026-04-23 10:12:50.642 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 7/31: 965 caracteres, confiança média: 0.973
+2026-04-23 10:13:24.270 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 8/31: 1768 caracteres, confiança média: 0.993
+2026-04-23 10:13:59.285 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 9/31: 3006 caracteres, confiança média: 0.992
+2026-04-23 10:14:33.308 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 10/31: 2214 caracteres, confiança média: 0.991
+2026-04-23 10:15:06.396 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 11/31: 1357 caracteres, confiança média: 0.994
+2026-04-23 10:15:41.331 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 12/31: 2463 caracteres, confiança média: 0.989
+2026-04-23 10:16:14.345 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 13/31: 1328 caracteres, confiança média: 0.993
+2026-04-23 10:16:48.040 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 14/31: 1041 caracteres, confiança média: 0.924
+2026-04-23 10:17:22.026 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 15/31: 2000 caracteres, confiança média: 0.988
+2026-04-23 10:17:55.691 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 16/31: 1894 caracteres, confiança média: 0.992
+2026-04-23 10:18:29.843 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 17/31: 1801 caracteres, confiança média: 0.973
+2026-04-23 10:19:04.554 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 18/31: 2690 caracteres, confiança média: 0.992
+2026-04-23 10:19:42.938 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 19/31: 3187 caracteres, confiança média: 0.984
+2026-04-23 10:20:13.862 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 20/31: 52 caracteres, confiança média: 0.997
+2026-04-23 10:20:47.325 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 21/31: 484 caracteres, confiança média: 0.959
+2026-04-23 10:21:22.053 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 22/31: 899 caracteres, confiança média: 0.974
+2026-04-23 10:21:56.675 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 23/31: 2595 caracteres, confiança média: 0.984
+2026-04-23 10:22:31.683 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 24/31: 2314 caracteres, confiança média: 0.992
+2026-04-23 10:23:06.538 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 25/31: 2786 caracteres, confiança média: 0.989
+2026-04-23 10:23:39.835 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 26/31: 1588 caracteres, confiança média: 0.989
+2026-04-23 10:24:12.573 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 27/31: 1070 caracteres, confiança média: 0.991
+2026-04-23 10:24:47.604 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 28/31: 3228 caracteres, confiança média: 0.990
+2026-04-23 10:25:22.790 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 29/31: 2768 caracteres, confiança média: 0.992
+2026-04-23 10:25:56.377 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 30/31: 787 caracteres, confiança média: 0.948
+2026-04-23 10:26:30.189 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 31/31: 750 caracteres, confiança média: 0.907
+2026-04-23 10:26:30.189 | INFO     | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:104 - [PaddleOCR] sislaer_47462.pdf: 46011 caracteres totais
+2026-04-23 10:26:30.442 | INFO     | __main__:main:444 -   paddleocr → sislaer_47462.pdf: CER=20.6%, WER=17.0%, Domain F1=0.029, Tempo=1042.5s
+2026-04-23 10:26:30.466 | INFO     | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:122 - [Tesseract] Processando sislaer_47534.pdf...
+2026-04-23 10:26:35.416 | INFO     | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:125 - [Tesseract] 30 páginas convertidas em imagens (DPI=300)
+2026-04-23 10:26:35.416 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 1/30: preprocessing...
+2026-04-23 10:26:37.349 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:26:38.006 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 1: 136 caracteres extraídos
+2026-04-23 10:26:38.006 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 2/30: preprocessing...
+2026-04-23 10:26:40.402 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 2: 186 caracteres extraídos
+2026-04-23 10:26:40.403 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 3/30: preprocessing...
+2026-04-23 10:26:42.390 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:26:44.849 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 3: 1124 caracteres extraídos
+2026-04-23 10:26:44.849 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 4/30: preprocessing...
+2026-04-23 10:26:46.778 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:26:52.866 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 4: 2147 caracteres extraídos
+2026-04-23 10:26:52.866 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 5/30: preprocessing...
+2026-04-23 10:26:54.776 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:26:59.090 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 5: 1651 caracteres extraídos
+2026-04-23 10:26:59.091 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 6/30: preprocessing...
+2026-04-23 10:27:03.108 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 6: 2641 caracteres extraídos
+2026-04-23 10:27:03.109 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 7/30: preprocessing...
+2026-04-23 10:27:05.027 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:27:09.538 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 7: 2049 caracteres extraídos
+2026-04-23 10:27:09.538 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 8/30: preprocessing...
+2026-04-23 10:27:13.149 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 8: 2228 caracteres extraídos
+2026-04-23 10:27:13.149 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 9/30: preprocessing...
+2026-04-23 10:27:16.785 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 9: 2380 caracteres extraídos
+2026-04-23 10:27:16.785 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 10/30: preprocessing...
+2026-04-23 10:27:19.409 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 10: 606 caracteres extraídos
+2026-04-23 10:27:19.409 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 11/30: preprocessing...
+2026-04-23 10:27:22.041 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 11: 325 caracteres extraídos
+2026-04-23 10:27:22.041 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 12/30: preprocessing...
+2026-04-23 10:27:25.730 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 12: 2421 caracteres extraídos
+2026-04-23 10:27:25.731 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 13/30: preprocessing...
+2026-04-23 10:27:29.477 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 13: 2499 caracteres extraídos
+2026-04-23 10:27:29.477 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 14/30: preprocessing...
+2026-04-23 10:27:32.572 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 14: 1291 caracteres extraídos
+2026-04-23 10:27:32.572 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 15/30: preprocessing...
+2026-04-23 10:27:36.011 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 15: 1417 caracteres extraídos
+2026-04-23 10:27:36.011 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 16/30: preprocessing...
+2026-04-23 10:27:39.210 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 16: 1226 caracteres extraídos
+2026-04-23 10:27:39.210 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 17/30: preprocessing...
+2026-04-23 10:27:41.087 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:27:43.769 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 17: 1189 caracteres extraídos
+2026-04-23 10:27:43.769 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 18/30: preprocessing...
+2026-04-23 10:27:46.839 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 18: 970 caracteres extraídos
+2026-04-23 10:27:46.839 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 19/30: preprocessing...
+2026-04-23 10:27:48.735 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:27:51.314 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 19: 1087 caracteres extraídos
+2026-04-23 10:27:51.314 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 20/30: preprocessing...
+2026-04-23 10:27:53.239 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:27:55.243 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 20: 900 caracteres extraídos
+2026-04-23 10:27:55.244 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 21/30: preprocessing...
+2026-04-23 10:27:57.131 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:27:59.149 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 21: 899 caracteres extraídos
+2026-04-23 10:27:59.149 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 22/30: preprocessing...
+2026-04-23 10:28:01.993 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 22: 793 caracteres extraídos
+2026-04-23 10:28:01.993 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 23/30: preprocessing...
+2026-04-23 10:28:03.914 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:28:05.788 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 23: 557 caracteres extraídos
+2026-04-23 10:28:05.788 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 24/30: preprocessing...
+2026-04-23 10:28:09.213 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 24: 1984 caracteres extraídos
+2026-04-23 10:28:09.214 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 25/30: preprocessing...
+2026-04-23 10:28:12.884 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 25: 2446 caracteres extraídos
+2026-04-23 10:28:12.884 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 26/30: preprocessing...
+2026-04-23 10:28:16.867 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 26: 2946 caracteres extraídos
+2026-04-23 10:28:16.867 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 27/30: preprocessing...
+2026-04-23 10:28:18.789 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:28:25.830 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 27: 2827 caracteres extraídos
+2026-04-23 10:28:25.831 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 28/30: preprocessing...
+2026-04-23 10:28:28.931 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 28: 1302 caracteres extraídos
+2026-04-23 10:28:28.931 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 29/30: preprocessing...
+2026-04-23 10:28:31.339 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 29: 315 caracteres extraídos
+2026-04-23 10:28:31.339 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 30/30: preprocessing...
+2026-04-23 10:28:34.063 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 30: 629 caracteres extraídos
+2026-04-23 10:28:34.063 | INFO     | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:138 - [Tesseract] sislaer_47534.pdf: 43258 caracteres totais
+2026-04-23 10:28:35.324 | INFO     | __main__:main:444 -   tesseract → sislaer_47534.pdf: CER=96.7%, WER=729.6%, Domain F1=0.019, Tempo=123.6s
+2026-04-23 10:28:35.324 | INFO     | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:56 - [EasyOCR] Processando sislaer_47534.pdf...
+2026-04-23 10:28:39.666 | INFO     | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:59 - [EasyOCR] 30 páginas convertidas em imagens (DPI=250)
+2026-04-23 10:28:53.434 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 1/30: 133 caracteres
+2026-04-23 10:29:07.253 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 2/30: 175 caracteres
+2026-04-23 10:29:22.890 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 3/30: 1063 caracteres
+2026-04-23 10:29:39.238 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 4/30: 1188 caracteres
+2026-04-23 10:29:55.799 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 5/30: 1564 caracteres
+2026-04-23 10:30:14.527 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 6/30: 2644 caracteres
+2026-04-23 10:30:32.188 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 7/30: 2246 caracteres
+2026-04-23 10:30:50.274 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 8/30: 2217 caracteres
+2026-04-23 10:31:08.726 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 9/30: 2396 caracteres
+2026-04-23 10:31:23.523 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 10/30: 604 caracteres
+2026-04-23 10:31:37.783 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 11/30: 280 caracteres
+2026-04-23 10:31:55.939 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 12/30: 2386 caracteres
+2026-04-23 10:32:14.291 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 13/30: 2493 caracteres
+2026-04-23 10:32:30.352 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 14/30: 1280 caracteres
+2026-04-23 10:32:49.233 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 15/30: 1913 caracteres
+2026-04-23 10:33:06.441 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 16/30: 1633 caracteres
+2026-04-23 10:33:23.222 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 17/30: 1289 caracteres
+2026-04-23 10:33:39.262 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 18/30: 1025 caracteres
+2026-04-23 10:33:55.956 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 19/30: 1169 caracteres
+2026-04-23 10:34:12.008 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 20/30: 1017 caracteres
+2026-04-23 10:34:27.975 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 21/30: 1040 caracteres
+2026-04-23 10:34:43.649 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 22/30: 818 caracteres
+2026-04-23 10:34:58.301 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 23/30: 616 caracteres
+2026-04-23 10:35:15.632 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 24/30: 1952 caracteres
+2026-04-23 10:35:33.924 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 25/30: 2459 caracteres
+2026-04-23 10:35:53.275 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 26/30: 2938 caracteres
+2026-04-23 10:36:12.892 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 27/30: 3056 caracteres
+2026-04-23 10:36:29.021 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 28/30: 1313 caracteres
+2026-04-23 10:36:43.088 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 29/30: 312 caracteres
+2026-04-23 10:36:58.039 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 30/30: 623 caracteres
+2026-04-23 10:36:58.039 | INFO     | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:72 - [EasyOCR] sislaer_47534.pdf: 43929 caracteres totais
+2026-04-23 10:36:59.296 | INFO     | __main__:main:444 -   easyocr → sislaer_47534.pdf: CER=96.6%, WER=578.0%, Domain F1=0.029, Tempo=502.7s
+2026-04-23 10:36:59.297 | INFO     | ocr_evaluation.ocr_doctr:extract_text_from_pdf:60 - [docTR] Processando sislaer_47534.pdf...
+2026-04-23 10:37:00.000 | INFO     | ocr_evaluation.ocr_doctr:extract_text_from_pdf:63 - [docTR] 30 páginas carregadas
+2026-04-23 10:38:58.220 | INFO     | ocr_evaluation.ocr_doctr:extract_text_from_pdf:69 - [docTR] sislaer_47534.pdf: 43494 caracteres totais
+2026-04-23 10:38:59.512 | INFO     | __main__:main:444 -   doctr → sislaer_47534.pdf: CER=96.5%, WER=524.3%, Domain F1=0.019, Tempo=118.9s
+2026-04-23 10:38:59.513 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:32 - [unstructured] Processando sislaer_47534.pdf...
+2026-04-23 10:41:02.898 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:36 - [unstructured] 387 elementos extraídos
+2026-04-23 10:41:02.898 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:58 - [unstructured] Tipos de elementos: NarrativeText: 178, Title: 149, Text: 60
+2026-04-23 10:41:02.898 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:61 - [unstructured] sislaer_47534.pdf: 45600 caracteres totais
+2026-04-23 10:41:04.203 | INFO     | __main__:main:444 -   unstructured → sislaer_47534.pdf: CER=96.6%, WER=639.8%, Domain F1=0.019, Tempo=123.4s
+2026-04-23 10:41:04.203 | INFO     | ocr_evaluation.ocr_chandra:extract_text_from_pdf:49 - [Chandra] Processando sislaer_47534.pdf...
+2026-04-23 10:41:05.418 | INFO     | ocr_evaluation.ocr_chandra:extract_text_from_pdf:53 - [Chandra] 30 páginas carregadas
+2026-04-23 10:41:05.418 | ERROR    | ocr_evaluation.ocr_chandra:extract_text_from_pdf:73 - [Chandra] Erro ao processar sislaer_47534.pdf: None
+2026-04-23 10:41:05.425 | INFO     | __main__:main:444 -   chandra → sislaer_47534.pdf: CER=N/A, WER=N/A, Domain F1=0.000, Tempo=1.2s
+2026-04-23 10:41:05.425 | INFO     | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:69 - [PaddleOCR] Processando sislaer_47534.pdf...
+2026-04-23 10:41:10.513 | INFO     | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:72 - [PaddleOCR] 30 páginas convertidas em imagens (DPI=300)
+2026-04-23 10:41:42.059 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 1/30: 135 caracteres, confiança média: 0.993
+2026-04-23 10:42:13.834 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 2/30: 133 caracteres, confiança média: 0.999
+2026-04-23 10:42:46.686 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 3/30: 897 caracteres, confiança média: 0.991
+2026-04-23 10:43:22.698 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 4/30: 1225 caracteres, confiança média: 0.974
+2026-04-23 10:43:56.552 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 5/30: 1472 caracteres, confiança média: 0.968
+2026-04-23 10:44:30.874 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 6/30: 2370 caracteres, confiança média: 0.992
+2026-04-23 10:45:05.582 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 7/30: 2154 caracteres, confiança média: 0.983
+2026-04-23 10:45:39.972 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 8/30: 2226 caracteres, confiança média: 0.980
+2026-04-23 10:46:14.773 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 9/30: 2300 caracteres, confiança média: 0.993
+2026-04-23 10:46:46.866 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 10/30: 433 caracteres, confiança média: 0.993
+2026-04-23 10:47:20.134 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 11/30: 311 caracteres, confiança média: 0.904
+2026-04-23 10:47:54.989 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 12/30: 2345 caracteres, confiança média: 0.971
+2026-04-23 10:48:30.124 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 13/30: 2398 caracteres, confiança média: 0.992
+2026-04-23 10:49:03.716 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 14/30: 1275 caracteres, confiança média: 0.980
+2026-04-23 10:49:39.898 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 15/30: 2169 caracteres, confiança média: 0.955
+2026-04-23 10:50:15.396 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 16/30: 1815 caracteres, confiança média: 0.972
+2026-04-23 10:50:50.579 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 17/30: 1502 caracteres, confiança média: 0.961
+2026-04-23 10:51:24.833 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 18/30: 1113 caracteres, confiança média: 0.965
+2026-04-23 10:51:58.256 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 19/30: 1267 caracteres, confiança média: 0.988
+2026-04-23 10:52:32.322 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 20/30: 1058 caracteres, confiança média: 0.976
+2026-04-23 10:53:06.129 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 21/30: 1008 caracteres, confiança média: 0.983
+2026-04-23 10:53:39.355 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 22/30: 783 caracteres, confiança média: 0.990
+2026-04-23 10:54:11.201 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 23/30: 612 caracteres, confiança média: 0.995
+2026-04-23 10:54:44.646 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 24/30: 1917 caracteres, confiança média: 0.991
+2026-04-23 10:55:18.536 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 25/30: 2174 caracteres, confiança média: 0.993
+2026-04-23 10:55:53.011 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 26/30: 2754 caracteres, confiança média: 0.993
+2026-04-23 10:56:27.419 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 27/30: 2907 caracteres, confiança média: 0.974
+2026-04-23 10:57:00.550 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 28/30: 1300 caracteres, confiança média: 0.994
+2026-04-23 10:57:31.961 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 29/30: 312 caracteres, confiança média: 0.995
+2026-04-23 10:58:03.789 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 30/30: 629 caracteres, confiança média: 0.957
+2026-04-23 10:58:03.789 | INFO     | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:104 - [PaddleOCR] sislaer_47534.pdf: 43081 caracteres totais
+2026-04-23 10:58:05.046 | INFO     | __main__:main:444 -   paddleocr → sislaer_47534.pdf: CER=96.6%, WER=508.3%, Domain F1=0.019, Tempo=1018.4s
+2026-04-23 10:58:05.055 | INFO     | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:122 - [Tesseract] Processando sislaer_47605.pdf...
+2026-04-23 10:58:07.389 | INFO     | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:125 - [Tesseract] 17 páginas convertidas em imagens (DPI=300)
+2026-04-23 10:58:07.389 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 1/17: preprocessing...
+2026-04-23 10:58:09.278 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:58:09.936 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 1: 150 caracteres extraídos
+2026-04-23 10:58:09.936 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 2/17: preprocessing...
+2026-04-23 10:58:11.906 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:58:12.604 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 2: 160 caracteres extraídos
+2026-04-23 10:58:12.604 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 3/17: preprocessing...
+2026-04-23 10:58:15.459 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 3: 871 caracteres extraídos
+2026-04-23 10:58:15.459 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 4/17: preprocessing...
+2026-04-23 10:58:17.637 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 4: 0 caracteres extraídos
+2026-04-23 10:58:17.638 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 5/17: preprocessing...
+2026-04-23 10:58:19.574 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:58:21.964 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 5: 739 caracteres extraídos
+2026-04-23 10:58:21.964 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 6/17: preprocessing...
+2026-04-23 10:58:24.261 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 6: 0 caracteres extraídos
+2026-04-23 10:58:24.261 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 7/17: preprocessing...
+2026-04-23 10:58:26.196 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -89.97°
+2026-04-23 10:58:30.474 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 7: 1800 caracteres extraídos
+2026-04-23 10:58:30.474 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 8/17: preprocessing...
+2026-04-23 10:58:32.391 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:58:37.985 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 8: 2281 caracteres extraídos
+2026-04-23 10:58:37.985 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 9/17: preprocessing...
+2026-04-23 10:58:39.888 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:58:42.052 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 9: 866 caracteres extraídos
+2026-04-23 10:58:42.052 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 10/17: preprocessing...
+2026-04-23 10:58:44.006 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:58:49.402 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 10: 2454 caracteres extraídos
+2026-04-23 10:58:49.402 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 11/17: preprocessing...
+2026-04-23 10:58:51.308 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:58:57.453 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 11: 2535 caracteres extraídos
+2026-04-23 10:58:57.453 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 12/17: preprocessing...
+2026-04-23 10:58:59.370 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -89.97°
+2026-04-23 10:59:05.032 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 12: 2371 caracteres extraídos
+2026-04-23 10:59:05.032 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 13/17: preprocessing...
+2026-04-23 10:59:06.951 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:59:11.788 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 13: 2026 caracteres extraídos
+2026-04-23 10:59:11.788 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 14/17: preprocessing...
+2026-04-23 10:59:13.683 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:59:15.385 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 14: 574 caracteres extraídos
+2026-04-23 10:59:15.385 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 15/17: preprocessing...
+2026-04-23 10:59:17.294 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:59:19.951 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 15: 1166 caracteres extraídos
+2026-04-23 10:59:19.951 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 16/17: preprocessing...
+2026-04-23 10:59:21.903 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:59:22.391 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 16: 83 caracteres extraídos
+2026-04-23 10:59:22.391 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:129 - [Tesseract] Página 17/17: preprocessing...
+2026-04-23 10:59:24.292 | DEBUG    | ocr_evaluation.ocr_tesseract:_deskew:105 -   Deskew: rotated -90.00°
+2026-04-23 10:59:28.104 | DEBUG    | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:135 - [Tesseract] Página 17: 1548 caracteres extraídos
+2026-04-23 10:59:28.105 | INFO     | ocr_evaluation.ocr_tesseract:extract_text_from_pdf:138 - [Tesseract] sislaer_47605.pdf: 19672 caracteres totais
+2026-04-23 10:59:28.425 | INFO     | __main__:main:444 -   tesseract → sislaer_47605.pdf: CER=96.6%, WER=992.1%, Domain F1=0.029, Tempo=83.1s
+2026-04-23 10:59:28.426 | INFO     | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:56 - [EasyOCR] Processando sislaer_47605.pdf...
+2026-04-23 10:59:30.328 | INFO     | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:59 - [EasyOCR] 17 páginas convertidas em imagens (DPI=250)
+2026-04-23 10:59:43.932 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 1/17: 110 caracteres
+2026-04-23 10:59:57.586 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 2/17: 149 caracteres
+2026-04-23 11:00:12.699 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 3/17: 850 caracteres
+2026-04-23 11:00:25.963 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 4/17: 0 caracteres
+2026-04-23 11:00:40.419 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 5/17: 473 caracteres
+2026-04-23 11:00:53.799 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 6/17: 0 caracteres
+2026-04-23 11:01:11.574 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 7/17: 2219 caracteres
+2026-04-23 11:01:29.028 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 8/17: 2204 caracteres
+2026-04-23 11:01:44.241 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 9/17: 1080 caracteres
+2026-04-23 11:02:02.304 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 10/17: 2255 caracteres
+2026-04-23 11:02:20.732 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 11/17: 2516 caracteres
+2026-04-23 11:02:38.375 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 12/17: 2057 caracteres
+2026-04-23 11:02:55.742 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 13/17: 2099 caracteres
+2026-04-23 11:03:10.653 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 14/17: 705 caracteres
+2026-04-23 11:03:27.428 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 15/17: 1637 caracteres
+2026-04-23 11:03:41.125 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 16/17: 153 caracteres
+2026-04-23 11:03:58.271 | DEBUG    | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:69 - [EasyOCR] Página 17/17: 1822 caracteres
+2026-04-23 11:03:58.271 | INFO     | ocr_evaluation.ocr_easyocr:extract_text_from_pdf:72 - [EasyOCR] sislaer_47605.pdf: 20377 caracteres totais
+2026-04-23 11:03:58.577 | INFO     | __main__:main:444 -   easyocr → sislaer_47605.pdf: CER=95.9%, WER=527.4%, Domain F1=0.038, Tempo=269.8s
+2026-04-23 11:03:58.577 | INFO     | ocr_evaluation.ocr_doctr:extract_text_from_pdf:60 - [docTR] Processando sislaer_47605.pdf...
+2026-04-23 11:03:58.872 | INFO     | ocr_evaluation.ocr_doctr:extract_text_from_pdf:63 - [docTR] 17 páginas carregadas
+2026-04-23 11:04:59.808 | INFO     | ocr_evaluation.ocr_doctr:extract_text_from_pdf:69 - [docTR] sislaer_47605.pdf: 20426 caracteres totais
+2026-04-23 11:05:00.105 | INFO     | __main__:main:444 -   doctr → sislaer_47605.pdf: CER=95.7%, WER=488.2%, Domain F1=0.038, Tempo=61.2s
+2026-04-23 11:05:00.105 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:32 - [unstructured] Processando sislaer_47605.pdf...
+2026-04-23 11:06:00.179 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:36 - [unstructured] 168 elementos extraídos
+2026-04-23 11:06:00.179 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:58 - [unstructured] Tipos de elementos: NarrativeText: 85, Title: 42, Text: 39, ListItem: 2
+2026-04-23 11:06:00.180 | INFO     | ocr_evaluation.ocr_unstructured:extract_text_from_pdf:61 - [unstructured] sislaer_47605.pdf: 20760 caracteres totais
+2026-04-23 11:06:00.486 | INFO     | __main__:main:444 -   unstructured → sislaer_47605.pdf: CER=95.9%, WER=544.7%, Domain F1=0.038, Tempo=60.1s
+2026-04-23 11:06:00.486 | INFO     | ocr_evaluation.ocr_chandra:extract_text_from_pdf:49 - [Chandra] Processando sislaer_47605.pdf...
+2026-04-23 11:06:00.950 | INFO     | ocr_evaluation.ocr_chandra:extract_text_from_pdf:53 - [Chandra] 17 páginas carregadas
+2026-04-23 11:06:00.951 | ERROR    | ocr_evaluation.ocr_chandra:extract_text_from_pdf:73 - [Chandra] Erro ao processar sislaer_47605.pdf: None
+2026-04-23 11:06:00.954 | INFO     | __main__:main:444 -   chandra → sislaer_47605.pdf: CER=N/A, WER=N/A, Domain F1=0.000, Tempo=0.5s
+2026-04-23 11:06:00.954 | INFO     | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:69 - [PaddleOCR] Processando sislaer_47605.pdf...
+2026-04-23 11:06:03.110 | INFO     | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:72 - [PaddleOCR] 17 páginas convertidas em imagens (DPI=300)
+2026-04-23 11:06:33.588 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 1/17: 110 caracteres, confiança média: 0.995
+2026-04-23 11:07:04.284 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 2/17: 149 caracteres, confiança média: 0.989
+2026-04-23 11:07:36.120 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 3/17: 760 caracteres, confiança média: 0.989
+2026-04-23 11:08:06.185 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 4/17: 0 caracteres, confiança média: 0.000
+2026-04-23 11:08:38.475 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 5/17: 475 caracteres, confiança média: 0.960
+2026-04-23 11:09:08.703 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 6/17: 0 caracteres, confiança média: 0.000
+2026-04-23 11:09:42.078 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 7/17: 2221 caracteres, confiança média: 0.995
+2026-04-23 11:10:15.374 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 8/17: 2201 caracteres, confiança média: 0.994
+2026-04-23 11:10:47.315 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 9/17: 1074 caracteres, confiança média: 0.995
+2026-04-23 11:11:21.548 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 10/17: 2262 caracteres, confiança média: 0.992
+2026-04-23 11:11:55.960 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 11/17: 2444 caracteres, confiança média: 0.992
+2026-04-23 11:12:30.179 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 12/17: 2068 caracteres, confiança média: 0.993
+2026-04-23 11:13:04.529 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 13/17: 2019 caracteres, confiança média: 0.972
+2026-04-23 11:13:36.318 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 14/17: 563 caracteres, confiança média: 0.986
+2026-04-23 11:14:09.372 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 15/17: 1634 caracteres, confiança média: 0.994
+2026-04-23 11:14:40.589 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 16/17: 154 caracteres, confiança média: 0.991
+2026-04-23 11:15:13.823 | DEBUG    | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:98 - [PaddleOCR] Página 17/17: 1739 caracteres, confiança média: 0.990
+2026-04-23 11:15:13.823 | INFO     | ocr_evaluation.ocr_paddleocr:extract_text_from_pdf:104 - [PaddleOCR] sislaer_47605.pdf: 19921 caracteres totais
+2026-04-23 11:15:14.119 | INFO     | __main__:main:444 -   paddleocr → sislaer_47605.pdf: CER=95.9%, WER=472.2%, Domain F1=0.038, Tempo=552.9s
+2026-04-23 11:15:14.120 | INFO     | __main__:_export_results:261 - Resultados detalhados salvos em: /home/vitor-lucas/airdata/ita-airdata-rag-system-llm/ocr_evaluation/results/details_20260423T094004.csv
+2026-04-23 11:15:14.121 | INFO     | __main__:_export_results:276 - Resumo salvo em: /home/vitor-lucas/airdata/ita-airdata-rag-system-llm/ocr_evaluation/results/summary_20260423T094004.csv
+2026-04-23 11:15:14.123 | INFO     | __main__:_export_results:294 - Resultados completos salvos em: /home/vitor-lucas/airdata/ita-airdata-rag-system-llm/ocr_evaluation/results/full_20260423T094004.json

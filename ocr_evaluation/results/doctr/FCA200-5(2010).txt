@@ -1,0 +1,961 @@
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+IT
+SEGURANÇA
+FCA 200-5
+GUIA PRATICO DE EXECUÇAO DAS MEDIDAS DO
+REGULAMENTO PARA SALVAGUARDA DE
+ASSUNTOS SIGILOSOS DA AERONAUTICA
+2010
+
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+CENTRO DE INTELIGENCIA DA AERONAUTICA
+IT
+SEGURANÇA
+FCA 200-5
+GUIA PRATICO DE EXECUÇAO DAS MEDIDAS DO
+REGULAMENTO PARA SALVAGUARDA DE
+ASSUNTOS SIGILOSOS DA AERONAUTICA
+2010
+
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONAUTICA
+PORTARIA No 2, DE 20 DE MAIO DE 2010.
+Aprova a ediçao do Folheto que dispôe sobre a
+prâtica das medidas do Regulamento para
+Salvaguarda de Assuntos Sigilosos da Aeronautica.
+CHEFE DO CENTRO DE INTELIGENCIA DA AERONAUTICA,
+tendo em vista O disposto no Inciso II, do art. 4° do Regulamento do Centro de Inteligência
+da Aeronautica, aprovado pela Portaria no C-7/GC3, de 27 de setembro de 2005, resolve:
+Art. 12 Aprovar a ediçao do FCA 200-5 "Guia Prâtico de Execuçao das
+Medidas do Regulamento para Salvaguarda de Assuntos Sigilosos da Aeronautica", 5 que com
+esta baixa.
+Art. 2° Esta Portaria entra em vigor na data de sua publicaçao.
+Brig Ar PAULO AFONSO PINHEIRO LARI
+Chefe do CIAER
+(Publicado no BCA no 107, de 10 de junho de 2010)
+107-BCA ANEXO 4 FCA 200-5
+
+FCA 200-5/2010
+SUMARIO
+PREFÂCIO
+1 DISPOSIÇOES PRELIMINARES
+9
+1.1 FINALIDADE.
+9
+1.2 CONCEITUACAO El PADRONIZACAO.
+9
+1.3 AMBITO
+12
+2 SIGILO E: SEGURANÇA
+13
+2.1 CLASSIFICACAO SEGUNDO O GRAU DE SIGILO
+13
+2.2 RECLASSIFICACAO E DESCLASSIFICACAO
+14
+2.3 DOCUMENTOS E MATERIAIS SIGILOSOS CONTROLADOS.
+14
+2.4 MARCAÇAO.
+16
+2.5 EXPEDIÇAO E COMUNICAÇAO DE DOCUMENTOS SIGILOSOS
+17
+2.6 REGISTRO, TRAMITAÇAO E GUARDA
+19
+2.7 SEGURANÇA NA PRODUÇAO
+20
+2.8 REPRODUCAO.
+20
+2.9 AVALIAÇAO El PRESERVAÇAO
+21
+2.10 SEGURANÇA NO ARQUIVAMENTO
+21
+2.11 SEGURANÇA NA PRESERVAÇAO
+21
+2.12 ACESSO.
+22
+2.13 AREAS E INSTALAÇOES SIGILOSAS
+.23
+2.14 SEGURANÇA FISICA
+24
+3 SEGURANÇA DA INFORMAÇAO.
+30
+3.1 SEGURANÇA DO HARDWARE.
+30
+3.2 SEGURANÇA DO SOFTWARE El DE INTERNET
+30
+4 MEDIDAS GERAIS DE SEGURANÇA
+31
+5 DISPOSIÇOES FINAIS.
+32
+
+FCA 200-5/2010
+PREFACIO
+A salvaguarda de assuntos sigilosos requer, além de conhecimentos e
+mentalidade de segurança, procedimentos cautelares especificos, OS quais devem ser
+conhecidos por todos aqueles que tratam dos referidos assuntos.
+A elaboraçâo deste folheto visa dar praticidade às medidas preconizadas no
+Regulamento para Salvaguarda de Assuntos Sigilosos da Aeronautica baseadas nos Decretos
+no 4.553, de 27 de dezembro de 2002 e no 5.301, de 09 de dezembro de 2004.
+Com a ediçao deste documento pretende-se padronizar, no âmbito do
+COMAER, a execuçao das medidas adequadas no trato de matéria sigilosa.
+Sabe-se da ampla variedade de instalaçôes e atividades que ha no COMAER,
+além da grande gama de situaçoes e ambientes nas quais tais instalaçôes e atividades estâo
+inseridas. Pretende-se, dentro da viabilidade, que tais medidas sejam igualmente
+implementadas respeitando-se, porém, as particularidades e limitaçôes de cada organizaçao.
+
+FCA 200-5/2010
+1 DISPOSIÇOES PRELIMINARES
+1.1 FINALIDADE
+presente Folheto tem por finalidade elucidar e padronizar, no âmbito do
+Comando da Aeronautica (COMAER), OS procedimentos regulamentados por meio do RCA
+205-1 - Regulamento para a Salvaguarda de Assuntos Sigilosos (RSAS).
+1.2 CONCEITUACAO El PADRONIZACAO
+1.2.1 AREA SIGILOSA
+É aquela onde documentos, materiais, comunicaçôes e sistemas de informaçôes
+sigilosos sâo tratados, manuseados, transmitidos ou guardados e que, portanto, requer medidas
+especiais de segurança e controle de acesso.
+1.2.2 CLASSIFICAÇAO E DEMARCAÇAO
+Atribuiçao, pela autoridade competente (vide RSAS), de grau de sigilo a dado,
+informaçâo, documento, material, area ou instalaçao.
+A demarcaçâo de areas devera ser condizente com OS conteudos e atividades
+nelas executadas e deve estar aparente e disposta de forma padronizada. Nào deverao ser
+utilizadas outras denominaçôes, tais como: ârea restrita ou ârea sensivel. As denominaçôes
+devem ser as constantes na legislaçao, quais sejam: RESERVADA, CONFIDENCIAL,
+SECRETA ou ULTRASSECRETA.
+1.2.3 MEIO DE COMUNICAÇAO SIGILOSA
+Aquele no qual se transmitem dados, informaçôes e/ou conhecimentos
+sigilosos e, portanto requer dispositivos de criptografia para sua utilizaçâo. Nào fazem parte
+desses meios OS Telefones Vermelhos (RTCAER), a INTRAER, telefones celulares,
+funcionais ou nào, telefones comerciais, aparelhos de fax, entre outros.
+No COMAER, sâo meios de comunicaçao sigilosos apenas: as redes
+MERCURIO e INTRAGAR, O sistema VOIP provido pelo CIAER para OS adidos no exterior
+eo' Telefone Seguro (TSG), com O modulo de segurança ativado, conectado a outro TSG com
+O seu modo seguro também ativado.
+1.2.4 RECLASSIFICAÇAO
+Alteraçâo, pela autoridade competente, da classificaçào de dado, informaçào,
+ârea ou instalaçâo sigilosas.
+conhecimento classificado pode, assim, ter seu grau de sigilo aumentado ou
+diminuido, por meio de reclassificaçao, conforme preconizado pela ICA 200-9 Avaliaçao de
+Documentos Sigilosos na Aeronautica, de 2010.
+A indicaçao da reclassificaçao ou da desclassificaçao de documentos sigilosos
+devera constar da capa, se houver, e da primeira pagina do documento, mediante aposiçâo de
+carimbo, de forma que nâo prejudique OS dados, informaçôes ou conhecimentos registrados.
+
+FCA 200-5/2010
+10
+responsavel pela posse de documento sigiloso, de classificaçao alterada ou
+cancelada, providenciara a anotaçâo autenticada da alteraçâo do documento.
+Quando for necessario reclassificar documentos sigilosos do mesmo tipo,
+reunidos em maço ou pasta, basta colocar, na primeira pagina, a anotaçâo autenticada. Caso
+seja necessario destacar algum documento para uso isolado, este recebera idêntica anotaçao.
+Modelos de carimbos para reclassificaçao e desclassificaçao de documentos
+sigilosos.
+8 cm
+(Organizaçao Militar)
+SPADS
+Documento DESCLASSIFIFICADO
+Carimbo 1
+(Organizaçào Militar)
+SPADS
+Documento com classificaçào sigilosa
+PRORROGADA
+Proposta homologada em (data)
+Carimbo 2
+(Organizaçâo Militar)
+SPADS
+Documento RECLASSIFICADO para
+(NOVO GRAU DE SIGILO)
+Proposta homologada em (data)
+Carimbo 3
+Documento com Acesso Restrito
+Conforme Inciso X do Art. 5° da Constituiçao
+de 1988, da Republica Federativa do Brasil
+Carimbo 4
+1.2.5 COMPARTIMENTAÇAO
+É O resultado desejado das medidas que restringem 0 acesso de pessoas a
+conhecimentos e/ou dados sigilosos àquelas que efetivamente tenham necessidade de
+conhece-los e que, além disso, possuam, obrigatoriamente, credencial de segurança no grau
+adequado.
+
+FCA 200-5/2010
+11
+A credencial de segurança nâo habilita, automaticamente, seu detentor a ter
+acesso a todos OS assuntos sigilosos até 0 respectivo grau de sigilo. É imprescindivel que haja
+a necessidade de conhecer determinado assunto (por estar envolvido em algum tipo de
+trabalho, anâlise, açâo ou acompanhamento do mesmo). Este é 0 fundamento da
+compartimentaçao e deve ser rigorosamente observado sob pena de haver comprometimentos
+ou vazamentos que inviabilizem ou prejudiquem determinadas linhas de açâo que estejam
+sendo planejadas.
+
+FCA 200-5/2010
+12
+1.3 ÂMBITO
+presente folheto aplica-se a todas as OM do COMAER. Pode, também, ser
+cedida, à guisa de orientaçao, às empresas vinculadas e a outras empresas e orgaos com OS
+quais O COMAER mantém contrato ou convênio com clausula de manutençào de sigilo.
+
+FCA 200-5/2010
+13
+2 SIGILO E SEGURANÇA
+2.1 CLASSIFICACAO SEGUNDO O GRAU DE SIGILO
+2.1.1 As areas, OS dados ou informaçôes e OS materiais sigilosos serao classificados em
+ULTRASSECRETOS, SECRETOS, CONFIDENCIAIS e RESERVADOS, em razao do seu
+teor ou dos seus elementos intrinsecos.
+2.1.2 Quando da classificaçao deve-se adotar 0 menor grau de sigilo possivel, em funçao do
+nivel de segurança que se deseja atingir, com vistas a evitar entraves desnecessarios quanto ao
+acesso àqueles dados ou informaçôes, por parte daqueles que têm necessidade de conhecê-los.
+Frequentemente incorre-se no erro de atribuir grau de sigilo mais elevado que 0 necessario,
+banalizando, assim, as medidas de segurança decorrentes da classificaçao.
+2.1.3 Inicialmente atribui-se um grau de sigilo julgado suficiente e que, se for necessario,
+podera posteriormente ser aumentado por quem classificou ou por autoridade
+hierarquicamente superior e competente para dispor sobre 0 assunto.
+2.1.4 Sâo usualmente passiveis de classificaçao como ULTRASSECRETOS, dentre outros,
+dados ou informaçôes referentes à soberania e à integridade territorial nacionais, a planos e
+operaçôes militares reais de cunho estratégico, às relaçôes internacionais do Estado brasileiro,
+a projetos de pesquisa e desenvolvimento cientifico e tecnologico de interesse estratégico (ex:
+projeto do submarino nuclear, de uma nova aeronave de combate, de um satélite militar, de
+desenvolvimento de armamento de uso estratégico, de bomba nuclear, de misseis de longo
+alcance, projetos cientificos de tecnologia dual de vanguarda, etc) e a programas econômicos,
+cujo conhecimento nâo autorizado possa acarretar dano excepcionalmente grave à segurança
+da sociedade e do Estado.
+2.1.5 Sao passiveis de classificaçào como SECRETOS, dentre outros, dados ou informaçôes
+referentes a sistemas (ex: criptografia no COMAER, TSG no MD, satélite de comunicaçôes
+militares, aquisiçôes de meios estratégicos, operaçôes militares reais de carâter tâtico, etc),
+instalaçôes (ex: laboratorios de alta tecnologia no CTA, centros de lançamentos de veiculos
+espaciais, salas de servidores centrais de redes INTRAER, MERCURIO, etc), programas,
+projetos, planos ou operaçôes de interesse da Defesa Nacional, a assuntos diplomaticos e de
+inteligência e a planos ou detalhes, programas ou instalaçôes estratégicos, cujo conhecimento
+nâo autorizado possa acarretar dano grave à segurança da sociedade e do Estado.
+2.1.6 Sao passiveis de classificaçào como CONFIDENCIAIS dados ou informaçôes que, no
+interesse do Poder Executivo e das partes, devam ser de conhecimento restrito, cuja revelaçao
+nâo autorizada possa frustrar seus objetivos ou acarretar dano à segurança da sociedade e do
+Estado (ex: relatorios de inspeçôes de segurança, codificaçoes de uso operacional militar,
+frequências de radares, disponibilidade de meios aéreos e terrestres de combate ou apoio ao
+combate, estoques de combustivel ou de suprimento aeronautico, politicas nacionais de cunho
+estratégico, etc).
+2.1.7 Sao passiveis de classificaçào como RESERVADOS dados ou informaçôes, de qualquer
+espécie, que nâo devam ser de conhecimento publico (ex: manuais doutrinarios de voo, ordens
+de instruçao, tabelas de emprego armado de aeronaves, frequências de comunicaçào de uso
+militar, escalas de VOO e de serviço de alerta de defesa aérea, distribuiçao de efetivos, etc) pelo
+potencial de risco que possa oferecer aos meios materiais e humanos do COMAER em funçâo
+do uso que possa fazer delas um agente adverso cujos interesses sejam contrarios aos
+interesses da Organizaçao e do Pais.
+
+FCA 200-5/2010
+14
+2.1.8 As informaçôes que, de alguma forma, possam atingir 0 resguardo da inviolabilidade da
+intimidade da vida privada, da honra e da imagem das pessoas poderao ser classificadas como
+RESERVADAS ou CONFIDENCIAIS, dependendo das circunstâncias nas quais estiverem
+envolvidas, devendo, porém, possuir alguma classificaçao.
+2.1.9 Os documentos de inteligência, dependendo do assunto, podem ser classificados em
+qualquer grau desde que nâo contrariem 0 previsto pela legislaçâo em vigor.
+2.2 RECLASSIFICACAO E DESCLASSIFICACAO
+2.2.1 Os procedimentos para reclassificaçao e desclassificaçào de documentos sigilosos, além
+de outras providências, devem seguir 0 preceituado na ICA 200-9 Avaliaçao de Documentos
+Sigilosos na Aeronautica, de 2010.
+2.3 DOCUMENTO E MATERIAL SIGILOSOS CONTROLADOS
+2.3.1 Documentos e Materiais Sigilosos Controlados (DSC/MSC) sâo aqueles que, por sua
+importância, requerem medidas adicionais de controle.
+2.3.1.1 Deve ser feita identificaçao dos destinatàrios, em protocolo e recibo proprios, quando
+da difusao. Devera seguir junto com 0 DSC/MSC um recibo discriminando 0 conteudo que
+esta sendo enviado e O destinatàrio que deve recebê-lo, de forma que esse ultimo dê a quitaçâo
+er retorne 0 recibo para 0 remetente. Tudo deve ser devidamente protocolado.
+2.3.1.2 Deve ser feita a lavratura de Termo de Custôdia e registro em protocolo especifico.
+Sera 0 usado O Termo de Custôdia quando 0 Detentor recebe um DSC/MSC e necessita deixa-
+lo em outro setor da OM. Tal termo é util para que 0 Detentor seja eximido de
+responsabilidade no caso de furto, roubo ou extravio do DSC/MSC, pois, para OS efeitos
+legais, a responsabilidade pelo DSC/MSC é do Detentor. Vale frisar que a lavratura desse
+termo é um ato interno para controle da OM que detém O DSC/MSC, nâo sendo necessario 0
+envio deste para a OM expedidora do DSC/MSC, pois, para a OM difusora, 0 responsavel
+sempre sera 0 Detentor e nâo O Custodiante.
+2.3.1.3 O prazo para a lavratura anual de termo de inventârio é 30 de julho, pelo orgào ou
+entidades receptoras. Anualmente, as OM devem enviar um Termo de Inventario, de todos OS
+DSC/MSC que possuirem, para as OM que expediram OS DSC/MSC. Vale frisar que OS
+termos de cada DSC/MSC serao enviados, respectivamente, para as OM que OS expediram.
+Por exemplo: se O OI tem sob a sua responsabilidade dois DSC- OA, expedido pela OM "X",
+eo B, expedido pela OM "Y" - deverao ser enviados dois Termos de Inventario. Nesse caso,
+do DSC A para a OM "X" e do DSC B para a OM "Y". Nao sâo remetidos ao CIAER termos
+de inventârios de DSC/MSC que nâo haja sido expedido pelo CIAER, e assim
+respectivamente.
+2.3.1.4 O Termo de Inventario sera assinado pelo Detentor do DSC/MSC e por duas
+testemunhas. 0 Detentor natural é O Comandante/Chefe/Diretor da OM que delega a
+competência ao Chefe da SI que, por sua vez, sera 0 responsavel imediato pela assinatura do
+Termo do Inventario. O termo nâo podera ser assinado, no impedimento, por uma outra
+pessoa, uma vez que a delegaçâo de competência nâo permite tal situaçao, ou seja, 0 Termo
+de Inventario devera ser assinado pelo detentor (Chefe da SI) ou pelo proprio
+Comandante/Chefe/Diretor da OM. As testemunhas deverao ser pessoas do proprio setor,
+credenciadas no nivel do DSC/MSC em questâo.
+
+FCA 200-5/2010
+15
+2.3.1.5 Devera ser enviado 0 Termo de Inventario toda vez em que houver transferência da
+guarda de DSC/MSC. Tal situaçao é comum quando ha TROCA do Detentor do DSC/MSC.
+2.3.1.6 A expediçao do Termo de Inventario para a OM difusora, deve ser feita por meio de
+oficio, via Rede Mercurio. Mesmo que 0 DSC/MSC esteja em outro local da OM, que nâo
+seja a SI, a responsabilidade pelo envio do termo sera sempre do Detentor.
+2.3.1.7 Devera ser feita a lavratura de Termo de Transferência, sempre que se proceder à
+transferência de custôdia ou guarda de DSC/MSC, sendo assinado pelo Detentor substituto e
+pelo substituido.
+2.3.1.8 O Termo de Transferência sera expedido em quatro vias, sendo que, conforme dispoe
+0 item 2.6.8 do RSAS, a primeira sera enviada, juntamente com um Termo de Inventario
+atualizado, ao orgào expedidor do DSC/MSC, a segunda ficara arquivada no setor que tem a
+custodia do documento e as demais com OS Detentores substituto e substituido. Vale frisar que
+0 Termo de Inventario sera assinado pelo novo detentor, para que este tenha a plena
+consciência do DSC/MSC que esta recebendo.
+2.3.2 Os sistemas e OS materiais criptograficos ou criptofônicos deverao ser guardados em
+locais distintos de seus manuais de utilizaçao ou senhas. Os locais (salas e dispositivos de
+armazenamento) devem obedecer aos requisitos previstos para cada grau de sigilo
+considerado.
+2.3.3 As areas sigilosas devem respeitar no minimo, as seguintes especificaçoes:
+a) possuir paredes e tetos de alvenaria, em boas condiçoes de resistència, ou de
+material que ofereça resistência igual ou superior à alvenaria.
+b) as janelas, se houver, devem possuir vidros de segurança com malha
+metalica interna e/ou grades de segurança que impeçam 0 acesso ao
+ambiente.
+c) nào deve haver passagens liberaveis, tais como: aberturas para
+condicionadores de ar (exceto tipo split), forro do teto e sala adjacente que
+nâo possua as mesmas caracteristicas.
+d) a porta de acesso deve possuir resistência a arrombamentos manuais e
+fechaduras de segurança, preferencialmente de segredo de quatro ou cinco
+combinaçôes, mecânica ou eletromecânica, de qualidade reconhecida.
+0
+080
+(56
+080
+Figura 1: Exemplos de fechaduras e porta de segurança.
+
+FCA 200-5/2010
+16
+e) deve haver sensores de movimento, dispositivos eletrônicos de vigilância
+com alarmes de intrusâo e senhas de acesso.
+2.3.4 Sempre que ocorrer furto, roubo, extravio ou suspeita de comprometimento de DSC/MSC
+deve-se proceder à devida investigaçào (Sindicância ou IPM), a fim de apurar as causas e OS
+responsaveis, bem como levantar as medidas de segurança orgânica que deverao ser
+implementadas e as açôes penais, civeis e administrativas decorrentes.
+2.3.5 O assunto DSC/MSC ainda esta muito focado na documentaçào, portanto faz-se
+necessario esclarecer que, além dos documentos jà mencionados, ha muitos equipamentos e
+materiais sigilosos que sâo caracterizados como MSC e, portanto, merecem igual tratamento
+2.4 MARCAÇAO
+2.4.1 Um DSC tera em todas as paginas, inclusive na capa, além da marcaçao de grau de
+sigilo, a expressào "Documento Sigiloso Controlado", 0 numero do DSC e 0 do Exemplar,
+conforme exemplo abaixo:
+SECETIO
+MLNISTLRIO DADEFESA
+CONANDODA AERONAUTICA
+INTHILANLIA
+FATT
+FIRTCADXXX
+Documento Sigiloso Controlado
+r6
+DSC no 001/2010 Exemplar no 001
+SICELTO
+VAUZBPRANREAESO
+ren. mm : upl. m
+2.4.1.1 O CIAER recomenda que tal marcaçao seja feita, no canto inferior direito, por meio de
+carimbo com a numeraçâo do DSC e do Exemplar feitas manualmente, pois é mais eficaz para
+se detectar e analisar adulteraçôes ou vazamentos.
+2.4.1.2 O numero do DSC é sequencial durante 0 ano, por exemplo: se a OM faz 0 primeiro
+DSC em 2010, sera 0 DSC no 001/2010. Jâ O numero de Exemplar é aquele que vai controlar
+a difusao do DSC. Veja como ficaria uma lista de difusâo hipotética de certo DSC para cinco
+OM diferentes:
+
+FCA 200-5/2010
+17
+Difusâo do DSC no 001/2010
+Exemplar no 001.
+AFA
+Exemplar no 002.
+BAAN
+Exemplar no 003.
+BABR
+Exemplar no 004.
+.BABV
+Exemplar no 005.
+BACO
+2.4.2 A marcaçao do grau de sigilo devera ser feita em todas as paginas e capas do documento
+sendo que se pode utilizar carimbo, em documentos nâo digitalizados, ou inserçâo digital em
+documento digitalizado.
+RESERVADO
+MINISTERODAD DEFESA
+CENTRODENTILIOENCIAL DA AERONAUTICA
+DF
+-
+RESERVADO
+Figura 2: Modelo de marcaçâo de sigilo
+2.5 EXPEDIÇAO DE DOCUMENTOS SIGILOSOS
+2.5.1 A segurança relacionada com a expediçao de documentos sigilosos é da
+responsabilidade de todos aqueles que OS manusearem.
+2.5.2 Todos aqueles que têm contato com documentos sigilosos devem ser instruidos sobre
+como proceder quando perceberem qualquer tipo de ameaça ou ocorrência de incidente que
+possa resultar em comprometimento do documento.
+2.5.3 Os documentos sigilosos, em sua expediçao e tramitaçâo, obedecerào às seguintes
+prescriçoes:
+
+FCA 200-5/2010
+18
+a) serao acondicionados em envelopes duplos. Envelopes opacos (usualmente
+de papel pardo, mais resistente), um dentro do outro, de tamanhos
+adequados ao documento e à inserçao do envelope interno no externo;
+-
+-
+Figura 3: Envelopamento duplo de documento sigiloso.
+b) no envelope externo, nâo constara qualquer indicaçao do grau de sigilo ou
+do teor do documento, apenas OS dados do remetente e do destinatàrio;
+EFMEERLE CIAER INTELIGENCIA
+inese Explanada do des COMAER-40 Ministerios BL Andar- "M"
+ERE IA-DF
+Figura 4: Envelope externo de documento sigiloso.
+c) no envelope interno, serao escritos (por etiqueta autocolante ou digitaçao no
+proprio envelope) OS dados do destinatario, do remetente, 0 grau de sigilo e
+as referências do documento sem constar 0 assunto. O grau de sigilo do
+documento sera registrado em cor contrastante, usualmente vermelha, nas
+duas extremidades das aberturas e em ambos OS lados de modo a ser
+identificado logo que removido O envelope externo;
+
+FCA 200-5/2010
+19
+-
+SECRETO
+SECRETO
+ETALRON AFRONAUTICA-CIAER CENTRO DE INTELIGÈNCIA
+Endereço: Edificio Anexo Esplanada do dos COMAER-40 Ministérios BL. Andar- "M"-
+BRASILIA-DF
+Figura 5: Envelope interno de documento sigiloso.
+d) 0 envelope externo sera fechado, lacrado e expedido mediante recibo, que
+indicara, necessariamente, remetente, destinatario e numero ou outro
+indicativo que identifique 0 documento; e
+e) sempre que 0 assunto for considerado de interesse exclusivo do destinatârio,
+sera escrita a palavra pessoal no envelope interno.
+2.5.4 Os Documentos ou Materiais Sigilosos Controlados (DSC/MSC), quaisquer que sejam
+suas classificaçôes, deverao ser entregues, via malote ou pessoalmente, ao destinatârio, por
+pessoa credenciada, mediante recibo, com exceçao dos materiais criptograficos e/ou
+criptofônicos, bem como OS sistemas de cifra e côdigos e OS seus respectivos manuais, que sô
+podem ser remetidos por meio de portador credenciado.
+2.6 REGISTRO. TRAMITACAO EGUARDA
+2.6.1 Cabe aos responsaveis pelo recebimento de documentos sigilosos:
+a) verificar a integridade e registrar (no proprio recibo e em protocolo
+especifico), se for 0 caso, indicios de violaçâo ou de qualquer irregularidade
+na correspondência recebida, dando ciência do fato ao seu superior
+hierarquico e ao destinatario; e
+b) proceder ao registro do documento e ao controle de sua tramitaçao.
+Figura 6: Exemplos de violaçôes de envelopes.
+
+FCA 200-5/2010
+20
+2.6.2 O envelope interno sô sera aberto pelo destinatario, pelo seu representante autorizado ou
+por autoridade competente hierarquicamente superior.
+2.6.2.1 Envelopes contendo a marca PESSOAL" sô poderao ser abertos pelo proprio
+destinatario. Por exemplo, dados ou informaçôes referentes a resultados de inspeçao de saude,
+vencimentos, processos judiciais, etc.
+2.6.3 O destinatàrio de documento sigiloso comunicara imediatamente ao remetente qualquer
+indicio de violaçao ou adulteraçâo do documento. Essa comunicaçào de violaçao ou
+irregularidade visa à apuraçao, com a maior celeridade possivel, dos envolvidos no trâmite do
+documento. A seguir 0 responsavel pela violaçao ou adulteraçào devera ser identificado para
+que se possa investigar se houve comprometimento e/ou vazamento.
+2.6.4 Os documentos sigilosos serao mantidos ou guardados em condiçôes especiais de
+segurança, conforme 0 seu grau de sigilo.
+2.6.5 Os agentes responsaveis pela guarda ou custodia de documentos ou materiais sigilosos
+OS transmitirào a seus substitutos, devidamente conferidos, quando da passagem de funçâo ou
+transferência de responsabilidade. A transmissao de guarda ou custodia de documentos e/ou
+materiais sigilosos é documentada por meio de termos proprios, cujos modelos encontram-se
+anexos ao RSAS.
+2.7 SEGURANÇA NA PRODUÇAO
+2.7.1 A todo documento, em fase de produçao, devera ser atribuido um grau de sigilo
+preliminar. Esse grau de sigilo deve estar em conformidade com a necessidade e todo material
+que estiver envolvido na confecçao desse documento (rascunhos, arquivos, copias, etc) devera
+receber 0 mesmo grau de sigilo preliminar. Depois de concluido, 0 documento devera ter seu
+grau de sigilo retificado ou ratificado.
+2.7.2 Os materiais utilizados na confecçâo devem ser destruidos, pois estes componentes,
+apos a produçào do documento sigiloso em sua versâo final, acabam se convertendo em
+fragmentos que podem ser utilizados por elementos adversos para a reproduçao de parte ou de
+todo 0 documento finalizado e consequentemente ao seu conteudo.
+2.8 REPRODUÇAO
+2.8.1 Sempre que a preparaçâo, impressâo ou, se for 0 caso, reproduçao de documento
+sigiloso for efetuada em tipografias, impressoras, oficinas graficas ou similares, essa operaçâo
+devera ser acompanhada por pessoa oficialmente designada, que sera responsavel pela
+garantia do sigilo durante a confecçâo do documento.
+2.8.2 Da mesma forma, copias em maquinas xerox devem ser acompanhadas e feitas por
+pessoal credenciado ou pelos proprios detentores do documento a ser copiado. Os rejeitos das
+copias devem ser retirados imediatamente e destruidos pelo detentor do documento.
+2.8.3 Nào deve existir chip de memoria em copiadoras de documentaçao sigilosa. As
+maquinas devem estar sinalizadas como adequadas, ou nào, a efetuarem copias sigilosas.
+2.8.4 A reproduçao total ou parcial de documentos sigilosos controlados condiciona-se à
+autorizaçao expressa da autoridade classificadora ou autoridade hierarquicamente superior
+competente para dispor sobre 0 assunto. Isto quer dizer que a responsabilidade pela
+
+FCA 200-5/2010
+21
+reproduçao nâo autorizada de todo ou parte de Documento Sigiloso Controlado recai sobre
+seu custodiante. Este é 0 fundamento da elaboraçâo do Termo de Custôdia de DSC, 0 qual
+sera assinado pelo custodiante e remetido à autoridade classificadora ou autoridade
+hierarquicamente superior competente para dispor sobre 0 assunto.
+2.9 AVALIAÇAOI El PRESERVAÇAO
+2.9.1 A CPADS e as SPADS previstas no Decreto n4 4.553, de 2002, têm suas atribuiçoes e
+sistemâtica de trabalho reguladas pela ICA 200-9 Avaliaçâo de Documentos Sigilosos na
+Aeronautica, de 2010.
+2.9.2 Os documentos permanentes de valor historico, probatorio e informativo nâo podem ser
+desfigurados ou destruidos, sob pena de responsabilidades penal, civil e administrativa, nos
+termos da legislaçao em vigor.
+2.10 SEGURANÇA NO ARQUIVAMENTO
+2.10.1 Os documentos sigilosos serâo guardados em locais adequados, conforme legislaçao em
+vigor, que permitam sua integridade, disponibilidade e confidencialidade.
+2.10.2 Para a guarda de documentos ultrassecretos e secretos, é obrigatorio, no minimo, 0 uso
+de cofre com segredo de três combinaçôes ou material que ofereça segurança equivalente ou
+superior. Os cofres deverao ser aprovados pelo INMETRO, ou outra entidade certificadora
+federal, e devem garantir a preservaçào dos seus conteudos quanto aos fatores de umidade,
+temperatura e radiaçôes eletromagnéticas.
+2.10.3 Para a guarda de documentos confidenciais e reservados é compulsorio, no minimo, 0
+uso de arquivo de aço e com fechadura de segredo ou chave que ofereça resistência a
+arrombamentos com ferramentas portâteis.
+2.11 SEGURANÇA NA PRESERVAÇAO
+2.11.1 Deverao ser estabelecidos procedimentos relativos à preservaçao da documentaçào
+sigilosa em situaçoes normais e de emergência, como sinistro, calamidades ou evacuaçâo de
+emergência por riscos à segurança (invasao, bombardeio, atentados, etc). Essas medidas
+requerem O estabelecimento antecipado de prioridades e responsabilidades.
+2.11.2 É imperativo que haja procedimentos claros, padronizados, relativos à evacuaçao da
+documentaçao sigilosa em situaçoes de emergência. Estas açôes requerem 0 estabelecimento
+de prioridades e responsabilidades para situaçôes de sinistros. Devem estar determinados
+locais especificos para acolher a documentaçào recuperada. Deve haver dispositivos
+recuperaveis de memoria - HD externo que possam carregar de forma rapida prâtica OS
+arquivos essenciais. Deve haver containeres especiais, resistentes à umidade, esforços
+mecânicos e resistentes a fogo para evacuaçâo do material sigiloso, tais como: bolsas de couro
+impermeabilizado ou nylon resistente (tipo safety-bag, malote de segurança, etc), tratados
+com retardantes de fogo e com dispositivos de trancamento a cadeado e/ou lacres de
+segurança.
+
+FCA 200-5/2010
+22
+1TB
+Figura 7: Exemplo de dispositivos para evacuaçao de material sigiloso.
+2.11.3 As medidas referidas acima devem estar escritas no Plano de Segurança Orgânica
+(PSO) de cada OM e devem ser treinadas e testadas anualmente. Os setores envolvidos
+devem possuir 0 material adequado para a execuçao de tais medidas e deve haver
+determinaçào prévia das responsabilidades de cada componente do setor.
+2.12 ACESSO
+2.12.1 O acesso ao assunto sigiloso é estritamente funcional e independe de grau hierarquico.
+Nao obstante, é obrigatorio 0 credenciamento de segurança compativel, de acordo com as
+normas estabelecidas para concessao de Credencial de Segurança, ICA 200-2 Processo de
+Concessao de Credencial de Segurança de Pessoa Fisica, de 2006.
+2.12.2 O processo de credenciamento deve ser iniciado com antecedência minima de três
+meses devido aos trâmites necessarios para tal. Nào é adequado que haja acesso a areas ou
+documentaçao sigilosa por pessoal que ainda nâo tenha sido credenciado, mesmo que essa
+pessoa esteja designada para ISSO.
+2.12.3 Compete ao solicitante da credencial fazer uma "investigaçào preliminar de
+segurança", utilizando-se dos dados disponiveis, a fim de indicar 0 pessoal adequado para
+ocupaçao de cargos e funçoes com acesso a assuntos sigilosos.
+2.12.4 Antes de proceder à solicitaçao de Credencial de Segurança, OS Comandantes, Chefes e
+Diretores devem ser assessorados no sentido de certificarem-se da inexistência de
+caracteristicas pessoais negativas que contraindiquem 0 candidato para 0 trato de assuntos
+sigilosos. Devem ser analisados OS atributos pessoais, tais como: lealdade, confiança,
+discriçao, integridade moral e relacionamentos pessoais. Também, devem-se considerar OS
+aspectos disciplinares, familiares e a situaçao juridica, civil e militar do candidato.
+2.12.5 Tendo em vista que 0 processo de seleçao para ocupar posto, cargo, graduaçao ou
+categoria pressupôe investigaçao compativel com 0 acesso a assuntos sigilosos, sâo
+considerados credenciados, dispensando a devida investigaçào, até 0 grau de:
+a) ultrassecreto: OS Oficias-Generais da ativa da Aeronautica;
+b) secreto: OS Oficiais Superiores da ativa da Aeronautica, quando em funçâo
+de Comando, Direçao ou Chefia de OM;
+c) confidencial: OS demais Oficiais Superiores, Intermediarios e Subalternos
+da ativa da Aeronautica, bem como OS civis a eles assemelhados, lotados no
+COMAER; e
+d) reservado: OS Aspirantes-a-Oficial e OS Graduados da ativa da Aeronautica,
+bem como OS servidores civis a eles assemelhados, lotados no COMAER.
+
+FCA 200-5/2010
+23
+2.13 AREAS E INSTALAÇOES SIGILOSAS
+2.13.1 As âreas sigilosas deverao ser classificadas em razao do grau de sigilo dos assuntos e
+materiais nelas tratados, desenvolvidos, guardados, manuseados ou operados, podendo variar
+de ULTRASSECRETA até RESERVADA. Cabe ao Comandante, Chefe ou Diretor, no
+âmbito de sua OM, a adoçao de medidas que visem à definiçao, demarcaçao, sinalizaçao,
+segurança e autorizaçào de acesso às âreas sigilosas sob sua responsabilidade, conforme
+legislaçao pertinente. Para tanto, deverao ser elaboradas Normas de Controle de Acesso às
+Areas Sigilosas, com a finalidade de sistematizar OS procedimentos adequados a cada
+situaçâo.
+2.13.2 O acesso de visitas a âreas e instalaçôes sigilosas devera ser disciplinado por legislaçao
+especifica de cada OM, atendendo ao que prevê ICA 205-22 Visita às Organizaçôes Militares
+do COMAER, de 2002, além de outras legislaçôes que tratem do assunto.
+2.13.3 As âreas onde sào desenvolvidas atividades de Inteligência, TI, Comunicaçôes, Ciência
+e Tecnologia (C&T), Guerra Eletrônica, Operaçoes Aéreas, Controle de Trafego Aéreo, entre
+outras a critério da autoridade classificadora, deverao ser consideradas sigilosas de acordo
+com a necessidade particular de cada atividade.
+2.13.4 O acesso às âreas sigilosas somente devera ser permitido às pessoas devidamente
+credenciadas, desde que tenham necessidade de conhecer.
+2.13.5 Nao devera ser permitida a entrada de pessoas conduzindo maquinas fotograficas,
+filmadoras, gravadores ou quaisquer dispositivos de produçao ou armazenamento de sons,
+imagens (telefones celulares multifunçâo, por exemplo) ou dados em areas e instalaçôes que
+tratem de assunto sigiloso.
+2.13.6 Deve haver um dispositivo adequado (armario ou escaninho com chave ou cadeado,
+por exemplo), para guarda do material nâo adequado, na entrada da instalaçao ou area
+sigilosa, de forma que esse material fique estocado, em segurança, para retirada posterior
+quando da saida da referida area ou instalaçâo.
+Figura 7: Modelos de dispositivos para guarda de pertences.
+2.13.7 As areas sigilosas deverao ser indicadas, por intermédio de placas afixadas (nas
+paredes, cercas, muros, divisorias, acessos, portas, etc) de forma destacada, preferencialmente
+na cor vermelha (ou outra a critério do setor), com 0 respectivo grau de sigilo, nâo sô no seu
+interior, mas principalmente junto às entradas. A marcaçâo tem por finalidade precipua
+apresentar-se como um primeiro elemento dissuasor ao acesso nâo autorizado. Da mesma
+
+FCA 200-5/2010
+24
+forma indica a compartimentaçao do setor e a restriçao à entrada de elementos nâo
+credenciados e autorizados para tal.
+ACESSO RESTRITO
+RESERVADO
+AREA
+CONFIDENCIAL
+CONFIDENCIAL
+SECRETO
+AREA
+ULTRASSECRETA
+2.13.8 Deve haver um controle do fluxo de visitantes para que se possa acompanhar e
+identificar se ha algum tipo de reincidência de atitudes de determinado visitante que possa
+estar utilizando-se das visitas à organizaçao para efetuar algum tipo de açào adversa,
+levantamento de dados, introduçao ou retirada de material nâo autorizado, entre outros. O
+pessoal do setor de inteligência da organizaçâo deve acompanhar OS registros para que seja
+feita uma anâlise que possa detectar indicios de irregularidades. A equipe de serviço ou
+recepçao deve ter sempre uma atitude de questionamento a respeito dos visitantes e nâo
+apenas realizar um ato mecânico de registro de entrada e saida. Deve-se observar
+comportamentos, vestuarios, objetos sendo portados, atitudes suspeitas, nervosismos,
+interesses duvidosos a respeito da organizaçào, alteraçôes de nomes, identidades, entre outros.
+Mais detalhes a respeito devem ser buscados no FCA 200-3/2009 I Prevençao a Engenharia
+Social.
+2.14 SEGURANÇA FISICA
+2.14.1 Um Plano de Segurança Orgânica equilibrado deve ter fundamento na segurança
+fisica, a qual atuara em conjunto com medidas adequadas de segurança eletrônica, visando a
+proteger tanto as instalaçôes quanto as informaçôes sigilosas. Nào faz sentido despender
+recursos em vigilância eletrônica, se serviços de inteligência hostis e demais elementos
+adversos tiverem acesso fisico às informaçôes e documentos classificados.
+2.14.2 Um Plano de Segurança Orgânica deve ser formulado, implementado e deve abordar a
+organizaçào e suas instalaçôes por completo. Esta abordagem é estruturada em profundidade e
+devera conter elementos mutuos de suporte, tanto para a segurança fisica quanto para a
+vigilância eletrônica. Especial atençâo devera ser dedicada à coordenaçâo entre Oficial de
+Segurança e Defesa, 0 Chefe do Setor de Inteligência e demais responsaveis pelas instalaçôes,
+visando a prevenir a ocorrência de lacunas que possam gerar vulnerabilidades na segurança
+fisica ou redundância tanto de responsabilidades quanto de desempenho do sistema de
+segurança como um todo.
+2.14.3 Uma abordagem completa da segurança fisica é baseada em:
+a) exaustiva e continua analise das medidas de proteçao requeridas;
+
+FCA 200-5/2010
+25
+b) avaliaçao cuidadosa das medidas de proteçào consideradas, quanto a sua
+praticidade, para que OS procedimentos de segurança sejam viaveis;
+c) necessidades e caracteristicas locais de cada instalaçâo quanto à segurança fisica; e
+d) consciência de que a medida que OS procedimentos de segurança fisica se tornarem
+mais restritivos, a capacidade operacional da organizaçao diminuira.
+2.14.4 Elementos mutuos de suporte para a segurança fisica sâo aqueles que aumentam a
+eficiência dos procedimentos de segurança fisica. Neles incluem-se:
+a) barreiras fisicas perimetrais;
+b) âreas livres (onde nâo deverao, em funçao da facilidade de controle de acesso,
+haver pessoas ou materiais que nào sejam intencionais);
+c) postos para reaçao protegida;
+d) instalaçôes para controle de acesso;
+e) sistemas de detecçao de intrusao;
+f) postos para proteçào do perimetro, se necessario;
+g) guarda armada; e
+h) meios de comunicaçào.
+A combinaçâo de alguns ou todos esses elementos pode proporcionar segurança fisica
+satisfatoria para cada instalaçâo considerada.
+2.14.5 Os recursos disponiveis devem ser utilizados da maneira mais eficiente possivel
+visando a atingir a proteçao adequada das instalaçôes que processam informaçôes sigilosas.
+Todas as medidas de segurança devem ser usadas de maneira a complementar e suplementar
+umas às outras. A falta de integraçao das medidas de segurança pode resultar em desperdicio
+de dinheiro, equipamento e força de trabalho. E 0 mais importante é que tal falta de integraçao
+podera colocar a segurança de determinada instalaçao em risco. Devera ser dada ênfase aos
+requisitos operacionais da instalaçâo considerada para que sejam determinados O tipo e a
+extensâo das medidas de segurança necessarias. Os fatores a seguir devem ser considerados,
+na ordem em que estao listados, pelo planejador de segurança:
+a) a importância da finalidade de determinada instalaçao para a organizaçao como um
+todo;
+b) a area a ser protegida, incluindo: OS trabalhos que sâo executados e sua natureza; 0
+grau de sigilo da instalaçâo; O numero de pessoas envolvidas; valor monetario e
+estratégico do material contido na instalaçao; ameaças identificadas;
+c) integraçao dos requisitos de operaçâo e manutençào;
+d) diretrizes do escalao superior, questôes de legalidade e financeiras;
+e) exequibilidade, eficiência e vantagens dos varios métodos para 0 fornecimento da
+adequada proteçao fisica; e
+f) custo do material e equipamento a ser instalado, bem como da disponibilidade de
+recursos financeiros para assegurar e manter a proteçao adequada a todas as âreas e
+atividades criticas.
+
+FCA 200-5/2010
+26
+2.14.6 Elementos adversos sâo ameaças que se caracterizam por atos ou condiçoes que
+podem resultar em perda ou comprometimento de informaçao sigilosa, perda ou destruiçao de
+equipamento ou propriedade, ou descontinuidade das atividades e da missao da organizaçâo.
+Antes que um eficiente Plano de Segurança Orgânica possa ser desenvolvido, as ameaças que
+interferem nas operaçôes da instalaçâo e seu potencial de comprometimento devem ser
+identificados e avaliados. O conhecimento de todos OS riscos envolvidos é essencial para que
+as adequadas medidas de proteçao minimizem ou eliminem as vulnerabilidades das
+instalaçôes. O grau de risco das ameaças depende de variaveis como: 0 tipo de instalaçao
+(centro de comunicaçdes, criptoanalise, anâlise de inteligência, etc.), layout da instalaçào,
+missâo e estrutura fisica. Adicionalmente, a localizaçào geografica, a capacidade dos serviços
+de inteligência hostis bem como seus interesses e O grau de disciplina dos funcionarios civis e
+militares da organizaçao também sâo fatores importantes a considerar.
+2.14.7 As ameaças à segurança podem ser classificadas em dois tipos: naturais e humanas.
+2.14.7.1 Ameaças naturais à segurança sâo aquelas que:
+a) nao podem ser executadas por pessoas;
+b) nâo podem ser evitadas por meios de segurança fisica;
+c) sâo capazes de afetar as funcionalidades dos meios de segurança fisica
+adversamente, através da alteraçao e negaçao de suas condiçôes normais de operaçâo
+(fenômenos que destroem cercas e muros, causam paralisaçao do fornecimento de
+energia, baixa visibilidade, etc.).
+Ameaças naturais requerem medidas de proteçào especiais como, por exemplo: guarda
+armada adicional. Exemplos de ameaças naturais sào: inundaçôes, tempestades, nevoeiro,
+ventanias, terremotos, neve e gelo, deslizamentos de terra ou pedras e incêndios em areas
+verdes. Qualquer instalaçâo que esteja exposta a estas ameaças naturais requer medidas
+previamente planejadas que irao se contrapor aos seus impactos adversos.
+2.14.7.2 Ameaças humanas à segurança fisica sâo resultado do estado mental, atitude,
+fraqueza, ou falha de carater da parte de uma pessoa ou grupo de pessoas. Ameaças humanas
+consistem de açôes disfarçadas ou abertas, executadas ativamente ou passivamente, estas por
+meio de omissôes. Tais açôes visam a interromper, destruir ou comprometer a missâo e as
+atividades da instalaçâo alvo. Medidas de segurança fisica sâo projetadas para neutralizar
+estas ameaças, prioritariamente. Exemplos de ameaças humanas à segurança fisica:
+sabotagem, espionagem, terrorismo, inteligência sobre fontes humanas (HUMINT),
+desafeiçao, deslealdade e antipatia por parte de pessoas.
+2.14.8 O planejamento das medidas de segurança fisica de uma instalaçao deve ser constante,
+praticavel, flexivel em relaçao à missâo e sensivel às necessidades do comandante, chefe ou
+diretor da organizaçao.
+2.14.9 Um eficiente planejamento de Segurança Orgânica deve considerar que O evento mais
+danoso possivel esta diretamente relacionado à sensibilidade da informaçâo processada e
+guardada na organizaçao e às ameaças identificadas. Deve considerar também 0 pessoal,
+material e equipamento disponivel. Medidas adicionais de segurança fisica devem ser
+implementadas visando à continuidade de todos OS procedimentos de segurança. Enfim,
+deverao ser sempre considerados OS objetivos da organizaçao, prioritariamente.
+
+FCA 200-5/2010
+27
+2.14.10 Barreiras perimetrais, dispositivos detectores de invasâo e iluminaçao de proteçào
+constituem medidas de proteçâo. Contudo, estas medidas, por si so, nâo sâo suficientes.
+Mecanismos de controle de acesso de pessoas devem ser implementados para conveniência e
+permissao, apenas, de acessos previamente autorizados. Devem prevenir contra tentativas de
+acessos indevidos e contra a neutralizaçào adversa dos mecanismos de controle. Pontos de
+controle de acesso de pessoas às diversas areas restritas devem ser sempre considerados pelo
+especialista em segurança de areas e instalaçôes, na concepçao do projeto de segurança fisica.
+Credenciais de segurança para as pessoas e procedimentos de identificaçâo serao sempre uma
+preocupaçao, em relaçao à segurança fisica de instalaçoes.
+2.14.11 O acesso a areas restritas estara condicionado a medidas de controle especiais, por
+motivos de segurança. Areas restritas aumentam a segurança por meio de medidas de
+segurança em profundidade. Estes controles especiais aumentam a eficiência através de niveis
+de segurança compativeis com as necessidades operacionais de cada instalaçao dentro da
+organizaçao. As areas restritas sâo utilizadas para facilitar 0 equilibrio entre as necessidades
+de segurança fisica e as necessidades de operaçao de cada instalaçâo. Em vez de estabelecer
+medidas de controle para a organizaçâo como um todo, a divisào em diferentes niveis de
+segurança reduz a interferência global nas operaçôes realizadas na organizaçâo e a eficiência
+operacional da organizaçao é preservada O tanto quanto possivel.
+2.14.12 O nivel de segurança e controle requerido para uma instalaçâo especifica dependera
+da natureza, sensibilidade e importância do que se quer proteger. Areas restritas sâo
+estabelecidas para fornecer:
+a) uma eficiente aplicaçao das medidas de segurança necessarias, como, por exemplo,
+impedir 0 ingresso nâo autorizado de pessoas;
+b) controles de acesso mais rigorosos nas areas que requerem proteçao especial; e
+c) condiçoes para compartimentar informaçôes, materiais e equipamentos sigilosos,
+com impacto minimizado nas operaçôes da organizaçao como um todo.
+No interior das areas restritas, havera tantas compartimentaçoes quantas forem necessarias,
+em funçao da necessidade de conhecer de cada pessoa. Tais compartimentaçoes podem
+possuir O mesmo ou diferentes graus de sigilo, dependendo da sensibilidade de cada
+compartimento.
+2.14.13 Os dispositivos de segurança aplicaveis a uma instalaçao sâo ditados pela
+sensibilidade da mesma às ameaças identificadas. Dispositivos de segurança incluem postos
+de guarda, cerca perimetral de segurança, portôes, areas livres, grades em janelas, portas de
+segurança, alarmes de detecçâo de invasao, dispositivos eletrônicos de segurança e outras
+medidas similares.
+2.14.14 Barreiras de proteçao sâo normalmente utilizadas para estabelecer OS limites fisicos
+de uma determinada area e para controlar 0 acesso à mesma. Sao divididas em duas
+categorias principais: naturais e estruturais. Barreiras de proteçao naturais sâo montanhas,
+desertos, rios ou outros terrenos similares que impoem dificuldades para sua travessia.
+Barreiras de proteçao estruturais sâo construçôes como cercas, muros, paredes, pisos, barras,
+tetos ou outros tipos de construçôes que inibem acessos a determinadas areas. As barreiras
+oferecem dois beneficios importantes à segurança fisica. Primeiramente, estabelecem
+dissuasâo psicologica naqueles que considerarem entrar sem autorizaçào em areas controladas
+e restritas. O segundo beneficio é que causam impacto direto no numero de postos de
+segurança necessarios a determinada instalaçâo.
+
+FCA 200-5/2010
+28
+2.14.15 Barreiras estruturais, como cercas e muros, sâo necessarias para todo 0 perimetro das
+âreas controladas. Ha barreiras especificas para cada instalaçâo considerada, mas todas as
+instalaçoes deverao ter, no minimo, barreiras estruturais perimetrais e pontos de verificaçao
+de autorizaçâo de acesso.
+2.14.16 A quantidade de pontos de acesso para cada instalaçâo deve ser limitada ao numero
+minimo necessario à sua segurança e operaçao. Os pontos de entrada devem ser projetados de
+maneira que as forças de segurança possam manter total controle sem impedir a passagem de
+pessoas e veiculos pelas entradas existentes. Isso envolve entradas suficientes para acomodar
+0 fluxo de pessoas e 0 trafego de veiculos e iluminaçao adequada para a verificaçâo eficiente
+das credenciais de acesso. Quando houver entradas nâo utilizadas fora do horario de
+expediente, devem ser utilizados mecanismos de fechamento robustos para as mesmas. Essas
+entradas devem ser iluminadas durante periodos de escuridao e monitoradas por meio de
+circuitos fechados de TV ou inspecionadas por meio de patrulhamento aleatorio. Este
+procedimento também se aplica a portas e janelas que fazem parte do perimetro de proteçao.
+2.14.17 Quando a barreira perimetral de determinada instalaçao englobar uma area extensa,
+uma via interna para a circulaçâo de veiculos, adequada para quaisquer condiçôes de tempo,
+deve ser providenciada para 0 patrulhamento motorizado se tal area nâo for monitorada por
+circuito fechado de TV. Areas livres devem ser mantidas tanto no interior quanto no exterior
+da barreira perimetral para que seja possivel visualizar OS espaços adjacentes sem obstruçoes.
+As vias devem estar nas areas livres e tâo proximas da barreira perimetral quanto possivel,
+permitir a adequada passagem de veiculos de patrulha e nâo causar erosâo no solo.
+2.14.18 Deve haver uma area livre de pelo menos 6 metros entre a barreira perimetral e as
+construçoes, estacionamentos e obstaculos naturais. Nas areas restritas, deve haver uma area
+livre de pelo menos 15 metros entre a barreira perimetral e as construçôes, estacionamentos e
+obstâculos naturais. Quando nâo for possivel haver areas livres devido a delimitaçoes de
+propriedade, obstaculos naturais ou construçôes, sera necessario elevar a altura da barreira
+perimetral (exceto quando se tratar da parede de um prédio), aumentar a frequência dos
+patrulhamentos, disponibilizar mais iluminaçâo de proteçao ou instalar um sistema de
+detecçao de invasâo ao longo daquela parte da barreira perimetral.
+2.14.19 A iluminaçao de segurança possibilita um meio de manter, durante OS periodos de
+reduçao de visibilidade, um nivel de proteçao proximo ao obtido durante 0 periodo diurno. A
+iluminaçâo de segurança possui valor consideravel como meio de dissuasao para provaveis
+ladrôes e vândalos e dificulta as açôes de um potencial sabotador. É um elemento essencial de
+um sistema integrado de segurança fisica. Sua aplicaçao em varias instalaçôes depende das
+condiçôes locais e da natureza das areas a proteger. Cada situaçao requer um estudo
+minucioso com vistas a providenciar a adequada visibilidade para as atividades de segurança,
+como verificaçôes de credenciais de acesso, prevençao de entradas nâo autorizadas em areas
+restritas e inspeçao de situaçôes suspeitas. Quando a disponibilidade de iluminaçào de
+segurança for impraticavel, serào necessarias medidas de segurança adicionais como aumento
+da frequência dos patrulhamentos, mais sentinelas ou um sistema de alarme. Para que seja
+eficiente, a iluminaçao de segurança deve desencorajar tentativas de invasâo e assegurar a
+detecçao quando tais tentativas ocorrerem. Uma iluminaçâo adequada deve levar um potencial
+intruso a acreditar que a detecçao pelas forças de segurança é inevitavel. Os engenheiros
+responsaveis pelas instalaçôes devem consultar OS especialistas de segurança fisica para
+ajudar a determinar 0 tipo apropriado e 0 nivel do sistema de iluminaçao de proteçào que
+melhor atende às necessidades de segurança de cada instalaçâo.
+
+FCA 200-5/2010
+29
+2.14.20 Um Sistema de Detecçao de Invasâo (SDI) é um elemento integrante de um Plano de
+Segurança Orgânica em profundidade e desempenha um papel vital na proteçào de instalaçoes
+sigilosas. Para que uma determinada area seja efetivamente protegida, um SDI deve objetivar
+detectar acessos nào autorizados nas entradas (portôes, portas, cercas, etc.), areas (prédios,
+campo aberto, salas) ou num objeto especifico (cofres, arquivos, fechaduras). Deve-se
+lembrar, ao selecionar um SDI para determinada instalaçâo, que 0 mesmo sera inutil se nâo
+estiver integrado a uma força de pronta-resposta, quando seus alarmes forem acionados.
+2.14.21 Um SDI é utilizado devido a uma ou mais das seguintes razoes:
+a) economia um SDI permite um uso mais eficiente e economico dos meios
+humanos. Ele agrega mais intensivamente OS meios humanos às demais forças de
+segurança;
+b) substituiçao
+pode ser utilizado para substituir medidas de segurança
+impraticaveis devido a regulamentaçdes de segurança do trabalho, requisitos
+operacionais, exposiçao, layout, custos e outras razoes semelhantes; e
+c) fortalecimento - fornece controles adicionais de segurança fisica em areas e pontos
+criticos.
+2.14.22 Os seguintes fatores devem ser considerados para determinar a necessidade e
+exequibilidade da instalaçâo de um SDI:
+a) missao e sensibilidade da instalaçâo ou das informaçôes nela contidas em relaçao à
+missào da organizaçâo como um todo;
+b) vulnerabilidades da instalaçao às ameaças humanas;
+c) localizaçao geografica da instalaçâo e das areas a proteger em seu interior;
+d) caracteristicas de construçao da instalaçao;
+e) existência e disponibilidade de outras formas de proteçào;
+f) custos de implementaçao e manutençao do SDI proposto em comparaçào com com
+U custo (financeiro ou de segurança), em caso de perda de informaçôes e materiais
+sigilosos;
+g) tempo-resposta das forças de segurança,
+h) economia em meios humanos e recursos financeiros ao longo do tempo; e
+i) requisitos para 0 tempo de detecçao de invasâo.
+2.14.23Ha varios tipos de SDI e cada um é projetado para atender a um problema de
+segurança especifico. Detectores tipo ponto de acesso, foto-elétrico, sonoro, de vibraçâo, de
+movimento e pressao sâo alguns dos componentes que podem ser utilizados para proteger
+uma instalaçâo. O Oficial de Segurança e Defesa juntamente com técnicos devem determinar
+qual sistema ou combinaçâo de sistemas melhor atende às necessidades verificadas.
+
+FCA 200-5/2010
+30
+3 SEGURANÇA DA INFORMAÇAO
+3.1 SEGURANÇA DE HARDWARE
+3.1.1 Qualquer serviço de manutençào a ser executado em equipamento que contenha assunto
+sigiloso, e nâo apenas material exclusivo de TI, devera ser acompanhado pelo responsavel por
+sua utilizaçao, além de que 0 pessoal envolvido nessa manutençao deve possuir 0
+credenciamento adequado para tal. Isso deve ser observado para todo e qualquer material que
+possua componentes ou software sigiloso (equipamentos de DATA-LINK, sistemas de
+criptograficos, RWR e similares, radares, râdios, telefones seguros, etc).
+3.1.2 O computador ou equipamento que contenha assunto sigiloso e que necessite de
+manutençâo fora da OM devera ter 0 seu disco rigido (e outros dispositivos de memoria)
+retirado(s) e guardado(s) em cofre ou de acordo com 0 grau de sigilo do seu conteudo.
+3.1.3 É terminantemente proibida a utilizaçao de equipamento de rede criptografica para
+qualquer fim que nâo O exclusivo trâmite de documentaçâo sigilosa do COMAER.
+3.2SEGURANÇA DE SOFTWARE E DE INTERNET
+3.2.1 Os equipamentos e sistemas utilizados para a produçao, trâmite e tratamento de
+documentos com grau de sigilo ultrassecreto somente poderao estar ligados a redes de
+computadores seguras e que sejam fisica e logicamente isoladas de qualquer outra.
+3.2.2 Os equipamentos e sistemas utilizados para a produçao de documentos com grau de
+sigilo secreto, confidencial e reservado sô poderao integrar redes de computadores que
+possuam sistemas de criptografia e segurança adequados à proteçâo dos documentos.
+3.2.3 Todos OS arquivos que contenham assuntos sigilosos e OS programas em uso deverao
+possuir copias de segurança. Essas copias deverao estar protegidas em dispositivos
+adequados, resistentes a radiaçôes eletromagnéticas, umidade, calor e em local diverso
+daquele no qual O original esteja sendo manuseado ou utilizado.
+3.2.4 Nenhuma informaçâo sigilosa devera constar das Home Page das OM;
+3.2.5 Para fins do que dispôe 0 item 3.2.4 serao considerados, também, como informaçôes
+sigilosas (em virtude do potencial para anâlise de inteligência que possuem): vistas aéreas da
+OM, fotografias internas de pontos sensiveis da OM (paiol, reserva de armamento, linha de
+vôo, hangares, sistemas de agua, combustivel, transportes de superficie, hospitais, refeitorios,
+alojamentos, torres de controle, casas-de-força, sistemas geradores de energia, etc.), estrutura
+de comando, organogramas com nomes e dados dos militares ou civis que ocupam OS
+referidos cargos de comando, chefia e direçao, peculiaridades do emprego ou caracteristicas
+técnicas de meios aéreos ou terrestres de uso militar, informaçôes pessoais dos integrantes da
+OM, informaçoes contidas nos Quadros de Organizaçao, Lotaçao ou de Material, dentre
+outras, que possam servir de subsidios para analises, composiçao de capacidades
+operacionais, preparaçâo de ataques, atentados e demais açôes adversas.
+
+FCA 200-5/2010
+31
+4 MEDIDAS GERAIS DE SEGURANÇA
+4.1 Na classificaçâo dos documentos, sera utilizado, sempre que possivel, 0 critério menos
+restritivo possivel, de outra maneira criam-se empecilhos desnecessarios aos trâmites dos
+documentos e gera-se descrédito ao sistema de classificaçao sigilosa.
+4.2 Compete aos Comandantes, Chefes e Diretores exigir Termo de Compromisso de
+Manutençâo de Sigilo dos militares ou civis pertencentes ao seu efetivo e dos empregados de
+empresas contratadas que, direta ou indiretamente, tenham acesso a dados ou informaçôes
+sigilosas. Isso deve ser rigorosamente efetuado, também, quando do término dos contratos de
+prestaçao de serviços ou fornecimento de materiais, além do desligamento de pessoal militar
+ou civil que haja tido acesso à documentaçâo e materiais sigilosos.
+4.3 Qualquer pessoa vinculada ao COMAER que tenha conhecimento de uma situaçao na
+qual um conhecimento sigiloso possa estar, ou venha a ser, comprometido deve participar tal
+fato ao seu Chefe imediato e/ou à autoridade responsavel. Devem estar disponiveis nas OM,
+em diversos pontos acessiveis ao pessoal em geral, OS Relatorios de Vulnerabilidades
+previstos na ICA 200-5 Gerenciamento de Plano de Segurança Orgânica do Comando da
+Aeronautica, de 2009. A utilizaçao desses relatorios deve ser orientada e incentivada no
+âmbito do pessoal das OM do COMAER.
+
+FCA 200-5/2010
+32
+DISPOSIÇOES FINAIS
+Os casos nâo previstos deverao ser encaminhados, mediante proposta, ao
+Centro de Inteligência da Aeronautica.
+
+FCA 200-5/2010
+33
+INDICE
+Disposiçôes finais, 31
+Disposiçoes preliminares, 9
+âmbito, 11
+ârea sigilosa, 9
+classificaçao e demarcaçao, 9
+compartimentaçao, 10
+conceituaçào e padronizaçào, 9
+finalidade, 9
+meio de comunicaçao sigilosa, 9
+reclassificaçao, 9
+Medidas gerais de segurança, 30
+Segurança da informaçao, 29
+segurança de hardware, 29
+segurança de software e de Internet, 29
+Sigilo e segurança, 12
+acesso, 21
+areas e instalaçôes sigilosas, 22
+avaliaçao e preservaçào, 20
+classificaçao segundo 0 grau de sigilo, 12
+documento e material sigilosos controlados, 13
+expediçao de documentos sigilosos, 16
+marcaçao, 15
+prazos, 14
+reclassificaçao e desclassificaçao, 13
+registro, tramitaçao e guarda, 18
+reproduçao, 19
+segurança fisica, 23
+segurança na preservaçào, 20
+segurança na produçao, 19
+segurança no arquivamento, 20

@@ -1,0 +1,2 @@
+2026-04-23 09:39:35.964 | DEBUG    | ocr_evaluation._logging:configure_file_logging:59 - File logging active → /home/vitor-lucas/airdata/ita-airdata-rag-system-llm/ocr_evaluation/logs/ocr_evaluation_20260423T093935.log
+2026-04-23 09:39:36.736 | ERROR    | __main__:_discover_pdfs:91 - Diretório de entrada não encontrado: ocr_evaluation/tes_data

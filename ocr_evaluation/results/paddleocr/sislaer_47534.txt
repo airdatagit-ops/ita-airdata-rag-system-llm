@@ -1,0 +1,1130 @@
+MINISTÉRIO DA I
+DEFESA
+COMANDO DA AERONÁUTICA
+ADMINISTRAÇÃO
+NSCA 12-1
+NORMA DO SISTEMA DE PRÓPRIOS
+NACIONAIS RESIDENCIAIS
+(SISPNR)
+2023
+
+MINISTÉRIO DA
+DEFESA
+COMANDO DA AERONÁUTICA
+ADMINISTRAÇÃO
+NSCA 12-1
+NORMA DO SISTEMA DE PRÓPRIOS
+NACIONAIS RESIDENCIAIS
+(SISPNR)
+2023
+
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONÁUTICA
+DIRETORIA DE ADMINISTRAÇÃO DA AERONÁUTICA
+PORTARIA DIRADN° 334/AP2-1, DE 25 DE OUTUBRO DE 2023.
+Aprova a reedição da Norma de Sistema
+que dispõe sobre o Sistema de Próprios
+Nacionais Residenciais (SISPNR).
+O DIRETOR DE ADMINISTRAÇÃO DA AERONÁUTICA, no USO de SUaS
+atribuições que lhe confere o inciso III, do Artigo 10, do Regulamento da Diretoria de Administração
+de 2021, resolve:
+Art. 1º Aprovar a reedição da NSCA 12-1 “Norma do Sistema de Próprios Nacionais
+Residenciais (SISPNR)", que com esta baixa.
+conforme o inciso I do Artigo 4, do Decreto nº 10.139/2019.
+Art. 3° Revoga-se a Portaria SEFA nº 70/AJUR, de 5 de julho de 2021, publicada no
+Boletim do Comando da Aeronáutica nº 124, de 7 de julho de 2021.
+Maj Brig IntMARCELO BRASIL CARVALHO DA FONSECA
+Diretor de Administração da Aeronáutica
+(Publicado no BCA nº 214, de 24 de novembro de 2023)
+
+NSCA 12-1/2023
+SUMÁRIO
+1 DISPOSIÇÕES PRELIMINARES
+1.1FINALIDADE
+6
+1.2CONCEITUAÇÕES
+6
+1.3ÂMBITO ...
+6
+7
+2SISTEMA DE PRÓPRIOS NACIONAIS RESIDENCIAIS
+.8
+2.1ELEMENTO MOTIVADOR
+8
+2.20BJETIVO..
+8
+2.3ELEMENTOS COMPONENTES
+.9
+2.4ELEMENTOS CONDICIONANTES
+.10
+3ESTRUTURA FUNCIONAL DO SISPNR
+..11
+4COMPETÊNCIAS E RESPONSABILIDADES DOS ELOS DO SISPNR
+12
+4.1COMPETÊNCIAS DO ÓRGÃO CENTRAL
+12
+4.2COMPETÊNCIAS DO ÓRGÃO DE COORDENAÇÃO.
+.12
+4.3COMPETÊNCIAS DOS ELOS EXECUTIVOS
+..13
+4.4COMPETÊNCIAS DOS ELOS USUÁRIOS.
+.14
+5 CICLO DOS PROCESSOS DO SISTEMA DE PRÓPRIOS NACIONAIS
+RESIDENCIAIS .
+15
+5.1CONCEITO ..
+15
+5.2DESCRIÇÃO..
+15
+5.3ANÁLISE DAS MINUTAS DE PORTARIA DE CLASSIFICAÇÃO DE PNR
+15
+RTOOAAOROOO
+16
+5.5OCUPAÇÃO IRREGULAR  REINTEGRAÇÃO DE POSSE
+16
+5.6PORTAL DA TRANSPARÊNCIA  CADASTRO DE PNR
+17
+5.7OCUPAÇÃO DE PNR  MUDANÇA  PERMUTA - TEP
+18
+5.8PLANEJAMENTO ORÇAMENTÁRIO
+19
+5.9CONTROLE ORÇAMENTÁRIO.
+20
+5.10CONTROLE DOS SUBCENTROS DE CUSTO E ESTATÍSTICO.
+.21
+6 INTERAÇÃO SISTÊMICA ENTRE OS ELOS COMPONENTES
+... 23
+7RISCOS DO SISTEMA DE PRÓPRIOS NACIONAIS RESIDENCIAIS
+... 24
+7.1CONCEITO ...
+24
+7.2DESCRIÇÃO..
+.24
+7.3IDENTIFICAÇÃO DOS RISCOS
+.24
+7.4ANÁLISE DOS RISCOS
+..25
+..28
+8 INDICADORES..
+.29
+9 DISPOSIÇÕES FINAIS.
+REFERÊNCIAS .
+..30
+
+CZ0711-71 X10 0
+PREFÁCIO
+Desde sua criação, em 20 de janeiro de 1941, a Força Aérea Brasileira (FAB)
+tem se adaptado às inovações e necessidades impostas pelas transformações do panorama
+nacional. Alinhado a essa dinâmica, o Sistema de Próprios Nacionais Residenciais do
+Comando da Aeronáutica (SISPNR), tem a finalidade de padronizar as atividades
+relacionadas à Administração de PNR, conforme Portaria GABAER N° 53/GC4, de 5 de
+março de 2021.
+A moradia é um elemento fundamental para a constituição da vida humana,
+proporcionando segurança e estabilidade familiar. Neste sentido, o Comando da Aeronáutica,
+por meio da Administração de Próprios Nacionais Residenciais, visa dar suporte e soluções de
+moradia à família militar, buscando atender de forma eficiente e tempestiva, as necessidades,
+através das melhores práticas de gestão, atenuando os impactos decorrentes
+das
+movimentações, as quais os militares estão sujeitos a qualquer tempo.
+Esta Norma visa descrever o Sistema de Próprios Nacionais Residenciais
+(SISPNR), com a finalidade de padronizar as competências e os relacionamentos de todos os
+tendo em vista a visão regionalizada dos COMAR.
+Assim, esta edição tem a finalidade de regulamentar o processo, padronizando
+tratativas a serem observadas, por cada elemento do Sistema SISPNR, no gerenciamento,
+supervisão, coordenação, execução e controle das atividades sistêmicas relacionadas à
+Administração de Próprios Nacionais Residenciais, no âmbito do COMAER.
+
+NSCA 12-1/2023
+1 DISPOSIÇÕES PRELIMINARES
+1.1FINALIDADE
+A presente Norma tem por finalidade padronizar os procedimentos, estabelecer
+(SISPNR), instituído pela Portaria GABAER N° 53/GC4, de 5 de março de 2021, publicada
+no BCA nº 047, de 11 de março de 2021, mediante a definição da estrutura e dos elementos
+constitutivos do Sistema, bem como das atribuições, competências e responsabilidades do
+Órgão Central e de cada um dos Elementos Sistêmicos.
+1.2CONCEITUAÇÃ0
+Os termos e expressões empregados nesta NSCA têm seus significados
+consagrados no vernáculo, no Glossário das Forças Armadas (MD 35-G-1, de 13 de janeiro de
+2016), no Glossário do Comando da Aeronáutica (MCA 10-4, de 30 de janeiro de 2001), no
+Manual de Abreviaturas e Símbolos da Aeronáutica (MCA 10-3, de 22 de abril de 2003), na
+Instrução do Comando da Aeronáutica de Implantação e Gerenciamento de Sistemas do
+COMAER (ICA 700-1, de 13 de janeiro de 2023) e na Diretriz para o aprimoramento da
+Reestruturação da Força Aérea Brasileira (DCA 19-5, de 19 de abril de 2020).
+1.2.1 SISTEMA
+É o conjunto de elementos integrantes e interdependentes, que tem por
+finalidade realizar uma tarefa de apoio em proveito da missão principal de uma organização.
+1.2.2 NORMA DE SISTEMA
+Instrução emitida pelo Órgão Central do Sistema e aprovada por autoridade
+competente, visando definir a estrutura e os elos constitutivos do Sistema, bem como
+padronizar, disciplinar e regulamentar as atribuições, atividades e o inter-relacionamento entre
+os elementos do Sistema.
+1.2.3 SISTEMA DE PRÓPRIOS NACIONAIS RESIDENCIAIS (SISPNR)
+Conjunto de órgãos e/ou elementos interdependentes, sujeitos à orientação
+normativa de seu Órgão Central, interligados sistemicamente, mas sem prejuízo da
+subordinação funcional ao órgão em cuja estrutura administrativa estiverem integrados, com a
+alcance de objetivos comuns. A vinculação destes órgãos e/ou elementos ocorre por interesse
+na padronização e orientação técnica e normativa, ficando os mesmos sujeitos à fiscalização
+das atividades pelo Órgão Central do Sistema, não implicando subordinação hierárquica.
+1.2.4ÓRGÃOS DE DIREÇÃO SETORIAL E DE ASSISTÊNCIA DIRETA E IMEDIATA
+AO COMANDANTE DA AERONÁUTICA (ODSA)
+São aqueles representados pelos Comandos-Gerais, Departamentos e Secretaria
+da Força Singular, bem como por órgãos específicos de assistência ao Comandante da
+Aeronáutica.
+
+NSCA 12-1/2023
+nr e 
+1.2.5 ÓRGÃ0 CENTRAL
+É o responsável por disciplinar, tecnicamente, os assuntos relacionados com a
+sistematizada.
+1.2.6 ELOS DO SISPNR
+São as Organizações Militares (OM) ou frações de OM pertencentes à estrutura
+básica do COMAER, que executam atividades ou tarefas relacionadas à Administração ou
+ocupação de PNR.
+1.2.7 PRÓPRIO NACIONAL RESIDENCIAL (PNR)
+Imóvel de propriedade da União destinado à residência temporária, no interesse
+do serviço, e sob a administração de um Elo Executivo do SISPNR.
+1.2.8 SERVIÇO DE ADMINISTRAÇÃO DE PNR
+É o conjunto de recursos orçamentários, humanos, materiais, infraestrutura e
+processos, vinculados a uma Organização ou Fração de Organização Militar classificada
+como Unidade de Apoio (UAp) ou Unidade Apoiada (UApd), responsável pela administração
+de Próprios Nacionais Residenciais (PNR).
+1.2.9 UNIDADE DE APOIO (UAp)
+No âmbito do COMAER, refere-se à Unidade Administrativa responsável pela
+execução plena ou parcial, pelo gerenciamento orçamentário, financeiro e patrimonial no
+SIAFI, a critério do Comandante da Aeronáutica, sob análise da SEFA e parecer do Estado-
+Maior da Aeronáutica (EMAER). Neste caso, seriam as Bases Aéreas ou Unidades nas quais,
+dentro de sua estrutura regimental há uma Subdivisão de Próprios Nacionais Residenciais ou
+setor equivalente.
+1.2.10 UNIDADE APOIADA (UApd)
+No âmbito do COMAER, refere-se à Organização Militar (OM) ou fração de
+OM, assim classificada, por não executar registros diretamente no SIAFI, recebendo apoio
+pleno ou complementar por uma UAp, para efeito de execução financeira, orçamentária e
+patrimonial. Neste caso seriam as Prefeituras de Aeronáutica, que são classificadas em três
+tipos: Tipo “A", quando atende mais de 1000 imóveis residenciais; e Tipo “B”, quando atende
+de 400 a 1000 imóveis residenciais e Divisão de Próprios Nacionais Residenciais da Unidade
+de Apoio (UAp),quando atenderem menos de 400 imóveis residenciais).
+1.3ÂMBITO
+A presente Norma, de observância obrigatória, aplica-se a todas as OM e
+frações de OM do COMAER, classificadas como Unidades Administrativas, conforme
+Portaria
+específica
+op
+Comandante
+da
+Aeronáutica.
+
+0r0 0
+NSCA 12-1/2023
+2 SISTEMA DE PRÓPRIOS NACIONAIS RESIDENCIAIS
+2.1ELEMENTO MOTIVADOR
+O Sistema de Próprios Nacionais Residenciais (SISPNR), disposto na Portaria
+GABAER n ° 53/GC4, de 5 de março de 2021, o qual está inserido no COMAER, possui
+finalidade e estrutura definidas por esta Norma, deve-se à necessidade de:
+padronizar o funcionamento das atividades relacionadas à administração de Próprios
+Nacionais Residenciais (PNR) no âmbito do COMAER;
+a) padronizar o funcionamento das atividades relacionadas à administração de
+Próprios Nacionais Residenciais (PNR) no âmbito do COMAER;
+b) disciplinar o relacionamento entre os elementos componentes do sistema
+referente a gestão de PNR por meio de normas definidas pelo Órgão
+Central;
+c) assegurar a uniformidade nos processos, a fim de subsidiar a tomada de
+decisão da gestão de PNR;
+d) reduzir a duplicação de tarefas e procedimentos, uma vez que as normas são
+expedidas e controladas por um sistema unificado; e
+e) organizar e disciplinar o gerenciamento das atividades mediante a definição
+da estrutura e dos elementos constitutivos do Sistema, bem como
+atribuições, competências e responsabilidades do Órgão Central e de cada
+um dos elos sistêmicos.
+2.2 OBJETIVO
+Com a finalidade de atender ao propósito do SISPNR, as ações são
+coordenadas entre seus Órgãos e Elos Sistêmicos, com os seguintes objetivos:
+a) garantir o fluxo eficaz e efetivo dos serviços necessários ao adequado
+funcionamento do SISPNR;
+b) assegurar a padronização da Administração de PNR, no que tange as
+tratativas, das Prefeituras e / ou Divisão de Próprios Nacionais Residenciais,
+ou setor equivalente, sobre decisões e assuntos abordados, tendo em vista a
+visão regionalizada por parte dos COMAR, garantindo uniformidade das
+informações, serviços e identidade comum;
+proporcionar aos usuários uma moradia digna, segura, em bom estado de
+conservação, visando ao bem estar e qualidade de vida da família militar;
+d) redução do tempo de espera nos Elos Executivos apoiadas pelo sistema por
+meio de indicadores, bem como implementação de gestões decorrentes da
+análise desses indicadores; e
+e) controle da disponibilização dos recursos orçamentários de acordo com uma
+macro visão sistêmica integrada.
+
+9/30
+NSCA 12-1/2023
+2.3 ELEMENTOS COMPONENTES
+Executivos e Elos Usuários.
+2.3.2 Os Elos do SISPNR ficam sujeitos à orientação normativa, à coordenação, ao controle,
+à supervisão técnica e à fiscalização do Órgão Central do Sistema no que se refere à
+administração de Próprios Nacionais Residenciais (PNR) no âmbito do COMAER, sem
+prejuízo da subordinação hierárquica às organizações em cuja estrutura organizacional
+estejam integrados.
+2.3.3 ÓRGÃ0 CENTRAL
+O Órgão Central do SISPNR é a Diretoria de Administração da Aeronáutica
+(DIRAD), cujas atribuições gerais encontram-se definidas em seu Regulamento e Regimento
+Interno.
+2.3.4 ÓRGÃO DE COORDENAÇÃO
+O Órgão de Coordenação do SISPNR é a Subdiretoria de Apoio Administrativo
+(SDAP), a qual se encontra subordinada à DIRAD.
+2.3.5 ELOS EXECUTIVOS
+2.3.5.1 São as Organizações Militares com atribuições específicas e dotação orçamentária
+própria, responsáveis diretamente ou não pela execução orçamentária e financeira dos
+recursos das Ações afetos ao SISPNR, bem como pela gestão patrimonial, material, dos
+recursos humanos e de infraestrutura sob sua responsabilidade, pertencentes ao Sistema, e
+destinados ao cumprimento das atividades e tarefas relacionadas ao serviço de Administração
+de Próprio Nacional Residencial, no âmbito do COMAER.
+2.3.5.2 Os Elos Executivos do SISPNR são as Organizações Militares do COMAER
+classificadas, com base em Portaria específica da SEFA, como “Unidades de Apoio", onde
+são responsáveis pela execução plena ou parcial e gerenciamento orçamentário, financeiro e
+patrimonial no SIAFI. Assim como, as Organizações Militares (OM) ou fração de OM,
+classificadas como “Unidades Apoiadas”, por não executarem registros diretamente no SIAFI.
+2.3.6 ELOS USUÁRIOS
+2.3.6.1 São os Militares do COMAER que manifestam interesse de ocupar PNR, por terem
+sido movimentados ou pertencerem a OM atendida pelos Elos Executivos, e que preencham
+todas as condições de habilitação no momento da inscrição.
+2.3.6.2 Eventualmente, os Militares que puderem ser apoiados, em casos excepcionais e
+devidamente justificados, serão considerados Elos Usuários.
+2.3.6.3 Os Civis do COMAER e dos Órgãos Públicos, sem atribuições específicas no
+SISPNR, mas que puderem ser, excepcionalmente, atendidos pelo sistema, serão considerados
+Elos Usuários.
+
+10/30
+NSCA 12-1/2023
+específica.
+2.4 ELEMENTOS CONDICIONANTES
+2.4.1 O SISPNR está condicionado aos seguintes pontos:
+a) todas as atividades relativas ao SISPNR devem estar de acordo com esta
+Norma e com o Manual do Sistema de Próprios Nacionais Residenciais
+(SISPNR); e
+b) a DIRAD, Órgão Central do SISPNR, é a responsável pela gerência dos
+aspectos técnico-administrativo e de controle, no que se refere ao
+funcionamento do Sistema.
+
+NSCA 12-1/2023
+h
+3 ESTRUTURA FUNCIONAL DO SISPNR
+A estrutura funcional do SISPNR está disposta radialmente, conforme a figura 1:
+VPASJ
+PAGL
+PANT
+PRGW
+PARF
+m
+PALS
+PASP
+PAAF
+PAYS
+BASV
+PAMN
+Ca
+PAAN
+LPCOR
+PACT
+BASC
+Órgão Central
++
+PABR
+VEACC
+PACO
+BAFL
+PABE
+BAFZ
+CLA
+BAPV
+BABV
+Figura 1: Estrutura Funcional do SIsPNR
+
+NSCA 12-1/2023
+4.1COMPETÊNCIAS DO ÓRGÃO CENTRAL
+4.1.1 À Diretoria de Administração da Aeronáutica (DIRAD) compete:
+a) 
+supervisionar as ações, projetos e atividades relacionados ao provimento e
+manutenção das capacidades e operacionalidades requeridas para a
+administração de PNR;
+b) analisar e aprovar, quando for o caso, a implantação das normas reguladoras
+internas relativas às atividades de administração de PNR;
+assessorar o Estado-Maior da Aeronáutica (EMAER), quando demandado,
+c)
+na formulação de políticas de gestão de PNR,
+nos processos de
+planejamento estratégico e orçamentário do SISPNR;
+d) acompanhar, por meio de indicadores de gestão, os níveis de performance e
+dos resultados alcançados, relacionados à gestão de PNR, emitindo
+orientações e determinações sempre que necessário;
+analisar os PLANINFRA das Prefeituras, e propor à SEFA, a priorização,
+e)
+sempre que necessário;
+f)
+realizar gestões
+para que sejam adotadas ações de sustentabilidade,
+;
+economicamente
+viáveis, socialmente responsáveis e ecologicamente
+corretas; e
+g)
+interagir com Organizações congêneres das Forças Armadas, órgãos
+públicos em geral, universidades e empresas, no trato de assuntos da área de
+administração de imóveis.
+4.2 COMPETÊNCIAS DO ÓRGÃO DE COORDENAÇÃO
+4.2.1 À Subdiretoria de Apoio Administrativo (SDAP), compete:
+a) planejar, normatizar, coordenar, controlar e supervisionar, tecnicamente, os
+programas, projetos e atividades do SISPNR;
+b) revisar, atualizar e disponibilizar, permanentemente, as normas, doutrinas,
+instruções, legislações e outros instrumentos normativos relacionados ou
+aplicáveis à área de administração de PNR;
+atuar como autoridade competente para análises e homologações de
+c)
+processos relacionados à PNR e confecções de Portarias de Classificação;
+realizar continuamente estudos com vistas a desenvolver novas técnicas,
+d)
+processos, sistemas e outras inovações na área de moradia, para
+implementação no SISPNR, visando à melhoria constante;
+acompanhar e avaliar o desempenho das atividades dos Elos Executivos do
+SISPÑR, por meio dos indicadores do Sistema, bem como por meio de
+programas de visitas técnicas e de inspeções, visando à verificação do
+adequado desempenho das atividades estabelecidas para o Sistema;
+diligenciar para que os Elos Executivos cumpram as normas e regulamentos
+f)
+relacionados ao SISPNR;
+
+13/30
+g) desenvolver, em coordenação com a Diretoria de Tecnologia da Informação
+(DTI), ferramentas e funcionalidades dos Sistemas Informatizados, que
+possibilitem a adequada e eficiente administração do SISPNR;
+h) definir a distribuição dos recursos do SISPNR;
+i)
+acompanhar a execução dos recursos do SISPNR, assessorando a DIRAD
+quanto ao redirecionamento dos recursos dos Elos Executivos com baixa
+execução;
+j)
+priorizar as Propostas de Demanda dos Elos Executivos do SISPNR,
+subordinados à DIRAD;
+k) aferir o grau de adoção de critérios de sustentabilidade pelos Elos
+Executivos; e
+1)
+promover reuniões sistêmicas e simpósios, relacionados ao SISPNR,
+visando ao aperfeiçoamento contínuo do sistema.
+4.3COMPETÊNCIAS DOS ELOS EXECUTIVOS
+4.3.1 Compete aos Elos Executivos:
+a) zelar para que seja proporcionado aos Usuários uma moradia digna, segura,
+em bom estado de conservação, visando ao bem estar e qualidade de vida da
+família militar;
+b) prever e prover a manutenção dos PNR, quando necessário, a fim de garantir
+o cumprimento da sua missão;
+c) zelar pelo fiel cumprimento desta Norma de Sistema e demais instruções e
+orientações emitidas pelo Órgão Central, Órgão de Coordenação, pelo
+Comandante da Aeronáutica ou pelo EMAER;
+d) gerenciar os recursos creditícios recebidos regularmente, registrando a
+evolução da gestão financeira no custeio das atividades, de modo a
+proporcionar meios analíticos para mensurar os resultados obtidos e adotar
+medidas corretivas, quando necessário;
+atividades voltadas para a administração de PNR, com vistas a pleitear ao
+Órgão de Coordenação, sempre que necessário, a renovação de itens ou a
+descentralização de créditos para custear suas aquisições e contratações;
+prever e prover a manutenção das suas instalações, incluindo limpeza das
+f)
+áreas, controle de pragas e vetores urbanos, limpeza de reservatórios de
+água, esgoto e caixas de gordura, recolhimento de resíduos, manutenção da
+rede hidrossanitária e da rede elétrica, dentre outros;
+g) elaborar a proposta orçamentária necessária ao SISPNR;
+h) fazer gestões para que as demandas relativas a obras sejam incluídas na
+Proposta de Demanda de forma detalhada e circunstanciada, conforme ICA
+86-2 - Plano de Infraestrutura da Aeronáutica;
+i)
+planejar, organizar e executar o aprimoramento da capacitação do seu
+efetivo, no que diz respeito a cursos e/ou treinamentos de interesse do Elo
+Executivo;
+
+NSCA 12-1/2023
+j) buscar ferramentas práticas para a inovação, submetendo à apreciação do
+Órgão de Coordenação sugestões que visem ao aperfeiçoamento do Sistema;
+k) estabelecer padronização técnica e catalogar os itens voltados para
+benfeitorias, visando subsidiar as contratações e padronizar as intervenções,
+reparações, reformas e modernização dos PNR, visando à facilidade no
+controle e à economia de meios; e
+1)
+adotar nos editais de aquisições e contratações
+critérios
+de
+os
+sustentabilidade previstos na legislação em vigor,
+adequando-os
+às
+especificidades dos imóveis e necessidades demandadas.
+4.4 COMPETÊNCIAS DOS ELOS USUÁRIOS
+4.4.1Compete aos Elos Usuários:
+a) adotar providências para que a programação e as orientações definidas pelos
+Elos Executivos sejam atendidas;
+b) informar os problemas nos PNR, fora de sua alçada de competência, aos
+elos executivos, para que estes providenciem as intervenções necessárias
+visando a tempestiva resolução;
+zelar pela conservação e adequada utilização dos PNR, bem como das
+c)
+benfeitorias realizadas;
+d) manter as condutas pessoais e de familiares visando a boa convivência em
+comunidade; e
+e) observar as diretrizes previstas nas legislações, no que se refere às
+obrigações, os direitos e os deveres dos permissionários.
+
+NSCA 12-1/2023
+15/30
+5 CICLO DOS
+PROCESSOS
+DO
+SISTEMA
+DE
+PRÓPRIOS
+NACIONAIS
+RESIDENCIAIS
+5.1CONCEITO
+O COMAER gerencia um quantitativo significativo de imóveis residenciais, os
+quais são essenciais ao Apoio Administrativo necessário ao cumprimento de sua missão. Para
+tanto, há necessidade do estabelecimento de métodos, procedimentos, normas, sistemas e
+controles.
+5.2DESCRIÇÃO
+Nesse contexto, os macroprocessos do SISPNR são: Análise das Minutas de
+Portaria de Classificação de PNR, Ocupação Irregular - Inclusão e Exclusão, Ocupação
+Irregular — Reintegração de Posse, Portal da Transparência _ Cadastro de PNR, Ocupação de
+PNR _ Mudança, Permuta e TEP, Planejamento Orçamentário, Controle do Orçamento do
+SISPNR e Controle dos Subcentros de Custo e Estatístico.
+5.3ANÁLISE DAS MINUTAS DE PORTARIA DE CLASSIFICAÇÃO DE PNR
+5.3.1 Analisar as minutas de portarias de classificação de PNR, encaminhadas pelos Elos
+Executivos de acordo com as normas do Órgão Central do SISPNR e as legislações afetas à
+gestão de PNR e após a aprovação das Portarias de Classificação de PNR, redigir Ofício
+destinado à SEFA, objetivando a publicação em BCA.
+5.3.2 A seguir, segue o fluxograma do processo de Análise das Minutas de Portaria de
+Classificação de PNR (figura 2).
+R1
+Processo de Análise das Minutas de Portaria de Classificação de PNR
+Elo Executivo
+Enuiaras minutas de
+Portarias com a
+Corrigiro erroidentificado
+Tomer ciénda da Publicação
+Reclassificação dos RNR.
+pelo Órgão de Coordenação
+em BCAeadotaras medida
+natureza /categoria
+administrativas cabiveis
+Devolver ao Elo
+Executivo para
+Órgão de Coordenação
+efetuar a correção
+NSo
+NSo
+sep seqnojoseapoosessteu
+Enwiar Portaria
+Confeccionar Ofido a
+Acompanhare após
+Portarias de Reciassificação de
+a0 SDAP para
+SEFA soliatando
+identificar a publicação da
+Natureza/Categoriajuntamente
+Sim
+assinatura
+Sim
+publicoção em BCA
+Portaria em BCA,infomar
+com e Quadro Comparatvo
+Minuta está
+ao Elo Executrwo
+Minuta esté
+ok?
+ok?
+SSA
+Providenciarpublicação
+de Portaria de
+Reciassificação em BCA
+Risco l: Fomecimento de Dados
+Incorretos pelo Elo Executivo
+R1
+Figura 2 - Macroprocesso: Análise das Minutas de Portaria de Classificação de PNR
+
+10/30
+NSCA 12-1/2023
+5.4OCUPAÇÃO IRREGULAR  INCLUSÃO E EXCLUSÃO DE MULTA
+5.4.1 Controlar as inclusões/exclusões de ocupantes irregulares, no que se refere à multa, por
+meio de documentos recebidos dos Elos Executivos e realizar um cotejamento mensal dos
+ocupantes irregulares, com base nas informações da Portaria de Ocupação Irregular do
+GABAER, detectando possíveis alterações.
+5.4.2 A seguir, segue o fluxograma do processo de Ocupação Irregular - Inclusão e Exclusão
+de Multa (figura 3).
+Enviar o Termo de
+Processo de Ocupação Irregular _ Inclusão e Excusão de Multa
+Recisão de Ocupação
+(TRO) aoElo Usuáno
+que der causs.
+R1
+Elos Executivos
+Sim
+Não
+Emitir Notificação Extrajudidal
+Iniciar Processo de Inclusão/ Exclusão de Murta
+TRO foi cumprido?
+Verificar a
+implantação da
+Informar a implantação da multa
+Enviaro processo ao Orgão de
+multa no
+ao Órgão de Coordenação
+Coordenação
+contracheque
+Orgão de Coordenação
+Encaminhar Portaria GABAER
+Encaminhar Processo de
+an Flos Faecuthinspara
+Analisar e controlaro Processo de
+cotejamento e contole.
+Análiare controlar os
+Inclusão/Excusão de Multa
+Indusão/Exdusão de
+valores informados pelos
+Multa
+Elos Executivos
+Confrontar os dados da
+Portaria com a Planilha
+Controle
+GABAER
+Análisar e Controlar
+Confeccionar a Portaria que
+Enviara Portaris ao
+Processo de Inclusão/
+relaciona os Ocupantes
+Orgão de
+Exclusão de Multa
+Inrregulares
+Coordenação
+Risco 1: Fornecimento de Dados
+Incorretos pelos Elos Executivos
+R1
+Figura 3 - Macroprocesso: Ocupação Irregular - Inclusão e Exclusão de Multa
+5.5 OCUPAÇÃO IRREGULAR - REINTEGRAÇÃO DE POSSE
+5.5.1Controlar as inclusões/exclusões de ocupantes irregulares, no que se refere a reintegração
+de posse, por meio de documentos recebidos dos Elos Executivos de acordo com a
+documentação prevista nas legislações afetas à gestão de PNR
+
+NSCA 12-1/2023
+17/30
+Posse (figura 4).
+Elos Executivos
+Reunir a documentação
+Encaminhar a documentação
+necessária à propositura da
+necessária à propositura da
+R2
+competente Ação de
+competente Ação de
+Processo de Ocupação Irregular _ Reintegração de Posse
+Cumprir a Decisão
+Reintegração de Posse
+Reintegração de Posse
+Judidal
+R3
+R1
+Órgão de Coordenação
+Analisar e Encaminhar a
+documentação necessána
+Controlare Encaminhara Dedsão
+à propo situra da
+Judidal
+competente Ação de
+Reintearação de Posse
+Analisar Juridicamente, Controlar
+COJAER
+e Encaminhar a documnentação
+Encaminhar a DecisSo Judiaal
+necessána à propositura da
+competente Ação de
+Reintegração de Posse
+Procuradoria Geral da
+União
+Encaminhar a
+Iniciar o Processo Jucicial
+Decisão Judicial
+Kesco  Demona nu janção da documenacão
+Risco 2 Fomnecimento de dados incarretos
+cel
+Kico  Docamenação incompleta envada pelos
+necesara ao inicio do processo, por purte dos Elos
+Elos Executives.
+Elos Executivos ao Orgilo de Coordenação.
+R1
+Executivos
+R2
+R3
+Figura 4 - Macroprocesso: Ocupação Irregular - Reintegração de Posse
+5.6PORTAL DA TRANSPARÊNCIA
+CADASTRO DE PNR
+5.6.1Receber trimestralmente dos Elos Executivos as suas relações de situação dos PNR
+atualizadas, consolidando em uma única planilha e posteriormente inserindo, no endereço
+eletrônicohttps://sti.cgu.gov.br (Portal da Transparência), os imóveis funcionais sob sua
+responsabilidade, bem como acompanhar e monitorar a atualização periódica dos dados de
+imóveis funcionais por esse órgão.
+
+18/30
+NSCA 12-1/2023
+PNR(figura 5).
+Elo Executivo
+R1
+R2
+R3
+Processo do Portal da Transparência_ Cadastro de PNR
+Sim
+Atualizar planilha
+Exige correção
+dos
+moradores
+Enviar email com as
+pelo Elo?
+dos Elo Executivo
+sagoeznenge
+Não
+Órgão de Coordenação
+Erviar email para os Blos
+Receber todas as
+Executivos com a relação
+relações de moradores.
+Analisare Consolidar
+dos moradores
+dos Elos Executivos
+Trime stral
+Submeter os cadosno
+site da CGU
+Contralodoria Geral da União
+Dadosestão
+corretos?
+Não
+Sim
+e ppodou sope sopogeziemee den
+Transparêndia
+Dados
+atualizados
+Risco l: Falta de cumprimento de
+Risco 2; Não atendimento as orientações do Orgão
+Riaco 3; Fomecimento de dados incorretos pelos
+prazo pelos Elos Executivos.
+de Coordenação.
+Elos Executivos.
+R1
+R2
+R3
+Figura 5 - Macroprocesso: Portal da Transparência - Cadastro de PNR
+5.7OCUPAÇÃO DE PNR  MUDANÇA  PERMUTA - TEP
+5.7.1 Analisar e homologar os requerimentos oriundos dos elos usuários, para ocupação de
+imóveis, por meio do Termo Excepcional e Precário (TEP), mudança e permuta de imóveis
+oriundo dos Elos Executivos e confeccionar os despachos decisórios.
+
+NSCA 12-1/2023
+19/30
+TEP (figura 6).
+Elo usuário
+Processo de Ocupação de PNR _ Mudança_Permuta_TEP
+elabora
+OM do Requerente
+Comunicar ao elo
+Requerimento
+usuário o parecer
+INÍCIO
+FIM
+OM do elo
+usuário
+encaminha
+Requerimento
+Encaminhar despacho à
+Analisar o
+OM do elo usuário
+Elo Executivo
+requerimento
+Emitir parecer e
+Receber o despacho
+R1
+encaminhar
+para análise
+R2
+Orgão de Coordenação
+Analisar o
+Emitir despacho
+processo
+Risco l; Falta deobservância dos Elos Executivos ao
+Risco 2: Documemação incompleta, incorrera ou
+prazo para prorrogação da TEP
+sem justificativa nos paocessos emviados pelos Elos
+R1
+Executivos, nos casos de mudança e permiura
+R2
+Figura 6 - Macroprocesso: Ocupação de PNR - Mudança, Permuta e TEP
+5.8PLANEJAMENTO ORÇAMENTÁRIO
+5.8.1Consolidar e avaliar as necessidades de recursos orçamentários encaminhadas pelos Elos
+Executivos do SISPNR, a fim de autorizar a descentralização por meio da APLOG,
+acompanhando o processo de prestação de contas dos Elos Executivos, referente à
+descentralização de crédito proveniente da Ação 21D0, garantindo que o relatório de
+Prestação de Contas seja enviado bimestralmente, no qual deverão constar, obrigatoriamente,
+todas as informações solicitadas, conforme modelo estabelecido pelo Órgão de Coordenação.
+
+20/30
+NSCA 12-1/2023
+Elos deExecução do SISPNR
+Bimestral
+RI
+Realizar nova
+Receber o documento
+tentantiva em
+do Órgão de
+Executar os recursos
+Prestar contas da
+outro período
+Coordenação
+recebidos.
+execução à SDAP.
+Processo de Planejamento Orçamentário
+Informar a Unidace
+Órgão de Coordenação do SISPNR
+Analisar as solicitações de
+Não
+sobre a não aprovação
+recursos orçamentánios
+da solicitação
+Consolidar as respostas
+para o ano conente
+dos Elos Executivos
+Inserir Proposta
+Anual
+Orçamentária
+ou
+Aprovado?
+SISPLAER referente ao
+ano sequinte.
+Encaminhar as
+informações à
+APLOG/DIRAD
+Submeter a
+aprecição da
+Sim
+APLOG/DIRAD
+Semestral
+APLOG/DIRAD
+Lançar os dados
+Analisar a
+Descentralizar
+referentes à execução
+Proposta
+o Crédito
+fisica e financeira no
+SIOP.
+Semestral
+Resco 2 Fornecumenta de dados incorretos pelos
+Elos Executivos.
+R1
+Figura 7 - Macroprocesso: Planejamento Orçamentário
+5.9CONTROLE ORÇAMENTÁRIO
+Ação, indicadores específicos e levantamento periódico dos saldos, via Tesouro Gerencial,
+com objetivo de propor ações corretivas, quando for o caso.
+
+NSCA 12-1/2023
+21/30
+8).
+A execução está
+Órgão de Coordenação do SISPNR
+igual ou maior que
+Processo de Controle do Orçamento do SISPNR
+80%?
+Analisar os indicadores de
+Execução de Restos a Pagar e de
+Recursos do Exercício Financeiro,
+no Painel Observar.
+Sim
+Bimestral
+Não
+Encaminhar documento
+aos Elos Executivos
+cobrando adoção de
+medidas ou justificativa.
+Sim
+Existe
+Elo Executivo do SISPNR
+Providenciar
+Justificativa?
+justificaba da
+impossibilidade da
+execução.
+Analisar motivo
+Receber o documento do Orgão de
+Responder ao
+da baixa
+Coordenação.
+documento do Orgão
+execução
+de Coordenação do
+SIPNR
+Aumentar a
+execução
+Não
+R1
+Risco l: Não sendimento por parte dos Elos
+Executivos dos prazos previstos pelo Orgão de
+R1
+Coordenação.
+Figura 8 - Macroprocesso: Controle Orçamentário
+5.10CONTROLE DOS SUBCENTROS DE CUSTO E ESTATÍSTICO
+5.10.1Analisar as atividades dos Elos Executivos, por meio do lançamento dos indicadores no
+lançamentos ou índices abaixo da média e propor soluções e/ou melhorias nos processos.
+
+22/30
+NSCA 12-1/2023
+Estatístico (figura 9).
+Elo Executivo do SSPNR
+Processo de Controle dos Subcentros de Custo e Estatístico
+Apropriar os Custos no
+SIAFI conforme Módulo 6
+Responder ao documento
+do RADA-e "G".
+do ÓRGÃO DE
+Até o quinto
+Corrigir os Subcentros
+COORDENAÇÃO
+dia útil do
+de Custo/Estatístico
+informando sobre a
+mês
+correção.
+subsequente
+R1
+DIREF
+Carregar os dados do
+SIAFI no Painel
+Semanal
+Observar.
+Órgão de Coordenação do SISPNR
+Enviardocumento ao Elo
+Executivo para correção
+dosSubcentros de
+Custo/Estatístico.
+Não
+Confrontar os indicadores
+Analisar os
+Sim
+do Painel Observar com o
+indicadores do Painel
+relatório do Tesouro
+Observar.
+Gerencial.
+Fim
+Os dados estão em
+conformidade?
+Risco 1: Lançamento no SIAFl por parte dos Elos
+Executivos indevidos ou susentes.
+R1
+
+23/30
+NSCA 12-1/2023
+6INTERAÇÃO SISTÊMICA ENTRE OS ELOS COMPONENTES
+Para que o SISPNR cumpra eficientemente suas diversificadas tarefas e
+atividades, é imperativa a existência de uma estrutura sistêmica eficiente, que assegure a
+padronização, funcionalidade, sinergia, agilidade, objetividade, segurança, produtividade e
+promova resultados satisfatórios. Com isso, a vinculação desses órgãos ou elementos entre si
+ocorre por interesse de coordenação e orientação técnica e normativa, ficando os mesmos
+sujeitos à fiscalização das atividades pelo Órgão Central do Sistema, não implicando
+subordinação hierárquica.
+
+24/30
+NSCA 12-1/2023
+7.1CONCEITO
+O SISPNR é um sistema de grande complexidade e alcance, considerando o
+quantitativo de PNR do COMAER e o número de Elos Executivos sob sua responsabilidade
+integrados ao Órgão Central do sistema, implicando a existência de diversos riscos que podem
+comprometer a eficiência, eficácia e efetividade do sistema, podendo gerar consequência no
+âmbito interno, quanto no âmbito externo.
+7.2DESCRIÇÃO
+A eficiência, eficácia e efetividade do SISPNR envolve diretamente e
+indiretamente riscos relacionados ao ambiente interno e externo. Cada risco envolvido possui
+sua probabilidade de ocorrência e, com isso, é necessário conhecer os mais relevantes e
+prováveis, a fim de promover ações que proporcionem a redução de sua ocorrência,
+considerando os pontos fortes e fracos do sistema.
+7.3IDENTIFICAÇÃO DOS RISCOS
+7.3.1 Os principais riscos envolvidos no SISPNR foram identificados considerando cada
+processo decorrente do funcionamento do sistema e o histórico de ocorrências, bem como a
+probabilidade e efeito da ocorrência.
+7.3.1.1 Análise das Minutas de Portaria de Classificação de PNR
+a) fornecimento de dados incorretos pelo Elo Executivo.
+7.3.1.2 Ocupação Irregular — Inclusão e Exclusão de Multa
+a) fornecimento de dados incorretos pelo Elo Executivo.
+7.3.1.3 Ocupação Irregular - Reintegração de Posse
+a) fornecimento de dados incorretos pelo Elo Executivo;
+b) demora na junção da documentação necessária ao início do processo por
+parte do Elo Executivo; e
+c) documentação incompleta enviada pelos Elos Executivos ao Órgão de
+Coordenação.
+7.3.1.4 Portal da Transparência - Cadastro de PNR
+a) falta de cumprimento de prazo pelos Elos Executivos;
+b) não atendimento às orientações do Órgão de coordenação; e
+c) fornecimento de dados incorretos pelo Elo Executivo.
+7.3.1.5 Ocupação de PNR - Mudança - Permuta - TEP
+a) falta de observância do Elo Executivo ao prazo prorrogação da TEP; e
+
+NSCA 12-1/2023
+25/30
+b) documentação incompleta, incorreta ou sem justificativa nos processos
+enviados pelos Elos Executivos, nos casos de mudança e permuta.
+7.3.1.6 Processo de Planejamento do Orçamento
+a) fornecimento de dados incorretos pelo Elo Executivo.
+7.3.1.7 Processo de Controle do Orçamento
+a) não atendimento por parte dos Elos Executivos dos prazos previstos pelo
+Órgão de Coordenação.
+7.3.1.8 Controle dos Subcentros de Custo e Estatístico
+a) lançamento no SIAFI por parte dos Elos Executivos indevidos ou ausentes.
+7.4ANÁLISE DOS RISCOS
+7.4.1 Cada risco identificado possui sua probabilidade de ocorrência e impacto causado, o que
+é favorecido ou não pelas forças e fraquezas identificadas no cenário no qual o SISPNR está
+inserido.
+7.4.2 ANÁLISE DAS MINUTAS DE PORTARIA DE CLASSIFICAÇÃO DE PNR
+7.4.2.1 O risco elencado nesse processo está relacionado diretamente a inserção dos dados
+incorretos pelo Elo Executivo na minuta encaminhada para análise do Órgão de Coordenação.
+7.4.2.2 Esse risco é mitigado por meio de constantes orientações normativas, bem como
+interações entre o Órgão de Coordenação e os elos do sistema.
+7.4.2.3 Além das ações do item anterior, os Elos Executivos devem avaliar as reclassificações
+de PNR de acordo com a demanda reprimida, a fim de redução do tempo de espera dos elos
+usuários inscritos na fila para distribuição da localidade.
+7.4.3OCUPAÇÃO IRREGULAR  INCLUSÃO E EXCLUSÃO DE MULTA
+7.4.3.1 O risco levantado nesse processo está relacionado diretamente ao encaminhamento de
+documentação incorreta ou incompleta para inclusão e exclusão de multas de ocupantes
+irregulares para providências das Organizações responsáveis, as quais são imprescindíveis
+para a tramitação do processo, uma vez que podem ser fontes de contestação de legalidade na
+esfera administrativa e judicial.
+7.4.3.2 Com o propósito de reduzir a probabilidade de ocorrência desse risco, o Órgão de
+importância do envio da documentação correta para inclusão/exclusão de ocupações
+irregulares, bem como orientações normativas.
+7.4.4 OCUPAÇÃO IRREGULAR  REINTEGRAÇÃO DE POSSE
+7.4.4.1 Os riscos identificados nesse processo envolvem diretamente o fornecimento de
+
+26/30
+NSCA 12-1/2023
+usuário irregular.
+quais podemos ressaltar, como mais relevantes: ausência de pessoal capacitado para efetuar a
+composição do processo, falta de controle por parte do Elo Executivo das legislações sobre o
+tema.
+7.4.4.3 A atenuação desses riscos deve ser executada, por intermédio de videoconferências e
+interações oportunas, entre o Órgão de Coordenação e os Elos Executivos do SISPNR.
+7.4.5 PORTAL DA TRANSPARÊNCIA - CADASTRO DE PNR
+7.4.5.1 Os riscos elencados nesse processo estão associados diretamente a ausência de
+controle tempestivo das constantes atualizações dos elos usuários residentes nos PNR geridos
+pelo SISPNR sob a responsabilidade dos Elos Executivos, bem como o não cumprimento das
+orientações emanadas pelo Órgão de Coordenação.
+7.4.5.2 Dentre os fatos que motivam tais riscos estão a inobservância dos meios Tecnológicos
+por meio de consulta às páginas da Empresa Brasileira de Correios e Telégrafos e da Receita
+Federal do Brasil para confirmação dos CEPs e do CPFs, respectivamente. Com isso,
+aumentam a probabilidade de erros, refletindo no cadastro Geral do Portal da Transparência
+da Controladoria Geral da União (CGU) dos imóveis administrados pelo COMAER por meio
+do SISPNR.
+7.4.5.3 Com a finalidade de redução dos riscos identificados, os Elos Executivos devem
+manter atualizado a situação dos PNR de maneira tempestiva, tanto por meio físico por meio
+de pastas de processos, bem como eletrônico mediante consultas aos órgãos públicos
+supracitados, a fim de haver uma consonância entre os dados disponíveis no Portal da
+Transparência da CGU e situação atual dos PNR administrados pelo Elo Executivo.
+7.4.5.4 Outra ação mitigadora de tais riscos é o estabelecimento de metas de padrões de
+desempenho pelo Órgão de Coordenação de PNR “em análise", que significa situação do
+imóvel com alguma inconsistência, para futuras correções, conforme o quantitativo de PNR
+administrados pelo Sistema, a fim de possibilitar o máximo de realidade da situação dos
+imóveis geridos pelo SISPNR.
+7.4.6 OCUPAÇÃO DE PNR  MUDANÇA  PERMUTA - TEP
+7.4.6.1 Os riscos desse processo demandam da falta de controle do Elo Executivo nos prazos
+previstos na legislação sobre a concessão ou prorrogação de TEP ou documentação incorreta
+no envio para o Órgão de Coordenação, uma vez que podem acarretar em ocupações
+irregulares no Elo Executivo.
+7.4.6.2 Como ação mitigadora dos riscos apresentados, o Órgão de Coordenação expede
+orientações normativas para os Elos Executivos rotineiramente, bem como realiza interações
+com os Comandantes e os elos do sistema.
+7.4.6.3 Também como ação mitigadora das ameaças em questão, o Elo Executivo deve manter
+controle rigoroso dos prazos de ocupação por TEP, efetuar consultas ao Órgão Central em
+
+NSCA 12-1/2023
+27/30
+casos em que são permitidas tais solicitações, conforme previsto nas Instruções que
+normatizam o uso de PNR no COMAER.
+7.4.7 PLANEJAMENTO ORÇAMENTÁRIO
+7.4.7.1 Os riscos deste processo advêm da falta de exatidão dos Próprios Nacionais
+Residenciais nos quais serão aplicados os recursos orçamentários e dos cortes no orçamento
+realizados pelo Governo Federal. As demandas de manutenção dos PNR surgem ao decorrer
+do ano e o planejamento ocorre no ano anterior. Os Elos Executivos do SISPNR iniciam os
+processos de contratação de serviços se baseando na previsão de arrecadação de recursos dos
+elos usuários e nos valores aprovados nos Planos de Ação anteriores.
+7.4.7.2 Como ação mitigadora dos riscos apresentados, o Órgão de Coordenação criou uma
+metodologia, utilizando média ponderada, a fim de equilibrar a aplicação dos recursos
+planejados com a quantidade de PNR a ser reformada e, com a finalidade de diminuir o
+impacto no planejamento da execução, o Órgão de Coordenação informa aos Elos Executivos,
+por meio de Ofício, os cortes orçamentários realizados pelo Governo Federal.
+7.4.8 CONTROLE ORÇAMENTÁRIO
+7.4.8.1 Os riscos deste processo decorrem da falta de execução dos recursos recebidos pelos
+Elos Executivos. O não empenho desses recursos implica a perda dos créditos, bem como o
+consequente corte no orçamento para o próximo exercício financeiro, e a não execução
+completa, falta de liquidação ou pagamento, acarreta a inscrição dos empenhos em Restos a
+Pagar.
+7.4.8.2 Como ação mitigadora dos riscos apresentados, o Órgão de Coordenação confecciona
+e emite relatórios no Tesouro Gerencial e envia documentos no SIGADAER, bimestralmente,
+a fim de alertar os Elos Executivos quanto à execução desses recursos. Quanto aos créditos
+que, ao se aproximar do final do ano, ainda se encontrarem disponíveis, sem empenho, o
+Órgão de Coordenação realiza ações a fim de remanejar esses créditos para outros Elos
+Executivos que tenham condições de empenhá-los até o final do exercício financeiro.
+CSOCR SRSCOTO
+7.4.9.1 O principal risco do processo de controle dos Subcentros de Custo Estatístico é dos
+dados SIAFI não refletir a realidade do Elo Executivo por inexistência ou inconsistência das
+informações, comprometendo a tomada de decisão do Órgão Central ou o assessoramento às
+Organizações Superiores.
+7.4.9.2 A ocorrência desse tipo de risco pode ser fruto de ausência de pessoal capacitado para
+efetuar os lançamentos; dificuldade de comunicação entre os Elos Executivos e a Organização
+responsável pela inclusão dos dados no SIAFI.
+7.4.9.3 Diante do risco desse processo, o Órgão Central deve promover orientações para os
+Elos Executivos, a fim de que façam interações com a Organização responsável pelo
+lançamento visando correção das inconsistências, bem como efetuar gestões para capacitação
+do efetivo na operação do SIAFI por meio de cursos de atualização e capacitação.
+
+28/30
+NSCA 12-1/2023
+8INDICADORES
+8.1Os indicadores implementados auxiliam na análise macro estatística, a fim de subsidiar a
+tomada de decisão visando a constante otimização e efetividade da gestão de PNR no
+COMAER.
+8.2Para que a Subdiretoria de Apoio Administrativo (SDAP) decida sobre as melhores ações a
+serem tomadas, o Sistema de Próprios Nacionais Residenciais (SISPNR) criou 06 (seis)
+indicadores essenciais.
+8.2.1TAXA DE DISPONIBILIDADE DE BENS IMÓVEIS
+Objetivo: Mostrar a capacidade do Elo Executivo em disponibilizar PNR para
+os elos usuários.
+8.2.2DEMANDA POR PNR
+Objetivo: Mostrar a demanda por PNR em determinado Elo Executivo.
+8.2.3TAXA DE OCUPAÇÃO DE BENS IMÓVEIS
+Objetivo: Mostrar o percentual dos PNR que estão sendo ocupados.
+8.2.4TAXA EFETIVA DA OCUPAÇÃO DE BENS IMÓVEIS
+Objetivo: Mostrar o percentual dos PNR que estão sendo ocupados, sem
+considerar os TEP.
+8.2.5SERVIÇOS PRESTADOS
+Objetivo: Mostrar a capacidade do Elo Executivo em executar as Ordens de
+Serviço abertas pelos Elos Usuários.
+8.2.6EXECUÇÃO DOS RECURSOS RECEBIDOS
+Objetivo: Mostrar como está a execução financeira do Elo Executivo no
+Exercício Financeiro vigente.
+8.30 acesso aos referidos indicadores, bem como as informações que darão origem aos
+supracitados indicadores podem ser acessadas pelo Painel OBSERVAR.
+
+NSCA 12-1/2023
+29/30
+9 DISPOSIÇÕES FINAIS
+9.1 O Órgão Central do Sistema poderá emitir, a qualquer tempo e a seu critério, orientações
+com o intuito de padronizar ou esclarecer os procedimentos desta NSCA.
+9.2 Os casos não previstos nesta NSCA serão submetidos ao Diretor de Administração da
+Aeronáutica (DIRAD).
+
+• 0r• 0
+NSCA 12-1/2023
+REFERÊNCIAS
+BRASIL. Comando da Aeronáutica. Estado-Maior da Aeronáutica. Implantação e
+Gerenciamento de Sistemas do Comando da Aeronáutica: ICA 700-1. Brasília, DF, 2023.
+BRASIL. Comando da Aeronáutica. Estado-Maior da Aeronáutica. Diretriz para o
+aprimoramento da Reestruturação da Força Aérea Brasileira: DCA 19-5. Brasília, DF, 2020.
+BRASIL. Comando da Aeronáutica. Gabinete do Comandante da Aeronáutica. Portaria
+GABAER nº 53/GC4, de 5 de março de 2021. Cria o Sistema de Próprios Nacionais
+Residenciais (SISPNR) no âmbito do COMAER. Publicada no BCA nº 47 , de 11 de março
+de 2021. Brasília, DF, 2021.

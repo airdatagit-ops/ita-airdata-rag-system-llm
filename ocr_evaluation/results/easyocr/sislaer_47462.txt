@@ -1,0 +1,438 @@
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONÁUTICA
+IDENTIFICAÇÃO
+NSCA 13-1
+SISTEMA DE IDENTIFICAÇÃO DE PESSOAL DO COMANDO DA AERONÁUTICA (SIDENT)
+2023
+
+
+
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONÁUTICA DIRETORIA DE ADMINISTRAÇÃO DO PESSOAL
+IDENTIFICAÇÃO
+NSCA 13-1
+SISTEMA DE IDENTIFICAÇÃO DE PESSOAL DO COMANDO DA AERONÁUTICA (SIDENT)
+2023
+
+
+
+MINISTÉRIO DA DEFESA
+COMANDO DA AERONÁUTICA
+PORTARIA Nª 261/4POG, DE 23 DE NOVEMBRO DE 2023.
+Aprova a reedição da Norma do Sistema de Identificação de Pessoal do Comando da Aeronáutica
+DIRETOR DE ADMINISTRAÇÃO DO PESSOAL, n0 uso da atribuição que lhe confere 0 art. 5 da Portaria nª 569/GC3, de 19 de setembro de 2023, e considerando 0 que consta do Processo nª 67400.006017/2023-33, procedente do Comando-Geral do Pessoal, resolve:
+Art. 10 Aprovar a reedição da NSCA 13-1 ~Norma do Sistema de identificação de Pessoal do Comando da Aeronáutica" -
+Art. 2ª Esta Portaria entra em vigor na data da sua publicação.
+Maj Brig Ar LUIZ GUILHERME DA SILVA MAGARÃO Diretor de Administração do Pessoal
+(Publicada no BCA nª 217, de 29 de Novembro de 2023).
+
+
+
+NSCA 13-1/2023
+SUMÁRIO
+1 DISPOSIÇÕES PRELIMINARES 1.1 FINALIDADE_ 1.2 CONCEITUAÇÕES: 1.3 ÂMBITO
+2 SISTEMA DE IDENTIFICAÇÃO DE PESSOAL DO COMANDO DA AERONÁUTICA 12 2.1 ELEMENIO MOTIVADOR 12 2.2 OBJETIVO 12 2.3 ELEMENTOS_COMPONENTES 12 2.4 ELEMENTOS CONDICIONANTES 13
+3 ESTRUTURAÇÃO FUNCIONAL DO SIDENT
+14
+4 COMPETÊNCIAS DO ÓRGÃO CENTRAL E ELOS DO SISTEMA 4.1 ÓRGÃQDENTRALDO_SIDENI 4.2 ELOS_DO_SIDENI
+15 15 15
+5 CICLOS DOS PROCESSOS DE IDENTIFICAÇÃO DE PESSOAL NO COMAER 17 5.6 INSTRUÇÃO_ NORMATIVA 18 5.7 EXECUÇÃO PROCESSUAL- 18 5.8 ANÁLISE E AVALIAÇÃQ: 18 5.9 MONITORAMENTO_DE PRODUÇÃQ 18 5.10 ANALISE E ELABORACÃO DE RELATÓRIO DE INCONSISTÊNCIAS GERADAS PELA SIDOM 19
+6
+INTERAÇÃO SISTÊMICA ENTRE OS ELEMENTOS COMPONENETES2O 7 RISCOS DO SISTEMA DE IDENTIFICAÇÃO DO COMAER 22 7.3 IDENTIEICAÇÃQ DOS_RISCOS - 22 7.4 ANÁLISE DOS_RISCOS 23
+8 DISPOSIÇÕES FINAIS . REFERÊNCIAS Anexo A Carteira Carteira de Identidade Militar (CIM) Anexo B Cartão Cartão Militar de Identificação (CMI)
+26
+27
+29 30
+
+NSCA 13-1/2023
+PREFÁCIO
+edição da NSCA 13-1 decorre da necessidade de atualização conforme previsto na reedição da ICA 700-1 Instrução para a Implantação e Gerenciamento de Sistemas no Comando da Aeronáutica' aprovada pela Portaria nª 445/GC3 , de 12 de janeiro de 2023 e estabelece a estrutura e funcionamento do Sistema de Identificação do Comando da   Aeronáutica, bem como as atribuições do Órgão Central e dos Órgãos Executivos.
+expertise   adquirida a0 longo dos anos, extraídas das rotinas diárias executadas pela Diretoria de Administração do Pessoal (DIRAP), por meio de sua Divisão de Identificação (DID), que vai ao encontro de novas tecnologias e, por isso, aprimora ferramentas necessárias para tornar 0 Sistema de Identificação (SIDENT) mais confiável e seguro.
+Órgão Central do SIDENT é a DIRAP, por meio de seu Órgão Executivo de Monitoramento e Controle (DID) tem a responsabilidade de normatizar e divulgar os procedimentos a serem adotados para 0 adequado cumprimento da atividade e 0 Órgão Executivode   Registro   (SIDOM)   compete a fiel observância da   legislação normativa emanada do Órgão Central. 0 objetivo finalístico do processo de   identificação é entregar uma identidade com qualidade ao identificando, mediante aos esforços desenvolvidosconstantemente por todos os Órgãos pertencentes a0 SIDENT. As barreiras devem ser ultrapassadas pela motivação e inovação devido à capacitação do pessoal envolvido na atividade,  apresentando alternativas para mitigar inconsistências, que por ventura possam permanecer.
+Esta Norma é em particular, norteada pelo Decreto n 8.518, de 18 de setembro de 2015 devidamente alterado pelo Decreto nª 10.068, de 16 de outubro de 2019, assim como pela Portaria Normativa nª 82/GM-MD, de 1ª de setembro de 2020.
+
+NSCA 13-1/2023
+1
+DISPOSIÇÕES PRELIMINARES
+11 FINALIDADE
+presente Norma estabelece a organização e 0 funcionamento do Sistema de Identificação de Pessoal do Comando da Aeronáutica (COMAER) e fixa oS procedimentos a serem adotados.
+1.2 CONCEITUAÇÕES
+Os   termos e expressões   empregados nesta NSCA têm seus significados consagrados no vernáculo; no Glossário das Forças Armadas (MD 35-G-1, de 13 de janeiro de 2016), no Glossário do Comando da Aeronáutica (MCA 10-4, de 30 de janeiro de 2001), no Manual de Abreviaturas e Símbolos da Aeronáutica (MCA 10-3, de 22 de abril de 2003), Instrução do Comando da Aeronáutica de Implantação e Gerenciamento de Sistemas do COMAER (ICA 700-1, de 13 de janeiro de 2023), Decreto nª 8.518, de 18 de setembro de 2015, devidamente alterado pelo Decreto nª 10.068, de 16 de outubro de 2019 que   dispõe sobre a carteira de identidade de militar   das   Forças Armadas, 0 documento de   identificação de seus dependentes e pensionistas e 0 documento de identificação dos integrantes da Marinha Mercante, assim como pela Portaria Normativa n 82/GM-MD, de 10 de  setembro de 2020, que regula  modelos; as   características e OS critérios de expedição da carteira de identidade de militar das Forças Armadas; do cartão militar de identificação de dependentes; pensionistas e oficiais da reserva não remunerada e do documento de identificação dos integrantes da Marinha  Mercante; expedidos pela Marinha; pelo Exército e pela Aeronáutica e dá outras providências.
+1.2.1 CARTEIRA DE IDENTIDADE MILITAR CIM (Anexo A)
+Documento de identificação, em base polimérica, válido para todos os fins   legais, de índole pessoal e funcional, com fé pública e validade em todo 0 território nacional, constituindo-se em elemento probatório da condição de militar e obrigatório para todos os militares de carreira; ativos e <veteranos' e para oficiais e praças temporários, enquanto estiverem na ativa. Este documento não guarda qualquer relação com a Carteira de Identidade (RG), cuja regência se dá pela Lei nª 7.116, de 29 de agosto de 1983, devidamente regulamentada pelo Decreto nª 9.278, de 5 de fevereiro de 2018.
+1.2.2 CARTÃO MILITAR DE IDENTIFICAÇÃO CMI (Anexo B)
+Documento, em base polimérica, probatório e obrigatório para dependentes,   pensionistas de militares e soldados engajados/reengajados, sendo facultativo para oficiais da reserva não remunerada (R/2), com fé pública em todo 0 território nacional e válido como documento de identificação nas   relações com a administração pública federal direta, autárquica e fundacional.
+1.2.3 CARTÃO DE POLICARBONATO
+Cartão com base em suporte polimérico com chip micro processado de contato e de aproximação, com capacidade mínima de 72 KB de memória; de acordo com as especificações do Anexo IV da Portaria Normativa n 82/GM-MD de 1ª de setembro de 2020, alterada pela Portaria Normativa nª 3605/GM-MD, de 30 de junho de 2022 ou, em seu lugar, código QR, contendo dados que viabilizarão a autenticação da identidade com 0 uso de smartphones.
+
+10/30
+NSCA 13-1/2023
+1.2.4 DIRETORIA DE ADMINISTRAÇÃO DO PESSOAL (DIRAP)
+Organização do COMAER que, para os efeitos desta Norma, é 0 Órgão Central do Sistema de Identificação do Pessoal. A DIRAP deve atuar de forma a defender e a preservar 0 bem jurídico tutelado pelo SIDENT: a fé pública.
+1.2.5 DIVISÃO DE IDENTIFICAÇÃO (DID) Órgão de monitoramento e controle das atividades relacionadas à identificação de   pessoal no COMAER,   pertencente à estrutura organizacional da DIRAP , subordinado diretamente à Subdiretoria de Pessoal Militar (SDPM).
+1.2.6 ELOS
+São OS responsáveis pelo cumprimento das normas que orientam a realização da  atividade-meio correspondente ao sistema; podendo ser organizações ou setores de organizações.
+1.2.7 IDENTIFICANDO
+Pessoa natural que se enquadra no rol das categorias passíveis de serem submetidas a procedimento de identificaçãolrenovação de identidade pelo SIDENT.
+1.2.8 LEI GERAL DE PROTEÇÃO DE DADOS (LGPD)
+Lei que protege os dados do identificando; por meio da Lei n" 13.709, de 14 de agosto de 2018, Lei Geral de Proteção de Dados Pessoais (LGPD); pelo Decreto nª 7.845, de 14 de novembro de 2012, Regulamenta procedimentos para credenciamento de segurança e tratamento de informação classificada em qualquer grau de sigilo, e dispõe sobre 0 Núcleo de Segurança e Credenciamento e pela ICA 205-47, de 15 de dezembro de 2015, Instrução para a Salvaguarda de Assuntos Sigilosos da Aeronáutica (ISAS);
+1.2.9 ÓRGÃO CENTRAL
+É 0 responsável por disciplinar; tecnicamente; os assuntos relacionados com a atividade, suprir e manter a atividade do sistema e administrar oS elos do sistema na atividade sistematizada.
+1.2.10 ÓRGÃO EXECUTIVO DE MONITORAMENTO E CONTROLE
+É representado por setor de OM; que está subordinado diretamente a0 Órgão Central e pertencente à estrutura do Sistema do SIDENT, assessorando e apoiando 0 Órgão Central do Sistema; em virtude da complexidade e dimensão da estrutura da identificação do COMAER, atuando sobre OS Órgãos Executivos de Registro sob sua subordinação operacional.
+1.2.11 ÓRGÃO EXECUTIVO DE REGISTRO
+É um setor da OM destinado a executar 0 Serviço de   Identificação; conforme definido em Portaria do Órgão Central do COMAER, a qual realiza diretamente a captura dos   registros documental e biométrico do  identificando; fazendo   parte da estrutura do sistema do SIDENT.
+
+NSCA 13-1/2023
+11/30
+1.2.12 PROCEDIMENTO DE IDENTIFICAÇÃO
+Conjunto de atividades e documentos com 0 objetivo de produzir uma identificação.
+1.2.13 SIDOM
+Sigla correspondente à Seção de Identificação de Organização Militar (SIDOM) faz 0 papel, dentro do SIDENT, como Órgão Executivo de Registro. Órgão componente da estrutura organizacional das OM do COMAER, ativado por proposta do Diretor de Administração do Pessoal, que tem por finalidade tratar e executar os procedimentos de identificação do pessoal, conforme orientação técnico-normativa do Órgão Central do SIDENT. Este setor deve   respeitar a subordinação administrativa à OM, em cuja estrutura organizacional estiver integrada.
+1.2.14 SIDENT
+Sigla correspondente ao Sistema de Identificação de Pessoal do Comando da Aeronáutica (SIDENT)
+1.2.15 SIGPES
+Siglacorrespondente ao Sistema de Informações Gerenciais de Pessoal
+(SIGPES) .
+1.2.16 SUBDIRETORIA DO PESSOAL MILITAR (SDPM)
+Subdiretoria pertencente à estrutura regimental da DIRAP , responsável por planejar e coordenar 0 SIDENT, na condução dos assuntos e das  atividades de identificação do   pessoal, da área de interesse do COMAER, de acordo com a legislação em vigor, que comporta em sua estrutura a Divisão de Identificação (DID) 
+1.3 ÂMBIIQ
+Esta Norma aplica-se a todos os Órgãos de Identificação e Setores de Pessoal do Comando da Aeronáutica.
+
+12/30
+NSCA 13-1/2023
+2 SISTEMA DE IDENTIFICAÇÃO DE PESSOAL DO COMANDO DA AERONÁUTICA
+2.1 ELEMENTO MOTIVADOR
+Sistema de Identificação de Pessoal do Comando da Aeronáutica (SIDENT) é norteado pelo Decreto nª 8.518, de 18 de setembro de 2015 devidamente alterado pelo Decreto n 10.068, de 16 de outubro de 2019, assim como pela Portaria Normativa nª 82/GM-MD, de 1ª de setembro de 2020 e que possui finalidade e estrutura definidas por esta Norma; deve-se à necessidade de: a estabelecer normas e procedimentos para 0 adequado registro dos processos de identificação; no âmbito do COMAER,   promovendo 0 acompanhamento, a sistematização e a padronização da execução das atividades que engloba todo 0 processo de identificação, em atenção aos Decretos   expedidos pelo Ministério da Defesa e 0 Comando da Aeronáutica; b) garantirque 0 banco de dados do SIDENT   esteja atualizado com as documentações   apresentadas pelo identificando, no momento do início do   processo de identificação, confrontando com as informações no SIGPES; disciplinar 0 relacionamento entre os elementos componentes do sistema nos assuntos de Identificação; disciplinar 0 relacionamento dos elementos componentes do SIDENT; apresentar  instruções e orientações   normativas, a fim de determinar 2 dinâmica dos processos de Identificação, com objetivo de monitoramento da execução das atividades afetas as SIDOM; € f) assegurar que 0 SIDENTpermita a correta avaliação e acompanhamento dos processos emitidos para a impressão da carteiralcartão de identidade física elou da digital, no âmbito do COMAER
+2.2 OBJETIVO
+SIDENT tem como   objetivo capturar;   registrar;   avaliar;  identificar e renovar identidadedos militares da ativa; veteranos, dependentes, pensionistas e oficiais da reserva não remunerada com as informações biométricas e cadastrais de todo 0 pessoal identificado no COMAER. Também visa 0 propósito de manter-se como fonte de consulta para 0 'público interno e Instituições Externas; em consonância com a LGPD.
+2.3 ELEMENIOS_COMPONENTES
+2.3.1 0 SIDENT é composto por Órgão Central e Elos compostos por Órgãos Executivos; todos pertencentes à estrutura organizacional do COMAER, com constituições e competências definidas em legislações próprias.
+2.3.2 Os Elos do   SIDENT ficam sujeito à orientação normativa, à  coordenação; ao controle, à supervisão técnica e à fiscalização do Órgão Central do Sistema no que se refere às atividades de identificação; sem prejuízo da subordinação   hierárquica às organizações em cuja estrutura organizacional estejam integrados .
+
+NSCA 13-1/2023
+13/30
+2.3.3 ÓRGÃO CENTRAL
+2.3.3.1 0 Órgão Central do SIDENT é a Diretoria de Administração do Pessoal (DIRAP); por meio da Subdiretoria do Pessoal Militar (SDPM); que tem em sua estrutura a Divisão de Identificação (DID), a qual exerce, no Sistema de Identificação; a função Gestora de Monitoramento e Controle no âmbito do COMAER
+2.3.4 ELOS
+2.3.4.1 A Divisão de Identificação é um elo do SIDENT que desempenha a função como Órgão Executivo de Monitoramento e Controle e está subordinado diretamente ao Órgão Central.
+2.3.4.2 ASeção de Identificação da Organização Militar (SIDOM) é um elo do SIDENT que executa a função como Órgão Executivo de Registro e é definido em Portaria de Criação,  respeitada a subordinação   administrativa inerente à OM, em cuja estrutura organizacional estiver integrada. 0 Elo estará sujeita à orientação normativa; à supervisão técnica e à fiscalização específica do Órgão Central, por meio da Divisão de Identificação.
+2.4 ELEMENIOS_CONDICIONANTES
+2.4.1 0 SIDENT está condicionado aos seguintes pontos: a todo registro processual de identificação deverá ser efetuado em consonância com a instrução referente a Identificação do Pessoal do COMAER, cujos procedimentos estão detalhados na ICA elaborada pela DIRAP; b) a integração sistêmica deve   seguir 0 exposto no item 6 da  presente Norma; € a DIRAP, Órgão Central do SIDENT, é a responsável pela gerência dos aspectos   técnico-administrativo e de   controle; no que se refere ao funcionamento do Sistema_
+
+14/30
+NSCA 13-1/2023
+3 ESTRUTURAÇÃO FUNCIONAL DO SIDENT
+3.1 As SIDOM estão distribuídas pelo território nacional, conforme segue e representada pela figura 1: a Região Norte:Roraima Boa Vista;Rondônia Porto Velho,Amazonas Manaus e Pará Belém; b) Região Nordeste:Ceará Fortaleza; Rio Grande do Norte Natal; Pernambuco Recife e Bahia Salvador; Região Centro-Oeste: Distrito Federal Brasília (VICOMAR Esplanada  dos Ministérios); Mato   Grosso do Sul Campo Grande e Goiás Anápolis; d) Região Sudeste: Minas Gerais (Barbacena e Lagoa   Santa); Rio de Janeiro (III COMAR, Galeão; Campo dos Afonsos e Santa Cruz) e São Paulo (São Paulo, São José dos Campos, Pirassununga e Guaratinguetá); e Região Sul: Rio Grande do Sul (Canoas e Santa Maria); Santa Catarina Florianópolis e Paraná Curitiba_
+Figura 1 ~ Distribuição nacional do SIDENT
+3.2 A estruturação funcional do SIDENT está disposta radialmente conforme a figura 2:
+Lda
+A
+8eg 0e
+ORGAO CEMIRAL
+Skafl
+Gnco
+Urgaude Noni[ckanLNIO [fontidie
+5k
+ÓRGÃOS EXECUTIVOS DE REGISTRO
+(N caoo
+Figura 2 ~ Estruturação funcional do SIDENT
+
+NSCA 13-1/2023
+15/30
+4 COMPETÊNCIAS DO ÓRGÃO CENTRAL E ELOS DO SISTEMA
+4.1 ÓRGÃQCENTRALDO_SIDENI
+4.1.1 Considerando 0 exposto no Art. 4ª da Portaria nª 687/GC3, de 17 de novembro de 2000, de acordo com a legislação em vigor; em especial 0 Decreto nª 8.518, de 18 de setembro de 2015 e a Portaria Normativa n 82/GM-MD, de 1ª de setembro de 2020, alterada pela Portaria Normativa n 3605/GM-MD; de 30 de junho de 2022, a0 Órgão Central do SIDENT compete: a) coordenar as ações necessárias à promoção da Identificação do Pessoal no âmbito do COMAER, de acordo com a legislação em vigor; b) fomentar, sempre que necessário; a elaboração e a proposição de normas para 0 funcionamento do Sistema; orientar as SIDOM quanto ao cumprimento dos procedimentos determinados; fiscalizar e controlar as atividades no trâmite de dados no SIDENT, bem como 0 desempenho das SIDOM, por meio de avaliações de relatórios periódicos ou sazonais gerados pelo Sistema; diligenciar a cooperação com órgãos públicos sobre assuntos relacionados às atividades de identificação de pessoal do COMAER; f) providenciar cursos e estágios de interesse do SIDENT; prover medidas administrativas de interesse do SIDENT (e.g visita técnica às SIDOM, captação de novos Recursos Humanos); h) realizar visitas técnicas programadas elou inopinadas às SIDOM; e i) solucionar   os casos não previstos, relativos à atividade do Sistema de Identificação.
+4.2 ELOS DO SIDENT
+4.2.1 ÓRGÃO EXECUTIVO DE MONITORAMENTO E CONTROLE
+4.2.1.1 Considerando 0 exposto no Art. 7ª, inciso VII, do Regulamento do Comando-Geral do Pessoal, aprovado pela Portaria n 2.103/GC3, de 3 de dezembro de 2019 e no Art. 4ª da Portaria nª 687/GC3, de 17 de novembro de 2000, compete a Divisão de Identificação (DID):
+a) coordenar as ações necessárias à promoção da Identificação do Pessoal no âmbito do COMAER, de acordo com a legislação em vigor; em especial 0 Decreto nª 8.518, de 18 de setembro de 2015 e a Portaria Normativa nª 82/GM-MD, de 1ª de setembro de 2020;
+b) orientar 0 Órgão Executivo de Registro (SIDOM) quanto ao cumprimento dos procedimentos determinados pelo Órgão Central do SIDENT (DIRAP);
+assessorar; sempre que necessário; a proposição de melhorias da norma de funcionamento do Sistema de Identificação de Pessoal do COMAER;
+
+16/30
+NSCA 13-1/2023
+fiscalizar e controlar as atividades no trâmite de dados no SIDENT, bem como 0 desempenho das SIDOM, por meio de avaliações de relatórios periódicos ou sazonais gerados pelo SIDENT;
+gerenciar 0 apoio logístico aos elos; buscando a otimização das atividades do SIDENT;
+f) diligenciar a cooperação com órgãos públicos sobre assuntos relacionados às atividades de identificação de pessoal do COMAER;
+g) planejar a capacitação do seu efetivo; por meio de proposta de cursos afetos à identificação ao Subdiretor de Pessoal Militar;
+h) sugerir; ao Subdiretor de Pessoal   Militar;   medidas   administrativas de interesse do SIDENT (e.g. visita técnica às SIDOM, captação de novos Recursos Humanos);
+i) realizar   visitas técnicas programadas   elou inopinadas às SIDOM, solicitando-as   consoante   previsão   orçamentária do Órgão Central do SIDENT;
+j) interagir diretamente com 0 CCA-RJ, visto que 0 SIDENT fisicamente está alocado em suas instalações;
+k) manter 0 SIDENT atualizado com OS cadastros de militares da ativa e veteranos, como também de seus dependentes, além dos pensionistas e oficiais da reserva não remunerada; e
+1) propor melhorias do SIDENT, serviços e seus equipamentos periféricos, por meio de processo licitatório.
+4.2.2 ÓRGÃO EXECUTIVO DE REGISTRO
+4.2.2.1 Considerando 0 exposto no art. 7ª, inciso VII, do Regulamento do Comando-Geral do Pessoal, aprovado pela Portaria nª 2.103/GC3, de 3 de dezembro de 2019 e no art. 6, da Portaria nª 687/GC3, de 17 de novembro de 2000, ao Órgão Executivo de  Registro, compete ao Serviço de Identificação da Organização Militar (SIDOM): a) cumprir as normas; critérios; princípios e programas emanados do Órgão Central; b) elaborar e remeter ao órgão Central dos relatórios e outros documentos de caráter  técnico e administrativo  sobre suas atividades   sistêmicas, bem como sugestões que visem a aperfeiçoar 0 funcionamento do SIDENT; e fornecer ao Órgão Central elementos informativos sobre as necessidades logísticas relacionadas com 0 desempenho de suas atividades.
+
+NSCA 13-1/2023
+17/30
+5 CICLO DOS PROCESSOS DE IDENTIFICAÇÃO DE PESSOAL NO COMAER
+5.1 Considerando 0 exposto no Art. 2ª da Portaria Normativa nª 82/GM-MD, de 1ª de setembro de 2020, a carteira de identidade de militar expedida pelas Forças Armadas é documento   probatório da condição de militar e obrigatória  para   todos OS militares de carreira;  ativos e inativos, e militares temporários  enquanto estiverem na ativa; com fé pública e validade em todo 0 território nacional.
+5.2 Considerando 0 exposto no Art. 30 , da Portaria Normativa nª 82/GM-MD, de 1ª de setembro de 2020, 0 cartão militar de identificação; de que trata 0 Art. 50 do Decreto nª8.518, de 18 de setembro de   2015, é documento   probatório e obrigatório para dependentes e pensionistas de militares e facultativo para oficiais da reserva não remunerada; com fé pública em todo 0 território nacional e válido como documento de identificação nas   relações com a administração   pública federal   direta;   autárquica e fundacional.
+5.3 Considerando 0 exposto no Art. 30 da Portaria Normativa nª 82/GM-MD, de 1ª de setembro de 2020, os   Comandantes da   Marinha, do Exército e da Aeronáutica   estão autorizados a baixar atos complementares necessários à execução desta Portaria Normativa.
+5.4 Baseado no texto que compõem a Portaria Normativa nª  82/GM-MD, de 1ª de setembro de 2020, 0 COMAER delegou competências ao COMGEP; por meio da DIRAP, para supervisionar; monitorar e controlar a confecção das carteiras e cartões de identificação de pessoal, através de processos de identificação; que são integrados por meio do sistema SIDENT.
+5.5 0 ciclo do Processo de Identificação de Pessoal do COMAER (figura 3) é integrado pelas atividades de: instrução normativa; execução   processual da coleta de dados biométricosldocumental; análise e avaliação processual, monitoramento de produção das identidades   expedidas/recebidas da   Empresa que customiza as carteiras/cartões , que finaliza com análise e elaboração de Relatório de Inconsistências geradas pelas SIDOM, que tem como objetivo de mitigar os erros coletados e passar para asa SIDOM informes;, orientações e precauções a serem aplicados; sendo transmitido por via videoconferência; ofício e e-mail funcional.
+Moniccramentc de Prcduçãc
+Instruçãc Normativa
+PLAN Analiee Elatoc Relutero DaInceneete
+ACT
+DO
+Análise e Avaliação
+CHECK
+Execuçãc Processual
+
+18/30
+NSCA 13-1/2023
+Figura 3 ~ Ciclo do Processo de Identificação
+5.6 INSTRUÇÃO NORMATIVA
+5.6.1 Atividade do processo desempenhada pelo Órgão Central do SIDENT, por meio da Divisão de Identificação.
+5.6.2 Processo destinado para   elaboração de regras de   procedimentos   para   abertura; desenvolvimento e conclusão das tarefas executadas   pelos   operadores e técnicos das SIDOM e da DID; aplicados ao COMAER. 0 seu fundamento advém de Portarias e Decretos do  Ministério da Defesa e Comando da   Aeronáutica; além das   orientações complementares expedidas pelo COMGEP.
+5.6.3 0 mecanismo utilizado pelo Órgão Central do SIDENT para disseminar as informações e orientações dos processos de identificação a0 Órgão Executivo de Registro é a Instrução do Comando da Aeronáutica 'Identificação do Pessoal? por via videoconferências ou por ofícios que englobam informações técnicas e documentais em vigor:
+5.7 EXECUÇÃQPROCESSUAL
+5.7.1 Atividade do processo desempenhada pelos Órgãos Executivos de Registro. 5.7.2 Processo iniciado com base nas Instruções Normativas, onde são coletados e registrados a biometria e documentos digitalmente do identificando; que são transmitidos, via SIDENT, ao Órgão Central para análise e avaliação do processo.
+5.8 ANÁLISE EAVALIAÇÃQ
+5.8.1 Atividade do processo desempenhada pelo Órgão Executivo de Monitoramento e Controle, por meio da Divisão de Identificação que analisa e avalia os registros realizados pelas SIDOM, com base nas Instruções Normativas e Regulamentos, com a finalidade de aprovar ou reprovar 0 processo de identificação. Havendo a reprovação do processo, por apresentar inconsistências; 0 processo é devolvido para a SIDOM de origem para sanar a pendência. Caso não haja inconsistências; 0 processo segue para a etapa de Monitoramento de Produção.
+5.9 MONITORAMENTO_DE PRQDUÇÃQ
+5.9.1 Atividadedo processo desempenhada pelo Órgão Central do SIDENT (DIRAP), por meio do Órgão Executivo de Monitoramento e Controle (DID) . 5.9.2 0 incremento dessa atividade pelo Órgão Central;, por meio do Órgão Executivo de Monitoramento e Controle, tem 0 seu  alicerce na Instrução Normativa confeccionada, apresentada e distribuída as SIDOM, pela Divisão de Identificação e aprovada pela DIRAP, como também, orientações disseminadas na página da DIRAP ou por meio documental, tendo como referência as documentações oriundas do Ministério da Defesa e COMGEP. Tal atividade permite não só avaliar as operações dos elos do SIDENT, como também atuar; oportunamente, na correção de eventuais desvios de procedimentos de identificação que estejam em desacordo com as normas em vigor.
+5.9.3 A Divisão de Identificação; Órgão Executivo de Monitoramento e Controle, faz um levantamento mensal das inconsistências processual apontadas pelos avaliadores da DID,
+
+NSCA 13-1/2023
+19/30
+onde passam por uma análise crítica; em comparação com as Normas vigentes, que ao final são apresentadas sugestões de melhoria do processo. Esta ação visa atender a demanda estipulada no Plano de Trabalho Anual da DIRAP.
+5.9.4 Como forma de garantir a qualidade da impressão; da veracidade das informações impressas nas carteiras/cartões de identificação, a Equipe Técnica da Divisão de Identificação faz 0 recebimento Qualitativo e Quantitativo; realizando a comparação com as informações expedidas e analisando a qualidade da impressão; levando em consideração os modelos existentes na Divisão. Caso seja reprovado à carteira/cartão de identificação, a Empresa é notificada e realiza uma nova impressão, sem ônus para 0 COMAER.
+5.9.5 A seguir; segue 0 fluxograma dos processos de identificação do SIDENT (figuras 4):
+Banco df Dacos Co SiDeNt
+selcilar SiDoy Uncacag Co Dec(2297
+MD teece g 2iD 0i  uansfntf Pard ( GoY8 -
+(e{ee Contere &5 Identndades da Wallei
+Piedaia Iste Oerldajc Dal3 avly VALID
+Faccoei Conter F Idanfidedes VAlio
+DiD (ececer rmaçao das Caiacnicia: coariqdas pela SiDoy
+xlar a
+Enijaces SIDOMvIu SlGicae
+Siv
+NAO
+Avallar dadas n44n0a SIDOM (Arqun? Frontuano Darlascocla
+1
+SM
+Wiyetkei0 A641 cea
+CID /ecebe
+Estoo Anuane
+Wluriagju Uue Ia processos de identilicacbo 0 Seiemnavalvdos
+Finu damnes olirnerter planiha Eslalusucus cuas Elebora Pelatoro de onssieus
+NAO
+0 Gov Br (E(pdf a quvo; farsiorma cadcs diqita mnenle grava ro banco dadas (devowe
+Fmorera [ecpof a quvos realzar : Vpieskao devolve Gara IID
+[mviesa
+ohficeda reaize T"oo dale " 10
+Modeler
+Figura 4 - Fluxograma de Processo de Identificação 5.10 ANÁLISE E ELABORAÇÃO DE RELATÓRIO DE INCONSISTÊNCIAS GERADAS PELAS SIDOM
+5.10.1 Atividadedo processo desempenhada pelo Órgão Central do SIDENT (DIRAP), por meio do Órgão Executivo de Monitoramento e Controle (DID) .
+5.10.2 A análise e a elaboração de relatório de inconsistências   correspondem ao levantamento mensal da Estatística de inconsistências apresentadas por número de processos executados por cada SIDOM. A Estatística é um indicador que dá parâmetros ao Órgão Central em avaliar 0 desempenho das SIDOM.
+5.10.2.1 Indicador:   quantidade de processos que entraram em exigência em relação à quantidade total de processos emitidos por SIDOM no mês; Interpretação: É considerado aceitável, se 0 índice ficar abaixo de 20%. Também, é feita a comparação entre 0 mês anterior e 0 atual, a fim de identificar se houve melhoria na gestão processual. Em síntese, quanto MENOR a quantidade de   processos em exigência até 0 fechamento do mês, MELHOR será 0 desempenho das SIDOM.
+5.10.3 0 objetivo final da análise e elaboração do relatório de inconsistências é demonstrar as SIDOM, através de videoconferências, os processos que foram recusados devido aos erros apresentados; repassando uma reorientação de como proceder; com 0 intuito final de mitigar as inconsistências apresentadas. 5.10.4 Após debate entre 0 Órgão Central, por meio do seu Órgão Executivo de Monitoramento e Controle e 0 Órgão Executivo de Registro; a Divisão de Identificação; havendo melhorias  no processo inicial, expedirá  documentos para as SIDOM tomarem
+
+20/30
+NSCA 13-1/2023
+ciência de novos procedimentos .
+
+NSCA 13-1/2023
+21/30
+6 INTERAÇÃO SISTÊMICA ENTRE OS ELEMENTOS COMPONENTES 6.1 Com objetivo de ter uma visualização do Sistema do SIDENT entre 0 Órgão Central e seus Elos, segue um esquema pictorial, conforme a interdependência entre os elementos na atividade desempenhada no ciclo do processo (figuras 5 e 6).
+6.2 Codificação das setas por sequência dentro do processo:
+1' Passo 2ª Passo 30 Passo 2 4ª Passo 5ª Passo
+[EcEq8
+Empresa Contratada
+govbi
+687 82
+Gap-SJ
+BAAF
+DIRAP
+Gapa]
+Baan
+GAPLs]
+ÓRGÃO CENTRAL
+2A2D
+SDPM / DID
+GaP @L
+ORGAO
+DE MoNiTORAMENTO econtrole
+Babv
+E
+FAca
+Gap cg
+BAFL
+CPER
+cioactat Gasv EEar
+BASC
+
+BII Bamn
+BAFZ
+Ercor
+4
+Figura 5 _ Interação Sistêmica entre os Elos Componentes
+4
+
+22/30
+NSCA 13-1/2023
+9
+Panco d Dacos SiDENT
+solcitar SiDov Ucacjbco Focessa
+ID recebe Proceeses d Zid Pwj ervie 62vB (AZLET)
+10 prepat lola ce Identklade Por sIDOM =ara Ano: ules VALD
+Did (ecere nf3uneçao das exiyencar (oieoig
+Kebe
+Lio Recprf Canteni Iapntdades Impresas Le , Vauo
+Idcnlajes Digila MALLL ( Pora [uiessmo
+envdags SIDOMvi SLG-CAS
+SiM
+Siv
+N4o
+Avahiar derlos emingos na SiDon gluga tantuano Dat lsscorua;
+Eslus Aleljye
+1
+NAO
+ogcnco
+0a30)
+Id ieccve ' Mnlorinagju QUC kentidades {cim Coc
+Didiecele
+No ternir ento mesaheotag slaniha exigenga a-raves SIDENI
+inluriucau Que h Vocesgus identifecurau SCiein uvalujos
+Ursoadslela
+1
+9
+1
+Modeler
+Figura 6  ~ Fluxograma da Interação Sistêmica entre os Elos Componentes
+
+NSCA 13-1/2023
+23/30
+7 RISCOS DO SISTEMA DE IDENTIFICAÇÃO DO COMAER
+7.1 0 Sistema de Identificação, SIDENT, tem em sua estrutura 26 postos de identificação representados pelas SIDOM, as quais foram criadas por meio de Portarias emitidas pelo Órgão Central, a fim de  atender pontos estratégicos em todo 0 território nacional. As SIDOM estão operacionalmente subordinadasao Órgão Central e administrativamente as suas OM. 0 processo de identificação envolve vários pré-requisitos a serem executados, tanto pelo identificando como pelo identificador; 0 que torna uma atividade complexa em seu contexto geral, acarretando a existência de diversos riscos que podem comprometer a eficiência e eficácia do sistema, podendo gerar consequências; tanto no âmbito interno, quanto no âmbito externo.
+7.2 0 processo de identificação abarca procedimentos internos e externos com a coleta de informações pessoais que devem estar muito bem definidos em sua Instrução Normativa, com 0 fito de evitar riscos inclusos na administração de forma direta ou indiretamente. Existe a probabilidade de ocorrer determinados riscos edevem ser tratados com uma visão holística como um todo. A fim de se ter uma linha de ação para mitigar tais riscos, é necessário conhecer OS mais   prováveis;, com objetivo de reduzi-los ou excluí-los do Sistema.
+7.3 IDENTIEICAÇÃO_DOS_RISCOS
+7.3.1 A identificação de riscos pode ser definida como 0 processo para determinar 0 que, onde, quando, porque e como algo poderia ocorrer: A escolha da abordagem dependerá da natureza das   atividades   que estão sendo   analisadas, dos   tipos de riscos, do contexto organizacional e da finalidade do estudo de gestão de riscos.
+7.3.2 Partindo do contexto organizacional OS riscos podem ser tipificados em questões internas   (forças e fraquezas),   questões externas (oportunidades e ameaças) , as partes interessadas (avaliadores e operadores) e 0 processo de identificação de forma geral. Tendo conhecimento dos   prováveis   riscos, as ações   mitigadoras surtiram mais efeito em eliminá-los.
+7.3.3 Após análise de cada etapa do processo de identificação, foram observados pontos críticos  que favorecem 0 surgimento de riscos que afetam; em parte ou como todo, 0 Sistema de   Identificação. Abordar estes   prováveis riscos é   prevenir de   problemas; garantindo que 0 SIDENT entregue os resultados planejados.
+7.3.3.1 Instrução Normativa; a Instrução Normativa desatualizada em relação as orientações, portarias e decretos do Grande Comando ou do Ministério da Defesa afetos ao Sistema de Identificação (SIDENT); b) Procedimentos   padronizados que   não são mais   exigidos,  dificultando abertura; desenvolvimento e conclusão do processo de identificação pelos Elos do SIDENT.
+7.3.3.2 Execução_Processual: a) captura digital biométrica e documental em desacordo com OS procedimentos previstos na Instrução Normativa x SIDENT; b) a constância permuta de operadores das SIDOM; e
+
+24/30
+NSCA 13-1/2023
+a falta de preparo dos operadores   para 0 atendimento ao público e 0 desinteresse em se atualizar com as normas vigentes.
+7.3.3.3 Análise _e _Avaliação: a) inconstante queda do SIDENT no momento da avaliação; dificultando a conclusão da análise; b) banco de dados do SIDENT parcialmente  digitalizado; necessidade de pesquisa ainda em arquivos; e aprimoramento do SIDENT falta  interação com outros Sistemas   para pesquisa.
+7.3.3.4 Monitoramento da Produção: a) coleta das informações de inconsistências de forma errônea; e b) reposição de   pessoal com expertise na avaliação do recebimento das identidades impressas.
+7.3.3.5 Análise e_Elaboração de_Relatório de Inconsistências Geradas pelas SIDOM: a) levantamento de dados para   realização da Estatística   imprecisa ou incorreta; b) deixar de realizar a videoconferência ou de expedir documentações apontando melhorias no processo para as SIDOM.
+7.4 ANÁLISE_DOS_RISCOS
+7.4.10 principal   objetivo da análise de riscos é antecipar as   situações   que possam representar ameaças para um negócio. Além disso; ela também aponta oportunidades e as probabilidades de que essas situações ocorram.
+7.4.2 A partir desse conhecimento; a Divisão de Identificação consegue elaborar planos de ação para enfrentar cada uma delas. E isso serve tanto para diminuir os impactos negativos quanto para aproveitar melhor as oportunidades . Os riscos serão identificados conforme a sua probabilidade de ocorrências e quais consequências   serão   geradas,   dependendo da influência das   forças ou fraquezas identificadas no ambiente onde 0 SIDENT está estruturado.
+7.4.3 Ainda mais, a análise de riscos permite que a Divisão de Identificação tome as providências necessárias para mitigar os riscos negativos; atuando de forma cirúrgica nos pontos sensíveis, conforme estipulado em seu Plano de Ação.
+7.4.4 INSTRUÇÃO NORMATIVA 7.4.4.1 Os riscos primordiais neste contexto estão relacionados a fatores como: a falta de atualização da Instrução Normativa ou das orientações do Elo Executivo de Monitoramento e Controle   (DID) serem insuficientes para 0 entendimento do Elo Executivo de Registro (SIDOM).
+7.4.4.2 A mitigação dos riscos apresentados se dá pelas constantes interações entre 0 Órgão Central do SIDENT com as coirmãs da Marinha do Brasil e Exército Brasileiro, visto que a fonte   originária das orientações advém do Ministério da   Defesa, além de   pesquisar informações de matérias ligadas à identificação no território nacional.
+
+NSCA 13-1/2023
+25/30
+7.4.5 EXECUÇÃO PROCESSUAL
+7.4.5.1 Falta de preparo dos operadores de como proceder da forma correta ao coletar um dado biométricoou a digitalização documental, por não se inteirar com a Instrução Normativa ou deixar de absorver 0 conhecimento de seu conteúdo.
+7.4.5.2 Devido as constantes   permutas  de operadores e chefes dos Elos Executivos de Registro (SIDOM), existe uma grande probabilidade dos processos serem confeccionados contendo erros, pois a0 serem analisados pelos avaliadores do Elo Executivo de Monitoramento e Controle; os mesmos são devolvidos por desconhecimento da Instrução ou orientações vigentes.
+7.4.5.3 Outro fator relevante desse tipo de risco pode ser reflexo de diversos fatores, dentre OS quais se destacam; como principais: quantidade de pessoal insuficiente, a ausência de pessoal   capacitado, para 0 desempenho de atividades com afinidade em  processo de identificação nos Elos Executivos de Monitoramento e Controle (DID), também 0 de Registro (SIDOM).
+7.4.5.4 De forma a reduzir este risco,o chefe das OM apoiadoras das SIDOM tenha 0 conhecimento da importância do processo de identificação em sua concepção inicial, visto que os dados coletados são registrados pelos Operadores integrantes das SIDOM, os quais necessitam estarempreparados para lidar com atendimento ao público; evitar os rodízios; manter 0 efetivo 0 mais permanente possível.
+7.4.5.5 0 Chefe deve primar  para   que todos OS operadores   tenham conhecimento da Instrução Normativa e das Orientações vigentes.
+7.4.6 ANÁLISE E AVALIAÇÃO 7.4.6.1 É um risco externo que influencia diretamente ao SIDENT, visto que seu ambiente de hospedagem se encontra fora da estrutura física do Órgão Central e há a necessidade de interação imediata ao suporte de manutenção, que nem sempre a resolução é rápida; gerando a consequência de acumulo de processos a serem analisados pelos avaliadores da DID .
+7.4.6.2 A falta de um banco de dados totalmente  digitalizado impacta na produção de confecção das identidades; visto que algumas informações ainda são obtidas  através de fichas em arquivos; podendo gerar erros de coleta de informação a0 ser consultado.
+7.4.6.3 Com objetivo de dar uma celeridade ao processo de identificação; diminuindo 0 risco na coleta de informações   pessoais no momento da análise processual pelos avaliadores da DID, 0 SIDENT deve passar por revisões de 66 'software? periodicamente e ter a capacidade de interagir com outros Sistemas da FAB;, a fim de ter uma busca de informação a mais precisa possível.
+7.4.7 MONITORAMENTO DA PRODUÇÃO 7.4.7.1 A probabilidade de risco nesta atividade está atrelada a0 fator que os índices são coletados   através do SIDENT, no entanto, 0 trato para uma tomada de decisão é feita manualmente através de informações coletadas em telas diferentes, podendo ocasionar uma coleta errônea e 0 poder decisório ser comprometido.
+7.4.7.2 Uma forma de mitigar esse risco é 0 aperfeiçoamento de canais de comunicação;
+
+26/30
+NSCA 13-1/2023
+entre os elementos componentes do SIDENT, que permitam maior celeridade e eficácia, podendo para isso utilizar os meios disponíveis no COMAER ou meios disponíveis no mercado com expertise em coleta biométrica e digitalização documental, além da manutenção e atualização do 66 'software" considerando, neste último   caso, 0 grau de segurança existente em relação às informações tramitadas.
+7.4.7.3 Aumentar 0 'staff' de seu efetivo; capacitando de forma progressiva; realocando pessoas quando existe a sinalização de algum membro da equipe técnica em solicitar a sua saída; com 0 objetivo de não perder a continuidade processual. 7.4.8 ANÁLISE E ELABORAÇÃO DE RELATÓRIO DE INCONSISTÊNCIAS GERADAS PELAS SIDOM
+7.4.8.1 A análise e elaboração de relatório de inconsistências geradas pelas SIDOM sendo imprecisas ou incorretas podem ensejar tomadas de decisões indevidas dentro da estrutura que compõem 0 SIDENT, principalmente no aspecto operacional, levando a possibilidade de   levantar   apontamentos   por deficiência humana, que acarreta demanda de tempo e retrabalho,   gerando transtorno na execução da meta   imposta pelo Órgão Central na produção de carteiras/cartões de identificação.
+7.4.8.2 A falta de repasse, por meio documental ou por videoconferência, das inconsistências levantadas pelo Elo Executivo de Monitoramento e Controle (DID) para 0 Elo Executivo de Registro (SIDOM), acarreta um acúmulo de erros que geram riscos de produção e retrabalho por todos os integrantes do SIDENT.
+7.4.8.3 Com 0 fito de reduzir os riscos apresentados, 0 Órgão Central do SIDENT, por meio do Elo Executivo de Monitoramento e Controle, adiciona em seu calendário administrativo a videoconferência com 0 Elo Executivo de Registro; a fim de repassar os supostos erros levantados, como também, apresentar novos modelos de processos, visando a melhoria   processual, informação e capacitação dos Operadores das SIDOM, com objetivo final em reduzir ou anular 0 número de inconsistências produzidas pelas SIDOM, que leva a redução de retrabalho por parte dos avaliadores da DID.
+
+NSCA 13-1/2023
+27/30
+8 DISPOSIÇÕES FINAIS 8.10 Órgão Central do SIDENT   poderá   fornecer   dados, documentos e informações pessoais sob sua salvaguarda a Órgãos Públicos externos a0 COMAER (e.g. Poder Judiciário, Ministério Público, Polícia Civil/Federal, Institutos  Médico-Legais)   quando requisitado oficialmente para tal. 8.2 0 Órgão Central do SIDENT poderá atender aos Pedidos de Acesso à Informação (e- SIC) e manifestações de Ouvidoria (e-OUV); formulados por qualquer cidadão, desde que haja total observância e aderência aos requisitos previstos na Lei n 12.527 de 18 de novembro de 2011, regulamentada pelo Decreto nª 7.724, de 16 de maio de 2012 e pela Lei no 13.460, de 26 de junho de 2017 (Código de Defesa dos Usuários de Serviços Públicos) .
+8.3 As informações pessoais obtidas nos postos de coletas SIDOM, são tratadas em acordo com a Lei nª 13.709,de 14 de agosto de 2018 _ Lei Geral de Proteção de Dados.
+8.4 Os casos não previstos nesta Norma serão submetidos à apreciação do Diretor  de Administração do Pessoal, por intermédio da cadeia de comando.
+
+28/30
+NSCA 13-1/2023
+REFERÊNCIAS
+BRASIL. Constituição da República Federativa do Brasil de 1988 (CRFBI1988) Diário Oficial [da] República Federativa do Brasil, Brasília, DF n 191-A, 05 de outubro de 1988. Seção I, p. I;
+BRASIL. Lei nª 13.954, de 16 de dezembro de 2019. Altera a Lei nª 6.880, de 9 de dezembro de 1980 (Estatuto dos Militares), a Lei nª 3.765, de 4 de maio de 1960, a Lei nª 4.375, de 17 de agosto de 1964 (Lei do Serviço Militar), a Lei nª 5.821,de 10 de novembro de 1972, a Lei nª 12.705, de 8 de agosto de 2012, e 0 Decreto-Lei nª 667, de 2 de julho de 1969, para reestruturar a carreira militar e dispor sobre 0 Sistema de Proteção Social dos Militares; revoga dispositivos e anexos da Medida Provisória nª 2.215-10, de 31 de agosto de 2001, e da Lei nª 11.784, de 22 de setembro de 2008; e dá outras providências. Diário Oficial [da] República Federativa do Brasil, Brasília, DF n0 243, 17 de dezembro de 2019. Seção 1, p. 2;
+BRASIL. Lei nª 12.527, de 18 de novembro de 2011. Regula 0 acesso a informações previsto no inciso XXXIII do art. 5ª no inciso II do 8 3ª do art. 37 e no $ 2ª do art. 216 da Constituição Federal; altera a Lei nª 8.112, de 11 de dezembro de 1990; revoga a Lei nª 11.111, de 5 de maio de 2005, e dispositivos da Lei nª 8.159, de 8 de janeiro de 1991; e dá outras providências. Diário Oficial [da] República Federativa do Brasil, Brasília, DF, n' 221-A Edição Extra, 18 de novembro de 2011. Seção 1, p. I;
+BRASIL. Lei nª 6.880, de 9 de dezembro de 1980. Dispõe sobre 0 Estatuto dos Militares. Diário Oficial [da] República Federativa do Brasil, Brasília, DF nª 236, 11 de dezembro de 1980. Seção 1, p. 24.777;
+BRASIL. Comando da Aeronáutica.  Diretriz do Comando da Aeronáutica (DCA) nª 11 - 127/2020. Estabelece os procedimentos e responsabilidades  para a efetivação do termo <Veterano no âmbito do Comando da Aeronáutica. Boletim do Comando da Aeronáutica (BCA), Rio de Janeiro, RJ, nª 031, de 27 de fevereiro de 2020.
+BRASIL. Decreto nª 10.986, de 8 de março de 2022. Dispõe sobre 0 Regulamento da Reserva da Aeronáutica. Diário Oficial [da] República Federativa do Brasil, Brasília, DF, edição n 46, de 9 de março de 2022. Seção 1, p. 3;
+BRASIL. Decreto nª 10.977, de 23 de fevereiro de 2022. Regulamenta a Lei n 7.116, de 29 de agosto de 1983, para estabelecer os procedimentos e os requisitos para a expedição da Carteira de Identidade por órgãos de identificação dos Estados e do Distrito Federal, e a Lei nª 9.454, de 7 de abril de 1997, para estabelecer 0 Serviço de Identificação do Cidadão como 0 Sistema Nacional de Registro de Identificação Civil. Diário Oficial [da] República Federativa do Brasil, Brasília, DF, n 28-A, 23 de fevereiro de 2022. Seção 1, p. I;
+BRASIL. Decreto nª 10.900, de 17 de dezembro de 2021. Dispõe sobre 0 Serviço de Identificação do Cidadão e a governança da identificação das pessoas naturais no âmbito da administração pública federal direta, autárquica e fundacional, e altera 0 Decreto nª 8.936, de 19 de dezembro de 2016, 0 Decreto nª 10.543, de 13 de novembro de 2020 e 0 Decreto nª 9.278, de 5 de fevereiro de 2018. Diário Oficial [da] República Federativa do Brasil, Brasília, DF n 237-A, 17 de dezembro de 2021. Seção 1, p. I;
+BRASIL. Decreto n 10.068, de 16 de outubro de 2019. Altera 0 Decreto nª 8.518, de 18 de  setembro de 2015, que dispõe sobre a carteira de identidade de militar das Forças
+
+NSCA 13-1/2023
+29/30
+Armadas, 0 documento de identificação de seus dependentes e pensionistas e 0 documento de identificação dos   integrantes da Marinha Mercante. Diário Oficial [da] República Federativa do Brasil, Brasília, DF , n 202, 17 de outubro de 2019. Seção 1, p. 3;
+BRASIL. Decreto nª 8.518, de 18 de setembro de 2015. Dispõe sobre a carteira de identidade de militar das   Forças Armadas; 0 documento de   identificação de seus dependentes e pensionistas e 0 documento de identificação dos integrantes da Marinha Mercante. Diário Oficial [da] República Federativa do Brasil, Brasília, DF nª 180, 21 de setembro de 2015. Seção 1, p. 2;
+BRASIL. Decreto nª 7.724, de 16 de maio de 2012. Regulamenta a Lei nª 12.527, de 18 de novembro de 2011, que dispõe sobre 0 acesso a informações previsto no inciso XXXIII do caput do art. 5ª  no inciso II do $ 3ª do art. 37 e no $ 2ª do art. 216 da Constituição. Diário Oficial [da] República Federativa do Brasil, Brasília; DF , nª 94-A Edição Extra, 16 de maio de 2012. Seção 1, p. I;
+Decreto nª 96.013, de 6 de maio de 1988. Altera dispositivo do Regulamento Disciplinar da Aeronáutica. Diário Oficial [da] República Federativa do Brasil, Brasília, DF, nª 88, 09 de maio de 1988. Seção 1, p: 8009
+BRASIL. Decreto no 76.322, de 22 de setembro de   1975, Aprova 0 Regulamento Disciplinar da Aeronáutica (RDAER) RMA 29-1/1975. Publicado no DOFC, de 23 de setembro de 1975, p. 012609 4;
+BRASIL. Ministério da Defesa. Gabinete do Ministro. Portaria Normativa n 3605/GM - MD, de 30 de junho de 2022. Altera a Portaria Normativa nª 82/GM-MD, de 1ª de setembro de 2020. Diário Oficial [da] República Federativa do Brasil, Brasília; DF nª 125, 5 de julho de 2022. Seção 1, p.179;
+BRASIL. Ministério da Defesa. Portaria Normativa nª 82/GM-MD, de 1ª de setembro de 2020. Regula os modelos, as características e oS critérios de expedição da carteira de identidade de militar das Forças Armadas, do cartão militar de   identificação de dependentes;   pensionistas e oficiais da reserva não   remunerada e do documento de identificação dos integrantes da Marinha Mercante; expedidos pela Marinha; pelo Exército e pela Aeronáutica e dá outras providências: Diário Oficial [da] República Federativa do Brasil, Brasília, DF nª 172, de 1ª de setembro de 2020. Seção 1, p. 7.
+BRASIL Comando da Aeronáutica. Portaria nª 1.787/GC3, de 4 de dezembro de 2017. Aprova a reedição do RCA 12-1 "Regulamento de Administração da Aeronáutica: Diário Oficial [da] República Federativa do Brasil, Brasília, DF , nª 235, de 8 de dezembro de 2017. Seção 1, p. 40.
+BRASIL Comando da Aeronáutica. Instrução do Comando da Aeronáutica (ICA) nª 205- 47/2015. Instrução   para a Salvaguarda de Assuntos   Sigilosos  da Aeronáutica (ISAS). Boletim do Comando da Aeronáutica (BCA), Rio de Janeiro, RJ, nª  237, de 28 de dezembro de 2015.
+BRASIL Comando da Aeronáutica. Portaria nª 687/GC3, de 17 de novembro de 2000. Aprova a "Reformulação do Sistema de   Identificação de Pessoal do Comando da Aeronáutica? . Boletim do Comando da Aeronáutica (BCA), Rio de Janeiro; RJ, nª 113-11, de 30 de novembro de 2000.
+
+30/30
+NSCA 13-1/2023
+Anexo A - Carteira de Identidade Militar (CIM)
+Frente
+Carteira de Identidade Militar (CEM) cow chips
+Carteira de Identidade Militar (cIM) Scow QR Code
+Ripublica Federatiya Do erasil Minisilkiu Va ullsa Tukcs Alkla Ukasillika CARTEIRA DE identioade MlITAR NO at0 6ik0
+ripurmisa5 Fderativa Do BraSil Kio DA Duiisa uRCA Alkia Urasiluika CARTEIRA De identioadE Militar No CEOSTho
+Foiuchdca
+Fostouhaba
+Daianscenio
+Co
+1
+Daianscno
+Cs
+Wu
+Sanau
+Ferso
+{co
+Kooai(a (l4(i 4othaliv [oC Ko
+Oeeeihcees
+Defesh Louioanufnocm
+A
+8
+Ieu
+Puei ca baneneoono ee ne 08no4i (De(elyo 7000/011
+
+NSCA 13-1/2023
+31/30
+Anexo B - Cartão Militar de Identificação (CMI)
+Freute
+Cartào Militar de Identificação (CMI) cow chips
+Cartão Militar de Identificação (CMI) Cowv QR Code
+rirunus;s{848A54Y5,98 xrAsn DA Dlesa FOkCA Afkfa Geasiltika CARTAO MiliTAR De identificacao AOVE Nr Reg {10
+Republica Fedekativa Do Brasil Minisilkio Da Dlilsa Fokca Alkia brasillika CartaO MiliTAR De iDentificAÇAO o Jhobifo
+Fostogriocai
+Fosiochdca
+caia MasCvenio
+CPf
+Daianounio
+C
+Eaal
+Saaau
+Ferso
+Iao
+Jacioan Cala[e ecothalng [aC Ccoy
+Gesuuncoa
+Defesa ueoioeipluci
+Kla
+'bia Lalanl
+uco Wguunn Dacioai (5(8e7oe8818ciu
+70
