@@ -18,7 +18,7 @@ import json
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import torch
@@ -81,11 +81,25 @@ class GenerateRequest(BaseModel):
     options: Optional[Dict[str, Any]] = None
     format: Optional[Dict[str, Any]] = None
     stream: bool = False
+    # Reasoning models (e.g. gemma4:*) emit a separate ``thinking`` channel
+    # that consumes the ``num_predict`` budget. Set ``think=False`` to disable
+    # it for short/structured outputs (NL-to-SQL, JSON), or
+    # ``"low"|"medium"|"high"`` to bound the reasoning effort.
+    think: Optional[Union[bool, str]] = None
+    # Forwarded as-is to Ollama; lets callers pin a model in VRAM longer.
+    keep_alive: Optional[Union[float, str]] = None
 
 class GenerateResponse(BaseModel):
     content: str
     model: str
     elapsed_ms: int
+    # Optional diagnostics — populated when the upstream Ollama response
+    # includes them. Adding fields with defaults preserves wire-compat with
+    # any pre-existing clients that only deserialize ``content``/``elapsed_ms``.
+    thinking: Optional[str] = None
+    done_reason: Optional[str] = None
+    eval_count: Optional[int] = None
+    prompt_eval_count: Optional[int] = None
 
 class HealthResponse(BaseModel):
     status: str
@@ -245,6 +259,41 @@ async def rerank(req: RerankRequest, x_api_key: Optional[str] = Header(None)):
     )
 
 
+def _resp_get(obj: Any, key: str, default: Any = None) -> Any:
+    """Read ``key`` from a pydantic model or a plain dict.
+
+    The Ollama Python client returns ``ChatResponse`` (a pydantic model that
+    also supports subscript access). Mocked responses in tests are plain
+    dicts. This helper keeps the endpoint code agnostic.
+    """
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
+
+
+def _build_chat_kwargs(req: GenerateRequest, *, stream: bool) -> Dict[str, Any]:
+    """Translate a :class:`GenerateRequest` into ``ollama.Client.chat`` kwargs.
+
+    Only forwards optional fields when the caller actually set them, so the
+    Ollama client falls back to its own defaults instead of receiving
+    ``None``s that some upstream versions reject.
+    """
+    kwargs: Dict[str, Any] = {
+        "model": req.model,
+        "messages": req.messages,
+        "stream": stream,
+    }
+    if req.options:
+        kwargs["options"] = req.options
+    if req.format:
+        kwargs["format"] = req.format
+    if req.think is not None:
+        kwargs["think"] = req.think
+    if req.keep_alive is not None:
+        kwargs["keep_alive"] = req.keep_alive
+    return kwargs
+
+
 @app.post("/v1/generate", response_model=GenerateResponse)
 async def generate(req: GenerateRequest, x_api_key: Optional[str] = Header(None)):
     _verify_key(x_api_key)
@@ -252,25 +301,41 @@ async def generate(req: GenerateRequest, x_api_key: Optional[str] = Header(None)
     client = _get_ollama_client()
     t0 = time.time()
 
-    kwargs: Dict[str, Any] = {
-        "model": req.model,
-        "messages": req.messages,
-        "stream": False,
-    }
-    if req.options:
-        kwargs["options"] = req.options
-    if req.format:
-        kwargs["format"] = req.format
+    kwargs = _build_chat_kwargs(req, stream=False)
 
     try:
         response = client.chat(**kwargs)
     except Exception as e:
         raise HTTPException(502, f"Ollama error: {e}")
 
-    content = response["message"]["content"]
+    message = _resp_get(response, "message", {}) or {}
+    content = _resp_get(message, "content", "") or ""
+    thinking = _resp_get(message, "thinking", "") or ""
+    done_reason = _resp_get(response, "done_reason")
+    eval_count = _resp_get(response, "eval_count")
+    prompt_eval_count = _resp_get(response, "prompt_eval_count")
     elapsed = int((time.time() - t0) * 1000)
 
-    return GenerateResponse(content=content, model=req.model, elapsed_ms=elapsed)
+    # Reasoning models can spend the entire ``num_predict`` budget inside
+    # ``thinking`` and return an empty ``content`` — the caller would
+    # otherwise see "10s, no output" with no clue why. Surface it.
+    if done_reason == "length" and not content:
+        logger.warning(
+            f"/v1/generate: empty content with done_reason=length "
+            f"(model={req.model}, eval_count={eval_count}, "
+            f"thinking_chars={len(thinking)}). "
+            f"Increase num_predict or pass think=false."
+        )
+
+    return GenerateResponse(
+        content=content,
+        model=req.model,
+        elapsed_ms=elapsed,
+        thinking=thinking or None,
+        done_reason=done_reason,
+        eval_count=eval_count,
+        prompt_eval_count=prompt_eval_count,
+    )
 
 
 @app.post("/v1/generate/stream")
@@ -280,19 +345,15 @@ async def generate_stream(
     _verify_key(x_api_key)
     client = _get_ollama_client()
 
-    kwargs: Dict[str, Any] = {
-        "model": req.model,
-        "messages": req.messages,
-        "stream": True,
-    }
-    if req.options:
-        kwargs["options"] = req.options
+    kwargs = _build_chat_kwargs(req, stream=True)
 
     def event_stream():
         try:
             for chunk in client.chat(**kwargs):
-                if "message" in chunk and "content" in chunk["message"]:
-                    data = json.dumps({"content": chunk["message"]["content"]})
+                message = _resp_get(chunk, "message", {}) or {}
+                content_piece = _resp_get(message, "content", "") or ""
+                if content_piece:
+                    data = json.dumps({"content": content_piece})
                     yield f"data: {data}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as e:
