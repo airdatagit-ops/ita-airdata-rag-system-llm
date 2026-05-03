@@ -730,12 +730,20 @@ O pipeline de ingestão foi reestruturado em **3 fases independentes e idempoten
 
 ### Armazenamento
 
-| Componente | Tecnologia | Caminho |
-|------------|-----------|---------|
-| Registro de documentos | SQLite | `data/store.db` |
-| Embeddings densos | Parquet (Snappy) | `data/embeddings/dense/` |
-| Embeddings esparsos | Parquet (Snappy) | `data/embeddings/sparse/` |
-| Busca vetorial | Qdrant | `localhost:6333` |
+| Componente | Tecnologia | Caminho | Modo |
+|------------|-----------|---------|------|
+| Registro de documentos (catálogo) | SQLite | `data/store.db` | Imutável em produção (regenerado pelo pipeline de ingestão) |
+| Dados operacionais (feedback, futuro: users/flags/config/chat/audit) | SQLite | `data/app.db` | Gravável (WAL) |
+| Embeddings densos | Parquet (Snappy) | `data/embeddings/dense/` | — |
+| Embeddings esparsos | Parquet (Snappy) | `data/embeddings/sparse/` | — |
+| Busca vetorial | Qdrant | `localhost:6333` | — |
+
+A separação entre catálogo imutável (`store.db`) e dados operacionais
+(`app.db`) permite que o Datasette sirva ambos ao mesmo tempo, que os
+pipelines de ingestão regenerem `store.db` sem afetar telemetria do chat,
+e que novas tabelas (users, feature flags, configuração dinâmica, etc.)
+entrem em `app.db` como migrations numeradas sem refactor. Ver
+[`docs/migrations/2026-05-03_FEEDBACK_SQLITE.md`](docs/migrations/2026-05-03_FEEDBACK_SQLITE.md).
 
 ### Fase 1: Collect (`make collect`)
 
@@ -818,7 +826,14 @@ make query SQL="SELECT source, COUNT(*) AS total, ROUND(AVG(LENGTH(content))) AS
 make explore    # Abre o Datasette no navegador (http://localhost:8001)
 ```
 
-O Datasette oferece uma interface web completa para navegar tabelas, aplicar filtros visuais, executar SQL arbitrário e exportar resultados em JSON/CSV. O banco abre em **modo read-only** (`--immutable`).
+O Datasette oferece uma interface web completa para navegar tabelas, aplicar filtros visuais, executar SQL arbitrário e exportar resultados em JSON/CSV.
+
+Dois bancos são servidos em paralelo:
+
+- `store` (`data/store.db`) — **imutável**, catálogo de documentos.
+- `app` (`data/app.db`) — **gravável** (WAL), dados operacionais: eventos de feedback do chat em `feedback_events` e view consolidada em `feedback_current`. Aceita queries salvas úteis em `metadata.yml` (`thumbs_down_last_7d`, `avg_stars_by_model`, `feedback_with_sources`).
+
+Use `make app-init` para criar `data/app.db` e aplicar migrations antes do primeiro `make explore`; `make feedback-backfill` importa ratings legados dos JSONs.
 
 **Autenticação:** O acesso requer login. Ao abrir, você será redirecionado para a página de login. Usuários configurados:
 
@@ -856,7 +871,7 @@ allow:
 **Deploy em produção (Nginx):**
 
 ```bash
-python -m datasette serve --immutable data/store.db --metadata metadata.yml \
+python -m datasette serve --immutable data/store.db data/app.db --metadata metadata.yml \
   --host 127.0.0.1 --port 8001 --setting base_url /explore/ --cors
 ```
 
