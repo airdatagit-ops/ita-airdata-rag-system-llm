@@ -204,7 +204,8 @@ pipeline: collect embed index
 query:
 	$(PYTHON) -m scripts.query $(if $(SQL),--sql "$(SQL)",)
 
-explore:
+explore: app-init
+	@echo "→ Datasette em http://127.0.0.1:8001/explore/"
 	$(PYTHON) -m datasette serve --immutable $(STORE_DB) $(APP_DB) --metadata metadata.yml --open --setting base_url /explore/ --setting sql_time_limit_ms 30000
 
 migrate:
