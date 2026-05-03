@@ -533,7 +533,8 @@
     
     createRatingHTML(messageId, hasSources = false, existingRatings = null) {
       const ratings = existingRatings || {};
-      
+      const feedback = (existingRatings && existingRatings.__feedback) || {};
+
       const categories = [
         { id: 'factual_accuracy', label: 'Precisão', tooltip: 'Informações corretas e sem alucinações' },
         { id: 'completeness', label: 'Completude', tooltip: 'Abordou todos os aspectos' },
@@ -541,8 +542,17 @@
         { id: 'citation_quality', label: 'Citações', tooltip: 'Citou corretamente as normas', requiresSources: true },
         { id: 'relevance', label: 'Relevância', tooltip: 'Manteve-se no tema solicitado' }
       ];
-      
-      let categoriesHTML = categories
+
+      const reasons = [
+        { id: 'hallucination',  label: 'Informação incorreta / alucinação' },
+        { id: 'incomplete',     label: 'Incompleta' },
+        { id: 'off_topic',      label: 'Fora do tema' },
+        { id: 'wrong_citation', label: 'Citação errada' },
+        { id: 'unclear',        label: 'Pouco clara' },
+        { id: 'other',          label: 'Outro' }
+      ];
+
+      const categoriesHTML = categories
         .filter(cat => !cat.requiresSources || hasSources)
         .map(cat => `
           <div class="rating-category-compact">
@@ -552,88 +562,204 @@
             </div>
           </div>
         `).join('');
-      
+
+      const thumbsUpActive   = feedback.thumbs === 'up' ? 'active' : '';
+      const thumbsDownActive = feedback.thumbs === 'down' ? 'active' : '';
+      const hasAnyStar = categories.some(c => ratings[c.id]);
+      const stars0pen = hasAnyStar ? 'open' : '';
+
       return `
-        <div class="message-rating" data-message-id="${messageId}">
-          <div class="rating-grid">
-            ${categoriesHTML}
+        <div class="message-feedback" data-message-id="${messageId}">
+          <div class="feedback-row">
+            <span class="feedback-prompt">Essa resposta foi útil?</span>
+            <button type="button" class="thumbs-btn ${thumbsUpActive}"
+                    data-thumbs="up" aria-label="Resposta útil">👍</button>
+            <button type="button" class="thumbs-btn ${thumbsDownActive}"
+                    data-thumbs="down" aria-label="Resposta não útil">👎</button>
+            <button type="button" class="feedback-toggle" data-target="stars" aria-expanded="${hasAnyStar}">
+              ⭐ Detalhes
+            </button>
+            <button type="button" class="feedback-toggle" data-target="comment" aria-expanded="false">
+              💬 Comentar
+            </button>
+            <span class="rating-status" role="status" aria-live="polite"
+                  id="rating-status-${messageId}"></span>
           </div>
-          <div class="rating-status" id="rating-status-${messageId}"></div>
+
+          <div class="feedback-reasons" data-role="reasons" hidden>
+            <label class="feedback-reasons-label">O que pode melhorar?</label>
+            <select class="feedback-reason-select" data-role="reason-select">
+              <option value="">— selecione (opcional) —</option>
+              ${reasons.map(r => `<option value="${r.id}">${r.label}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="feedback-comment" data-role="comment" hidden>
+            <textarea class="feedback-comment-input"
+                      data-role="comment-input"
+                      rows="2"
+                      placeholder="Opcional: diga o que faltou ou o que ficou bom"></textarea>
+            <button type="button" class="btn btn-secondary btn-sm" data-role="comment-submit">Enviar comentário</button>
+          </div>
+
+          <div class="feedback-stars ${stars0pen}" data-role="stars" ${hasAnyStar ? '' : 'hidden'}>
+            <div class="rating-grid">
+              ${categoriesHTML}
+            </div>
+          </div>
         </div>
       `;
     },
-    
+
     createStarsHTML(category, messageId, currentRating = 0) {
       let html = '';
       for (let i = 1; i <= 5; i++) {
         const filled = i <= currentRating ? 'filled' : '';
-        html += `<span class="star ${filled}" data-value="${i}">★</span>`;
+        html += `<span class="star ${filled}" data-value="${i}" role="button" tabindex="0" aria-label="${i} estrelas">★</span>`;
       }
       return html;
     },
-    
+
     bindRatingEvents(messageDiv, messageId) {
-      const starContainers = messageDiv.querySelectorAll('.star-rating');
-      
-      starContainers.forEach(container => {
+      const root = messageDiv.querySelector('.message-feedback');
+      if (!root) return;
+
+      // Stars
+      root.querySelectorAll('.star-rating').forEach(container => {
         const stars = container.querySelectorAll('.star');
         const category = container.dataset.category;
-        
+
         stars.forEach(star => {
-          // Hover effect
           star.addEventListener('mouseenter', () => {
             const value = parseInt(star.dataset.value);
-            stars.forEach((s, idx) => {
-              s.classList.toggle('hover', idx < value);
-            });
+            stars.forEach((s, idx) => s.classList.toggle('hover', idx < value));
           });
-          
           star.addEventListener('mouseleave', () => {
             stars.forEach(s => s.classList.remove('hover'));
           });
-          
-          // Click to rate
           star.addEventListener('click', () => {
             const value = parseInt(star.dataset.value);
-            this.submitRating(messageId, category, value);
-            
-            // Update visual
-            stars.forEach((s, idx) => {
-              s.classList.toggle('filled', idx < value);
+            const alreadyFilled = star.classList.contains('filled');
+            // Clicking the currently-filled rightmost star clears the rating.
+            const next = alreadyFilled && value === this._currentStarValue(stars)
+              ? 0
+              : value;
+            stars.forEach((s, idx) => s.classList.toggle('filled', idx < next));
+            this.submitFeedback({
+              messageId,
+              kind: 'star',
+              category,
+              rating: next
             });
           });
         });
       });
+
+      // Thumbs
+      const thumbsBtns = root.querySelectorAll('.thumbs-btn');
+      thumbsBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const value = btn.dataset.thumbs;
+          const wasActive = btn.classList.contains('active');
+          thumbsBtns.forEach(b => b.classList.remove('active'));
+          if (wasActive) {
+            // Second click on the active thumb: treat as a "comment" update
+            // with empty feedback — no-op visually. Not undoing the server
+            // record, because the append-only log preserves intent.
+            return;
+          }
+          btn.classList.add('active');
+          this.submitFeedback({ messageId, kind: 'thumbs', thumbs: value });
+          // Reveal reasons panel on thumbs-down; hide on thumbs-up.
+          const reasons = root.querySelector('[data-role="reasons"]');
+          if (reasons) reasons.hidden = value !== 'down';
+        });
+      });
+
+      // Reason select (auto-submits when a non-empty value is chosen
+      // together with the last thumbs=down click).
+      const reasonSelect = root.querySelector('[data-role="reason-select"]');
+      if (reasonSelect) {
+        reasonSelect.addEventListener('change', () => {
+          const val = reasonSelect.value;
+          if (!val) return;
+          this.submitFeedback({
+            messageId,
+            kind: 'thumbs',
+            thumbs: 'down',
+            reason_code: val
+          });
+        });
+      }
+
+      // Comment
+      root.querySelectorAll('.feedback-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.target;
+          const panel = root.querySelector(`[data-role="${target}"]`);
+          if (!panel) return;
+          const willOpen = panel.hidden;
+          panel.hidden = !willOpen;
+          btn.setAttribute('aria-expanded', String(willOpen));
+        });
+      });
+
+      const commentInput = root.querySelector('[data-role="comment-input"]');
+      const commentSubmit = root.querySelector('[data-role="comment-submit"]');
+      if (commentSubmit && commentInput) {
+        commentSubmit.addEventListener('click', () => {
+          const text = commentInput.value.trim();
+          if (!text) return;
+          this.submitFeedback({ messageId, kind: 'comment', comment: text });
+          commentInput.value = '';
+        });
+      }
     },
-    
-    async submitRating(messageId, category, value) {
+
+    _currentStarValue(stars) {
+      let v = 0;
+      stars.forEach((s, idx) => {
+        if (s.classList.contains('filled')) v = Math.max(v, idx + 1);
+      });
+      return v;
+    },
+
+    async submitFeedback(payload) {
+      const { messageId, kind, category, rating, thumbs, comment, reason_code } = payload;
       const statusEl = document.getElementById(`rating-status-${messageId}`);
-      
+
       try {
-        const response = await fetch(`${ROOT_PATH}/api/chat/rate`, {
+        const body = {
+          session_id: this.sessionId,
+          message_id: messageId,
+          kind
+        };
+        if (category)   body.category    = category;
+        if (rating !== undefined && rating !== null) body.rating = rating;
+        if (thumbs)     body.thumbs      = thumbs;
+        if (comment)    body.comment     = comment;
+        if (reason_code) body.reason_code = reason_code;
+
+        const response = await fetch(`${ROOT_PATH}/api/chat/feedback`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            session_id: this.sessionId,
-            message_id: messageId,
-            category: category,
-            rating: value
-          })
+          body: JSON.stringify(body)
         });
-        
+
         if (response.ok) {
           if (statusEl) {
-            statusEl.textContent = '✅ Avaliação salva!';
+            statusEl.textContent = '✅ Obrigado pelo feedback!';
             statusEl.className = 'rating-status success';
             setTimeout(() => { statusEl.textContent = ''; }, 2000);
           }
         } else {
-          throw new Error('Erro ao salvar');
+          const err = await response.text();
+          throw new Error(err || `HTTP ${response.status}`);
         }
       } catch (error) {
-        console.error('Error submitting rating:', error);
+        console.error('Error submitting feedback:', error);
         if (statusEl) {
-          statusEl.textContent = '❌ Erro ao salvar avaliação';
+          statusEl.textContent = '❌ Erro ao salvar';
           statusEl.className = 'rating-status error';
         }
       }
@@ -1170,13 +1296,15 @@
         // Render messages
         if (data.messages) {
           data.messages.forEach(msg => {
+            const ratings = msg.ratings ? { ...msg.ratings } : {};
+            if (msg.feedback) ratings.__feedback = msg.feedback;
             this.addMessage(
               msg.role,
               msg.content,
               msg.sources,
               msg.model,
               msg.processing_time_ms,
-              msg.ratings || null,
+              Object.keys(ratings).length ? ratings : null,
               msg.message_id || null
             );
           });
