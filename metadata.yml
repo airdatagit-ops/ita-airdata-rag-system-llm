@@ -1,5 +1,8 @@
-title: "Aviation RAG - Document Store"
-description: "Explorador de documentos coletados (SISLAER, LexML, DECEA, PDFs)"
+title: "Aviation RAG - Explorer"
+description: |
+  Explorador do catálogo de documentos (SISLAER, LexML, DECEA, PDFs) e dos
+  dados operacionais do sistema (hoje: feedback do chat; futuro: usuários,
+  feature flags, configuração dinâmica, histórico de chat, audit log).
 
 allow:
   id:
@@ -15,6 +18,52 @@ plugins:
 
 databases:
   store:
+    title: "Catálogo de documentos (imutável)"
     tables:
       documents:
         sort_desc: updated_at
+  app:
+    title: "Dados operacionais (feedback e futuro)"
+    description: |
+      SQLite gravável com eventos de feedback do chat. Visão consolidada em
+      `feedback_current` (último estado por mensagem). Novos domínios
+      (users, feature_flags, app_settings, chat_*) entram aqui sem refactor.
+    tables:
+      feedback_events:
+        sort_desc: created_at
+      feedback_current:
+        sort_desc: last_event_at
+    queries:
+      thumbs_down_last_7d:
+        title: "Thumbs down nos últimos 7 dias"
+        sql: |
+          SELECT created_at, session_id, message_id, reason_code, comment, model_used
+          FROM feedback_events
+          WHERE kind = 'thumbs' AND thumbs = 'down'
+            AND created_at >= strftime('%Y-%m-%dT%H:%M:%SZ', datetime('now','-7 days'))
+          ORDER BY created_at DESC
+      avg_stars_by_model:
+        title: "Média de estrelas por categoria, por modelo"
+        sql: |
+          SELECT
+            model_used,
+            star_category,
+            COUNT(*)             AS n,
+            ROUND(AVG(star_value), 2) AS avg_stars
+          FROM feedback_events
+          WHERE kind = 'star' AND star_value BETWEEN 1 AND 5
+          GROUP BY model_used, star_category
+          ORDER BY model_used, star_category
+      feedback_with_sources:
+        title: "Feedback com fontes e pergunta"
+        sql: |
+          SELECT
+            created_at, session_id, message_id,
+            kind, thumbs, star_category, star_value,
+            reason_code, comment,
+            model_used, user_query,
+            substr(assistant_text, 1, 300) AS assistant_preview,
+            sources_json
+          FROM feedback_events
+          ORDER BY created_at DESC
+          LIMIT 200

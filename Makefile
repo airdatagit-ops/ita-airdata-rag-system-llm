@@ -18,6 +18,7 @@ PDF_DIR ?= ./data/pdfs
 MODE ?=
 BATCH_SIZE ?=
 STORE_DB ?= data/store.db
+APP_DB   ?= data/app.db
 SQL ?=
 INPUT ?=
 OUTPUT ?=
@@ -73,6 +74,8 @@ help:
 	@echo "  make query                                        Open interactive SQL console"
 	@echo "  make query SQL='SELECT source, COUNT(*) ...'      Run a one-shot SQL query"
 	@echo "  make explore                                      Open datasette web UI for the store"
+	@echo "  make app-init                                     Ensure data/app.db exists and migrations are applied"
+	@echo "  make feedback-backfill                            Import legacy ratings from web/chat_history/*.json"
 	@echo ""
 	@echo "  ── development ──────────────────────────────────────────────────────"
 	@echo "  make install                                      Create venvs + install backend & web deps"
@@ -202,10 +205,16 @@ query:
 	$(PYTHON) -m scripts.query $(if $(SQL),--sql "$(SQL)",)
 
 explore:
-	$(PYTHON) -m datasette serve --immutable $(STORE_DB) --metadata metadata.yml --open --setting base_url /explore/ --setting sql_time_limit_ms 30000
+	$(PYTHON) -m datasette serve --immutable $(STORE_DB) $(APP_DB) --metadata metadata.yml --open --setting base_url /explore/ --setting sql_time_limit_ms 30000
 
 migrate:
 	@$(PYTHON) -c "from pipeline.document_store import DocumentStore; store = DocumentStore(); store.close()"
+
+app-init:
+	@$(PYTHON) -c "import importlib.util as u; s=u.spec_from_file_location('app_store','web/app/app_store.py'); m=u.module_from_spec(s); s.loader.exec_module(m); m.AppStore('$(APP_DB)').close(); print('AppStore ready at $(APP_DB)')"
+
+feedback-backfill: app-init
+	$(PYTHON) scripts/backfill_feedback_from_json.py $(if $(HISTORY_DIR),--history-dir $(HISTORY_DIR),) $(if $(APP_DB),--db $(APP_DB),)
 
 clean:
 	rm -f evaluation/results/*.csv evaluation/results/*.json
