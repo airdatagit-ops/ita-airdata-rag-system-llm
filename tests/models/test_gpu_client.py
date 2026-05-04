@@ -94,6 +94,7 @@ class TestCreateLlm:
         mock_cfg.LLM_TEMPERATURE = 0.7
         mock_cfg.LLM_TOP_P = 0.9
         mock_cfg.LLM_MAX_TOKENS = 1024
+        mock_cfg.LLM_THINK = None
         mock_cfg.GPU_SERVER_URL = "http://gpu:8090"
         mock_cfg.GPU_SERVER_API_KEY = ""
         mock_cfg.GPU_SERVER_TIMEOUT = 120
@@ -110,6 +111,7 @@ class TestCreateLlm:
         mock_cfg.LLM_TEMPERATURE = 0.7
         mock_cfg.LLM_TOP_P = 0.9
         mock_cfg.LLM_MAX_TOKENS = 1024
+        mock_cfg.LLM_THINK = None
         mock_cfg.GPU_SERVER_URL = "http://gpu:8090"
         mock_cfg.GPU_SERVER_API_KEY = ""
         mock_cfg.GPU_SERVER_TIMEOUT = 120
@@ -311,29 +313,43 @@ class TestRemoteDocumentEvaluator:
 # ---------------------------------------------------------------------------
 
 class TestRemoteLlamaModel:
+    @staticmethod
+    def _setup_cfg(mock_cfg, **overrides):
+        defaults = {
+            "OLLAMA_MODEL": "test-llm",
+            "LLM_TEMPERATURE": 0.7,
+            "LLM_TOP_P": 0.9,
+            "LLM_MAX_TOKENS": 1024,
+            "LLM_THINK": None,
+            "GPU_SERVER_URL": "http://gpu:8090",
+            "GPU_SERVER_API_KEY": "",
+            "GPU_SERVER_TIMEOUT": 120,
+        }
+        defaults.update(overrides)
+        for k, v in defaults.items():
+            setattr(mock_cfg, k, v)
+
+    @staticmethod
+    def _stub_post(llm, payload):
+        fake_resp = MagicMock()
+        fake_resp.json.return_value = payload
+        fake_resp.raise_for_status = MagicMock()
+        llm._client = MagicMock()
+        llm._client.post.return_value = fake_resp
+        return fake_resp
+
     @patch("models.gpu_client._base_url", return_value="http://gpu:8090")
     @patch("models.gpu_client._headers", return_value={"Content-Type": "application/json"})
     @patch("models.gpu_client.config")
     def test_generate_returns_content(self, mock_cfg, _h, _u):
-        mock_cfg.OLLAMA_MODEL = "test-llm"
-        mock_cfg.LLM_TEMPERATURE = 0.7
-        mock_cfg.LLM_TOP_P = 0.9
-        mock_cfg.LLM_MAX_TOKENS = 1024
-        mock_cfg.GPU_SERVER_URL = "http://gpu:8090"
-        mock_cfg.GPU_SERVER_API_KEY = ""
-        mock_cfg.GPU_SERVER_TIMEOUT = 120
+        self._setup_cfg(mock_cfg)
 
         llm = RemoteLlamaModel()
-
-        fake_resp = MagicMock()
-        fake_resp.json.return_value = {
+        self._stub_post(llm, {
             "content": "Generated answer.",
             "model": "test-llm",
             "elapsed_ms": 500,
-        }
-        fake_resp.raise_for_status = MagicMock()
-        llm._client = MagicMock()
-        llm._client.post.return_value = fake_resp
+        })
 
         result = llm.generate("prompt text", system_prompt="system")
 
@@ -342,31 +358,165 @@ class TestRemoteLlamaModel:
         call_json = llm._client.post.call_args[1]["json"]
         assert call_json["model"] == "test-llm"
         assert len(call_json["messages"]) == 2
+        # ``think`` must NOT be sent unless explicitly requested — keeps wire
+        # compat with proxy builds that don't accept it yet.
+        assert "think" not in call_json
 
     @patch("models.gpu_client._base_url", return_value="http://gpu:8090")
     @patch("models.gpu_client._headers", return_value={"Content-Type": "application/json"})
     @patch("models.gpu_client.config")
     def test_chat_sends_messages_directly(self, mock_cfg, _h, _u):
-        mock_cfg.OLLAMA_MODEL = "test-llm"
-        mock_cfg.LLM_TEMPERATURE = 0.7
-        mock_cfg.LLM_TOP_P = 0.9
-        mock_cfg.LLM_MAX_TOKENS = 1024
-        mock_cfg.GPU_SERVER_URL = "http://gpu:8090"
-        mock_cfg.GPU_SERVER_API_KEY = ""
-        mock_cfg.GPU_SERVER_TIMEOUT = 120
+        self._setup_cfg(mock_cfg)
 
         llm = RemoteLlamaModel()
-
-        fake_resp = MagicMock()
-        fake_resp.json.return_value = {"content": "Chat reply.", "elapsed_ms": 100}
-        fake_resp.raise_for_status = MagicMock()
-        llm._client = MagicMock()
-        llm._client.post.return_value = fake_resp
+        self._stub_post(llm, {"content": "Chat reply.", "elapsed_ms": 100})
 
         msgs = [{"role": "user", "content": "Hello"}]
         result = llm.chat(msgs)
 
         assert result == "Chat reply."
+
+    # ------------------------------------------------------------------
+    # ``think`` parameter — passthrough + opt-out
+    # ------------------------------------------------------------------
+
+    @patch("models.gpu_client._base_url", return_value="http://gpu:8090")
+    @patch("models.gpu_client._headers", return_value={"Content-Type": "application/json"})
+    @patch("models.gpu_client.config")
+    def test_generate_forwards_think_from_constructor(self, mock_cfg, _h, _u):
+        self._setup_cfg(mock_cfg)
+
+        llm = RemoteLlamaModel(think=False)
+        assert llm.think is False
+        self._stub_post(llm, {"content": "ok", "elapsed_ms": 10})
+
+        llm.generate("p")
+
+        call_json = llm._client.post.call_args[1]["json"]
+        assert call_json["think"] is False
+
+    @patch("models.gpu_client._base_url", return_value="http://gpu:8090")
+    @patch("models.gpu_client._headers", return_value={"Content-Type": "application/json"})
+    @patch("models.gpu_client.config")
+    def test_generate_per_call_think_overrides_default(self, mock_cfg, _h, _u):
+        self._setup_cfg(mock_cfg)
+
+        llm = RemoteLlamaModel(think=True)
+        self._stub_post(llm, {"content": "ok", "elapsed_ms": 10})
+
+        llm.generate("p", think=False)
+
+        call_json = llm._client.post.call_args[1]["json"]
+        assert call_json["think"] is False
+
+    @patch("models.gpu_client._base_url", return_value="http://gpu:8090")
+    @patch("models.gpu_client._headers", return_value={"Content-Type": "application/json"})
+    @patch("models.gpu_client.config")
+    def test_chat_forwards_think(self, mock_cfg, _h, _u):
+        self._setup_cfg(mock_cfg)
+
+        llm = RemoteLlamaModel()
+        self._stub_post(llm, {"content": "ok", "elapsed_ms": 10})
+
+        llm.chat([{"role": "user", "content": "hi"}], think="medium")
+
+        call_json = llm._client.post.call_args[1]["json"]
+        assert call_json["think"] == "medium"
+
+    @patch("models.gpu_client._base_url", return_value="http://gpu:8090")
+    @patch("models.gpu_client._headers", return_value={"Content-Type": "application/json"})
+    @patch("models.gpu_client.config")
+    def test_think_from_config_is_normalised(self, mock_cfg, _h, _u):
+        # Production wires this via .env: ``LLM_THINK=false``.
+        self._setup_cfg(mock_cfg, LLM_THINK="false")
+
+        llm = RemoteLlamaModel()
+
+        assert llm.think is False
+
+    @patch("models.gpu_client._base_url", return_value="http://gpu:8090")
+    @patch("models.gpu_client._headers", return_value={"Content-Type": "application/json"})
+    @patch("models.gpu_client.config")
+    def test_warns_when_done_reason_length_with_empty_content(
+        self, mock_cfg, _h, _u, caplog,
+    ):
+        """Reproduce the silent-empty-response failure mode for thinking
+        models so the client gets a loud warning instead of an empty string."""
+        import logging
+        from loguru import logger as loguru_logger
+
+        self._setup_cfg(mock_cfg)
+        llm = RemoteLlamaModel()
+        self._stub_post(llm, {
+            "content": "",
+            "model": "test-llm",
+            "elapsed_ms": 5000,
+            "done_reason": "length",
+            "eval_count": 512,
+            "thinking": "internal reasoning that ate the budget" * 20,
+        })
+
+        # Loguru → stdlib logging bridge so caplog can capture it.
+        handler_id = loguru_logger.add(
+            lambda m: logging.getLogger("loguru").warning(m), level="WARNING",
+        )
+        try:
+            with caplog.at_level(logging.WARNING, logger="loguru"):
+                result = llm.generate("p")
+        finally:
+            loguru_logger.remove(handler_id)
+
+        assert result == ""
+        assert any(
+            "done_reason=length" in rec.message for rec in caplog.records
+        ), f"expected truncation warning, got: {[r.message for r in caplog.records]}"
+
+    @patch("models.gpu_client._base_url", return_value="http://gpu:8090")
+    @patch("models.gpu_client._headers", return_value={"Content-Type": "application/json"})
+    @patch("models.gpu_client.config")
+    def test_extra_response_fields_do_not_break_legacy_return(
+        self, mock_cfg, _h, _u,
+    ):
+        """A new-shape response (with ``thinking``/``done_reason``) must keep
+        returning the same plain string the existing callers expect."""
+        self._setup_cfg(mock_cfg)
+        llm = RemoteLlamaModel()
+        self._stub_post(llm, {
+            "content": "the answer",
+            "model": "test-llm",
+            "elapsed_ms": 100,
+            "thinking": "step 1, step 2",
+            "done_reason": "stop",
+            "eval_count": 42,
+            "prompt_eval_count": 7,
+        })
+
+        assert llm.generate("p") == "the answer"
+
+
+# ---------------------------------------------------------------------------
+# _normalise_think — env/config string parsing
+# ---------------------------------------------------------------------------
+
+class TestNormaliseThink:
+    @pytest.mark.parametrize("raw,expected", [
+        (None, None),
+        ("", None),
+        ("None", None),
+        (True, True),
+        (False, False),
+        ("true", True),
+        ("FALSE", False),
+        ("1", True),
+        ("0", False),
+        ("low", "low"),
+        ("MEDIUM", "medium"),
+        ("high", "high"),
+        ("garbage", None),
+    ])
+    def test_normalisation(self, raw, expected):
+        from models.gpu_client import _normalise_think
+        assert _normalise_think(raw) == expected
 
 
 # ---------------------------------------------------------------------------
