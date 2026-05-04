@@ -78,12 +78,22 @@ _HEADER_PATTERNS = [
         r'^\s*DEPARTAMENTO\s+DE\s+CONTROLE\s+DO\s+ESPAÇO\s+AÉREO\s*$',
         re.MULTILINE | re.IGNORECASE,
     ),
+    re.compile(
+        r'^\s*AGÊNCIA\s+NACIONAL\s+DE\s+AVIAÇÃO\s+CIVIL\s*$',
+        re.MULTILINE | re.IGNORECASE,
+    ),
 ]
 
 # Page-level ICA identifier repeated on every page (e.g. "ICA 63-12/2021")
 _ICA_PAGE_HEADER = re.compile(
     r'^\s*ICA\s+\d+[-–]\d+/\d{4}\s*$',
     re.MULTILINE,
+)
+
+# Page-level RBAC identifier repeated on every page (e.g. "RBAC nº 35 EMD 10")
+_RBAC_PAGE_HEADER = re.compile(
+    r'^\s*RBAC\s+n[°º]?\s*\d+\s+EMD\s+\d+\s*$',
+    re.MULTILINE | re.IGNORECASE,
 )
 
 # Page numbers in "N/M" format on their own line (e.g. "10/26")
@@ -346,6 +356,11 @@ class TextCleaner:
         if len(ica_matches) > 1:
             text = _ICA_PAGE_HEADER.sub('', text)
             total_removed += len(ica_matches)
+
+        rbac_matches = _RBAC_PAGE_HEADER.findall(text)
+        if len(rbac_matches) > 1:
+            text = _RBAC_PAGE_HEADER.sub('', text)
+            total_removed += len(rbac_matches)
 
         return text, total_removed
 

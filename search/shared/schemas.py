@@ -82,11 +82,13 @@ class FilterRegistry:
     _STATIC_TYPES: List[str] = [
         "ICA", "PCA", "RICA", "MCA", "DCA", "NSCA", "TCA", "FCA",
         "BCA", "BMA", "IMA", "ROCA", "RCA", "NPA",
+        "RBAC",  # Regulamentos Brasileiros da Aviação Civil (ANAC)
     ]
 
     _STATIC_AUTHORITIES: List[str] = [
         "GABAER", "DECEA", "EMAER", "DEPENS", "COMGAP",
         "DCTA", "DIRSA", "CENIPA", "DIRINFRA", "DIRAD",
+        "ANAC",  # Agência Nacional de Aviação Civil
     ]
 
     MAX_PROMPT_TYPES = 14

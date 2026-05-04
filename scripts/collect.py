@@ -341,7 +341,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Phase 1 -- Collect documents into store")
     parser.add_argument(
         "--sources", type=str, default="sislaer,lexml",
-        help="Comma-separated sources to collect (sislaer, lexml, decea, pdf)",
+        help="Comma-separated sources to collect (sislaer, lexml, decea, anac_rbac, pdf)",
     )
     parser.add_argument("--limit", type=int, default=0, help="Max documents per source (0 = unlimited)")
     parser.add_argument("--concurrency", type=int, default=10, help="Parallel downloads")
