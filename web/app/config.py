@@ -52,6 +52,19 @@ class Settings(BaseSettings):
     # API Configuration
     API_BASE_URL: str = _get('API_BASE_URL')
     API_KEY: str = _get('API_KEY')
+    AUTH_MODE: str = _get('AUTH_MODE', 'api_key')
+
+    # Drupal OAuth2
+    SESSION_SECRET_KEY: str = _get('SESSION_SECRET_KEY', _get('API_KEY', 'change-me'))
+    DRUPAL_OAUTH_BASE_URL: str = _get('DRUPAL_OAUTH_BASE_URL').rstrip('/')
+    DRUPAL_OAUTH_CLIENT_ID: str = _get('DRUPAL_OAUTH_CLIENT_ID')
+    DRUPAL_OAUTH_CLIENT_SECRET: str = _get('DRUPAL_OAUTH_CLIENT_SECRET')
+    DRUPAL_OAUTH_AUTHORIZE_URL: str = _get('DRUPAL_OAUTH_AUTHORIZE_URL')
+    DRUPAL_OAUTH_TOKEN_URL: str = _get('DRUPAL_OAUTH_TOKEN_URL')
+    DRUPAL_OAUTH_USERINFO_URL: str = _get('DRUPAL_OAUTH_USERINFO_URL')
+    DRUPAL_OAUTH_SCOPES: str = _get('DRUPAL_OAUTH_SCOPES', 'openid profile email')
+    DRUPAL_OAUTH_CALLBACK_PATH: str = _get('DRUPAL_OAUTH_CALLBACK_PATH', '/auth/callback')
+    SESSION_COOKIE_SECURE: bool = _get('SESSION_COOKIE_SECURE', 'False').lower() in ('true', '1', 'yes')
 
     # Application
     APP_NAME: str = _get('APP_NAME', 'Aviation RAG Web Interface')

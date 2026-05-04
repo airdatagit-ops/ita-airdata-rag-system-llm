@@ -2,11 +2,15 @@
 
 import httpx
 import json
+import secrets
 from pathlib import Path
+from urllib.parse import urlencode
+
 from fastapi import FastAPI, Request, Form, HTTPException
+from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse, JSONResponse
+from starlette.middleware.sessions import SessionMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
@@ -34,6 +38,80 @@ http_client = httpx.AsyncClient(timeout=180.0)
 # Chat history directory
 CHAT_HISTORY_DIR = Path("chat_history")
 CHAT_HISTORY_DIR.mkdir(exist_ok=True)
+
+
+def _oauth_enabled() -> bool:
+    return settings.AUTH_MODE.lower() in {"drupal_oauth2", "oauth2", "api_key_or_drupal_oauth2", "api_key_or_oauth2"}
+
+
+def _authorize_url() -> str:
+    if settings.DRUPAL_OAUTH_AUTHORIZE_URL:
+        return settings.DRUPAL_OAUTH_AUTHORIZE_URL
+    return f"{settings.DRUPAL_OAUTH_BASE_URL}/oauth/authorize"
+
+
+def _token_url() -> str:
+    if settings.DRUPAL_OAUTH_TOKEN_URL:
+        return settings.DRUPAL_OAUTH_TOKEN_URL
+    return f"{settings.DRUPAL_OAUTH_BASE_URL}/oauth/token"
+
+
+def _userinfo_url() -> str:
+    if settings.DRUPAL_OAUTH_USERINFO_URL:
+        return settings.DRUPAL_OAUTH_USERINFO_URL
+    if settings.DRUPAL_OAUTH_BASE_URL:
+        return f"{settings.DRUPAL_OAUTH_BASE_URL}/oauth/userinfo"
+    return ""
+
+
+def _user_from_session(request: Request) -> dict | None:
+    return request.session.get("user")
+
+
+def _api_headers(request: Request) -> dict[str, str]:
+    token = request.session.get("access_token") if _oauth_enabled() else None
+    if token:
+        return {"Authorization": f"Bearer {token}"}
+    return {"X-API-Key": settings.API_KEY}
+
+
+def _template_context(request: Request, current_page: str, **extra):
+    context = {
+        "request": request,
+        "current_page": current_page,
+        "auth_enabled": _oauth_enabled(),
+        "current_user": _user_from_session(request),
+    }
+    context.update(extra)
+    return context
+
+
+@app.middleware("http")
+async def require_web_authentication(request: Request, call_next):
+    """Require Drupal OAuth2 login for the web UI when OAuth mode is enabled."""
+    if not _oauth_enabled():
+        return await call_next(request)
+
+    path = request.url.path
+    public_paths = ("/login", settings.DRUPAL_OAUTH_CALLBACK_PATH, "/logout", "/health")
+    if path.startswith("/static/") or path in public_paths:
+        return await call_next(request)
+
+    if request.session.get("access_token"):
+        return await call_next(request)
+
+    if path.startswith("/api/"):
+        return JSONResponse({"detail": "Login required"}, status_code=401)
+
+    return RedirectResponse(url=f"{request.url_for('login')}?next={path}", status_code=302)
+
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SESSION_SECRET_KEY,
+    https_only=settings.SESSION_COOKIE_SECURE,
+    same_site="lax",
+)
 
 
 def _generate_title_from_messages(messages: list, max_length: int = 50) -> str:
@@ -64,12 +142,91 @@ async def shutdown_event():
     await http_client.aclose()
 
 
+@app.get("/login")
+async def login(request: Request, next: str = "/"):
+    """Start Drupal OAuth2 authorization-code login."""
+    if not _oauth_enabled():
+        return RedirectResponse(url=next, status_code=302)
+
+    if not settings.DRUPAL_OAUTH_CLIENT_ID or not settings.DRUPAL_OAUTH_BASE_URL:
+        raise HTTPException(status_code=500, detail="Drupal OAuth2 is not configured")
+
+    state = secrets.token_urlsafe(32)
+    request.session["oauth_state"] = state
+    request.session["next_url"] = next if next.startswith("/") else "/"
+
+    params = {
+        "response_type": "code",
+        "client_id": settings.DRUPAL_OAUTH_CLIENT_ID,
+        "redirect_uri": str(request.url_for("auth_callback")),
+        "scope": settings.DRUPAL_OAUTH_SCOPES,
+        "state": state,
+    }
+    return RedirectResponse(url=f"{_authorize_url()}?{urlencode(params)}", status_code=302)
+
+
+@app.get(settings.DRUPAL_OAUTH_CALLBACK_PATH, name="auth_callback")
+async def auth_callback(request: Request, code: str | None = None, state: str | None = None, error: str | None = None):
+    """Complete Drupal OAuth2 authorization-code login."""
+    if error:
+        raise HTTPException(status_code=401, detail=f"Drupal OAuth2 error: {error}")
+
+    if not code or not state or state != request.session.get("oauth_state"):
+        raise HTTPException(status_code=401, detail="Invalid OAuth2 callback")
+
+    data = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": str(request.url_for("auth_callback")),
+        "client_id": settings.DRUPAL_OAUTH_CLIENT_ID,
+    }
+    if settings.DRUPAL_OAUTH_CLIENT_SECRET:
+        data["client_secret"] = settings.DRUPAL_OAUTH_CLIENT_SECRET
+
+    response = await http_client.post(_token_url(), data=data)
+    if response.status_code != 200:
+        logger.error(f"Drupal token exchange failed: {response.status_code} - {response.text}")
+        raise HTTPException(status_code=401, detail="Could not authenticate with Drupal")
+
+    token_data = response.json()
+    access_token = token_data.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Drupal did not return an access token")
+
+    user = {"name": "Usuário autenticado"}
+    userinfo_url = _userinfo_url()
+    if userinfo_url:
+        user_response = await http_client.get(
+            userinfo_url,
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        if user_response.status_code == 200:
+            user = user_response.json()
+        else:
+            logger.warning(f"Could not fetch Drupal userinfo: {user_response.status_code} - {user_response.text}")
+
+    next_url = request.session.get("next_url", "/")
+    request.session.clear()
+    request.session["access_token"] = access_token
+    request.session["refresh_token"] = token_data.get("refresh_token")
+    request.session["user"] = user
+    return RedirectResponse(url=next_url, status_code=302)
+
+
+@app.get("/logout")
+async def logout(request: Request):
+    """Clear the local web session."""
+    request.session.clear()
+    target = str(request.url_for("login")) if _oauth_enabled() else str(request.url_for("home"))
+    return RedirectResponse(url=target, status_code=302)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     """Home page."""
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "current_page": "home"}
+        _template_context(request, "home")
     )
 
 
@@ -78,7 +235,7 @@ async def search_page(request: Request):
     """Search page."""
     return templates.TemplateResponse(
         "search.html",
-        {"request": request, "current_page": "pesquisa"}
+        _template_context(request, "pesquisa")
     )
 
 
@@ -105,7 +262,7 @@ async def search_post(
             payload["score_threshold"] = score_threshold
         
         # Call vector-only search API (faster, no LLM)
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         response = await http_client.post(
             f"{settings.API_BASE_URL}/api/vector-search",
             json=payload,
@@ -116,39 +273,31 @@ async def search_post(
             result = response.json()
             return templates.TemplateResponse(
                 "search.html",
-                {
-                    "request": request,
-                    "current_page": "pesquisa",
-                    "query": query,
-                    "result": result,
-                    "search_params": {
+                _template_context(
+                    request,
+                    "pesquisa",
+                    query=query,
+                    result=result,
+                    search_params={
                         "date": date,
                         "limit": limit,
                         "score_threshold": score_threshold
-                    }
-                }
+                    },
+                )
             )
         else:
             error_msg = f"API Error: {response.status_code}"
             logger.error(f"{error_msg} - {response.text}")
             return templates.TemplateResponse(
                 "search.html",
-                {
-                    "request": request,
-                    "current_page": "pesquisa",
-                    "error": error_msg
-                }
+                _template_context(request, "pesquisa", error=error_msg)
             )
             
     except Exception as e:
         logger.error(f"Error processing search: {e}")
         return templates.TemplateResponse(
             "search.html",
-            {
-                "request": request,
-                "current_page": "pesquisa",
-                "error": str(e)
-            }
+            _template_context(request, "pesquisa", error=str(e))
         )
 
 
@@ -157,7 +306,7 @@ async def stats_page(request: Request):
     """Statistics page."""
     try:
         # Call API
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         response = await http_client.get(
             f"{settings.API_BASE_URL}/stats",
             headers=headers
@@ -167,34 +316,26 @@ async def stats_page(request: Request):
             stats = response.json()
             return templates.TemplateResponse(
                 "stats.html",
-                {
-                    "request": request,
-                    "current_page": "estatisticas",
-                    "stats": stats,
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                }
+                _template_context(
+                    request,
+                    "estatisticas",
+                    stats=stats,
+                    timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                )
             )
         else:
             error_msg = f"API Error: {response.status_code}"
             logger.error(f"{error_msg} - {response.text}")
             return templates.TemplateResponse(
                 "stats.html",
-                {
-                    "request": request,
-                    "current_page": "estatisticas",
-                    "error": error_msg
-                }
+                _template_context(request, "estatisticas", error=error_msg)
             )
             
     except Exception as e:
         logger.error(f"Error fetching stats: {e}")
         return templates.TemplateResponse(
             "stats.html",
-            {
-                "request": request,
-                "current_page": "estatisticas",
-                "error": str(e)
-            }
+            _template_context(request, "estatisticas", error=str(e))
         )
 
 
@@ -203,7 +344,7 @@ async def about_page(request: Request):
     """About page."""
     return templates.TemplateResponse(
         "about.html",
-        {"request": request, "current_page": "sobre"}
+        _template_context(request, "sobre")
     )
 
 
@@ -216,7 +357,7 @@ async def chat_page(request: Request):
     """Chat page with model selection."""
     try:
         # Get available models from API
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         response = await http_client.get(
             f"{settings.API_BASE_URL}/api/models",
             headers=headers
@@ -233,25 +374,25 @@ async def chat_page(request: Request):
         
         return templates.TemplateResponse(
             "chat.html",
-            {
-                "request": request,
-                "current_page": "chat",
-                "models": models,
-                "current_model": current_model
-            }
+            _template_context(
+                request,
+                "chat",
+                models=models,
+                current_model=current_model,
+            )
         )
         
     except Exception as e:
         logger.error(f"Error loading chat page: {e}")
         return templates.TemplateResponse(
             "chat.html",
-            {
-                "request": request,
-                "current_page": "chat",
-                "models": [],
-                "current_model": "",
-                "error": str(e)
-            }
+            _template_context(
+                request,
+                "chat",
+                models=[],
+                current_model="",
+                error=str(e),
+            )
         )
 
 
@@ -266,7 +407,7 @@ async def send_chat_message(request: Request):
         debug = body.get("debug", False)
         model_name = body.get("model_name")
         
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         
         # Change model if specified
         if model_name:
@@ -335,7 +476,7 @@ async def stream_chat_message(request: Request):
         debug = body.get("debug", False)
         model_name = body.get("model_name")
         
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         
         # Change model if specified
         if model_name:
@@ -494,7 +635,7 @@ async def change_model_proxy(request: Request):
     """Proxy model change request to API."""
     try:
         body = await request.json()
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         
         response = await http_client.post(
             f"{settings.API_BASE_URL}/api/models/change",
@@ -515,10 +656,10 @@ async def change_model_proxy(request: Request):
 
 
 @app.get("/api/models")
-async def get_models_proxy():
+async def get_models_proxy(request: Request):
     """Proxy models list request to API."""
     try:
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         
         response = await http_client.get(
             f"{settings.API_BASE_URL}/api/models",
