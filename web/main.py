@@ -44,6 +44,14 @@ def _oauth_enabled() -> bool:
     return settings.AUTH_MODE.lower() in {"drupal_oauth2", "oauth2", "api_key_or_drupal_oauth2", "api_key_or_oauth2"}
 
 
+def _local_login_enabled() -> bool:
+    return settings.WEB_LOGIN_ENABLED and not _oauth_enabled()
+
+
+def _web_auth_enabled() -> bool:
+    return _oauth_enabled() or _local_login_enabled()
+
+
 def _authorize_url() -> str:
     if settings.DRUPAL_OAUTH_AUTHORIZE_URL:
         return settings.DRUPAL_OAUTH_AUTHORIZE_URL
@@ -65,6 +73,8 @@ def _userinfo_url() -> str:
 
 
 def _user_from_session(request: Request) -> dict | None:
+    if _local_login_enabled() and request.session.get("local_authenticated"):
+        return {"name": request.session.get("local_username", settings.WEB_LOGIN_USERNAME)}
     return request.session.get("user")
 
 
@@ -79,7 +89,7 @@ def _template_context(request: Request, current_page: str, **extra):
     context = {
         "request": request,
         "current_page": current_page,
-        "auth_enabled": _oauth_enabled(),
+        "auth_enabled": _web_auth_enabled(),
         "current_user": _user_from_session(request),
     }
     context.update(extra)
@@ -88,8 +98,8 @@ def _template_context(request: Request, current_page: str, **extra):
 
 @app.middleware("http")
 async def require_web_authentication(request: Request, call_next):
-    """Require Drupal OAuth2 login for the web UI when OAuth mode is enabled."""
-    if not _oauth_enabled():
+    """Require a web login when OAuth2 or local presentation auth is enabled."""
+    if not _web_auth_enabled():
         return await call_next(request)
 
     path = request.url.path
@@ -97,7 +107,7 @@ async def require_web_authentication(request: Request, call_next):
     if path.startswith("/static/") or path in public_paths:
         return await call_next(request)
 
-    if request.session.get("access_token"):
+    if request.session.get("access_token") or request.session.get("local_authenticated"):
         return await call_next(request)
 
     if path.startswith("/api/"):
@@ -144,7 +154,17 @@ async def shutdown_event():
 
 @app.get("/login")
 async def login(request: Request, next: str = "/"):
-    """Start Drupal OAuth2 authorization-code login."""
+    """Show local login or start Drupal OAuth2 authorization-code login."""
+    if _local_login_enabled():
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "next_url": next if next.startswith("/") else "/",
+                "username": settings.WEB_LOGIN_USERNAME,
+            },
+        )
+
     if not _oauth_enabled():
         return RedirectResponse(url=next, status_code=302)
 
@@ -163,6 +183,40 @@ async def login(request: Request, next: str = "/"):
         "state": state,
     }
     return RedirectResponse(url=f"{_authorize_url()}?{urlencode(params)}", status_code=302)
+
+
+@app.post("/login")
+async def local_login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    next_url: str = Form("/"),
+):
+    """Authenticate with the temporary local web login."""
+    if not _local_login_enabled():
+        return RedirectResponse(url=str(request.url_for("login")), status_code=302)
+
+    if not settings.WEB_LOGIN_PASSWORD:
+        raise HTTPException(status_code=500, detail="WEB_LOGIN_PASSWORD is not configured")
+
+    username_ok = secrets.compare_digest(username, settings.WEB_LOGIN_USERNAME)
+    password_ok = secrets.compare_digest(password, settings.WEB_LOGIN_PASSWORD)
+    if not username_ok or not password_ok:
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "next_url": next_url if next_url.startswith("/") else "/",
+                "username": username,
+                "error": "Usuário ou senha inválidos.",
+            },
+            status_code=401,
+        )
+
+    request.session.clear()
+    request.session["local_authenticated"] = True
+    request.session["local_username"] = username
+    return RedirectResponse(url=next_url if next_url.startswith("/") else "/", status_code=302)
 
 
 @app.get(settings.DRUPAL_OAUTH_CALLBACK_PATH, name="auth_callback")
@@ -217,7 +271,7 @@ async def auth_callback(request: Request, code: str | None = None, state: str | 
 async def logout(request: Request):
     """Clear the local web session."""
     request.session.clear()
-    target = str(request.url_for("login")) if _oauth_enabled() else str(request.url_for("home"))
+    target = str(request.url_for("login")) if _web_auth_enabled() else str(request.url_for("home"))
     return RedirectResponse(url=target, status_code=302)
 
 

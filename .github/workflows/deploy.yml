@@ -18,6 +18,23 @@ jobs:
 
     steps:
       - name: Deploy
+        env:
+          PRODUCTION_ENV: ${{ secrets.PRODUCTION_ENV }}
+          PRODUCTION_WEB_ENV: ${{ secrets.PRODUCTION_WEB_ENV }}
+          AUTH_MODE: ${{ secrets.AUTH_MODE }}
+          DRUPAL_OAUTH_BASE_URL: ${{ secrets.DRUPAL_OAUTH_BASE_URL }}
+          DRUPAL_OAUTH_CLIENT_ID: ${{ secrets.DRUPAL_OAUTH_CLIENT_ID }}
+          DRUPAL_OAUTH_CLIENT_SECRET: ${{ secrets.DRUPAL_OAUTH_CLIENT_SECRET }}
+          DRUPAL_OAUTH_AUTHORIZE_URL: ${{ secrets.DRUPAL_OAUTH_AUTHORIZE_URL }}
+          DRUPAL_OAUTH_TOKEN_URL: ${{ secrets.DRUPAL_OAUTH_TOKEN_URL }}
+          DRUPAL_OAUTH_INTROSPECTION_URL: ${{ secrets.DRUPAL_OAUTH_INTROSPECTION_URL }}
+          DRUPAL_OAUTH_USERINFO_URL: ${{ secrets.DRUPAL_OAUTH_USERINFO_URL }}
+          DRUPAL_OAUTH_SCOPES: ${{ secrets.DRUPAL_OAUTH_SCOPES }}
+          SESSION_SECRET_KEY: ${{ secrets.SESSION_SECRET_KEY }}
+          SESSION_COOKIE_SECURE: ${{ secrets.SESSION_COOKIE_SECURE }}
+          WEB_LOGIN_ENABLED: ${{ secrets.WEB_LOGIN_ENABLED }}
+          WEB_LOGIN_USERNAME: ${{ secrets.WEB_LOGIN_USERNAME }}
+          WEB_LOGIN_PASSWORD: ${{ secrets.WEB_LOGIN_PASSWORD }}
         run: |
           BRANCH="${{ github.event.inputs.branch }}"
           echo "========================================="
@@ -27,4 +44,73 @@ jobs:
           cd "$PROJECT_DIR"
           git fetch origin
           git checkout "$BRANCH"
+
+          upsert_env() {
+            local file="$1"
+            local key="$2"
+            local value="$3"
+
+            [[ -n "${value:-}" ]] || return 0
+            touch "$file"
+            if grep -q "^${key}=" "$file"; then
+              python3 - "$file" "$key" "$value" <<'PY'
+          import sys
+          from pathlib import Path
+
+          path = Path(sys.argv[1])
+          key = sys.argv[2]
+          value = sys.argv[3]
+          lines = path.read_text().splitlines()
+          path.write_text("\n".join(
+              f"{key}={value}" if line.startswith(f"{key}=") else line
+              for line in lines
+          ) + "\n")
+          PY
+            else
+              printf '%s=%s\n' "$key" "$value" >> "$file"
+            fi
+          }
+
+          sync_oauth_env() {
+            local file="$1"
+            local has_oauth="${AUTH_MODE:-}${DRUPAL_OAUTH_BASE_URL:-}${DRUPAL_OAUTH_CLIENT_ID:-}${DRUPAL_OAUTH_CLIENT_SECRET:-}${DRUPAL_OAUTH_AUTHORIZE_URL:-}${DRUPAL_OAUTH_TOKEN_URL:-}${DRUPAL_OAUTH_INTROSPECTION_URL:-}${DRUPAL_OAUTH_USERINFO_URL:-}"
+            [[ -n "$has_oauth" ]] || return 0
+
+            upsert_env "$file" AUTH_MODE "${AUTH_MODE:-drupal_oauth2}"
+            upsert_env "$file" DRUPAL_OAUTH_BASE_URL "${DRUPAL_OAUTH_BASE_URL:-}"
+            upsert_env "$file" DRUPAL_OAUTH_CLIENT_ID "${DRUPAL_OAUTH_CLIENT_ID:-}"
+            upsert_env "$file" DRUPAL_OAUTH_CLIENT_SECRET "${DRUPAL_OAUTH_CLIENT_SECRET:-}"
+            upsert_env "$file" DRUPAL_OAUTH_AUTHORIZE_URL "${DRUPAL_OAUTH_AUTHORIZE_URL:-}"
+            upsert_env "$file" DRUPAL_OAUTH_TOKEN_URL "${DRUPAL_OAUTH_TOKEN_URL:-}"
+            upsert_env "$file" DRUPAL_OAUTH_INTROSPECTION_URL "${DRUPAL_OAUTH_INTROSPECTION_URL:-}"
+            upsert_env "$file" DRUPAL_OAUTH_USERINFO_URL "${DRUPAL_OAUTH_USERINFO_URL:-}"
+            upsert_env "$file" DRUPAL_OAUTH_SCOPES "${DRUPAL_OAUTH_SCOPES:-openid profile email}"
+          }
+
+          if [[ -n "${PRODUCTION_ENV:-}" ]]; then
+            printf '%s\n' "$PRODUCTION_ENV" > "$PROJECT_DIR/.env"
+            chmod 600 "$PROJECT_DIR/.env"
+            echo "Root .env synced from GitHub secret PRODUCTION_ENV"
+          else
+            echo "GitHub secret PRODUCTION_ENV is empty; keeping existing root .env"
+          fi
+          sync_oauth_env "$PROJECT_DIR/.env"
+          chmod 600 "$PROJECT_DIR/.env"
+
+          if [[ -n "${PRODUCTION_WEB_ENV:-}" ]]; then
+            mkdir -p "$PROJECT_DIR/web"
+            printf '%s\n' "$PRODUCTION_WEB_ENV" > "$PROJECT_DIR/web/.env"
+            chmod 600 "$PROJECT_DIR/web/.env"
+            echo "Web .env synced from GitHub secret PRODUCTION_WEB_ENV"
+          else
+            echo "GitHub secret PRODUCTION_WEB_ENV is empty; keeping existing web/.env"
+          fi
+          sync_oauth_env "$PROJECT_DIR/web/.env"
+          upsert_env "$PROJECT_DIR/web/.env" SESSION_SECRET_KEY "${SESSION_SECRET_KEY:-}"
+          upsert_env "$PROJECT_DIR/web/.env" SESSION_COOKIE_SECURE "${SESSION_COOKIE_SECURE:-true}"
+          upsert_env "$PROJECT_DIR/web/.env" WEB_LOGIN_ENABLED "${WEB_LOGIN_ENABLED:-true}"
+          upsert_env "$PROJECT_DIR/web/.env" WEB_LOGIN_USERNAME "${WEB_LOGIN_USERNAME:-airdata}"
+          upsert_env "$PROJECT_DIR/web/.env" WEB_LOGIN_PASSWORD "${WEB_LOGIN_PASSWORD:-AirData-M7q9-V2x4-Kp31}"
+          chmod 600 "$PROJECT_DIR/web/.env"
+
           sudo /usr/bin/bash "$PROJECT_DIR/deploy/deploy.sh"

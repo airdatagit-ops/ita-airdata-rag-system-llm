@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Entrar | AirData RAG</title>
+  <link rel="stylesheet" href="{{ request.url_for('static', path='css/login.css') }}">
+</head>
+<body>
+  <main class="login-shell">
+    <section class="login-panel" aria-label="Acesso ao sistema">
+      <div class="brand">
+        <img src="{{ request.url_for('static', path='images/airdata-logo.png') }}" alt="AirData" class="brand-logo">
+        <div>
+          <p class="brand-kicker">Sistema RAG</p>
+          <h1>AirData</h1>
+        </div>
+      </div>
+
+      <form class="login-form" method="post" action="{{ request.url_for('local_login') }}">
+        <input type="hidden" name="next_url" value="{{ next_url }}">
+
+        <label for="username">Usuário</label>
+        <input id="username" name="username" type="text" value="{{ username or '' }}" autocomplete="username" required autofocus>
+
+        <label for="password">Senha</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+        {% if error %}
+          <p class="login-error" role="alert">{{ error }}</p>
+        {% endif %}
+
+        <button type="submit">Entrar</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

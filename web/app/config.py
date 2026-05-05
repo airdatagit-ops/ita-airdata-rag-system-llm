@@ -66,6 +66,11 @@ class Settings(BaseSettings):
     DRUPAL_OAUTH_CALLBACK_PATH: str = _get('DRUPAL_OAUTH_CALLBACK_PATH', '/auth/callback')
     SESSION_COOKIE_SECURE: bool = _get('SESSION_COOKIE_SECURE', 'False').lower() in ('true', '1', 'yes')
 
+    # Temporary local web login for demos/presentations
+    WEB_LOGIN_ENABLED: bool = _get('WEB_LOGIN_ENABLED', 'False').lower() in ('true', '1', 'yes')
+    WEB_LOGIN_USERNAME: str = _get('WEB_LOGIN_USERNAME', 'airdata')
+    WEB_LOGIN_PASSWORD: str = _get('WEB_LOGIN_PASSWORD')
+
     # Application
     APP_NAME: str = _get('APP_NAME', 'Aviation RAG Web Interface')
     APP_VERSION: str = _get('APP_VERSION', '1.0.0')
