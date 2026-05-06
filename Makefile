@@ -202,7 +202,7 @@ query:
 	$(PYTHON) -m scripts.query $(if $(SQL),--sql "$(SQL)",)
 
 explore:
-	$(PYTHON) -m datasette serve --immutable $(STORE_DB) --metadata metadata.yml --open --setting sql_time_limit_ms 30000
+	$(PYTHON) -m datasette serve --immutable $(STORE_DB) --metadata metadata.yml --open --setting base_url /explore/ --setting sql_time_limit_ms 30000
 
 migrate:
 	@$(PYTHON) -c "from pipeline.document_store import DocumentStore; store = DocumentStore(); store.close()"

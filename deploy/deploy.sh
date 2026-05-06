@@ -196,8 +196,10 @@ health_check() {
     echo ""
     if $all_ok; then
         success "All health checks passed!"
+        return 0
     else
         error "Some checks failed. Check logs: journalctl -u ragapi -n 30"
+        return 1
     fi
 }
 
@@ -207,7 +209,7 @@ if $CHECK_ONLY; then
     preflight_check
     echo ""
     if systemctl is-active --quiet ragapi 2>/dev/null; then
-        health_check
+        health_check || exit 1
     else
         info "Services not running — skipping health checks."
     fi
@@ -412,7 +414,10 @@ success "All services restarted."
 
 # ── Step 8: Health checks ────────────────────────────────────
 
-health_check
+if ! health_check; then
+    error "Deploy finished but post-deploy health checks failed — failing the run so the workflow surfaces it."
+    exit 1
+fi
 
 echo ""
 echo "========================================"
