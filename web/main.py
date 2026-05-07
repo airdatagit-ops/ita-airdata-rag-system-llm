@@ -863,9 +863,16 @@ async def health():
 
 if __name__ == "__main__":
     import uvicorn
+    # proxy_headers + forwarded_allow_ips are required so that, when running
+    # behind nginx (production), uvicorn honors X-Forwarded-Proto/Host. Without
+    # them, request.url_for(...) builds the OAuth callback as http://127.0.0.1
+    # instead of https://chatbot.airdata.ita.br, which Drupal then rejects with
+    # redirect_uri_mismatch. nginx connects from localhost, so we trust 127.0.0.1.
     uvicorn.run(
         "main:app",
         host=settings.HOST,
         port=settings.PORT,
-        reload=settings.RELOAD
+        reload=settings.RELOAD,
+        proxy_headers=True,
+        forwarded_allow_ips="127.0.0.1",
     )
