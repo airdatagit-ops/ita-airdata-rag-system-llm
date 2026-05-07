@@ -1,4 +1,4 @@
-.PHONY: install install-backend install-web test lint lint-fix eval eval-retrieval eval-generation extract-pipeline validate-data validate-lexml clean help collect collect-sislaer collect-legacy collect-anac embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models backup restore
+.PHONY: install install-backend install-web test lint lint-fix eval eval-retrieval eval-generation extract-pipeline validate-data validate-lexml clean help collect collect-sislaer collect-legacy collect-anac embed index pipeline query explore migrate deploy deploy-first deploy-nginx check start start-api start-web download-models backup restore bootstrap-env
 
 PYTHON ?= python
 PYTHON3 ?= python3
@@ -213,13 +213,24 @@ clean:
 download-models:
 	$(PYTHON) -m scripts.download_models $(if $(SKIP_OLLAMA),--skip-ollama,) $(if $(SKIP_EMBEDDINGS),--skip-embeddings,) $(if $(SKIP_CROSS_ENCODER),--skip-cross-encoder,)
 
-start-api:
+# Create .env / web/.env from examples if missing (idempotent).
+bootstrap-env:
+	@if [ ! -f .env ]; then \
+	  cp env.example .env; \
+	  echo "[bootstrap] Created .env from env.example — review API_KEY, OLLAMA_HOST, QDRANT_HOST."; \
+	fi
+	@if [ ! -f web/.env ]; then \
+	  cp web/env.example web/.env; \
+	  echo "[bootstrap] Created web/.env from web/env.example."; \
+	fi
+
+start-api: bootstrap-env
 	$(PYTHON) -m uvicorn api.server:app --host 127.0.0.1 --port 8083 --reload
 
-start-web:
+start-web: bootstrap-env
 	cd web && API_BASE_URL=http://127.0.0.1:8083 ROOT_PATH= $(PYTHON) -m uvicorn main:app --host 127.0.0.1 --port 8082 --reload
 
-start:
+start: bootstrap-env
 	@echo "API  →  http://127.0.0.1:8083"
 	@echo "Web  →  http://127.0.0.1:8082"
 	@echo "Ctrl+C to stop both"
