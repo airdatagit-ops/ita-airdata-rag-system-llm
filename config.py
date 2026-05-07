@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     LLM_TEMPERATURE: float = getenv('LLM_TEMPERATURE')
     LLM_TOP_P: float = getenv('LLM_TOP_P')
     LLM_MAX_TOKENS: int = getenv('LLM_MAX_TOKENS')
+    # Reasoning channel toggle for thinking models (gemma4:*, etc.).
+    # Empty/unset → no opinion (model default). Accepts: true|false|low|medium|high.
+    LLM_THINK: Optional[str] = getenv('LLM_THINK')
 
     # ========================================
     # Embedding Model
@@ -266,6 +269,9 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True
+        # Tolerate unknown keys so deploy/rollback across branches that add or
+        # remove env vars never breaks Settings() at import time.
+        extra = "ignore"
 
     # ========================================
     # Derived Properties

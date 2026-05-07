@@ -78,6 +78,11 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        # Tolerate unknown keys in .env so a rollback to an older revision (or a
+        # forward deploy that introduces new keys before the code lands) does
+        # not crash Settings() at import time. Pydantic's default is "forbid",
+        # which previously turned a stale web/.env into a 502 on the web tier.
+        extra = "ignore"
 
 
 settings = Settings()

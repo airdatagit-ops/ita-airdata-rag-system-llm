@@ -196,8 +196,10 @@ health_check() {
     echo ""
     if $all_ok; then
         success "All health checks passed!"
+        return 0
     else
         error "Some checks failed. Check logs: journalctl -u ragapi -n 30"
+        return 1
     fi
 }
 
@@ -207,7 +209,7 @@ if $CHECK_ONLY; then
     preflight_check
     echo ""
     if systemctl is-active --quiet ragapi 2>/dev/null; then
-        health_check
+        health_check || exit 1
     else
         info "Services not running — skipping health checks."
     fi
@@ -231,14 +233,22 @@ preflight_check
 # ── Step 1: Git pull ─────────────────────────────────────────
 
 if ! $SKIP_PULL; then
-    info "Pulling latest changes..."
+    info "Resetting working tree to origin (authoritative)..."
     cd "$PROJECT_DIR"
-    sudo -u "$DEPLOY_USER" git stash --quiet 2>/dev/null || true
-    sudo -u "$DEPLOY_USER" git pull
-    sudo -u "$DEPLOY_USER" git stash pop --quiet 2>/dev/null || true
-    success "Git pull complete."
+    sudo -u "$DEPLOY_USER" git fetch origin --prune
+
+    for protected in .env web/.env; do
+        if sudo -u "$DEPLOY_USER" git cat-file -e "@{u}:$protected" 2>/dev/null; then
+            error "Refusing to deploy: $(git rev-parse --abbrev-ref '@{u}') still tracks '$protected'."
+            error "Rebase the branch on top of main (which untracks env files) and retry."
+            exit 1
+        fi
+    done
+
+    sudo -u "$DEPLOY_USER" git reset --hard "@{u}"
+    success "Working tree reset to $(git rev-parse --short HEAD) (origin/$(git rev-parse --abbrev-ref HEAD))."
 else
-    info "Skipping git pull (--skip-pull)."
+    info "Skipping git fetch/reset (--skip-pull)."
 fi
 
 # ── Step 2: First-run .env setup ─────────────────────────────
@@ -412,7 +422,10 @@ success "All services restarted."
 
 # ── Step 8: Health checks ────────────────────────────────────
 
-health_check
+if ! health_check; then
+    error "Deploy finished but post-deploy health checks failed — failing the run so the workflow surfaces it."
+    exit 1
+fi
 
 echo ""
 echo "========================================"

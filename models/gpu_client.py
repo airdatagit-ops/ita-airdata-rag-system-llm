@@ -12,13 +12,38 @@ from __future__ import annotations
 
 import json
 import time
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import httpx
 from loguru import logger
 
 from config import config
+
+ThinkParam = Optional[Union[bool, str]]
+
+
+def _normalise_think(value: Any) -> ThinkParam:
+    """Normalise a ``think`` value coming from env/config or kwargs.
+
+    Accepts native ``bool``/``None``, the literal Ollama strings
+    (``"low"``, ``"medium"``, ``"high"``), and stringified booleans
+    (``"true"``/``"false"``/``""``). Returns ``None`` to mean
+    "no opinion — let the model decide".
+    """
+    if value is None or value is False or value is True:
+        return value
+    s = str(value).strip().lower()
+    if s in ("", "none", "null"):
+        return None
+    if s in ("true", "1", "yes", "on"):
+        return True
+    if s in ("false", "0", "no", "off"):
+        return False
+    if s in ("low", "medium", "high"):
+        return s
+    logger.warning(f"Unknown 'think' value {value!r} — ignoring")
+    return None
 
 _TIMEOUT = httpx.Timeout(
     connect=10.0,
@@ -339,12 +364,20 @@ class RemoteLlamaModel:
         temperature: float | None = None,
         top_p: float | None = None,
         max_tokens: int | None = None,
+        think: ThinkParam = None,
     ):
         self.model_name = model_name or config.OLLAMA_MODEL
         self.host = host or _base_url()
         self.temperature = temperature or config.LLM_TEMPERATURE
         self.top_p = top_p or config.LLM_TOP_P
         self.max_tokens = max_tokens or config.LLM_MAX_TOKENS
+        # ``think`` is forwarded to the GPU proxy (Ollama). Keep ``None`` by
+        # default — non-thinking models ignore it; thinking models keep their
+        # default behaviour. Constructor arg > config (``LLM_THINK``) > None.
+        config_think = getattr(config, "LLM_THINK", None)
+        self.think: ThinkParam = _normalise_think(
+            think if think is not None else config_think
+        )
         self.default_options = {
             "temperature": self.temperature,
             "top_p": self.top_p,
@@ -358,7 +391,7 @@ class RemoteLlamaModel:
 
         logger.info(
             f"RemoteLlamaModel → {_base_url()}/v1/generate "
-            f"(model={self.model_name})"
+            f"(model={self.model_name}, think={self.think})"
         )
 
     def _build_options(self, temperature=None, top_p=None, max_tokens=None, extra=None):
@@ -373,6 +406,29 @@ class RemoteLlamaModel:
             options["num_predict"] = max_tokens
         return options
 
+    def _effective_think(self, override: ThinkParam) -> ThinkParam:
+        """Per-call ``think`` override beats instance default; ``None`` means
+        ``"use whatever the instance was configured with"``."""
+        return _normalise_think(override) if override is not None else self.think
+
+    def _maybe_warn_truncated(self, data: Dict[str, Any]) -> None:
+        """Surface the silent failure mode where the proxy returned an empty
+        ``content`` because the reasoning channel ate the entire token budget.
+
+        Older proxy builds don't return ``done_reason``, so this is a no-op
+        there — we only warn when we have evidence.
+        """
+        done_reason = data.get("done_reason")
+        content = data.get("content") or ""
+        if done_reason == "length" and not content:
+            logger.warning(
+                f"RemoteLlamaModel: empty content with done_reason=length "
+                f"(model={self.model_name}, "
+                f"eval_count={data.get('eval_count')}, "
+                f"thinking_chars={len(data.get('thinking') or '')}). "
+                f"Increase max_tokens or pass think=False."
+            )
+
     def generate(
         self,
         prompt: str,
@@ -383,6 +439,7 @@ class RemoteLlamaModel:
         stream: bool = False,
         format: dict | None = None,
         extra_options: dict | None = None,
+        think: ThinkParam = None,
     ):
         messages = []
         if system_prompt:
@@ -390,9 +447,10 @@ class RemoteLlamaModel:
         messages.append({"role": "user", "content": prompt})
 
         options = self._build_options(temperature, top_p, max_tokens, extra_options)
+        effective_think = self._effective_think(think)
 
         if stream:
-            return self._remote_stream(messages, options)
+            return self._remote_stream(messages, options, think=effective_think)
 
         t0 = time.time()
         payload: Dict[str, Any] = {
@@ -402,6 +460,8 @@ class RemoteLlamaModel:
         }
         if format is not None:
             payload["format"] = format
+        if effective_think is not None:
+            payload["think"] = effective_think
 
         resp = self._client.post(
             f"{_base_url()}/v1/generate",
@@ -414,15 +474,18 @@ class RemoteLlamaModel:
         logger.debug(
             f"Remote generate: {time.time()-t0:.2f}s (server {data['elapsed_ms']}ms)"
         )
+        self._maybe_warn_truncated(data)
         return data["content"]
 
-    def _remote_stream(self, messages, options):
-        payload = {
+    def _remote_stream(self, messages, options, *, think: ThinkParam = None):
+        payload: Dict[str, Any] = {
             "model": self.model_name,
             "messages": messages,
             "options": options,
             "stream": True,
         }
+        if think is not None:
+            payload["think"] = think
         with self._stream_client.stream(
             "POST",
             f"{_base_url()}/v1/generate/stream",
@@ -469,23 +532,31 @@ class RemoteLlamaModel:
         top_p: float | None = None,
         max_tokens: int | None = None,
         stream: bool = False,
+        think: ThinkParam = None,
     ):
         options = self._build_options(temperature, top_p, max_tokens)
+        effective_think = self._effective_think(think)
 
         if stream:
-            return self._remote_stream(messages, options)
+            return self._remote_stream(messages, options, think=effective_think)
+
+        payload: Dict[str, Any] = {
+            "model": self.model_name,
+            "messages": messages,
+            "options": options,
+        }
+        if effective_think is not None:
+            payload["think"] = effective_think
 
         resp = self._client.post(
             f"{_base_url()}/v1/generate",
             headers=_headers(),
-            json={
-                "model": self.model_name,
-                "messages": messages,
-                "options": options,
-            },
+            json=payload,
         )
         resp.raise_for_status()
-        return resp.json()["content"]
+        data = resp.json()
+        self._maybe_warn_truncated(data)
+        return data["content"]
 
     def _test_connection(self) -> bool:
         try:
