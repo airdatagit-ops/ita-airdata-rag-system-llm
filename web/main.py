@@ -127,7 +127,15 @@ def _oauth_enabled() -> bool:
 
 
 def _local_login_enabled() -> bool:
-    return settings.WEB_LOGIN_ENABLED and not _oauth_enabled()
+    # The production server may already have a stale web/.env with
+    # WEB_LOGIN_ENABLED=false or AUTH_MODE=drupal_oauth2 from older deploys.
+    # This branch intentionally closes the web UI with the local JWT login
+    # while Drupal/OAuth stays on stand by.
+    if settings.is_production:
+        return True
+    if _oauth_enabled():
+        return False
+    return settings.WEB_LOGIN_ENABLED
 
 
 def _web_auth_enabled() -> bool:

@@ -80,6 +80,10 @@ class Settings(BaseSettings):
     APP_NAME: str = _get('APP_NAME', 'Aviation RAG Web Interface')
     APP_VERSION: str = _get('APP_VERSION', '1.0.0')
 
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT.lower() == 'production'
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
