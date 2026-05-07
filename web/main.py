@@ -133,6 +133,12 @@ def _local_jwt_user(request: Request) -> dict | None:
     return {"name": payload.get("name") or payload.get("sub") or settings.WEB_LOGIN_USERNAME}
 
 
+def _secure_cookie_for_request(request: Request) -> bool:
+    forwarded_proto = request.headers.get("x-forwarded-proto", "")
+    is_https = request.url.scheme == "https" or forwarded_proto.lower().split(",", 1)[0].strip() == "https"
+    return settings.SESSION_COOKIE_SECURE and is_https
+
+
 def _oauth_enabled() -> bool:
     return settings.AUTH_MODE.lower() in {"drupal_oauth2", "oauth2", "api_key_or_drupal_oauth2", "api_key_or_oauth2"}
 
@@ -338,7 +344,7 @@ async def local_login(
         value=_create_local_jwt(username),
         max_age=settings.WEB_LOGIN_TOKEN_TTL_SECONDS,
         httponly=True,
-        secure=settings.SESSION_COOKIE_SECURE,
+        secure=_secure_cookie_for_request(request),
         samesite="lax",
     )
     return redirect
