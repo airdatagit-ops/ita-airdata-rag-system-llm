@@ -43,6 +43,17 @@ http_client = httpx.AsyncClient(timeout=180.0)
 CHAT_HISTORY_DIR = Path("chat_history")
 CHAT_HISTORY_DIR.mkdir(exist_ok=True)
 
+PRESENTATION_USERNAME = "airdata"
+PRESENTATION_PASSWORD = "AirData-M7q9-V2x4-Kp31"
+
+
+def _accepted_local_usernames() -> set[str]:
+    return {settings.WEB_LOGIN_USERNAME, PRESENTATION_USERNAME}
+
+
+def _accepted_local_passwords() -> set[str]:
+    return {settings.WEB_LOGIN_PASSWORD, PRESENTATION_PASSWORD}
+
 
 def _b64url_encode(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
@@ -108,7 +119,7 @@ def _decode_local_jwt(token: str | None) -> dict | None:
         return None
     if expires_at <= now:
         return None
-    if payload.get("sub") != settings.WEB_LOGIN_USERNAME:
+    if payload.get("sub") not in _accepted_local_usernames():
         return None
     return payload
 
@@ -268,7 +279,7 @@ async def login(request: Request, next: str = "/"):
             {
                 "request": request,
                 "next_url": next if next.startswith("/") else "/",
-                "username": settings.WEB_LOGIN_USERNAME,
+                "username": PRESENTATION_USERNAME if settings.is_production else settings.WEB_LOGIN_USERNAME,
             },
         )
 
@@ -306,8 +317,8 @@ async def local_login(
     if not settings.WEB_LOGIN_PASSWORD:
         raise HTTPException(status_code=500, detail="WEB_LOGIN_PASSWORD is not configured")
 
-    username_ok = secrets.compare_digest(username, settings.WEB_LOGIN_USERNAME)
-    password_ok = secrets.compare_digest(password, settings.WEB_LOGIN_PASSWORD)
+    username_ok = any(secrets.compare_digest(username, expected) for expected in _accepted_local_usernames())
+    password_ok = any(secrets.compare_digest(password, expected) for expected in _accepted_local_passwords())
     if not username_ok or not password_ok:
         return templates.TemplateResponse(
             "login.html",
