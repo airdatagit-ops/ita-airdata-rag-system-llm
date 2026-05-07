@@ -64,12 +64,17 @@ class Settings(BaseSettings):
     DRUPAL_OAUTH_USERINFO_URL: str = _get('DRUPAL_OAUTH_USERINFO_URL')
     DRUPAL_OAUTH_SCOPES: str = _get('DRUPAL_OAUTH_SCOPES', 'openid profile email')
     DRUPAL_OAUTH_CALLBACK_PATH: str = _get('DRUPAL_OAUTH_CALLBACK_PATH', '/auth/callback')
-    SESSION_COOKIE_SECURE: bool = _get('SESSION_COOKIE_SECURE', 'False').lower() in ('true', '1', 'yes')
+    SESSION_COOKIE_SECURE: bool = _get(
+        'SESSION_COOKIE_SECURE',
+        'True' if _IS_PROD else 'False',
+    ).lower() in ('true', '1', 'yes')
 
     # Temporary local web login for demos/presentations
-    WEB_LOGIN_ENABLED: bool = _get('WEB_LOGIN_ENABLED', 'False').lower() in ('true', '1', 'yes')
+    WEB_LOGIN_ENABLED: bool = _get('WEB_LOGIN_ENABLED', 'True').lower() in ('true', '1', 'yes')
     WEB_LOGIN_USERNAME: str = _get('WEB_LOGIN_USERNAME', 'airdata')
-    WEB_LOGIN_PASSWORD: str = _get('WEB_LOGIN_PASSWORD')
+    WEB_LOGIN_PASSWORD: str = _get('WEB_LOGIN_PASSWORD', 'AirData-M7q9-V2x4-Kp31')
+    WEB_LOGIN_TOKEN_TTL_SECONDS: int = int(_get('WEB_LOGIN_TOKEN_TTL_SECONDS', '28800'))
+    WEB_LOGIN_COOKIE_NAME: str = _get('WEB_LOGIN_COOKIE_NAME', 'airdata_auth')
 
     # Application
     APP_NAME: str = _get('APP_NAME', 'Aviation RAG Web Interface')

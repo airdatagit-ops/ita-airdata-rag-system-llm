@@ -1,8 +1,12 @@
 """FastAPI Web Application for Aviation RAG System."""
 
+import base64
+import hashlib
+import hmac
 import httpx
 import json
 import secrets
+import time
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -40,6 +44,84 @@ CHAT_HISTORY_DIR = Path("chat_history")
 CHAT_HISTORY_DIR.mkdir(exist_ok=True)
 
 
+def _b64url_encode(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+
+
+def _b64url_decode(data: str) -> bytes:
+    padding = "=" * (-len(data) % 4)
+    return base64.urlsafe_b64decode((data + padding).encode("ascii"))
+
+
+def _jwt_secret() -> bytes:
+    secret = settings.SESSION_SECRET_KEY or settings.API_KEY
+    return secret.encode("utf-8")
+
+
+def _sign_jwt(message: str) -> str:
+    signature = hmac.new(_jwt_secret(), message.encode("ascii"), hashlib.sha256).digest()
+    return _b64url_encode(signature)
+
+
+def _create_local_jwt(username: str) -> str:
+    now = int(time.time())
+    header = {"alg": "HS256", "typ": "JWT"}
+    payload = {
+        "sub": username,
+        "name": username,
+        "iat": now,
+        "exp": now + settings.WEB_LOGIN_TOKEN_TTL_SECONDS,
+        "iss": "airdata-rag-web",
+        "aud": "airdata-rag-web",
+    }
+    encoded_header = _b64url_encode(json.dumps(header, separators=(",", ":")).encode("utf-8"))
+    encoded_payload = _b64url_encode(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
+    signing_input = f"{encoded_header}.{encoded_payload}"
+    return f"{signing_input}.{_sign_jwt(signing_input)}"
+
+
+def _decode_local_jwt(token: str | None) -> dict | None:
+    if not token:
+        return None
+
+    parts = token.split(".")
+    if len(parts) != 3:
+        return None
+
+    signing_input = f"{parts[0]}.{parts[1]}"
+    expected_signature = _sign_jwt(signing_input)
+    if not hmac.compare_digest(parts[2], expected_signature):
+        return None
+
+    try:
+        payload = json.loads(_b64url_decode(parts[1]))
+    except (ValueError, json.JSONDecodeError):
+        return None
+
+    try:
+        expires_at = int(payload.get("exp", 0))
+    except (TypeError, ValueError):
+        return None
+
+    now = int(time.time())
+    if payload.get("iss") != "airdata-rag-web" or payload.get("aud") != "airdata-rag-web":
+        return None
+    if expires_at <= now:
+        return None
+    if payload.get("sub") != settings.WEB_LOGIN_USERNAME:
+        return None
+    return payload
+
+
+def _local_jwt_user(request: Request) -> dict | None:
+    if not _local_login_enabled():
+        return None
+    payload = _decode_local_jwt(request.cookies.get(settings.WEB_LOGIN_COOKIE_NAME))
+    if not payload:
+        return None
+    return {"name": payload.get("name") or payload.get("sub") or settings.WEB_LOGIN_USERNAME}
+
+
 def _oauth_enabled() -> bool:
     return settings.AUTH_MODE.lower() in {"drupal_oauth2", "oauth2", "api_key_or_drupal_oauth2", "api_key_or_oauth2"}
 
@@ -73,8 +155,9 @@ def _userinfo_url() -> str:
 
 
 def _user_from_session(request: Request) -> dict | None:
-    if _local_login_enabled() and request.session.get("local_authenticated"):
-        return {"name": request.session.get("local_username", settings.WEB_LOGIN_USERNAME)}
+    local_user = _local_jwt_user(request)
+    if local_user:
+        return local_user
     return request.session.get("user")
 
 
@@ -107,7 +190,7 @@ async def require_web_authentication(request: Request, call_next):
     if path.startswith("/static/") or path in public_paths:
         return await call_next(request)
 
-    if request.session.get("access_token") or request.session.get("local_authenticated"):
+    if request.session.get("access_token") or _local_jwt_user(request):
         return await call_next(request)
 
     if path.startswith("/api/"):
@@ -214,9 +297,16 @@ async def local_login(
         )
 
     request.session.clear()
-    request.session["local_authenticated"] = True
-    request.session["local_username"] = username
-    return RedirectResponse(url=next_url if next_url.startswith("/") else "/", status_code=302)
+    redirect = RedirectResponse(url=next_url if next_url.startswith("/") else "/", status_code=302)
+    redirect.set_cookie(
+        key=settings.WEB_LOGIN_COOKIE_NAME,
+        value=_create_local_jwt(username),
+        max_age=settings.WEB_LOGIN_TOKEN_TTL_SECONDS,
+        httponly=True,
+        secure=settings.SESSION_COOKIE_SECURE,
+        samesite="lax",
+    )
+    return redirect
 
 
 @app.get(settings.DRUPAL_OAUTH_CALLBACK_PATH, name="auth_callback")
@@ -272,7 +362,9 @@ async def logout(request: Request):
     """Clear the local web session."""
     request.session.clear()
     target = str(request.url_for("login")) if _web_auth_enabled() else str(request.url_for("home"))
-    return RedirectResponse(url=target, status_code=302)
+    redirect = RedirectResponse(url=target, status_code=302)
+    redirect.delete_cookie(settings.WEB_LOGIN_COOKIE_NAME)
+    return redirect
 
 
 @app.get("/", response_class=HTMLResponse)
