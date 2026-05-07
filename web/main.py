@@ -187,13 +187,29 @@ def _template_context(request: Request, current_page: str, **extra):
     return context
 
 
+def _strip_root_path(path: str) -> str:
+    root_path = (settings.ROOT_PATH or "").rstrip("/")
+    if root_path and path == root_path:
+        return "/"
+    if root_path and path.startswith(f"{root_path}/"):
+        return path[len(root_path):] or "/"
+    return path
+
+
+def _prefixed_path(path: str) -> str:
+    root_path = (settings.ROOT_PATH or "").rstrip("/")
+    if not root_path:
+        return path
+    return f"{root_path}{path}"
+
+
 @app.middleware("http")
 async def require_web_authentication(request: Request, call_next):
     """Require a web login when OAuth2 or local presentation auth is enabled."""
     if not _web_auth_enabled():
         return await call_next(request)
 
-    path = request.url.path
+    path = _strip_root_path(request.url.path)
     public_paths = ("/login", settings.DRUPAL_OAUTH_CALLBACK_PATH, "/logout", "/health")
     if path.startswith("/static/") or path in public_paths:
         return await call_next(request)
@@ -204,7 +220,7 @@ async def require_web_authentication(request: Request, call_next):
     if path.startswith("/api/"):
         return JSONResponse({"detail": "Login required"}, status_code=401)
 
-    return RedirectResponse(url=f"{request.url_for('login')}?next={path}", status_code=302)
+    return RedirectResponse(url=f"{_prefixed_path('/login')}?next={path}", status_code=302)
 
 
 app.add_middleware(
