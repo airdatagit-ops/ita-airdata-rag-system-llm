@@ -126,6 +126,27 @@ class Settings(BaseSettings):
     OCR_LANGUAGE: str = getenv('OCR_LANGUAGE')
 
     # ========================================
+    # Docling PDF Extraction (alternative backend)
+    # ========================================
+    # 'legacy' mantém comportamento atual; 'docling' ativa extração via docling
+    PDF_EXTRACTION_BACKEND: str = getenv('PDF_EXTRACTION_BACKEND', 'legacy')
+
+    # Backend interno do docling: 'docling_parse' ou 'pypdfium2'
+    DOCLING_PDF_BACKEND: str = getenv('DOCLING_PDF_BACKEND', 'docling_parse')
+
+    # Extrair estrutura de tabelas
+    DOCLING_DO_TABLE_STRUCTURE: bool = getenv('DOCLING_DO_TABLE_STRUCTURE', 'true').lower() in ('true', '1', 'yes')
+
+    # Bypassar modelo de layout, usar texto nativo do PDF diretamente
+    DOCLING_FORCE_BACKEND_TEXT: bool = getenv('DOCLING_FORCE_BACKEND_TEXT', 'false').lower() in ('true', '1', 'yes')
+
+    # Caminho para modelos pré-baixados do docling (None = auto-download)
+    DOCLING_ARTIFACTS_PATH: Optional[str] = getenv('DOCLING_ARTIFACTS_PATH') or None
+
+    # Usar HybridChunker do docling (requer PDF_EXTRACTION_BACKEND=docling)
+    DOCLING_CHUNKING_ENABLED: bool = getenv('DOCLING_CHUNKING_ENABLED', 'false').lower() in ('true', '1', 'yes')
+
+    # ========================================
     # Logging
     # ========================================
     LOG_LEVEL: str = getenv('LOG_LEVEL')
