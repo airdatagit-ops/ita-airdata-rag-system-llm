@@ -28,7 +28,51 @@ from parsers.temporal_extractor import TemporalExtractor
 
 
 def extract_text_from_bytes(pdf_content: bytes) -> str | None:
-    """Extract text from in-memory PDF bytes (PyMuPDF -> pdfplumber -> OCR)."""
+    """Extract text from in-memory PDF bytes (docling | PyMuPDF -> pdfplumber -> OCR)."""
+    # ── Docling path (quando ativado via config) ─────────────────────────────
+    if config.PDF_EXTRACTION_BACKEND == 'docling':
+        try:
+            import io
+            import tempfile
+            from docling.document_converter import DocumentConverter, PdfFormatOption
+            from docling.datamodel.base_models import InputFormat
+            from docling.datamodel.pipeline_options import PdfPipelineOptions, PdfBackend
+
+            backend_map = {
+                'docling_parse': PdfBackend.DOCLING_PARSE,
+                'pypdfium2': PdfBackend.PYPDFIUM2,
+            }
+            pdf_backend = backend_map.get(config.DOCLING_PDF_BACKEND, PdfBackend.DOCLING_PARSE)
+
+            pipeline_options = PdfPipelineOptions(
+                do_ocr=False,
+                do_table_structure=config.DOCLING_DO_TABLE_STRUCTURE,
+                force_backend_text=config.DOCLING_FORCE_BACKEND_TEXT,
+            )
+            if config.DOCLING_ARTIFACTS_PATH:
+                from pathlib import Path as _Path
+                pipeline_options.artifacts_path = _Path(config.DOCLING_ARTIFACTS_PATH)
+
+            converter = DocumentConverter(
+                format_options={
+                    InputFormat.PDF: PdfFormatOption(
+                        pipeline_options=pipeline_options,
+                        backend=pdf_backend,
+                    )
+                }
+            )
+            # Docling precisa de um path ou BytesIO; usar arquivo temporário
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=True) as tmp:
+                tmp.write(pdf_content)
+                tmp.flush()
+                result = converter.convert(tmp.name)
+            text = result.document.export_to_markdown()
+            if len(text.strip()) > 100:
+                return text
+        except Exception as e:
+            logger.warning(f"Docling extraction failed, falling back to legacy: {e}")
+
+    # ── Legacy path (padrão) ─────────────────────────────────────────────────
     try:
         import fitz
         doc = fitz.open(stream=pdf_content, filetype="pdf")
@@ -90,8 +134,17 @@ class PDFParser:
             List of section dictionaries
         """
         try:
-            # Extract text
-            text = self._extract_text(pdf_path)
+            dl_doc = None
+
+            # Quando docling está ativo, extrair tanto texto quanto o documento estruturado
+            if config.PDF_EXTRACTION_BACKEND == 'docling':
+                text, dl_doc = self._extract_with_docling(pdf_path)
+                if not text or len(text.strip()) < 50:
+                    logger.warning(f"Docling insufficient for {pdf_path}, falling back")
+                    dl_doc = None
+                    text = self._extract_text_legacy(pdf_path)
+            else:
+                text = self._extract_text(pdf_path)
 
             if not text or len(text.strip()) < 50:
                 logger.warning(f"PDF {pdf_path} has very little text. May need OCR.")
@@ -100,6 +153,16 @@ class PDFParser:
 
             # Extract metadata from filename and text
             metadata = self._extract_metadata(pdf_path, text)
+
+            # Serializar o DoclingDocument para JSON e guardar nos metadados (para chunking nativo)
+            if dl_doc is not None and config.DOCLING_CHUNKING_ENABLED:
+                try:
+                    import json as _json
+                    metadata['_docling_doc_json'] = _json.dumps(
+                        dl_doc.export_to_dict(), ensure_ascii=False
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to serialize DoclingDocument: {e}")
 
             # Split into sections
             sections = self._extract_sections(text, metadata)
@@ -112,7 +175,18 @@ class PDFParser:
             return []
 
     def _extract_text(self, pdf_path: str) -> str:
-        """Extract text from PDF."""
+        """Extract text from PDF (docling or legacy, depending on config)."""
+        if config.PDF_EXTRACTION_BACKEND == 'docling':
+            text, _ = self._extract_with_docling(pdf_path)
+            if text and len(text.strip()) > 100:
+                return text
+            logger.warning(f"Docling extraction insufficient for {pdf_path}, falling back to legacy")
+
+        # ── Legacy path ──────────────────────────────────────────────────────
+        return self._extract_text_legacy(pdf_path)
+
+    def _extract_text_legacy(self, pdf_path: str) -> str:
+        """Extract text using legacy backends (pdfplumber/PyPDF2)."""
         if PDFPLUMBER_AVAILABLE:
             return self._extract_with_pdfplumber(pdf_path)
         elif PYPDF2_AVAILABLE:
@@ -139,6 +213,51 @@ class PDFParser:
             if page_text:
                 text.append(page_text)
         return '\n\n'.join(text)
+
+    def _extract_with_docling(self, pdf_path: str) -> tuple[str, object | None]:
+        """
+        Extract text (and optionally DoclingDocument) from PDF using docling.
+
+        Returns:
+            Tuple of (markdown_text, docling_document_or_None).
+            docling_document_or_None is None if extraction fails.
+        """
+        try:
+            from docling.document_converter import DocumentConverter, PdfFormatOption
+            from docling.datamodel.base_models import InputFormat
+            from docling.datamodel.pipeline_options import PdfPipelineOptions, PdfBackend
+
+            backend_map = {
+                'docling_parse': PdfBackend.DOCLING_PARSE,
+                'pypdfium2': PdfBackend.PYPDFIUM2,
+            }
+            pdf_backend = backend_map.get(config.DOCLING_PDF_BACKEND, PdfBackend.DOCLING_PARSE)
+
+            pipeline_options = PdfPipelineOptions(
+                do_ocr=False,
+                do_table_structure=config.DOCLING_DO_TABLE_STRUCTURE,
+                force_backend_text=config.DOCLING_FORCE_BACKEND_TEXT,
+            )
+            if config.DOCLING_ARTIFACTS_PATH:
+                from pathlib import Path as _Path
+                pipeline_options.artifacts_path = _Path(config.DOCLING_ARTIFACTS_PATH)
+
+            converter = DocumentConverter(
+                format_options={
+                    InputFormat.PDF: PdfFormatOption(
+                        pipeline_options=pipeline_options,
+                        backend=pdf_backend,
+                    )
+                }
+            )
+            result = converter.convert(pdf_path)
+            dl_doc = result.document
+            markdown_text = dl_doc.export_to_markdown()
+            logger.debug(f"Docling extracted {len(markdown_text)} chars from {pdf_path}")
+            return markdown_text, dl_doc
+        except Exception as e:
+            logger.warning(f"Docling extraction failed for {pdf_path}: {e}")
+            return "", None
 
     def _extract_text_with_ocr(self, pdf_path: str) -> str:
         """Extract text using OCR (requires pytesseract or easyocr)."""
