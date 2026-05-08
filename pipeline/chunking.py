@@ -515,20 +515,118 @@ _ICA_TYPE_RE = re.compile(
 )
 
 
-def get_chunker(doc_type: str = None) -> ArticleChunker:
+class DoclingChunker:
     """
-    Get appropriate chunker based on document type.
-    
-    Args:
-        doc_type: Document type (e.g., 'ICA', 'lei', 'portaria')
-        
-    Returns:
-        Appropriate chunker instance
+    Chunker que usa o HybridChunker nativo do docling.
+
+    Recebe um article dict com '_docling_doc_json' no metadata e usa
+    HybridChunker (tokenization-aware) para produzir chunks com metadados
+    hierárquicos (headings pais, captions, etc.).
+
+    Fallback automático para ICAChunker/ArticleChunker se o DoclingDocument
+    não estiver disponível.
     """
+
+    def __init__(self, max_tokens: int = None, doc_type: str = None):
+        self.max_tokens = max_tokens or config.CHUNK_MAX_TOKENS
+        self.doc_type = doc_type or ''
+        self._fallback = _get_legacy_chunker(self.doc_type)
+        logger.info(f"DoclingChunker initialized (max_tokens={self.max_tokens})")
+
+    def chunk(self, article: Dict) -> List[Dict]:
+        """
+        Chunk via HybridChunker (docling) se possível, fallback para legado.
+
+        O article deve conter 'metadata._docling_doc_json' (JSON string do
+        DoclingDocument.export_to_dict()). Se ausente, usa chunker legado.
+        """
+        meta = article.get('metadata') or {}
+        docling_json = meta.get('_docling_doc_json')
+
+        if not docling_json:
+            logger.debug("DoclingChunker: no docling doc in metadata, using legacy chunker")
+            return self._fallback.chunk(article)
+
+        try:
+            import json as _json
+            from docling_core.types.doc import DoclingDocument
+            from docling.chunking import HybridChunker
+            from transformers import AutoTokenizer
+
+            doc_dict = _json.loads(docling_json)
+            dl_doc = DoclingDocument.model_validate(doc_dict)
+
+            tokenizer = AutoTokenizer.from_pretrained(config.EMBEDDING_MODEL)
+            chunker = HybridChunker(
+                tokenizer=tokenizer,
+                max_tokens=self.max_tokens,
+                merge_peers=True,
+                repeat_table_header=True,
+            )
+
+            chunks = []
+            for i, chunk in enumerate(chunker.chunk(dl_doc)):
+                chunk_dict = article.copy()
+
+                # Enriquecer texto com headings-pai para maior contexto no embedding
+                headings_prefix = ""
+                if chunk.meta.headings:
+                    headings_prefix = " > ".join(chunk.meta.headings) + "\n\n"
+
+                chunk_dict["text"] = headings_prefix + chunk.text
+                chunk_dict["chunk_index"] = i
+                chunk_dict["regulation_id"] = (
+                    f"{article.get('regulation_id', 'unknown')}-dchunk-{i}"
+                )
+
+                # Guardar metadados docling
+                chunk_meta = dict(chunk_dict.get("metadata") or {})
+                chunk_meta["chunk_type"] = "docling_hybrid"
+                chunk_meta["docling_headings"] = chunk.meta.headings or []
+                chunk_meta["docling_captions"] = [
+                    str(c) for c in (chunk.meta.captions or [])
+                ]
+                # Remover o JSON pesado do metadata do chunk (já não é necessário)
+                chunk_meta.pop("_docling_doc_json", None)
+                chunk_dict["metadata"] = chunk_meta
+
+                chunks.append(chunk_dict)
+
+            logger.debug(
+                f"DoclingChunker: {len(chunks)} chunks from HybridChunker "
+                f"(doc: {article.get('regulation_id', '?')})"
+            )
+            return chunks if chunks else self._fallback.chunk(article)
+
+        except Exception as e:
+            logger.warning(
+                f"DoclingChunker failed ({e}), falling back to legacy chunker"
+            )
+            return self._fallback.chunk(article)
+
+
+def _get_legacy_chunker(doc_type: str = None) -> ArticleChunker:
+    """Return legacy chunker (ICAChunker or ArticleChunker) based on doc_type."""
     if doc_type and _ICA_TYPE_RE.search(doc_type):
         return ICAChunker()
-    
     return ArticleChunker()
+
+
+def get_chunker(doc_type: str = None) -> ArticleChunker:
+    """
+    Get appropriate chunker based on document type and config.
+
+    Returns DoclingChunker when DOCLING_CHUNKING_ENABLED=true and
+    PDF_EXTRACTION_BACKEND=docling; otherwise returns legacy chunker.
+    """
+    if (
+        config.PDF_EXTRACTION_BACKEND == 'docling'
+        and config.DOCLING_CHUNKING_ENABLED
+    ):
+        return DoclingChunker(doc_type=doc_type)
+
+    # ── Legacy path (padrão) ─────────────────────────────────────────────────
+    return _get_legacy_chunker(doc_type)
 
 
 if __name__ == "__main__":
