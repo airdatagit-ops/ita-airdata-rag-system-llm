@@ -230,7 +230,8 @@ Diretório criado automaticamente. Cada sessão de chat gera um arquivo JSON com
 |--------|------|--------|-----------|
 | POST | `/api/chat/send` | `send_chat_message()` | Envia mensagem para o chat (resposta completa) |
 | POST | `/api/chat/stream` | `stream_chat_message()` | Envia mensagem com streaming (SSE) |
-| POST | `/api/chat/rate` | `rate_message()` | Salva avaliação de uma mensagem |
+| POST | `/api/chat/feedback` | `submit_feedback()` | Registra feedback (thumbs / star / comment / clear) |
+| POST | `/api/chat/rate` | `rate_message()` | **Deprecated** — alias legado de `/api/chat/feedback` (mapeia para `kind=star`) |
 | POST | `/api/models/change` | `change_model_proxy()` | Troca o modelo LLM ativo |
 | GET | `/api/models` | `get_models_proxy()` | Lista modelos LLM disponíveis |
 | GET | `/api/chat/history` | `get_chat_history()` | Lista todas as sessões salvas |
@@ -459,15 +460,41 @@ O título da sessão é gerado automaticamente a partir da primeira mensagem do 
 
 ### Avaliação de mensagens
 
-As avaliações são salvas diretamente no JSON do histórico, dentro do campo `ratings` de cada mensagem do assistente. As 5 categorias avaliáveis são:
+O feedback explícito é capturado pela UI do chat (seção "Essa resposta foi útil?")
+e persistido em **dois lugares simultaneamente**:
+
+1. **JSON da sessão** (`web/chat_history/{session_id}.json`, campos `ratings`
+   e `feedback` da mensagem) — mantém o replay da sessão funcionando e é o
+   que a UI lê quando você abre uma conversa antiga.
+2. **SQLite operacional** (`data/app.db`, tabela `feedback_events`) — append-only,
+   consultável via Datasette em `/explore/app/`. View `feedback_current`
+   expõe o último estado por mensagem.
+
+Ver também: [`docs/migrations/2026-05-03_FEEDBACK_SQLITE.md`](../docs/migrations/2026-05-03_FEEDBACK_SQLITE.md).
+
+**Sinais capturados (UI):**
+
+| Sinal | Descrição |
+|---|---|
+| 👍 / 👎 | Primário, 1 clique. Thumbs-down abre seletor de motivo. |
+| 💬 Comentar | Texto livre opcional. |
+| ⭐ Detalhes | Grid de 5 estrelas por categoria (opcional). Clique na estrela preenchida mais à direita desfaz a avaliação daquela categoria. |
+
+**Categorias de estrelas:**
 
 | Categoria | Chave | Descrição |
 |-----------|-------|-----------|
-| Precisão Factual | `factual_accuracy` | A resposta contém informações corretas? |
-| Completude | `completeness` | A resposta cobre todos os aspectos da pergunta? |
-| Clareza | `clarity` | A resposta é clara e bem organizada? |
-| Qualidade das Citações | `citation_quality` | As fontes citadas são relevantes e precisas? |
-| Relevância | `relevance` | A resposta é relevante para a pergunta feita? |
+| Precisão | `factual_accuracy` | Informações corretas e sem alucinações. |
+| Completude | `completeness` | A resposta cobre todos os aspectos. |
+| Clareza | `clarity` | Resposta clara e bem estruturada. |
+| Citações | `citation_quality` | Citou corretamente as normas (oculto quando não há fontes). |
+| Relevância | `relevance` | Manteve-se no tema solicitado. |
+
+**Taxonomia de motivos (thumbs-down):**
+`hallucination`, `incomplete`, `off_topic`, `wrong_citation`, `unclear`, `other`.
+
+**Backfill do histórico antigo:** `make feedback-backfill` importa as
+avaliações existentes nos JSONs legados para `feedback_events` (idempotente).
 
 ---
 
