@@ -176,6 +176,25 @@ def test_drupal_login_takes_priority_when_configured(web_client):
     assert main_mod._local_login_enabled() is False
 
 
+def test_login_redirects_to_drupal_authorization_when_oauth_is_configured(web_client):
+    client, main_mod, _ = web_client
+    main_mod.settings.AUTH_MODE = "drupal_oauth2"
+    main_mod.settings.DRUPAL_OAUTH_BASE_URL = "https://www.airdata.ita.br"
+    main_mod.settings.DRUPAL_OAUTH_CLIENT_ID = "id-chat"
+    main_mod.settings.DRUPAL_OAUTH_AUTHORIZE_URL = "https://www.airdata.ita.br/oauth/authorize"
+    main_mod.settings.DRUPAL_OAUTH_SCOPES = "openid profile email"
+    main_mod.settings.WEB_LOGIN_ENABLED = True
+
+    response = client.get("/login?next=/chat", follow_redirects=False)
+
+    assert response.status_code == 302
+    location = response.headers["location"]
+    assert location.startswith("https://www.airdata.ita.br/oauth/authorize?")
+    assert "client_id=id-chat" in location
+    assert "response_type=code" in location
+    assert "state=" in location
+
+
 def test_star_rating_zero_clears_category(web_client):
     client, main_mod, tmp_path = web_client
     sid, mid = "s-02", "msg-02"
