@@ -150,6 +150,32 @@ def test_thumbs_down_writes_event_and_updates_json(web_client):
     assert current["last_thumbs_reason"] == "hallucination"
 
 
+def test_static_login_is_production_fallback_without_drupal(web_client):
+    _, main_mod, _ = web_client
+    main_mod.settings.ENVIRONMENT = "production"
+    main_mod.settings.is_production = True
+    main_mod.settings.AUTH_MODE = "drupal_oauth2"
+    main_mod.settings.DRUPAL_OAUTH_CLIENT_ID = ""
+    main_mod.settings.DRUPAL_OAUTH_BASE_URL = ""
+    main_mod.settings.WEB_LOGIN_ENABLED = False
+
+    assert main_mod._oauth_enabled() is False
+    assert main_mod._local_login_enabled() is True
+
+
+def test_drupal_login_takes_priority_when_configured(web_client):
+    _, main_mod, _ = web_client
+    main_mod.settings.ENVIRONMENT = "production"
+    main_mod.settings.is_production = True
+    main_mod.settings.AUTH_MODE = "drupal_oauth2"
+    main_mod.settings.DRUPAL_OAUTH_CLIENT_ID = "id-chat"
+    main_mod.settings.DRUPAL_OAUTH_BASE_URL = "https://www.airdata.ita.br"
+    main_mod.settings.WEB_LOGIN_ENABLED = True
+
+    assert main_mod._oauth_enabled() is True
+    assert main_mod._local_login_enabled() is False
+
+
 def test_star_rating_zero_clears_category(web_client):
     client, main_mod, tmp_path = web_client
     sid, mid = "s-02", "msg-02"

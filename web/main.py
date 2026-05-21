@@ -29,6 +29,11 @@ from app.app_store import (
     FEEDBACK_REASON_CODES,
 )
 
+
+def _setting(name: str, default=None):
+    return getattr(settings, name, default)
+
+
 # Initialize FastAPI
 app = FastAPI(
     title=settings.APP_NAME,
@@ -53,14 +58,17 @@ CHAT_HISTORY_DIR.mkdir(exist_ok=True)
 
 PRESENTATION_USERNAME = "airdata"
 PRESENTATION_PASSWORD = "AirData-M7q9-V2x4-Kp31"
+DEFAULT_TOKEN_TTL_SECONDS = 28800
+DEFAULT_COOKIE_NAME = "airdata_auth"
+DRUPAL_CALLBACK_PATH = _setting("DRUPAL_OAUTH_CALLBACK_PATH", "/auth/callback")
 
 
 def _accepted_local_usernames() -> set[str]:
-    return {settings.WEB_LOGIN_USERNAME, PRESENTATION_USERNAME}
+    return {_setting("WEB_LOGIN_USERNAME", PRESENTATION_USERNAME), PRESENTATION_USERNAME}
 
 
 def _accepted_local_passwords() -> set[str]:
-    return {settings.WEB_LOGIN_PASSWORD, PRESENTATION_PASSWORD}
+    return {_setting("WEB_LOGIN_PASSWORD", PRESENTATION_PASSWORD), PRESENTATION_PASSWORD}
 
 
 def _b64url_encode(data: bytes) -> str:
@@ -73,7 +81,7 @@ def _b64url_decode(data: str) -> bytes:
 
 
 def _jwt_secret() -> bytes:
-    secret = settings.SESSION_SECRET_KEY or settings.API_KEY
+    secret = _setting("SESSION_SECRET_KEY") or settings.API_KEY
     return secret.encode("utf-8")
 
 
@@ -89,7 +97,7 @@ def _create_local_jwt(username: str) -> str:
         "sub": username,
         "name": username,
         "iat": now,
-        "exp": now + settings.WEB_LOGIN_TOKEN_TTL_SECONDS,
+        "exp": now + _setting("WEB_LOGIN_TOKEN_TTL_SECONDS", DEFAULT_TOKEN_TTL_SECONDS),
         "iss": "airdata-rag-web",
         "aud": "airdata-rag-web",
     }
@@ -135,32 +143,40 @@ def _decode_local_jwt(token: str | None) -> dict | None:
 def _local_jwt_user(request: Request) -> dict | None:
     if not _local_login_enabled():
         return None
-    payload = _decode_local_jwt(request.cookies.get(settings.WEB_LOGIN_COOKIE_NAME))
+    payload = _decode_local_jwt(request.cookies.get(_setting("WEB_LOGIN_COOKIE_NAME", DEFAULT_COOKIE_NAME)))
     if not payload:
         return None
-    return {"name": payload.get("name") or payload.get("sub") or settings.WEB_LOGIN_USERNAME}
+    return {"name": payload.get("name") or payload.get("sub") or _setting("WEB_LOGIN_USERNAME", PRESENTATION_USERNAME)}
 
 
 def _secure_cookie_for_request(request: Request) -> bool:
     forwarded_proto = request.headers.get("x-forwarded-proto", "")
     is_https = request.url.scheme == "https" or forwarded_proto.lower().split(",", 1)[0].strip() == "https"
-    return settings.SESSION_COOKIE_SECURE and is_https
+    return _setting("SESSION_COOKIE_SECURE", False) and is_https
+
+
+def _drupal_oauth_configured() -> bool:
+    return bool(_setting("DRUPAL_OAUTH_CLIENT_ID", "") and _setting("DRUPAL_OAUTH_BASE_URL", ""))
 
 
 def _oauth_enabled() -> bool:
-    return settings.AUTH_MODE.lower() in {"drupal_oauth2", "oauth2", "api_key_or_drupal_oauth2", "api_key_or_oauth2"}
+    auth_mode = _setting("AUTH_MODE", "api_key").lower()
+    return _drupal_oauth_configured() and auth_mode in {
+        "drupal_oauth2",
+        "oauth2",
+        "api_key_or_drupal_oauth2",
+        "api_key_or_oauth2",
+    }
 
 
 def _local_login_enabled() -> bool:
-    # The production server may already have a stale web/.env with
-    # WEB_LOGIN_ENABLED=false or AUTH_MODE=drupal_oauth2 from older deploys.
-    # This branch intentionally closes the web UI with the local JWT login
-    # while Drupal/OAuth stays on stand by.
-    if settings.is_production:
-        return True
     if _oauth_enabled():
         return False
-    return settings.WEB_LOGIN_ENABLED
+    # Keep the presentation login as a production fallback when Drupal/OAuth
+    # is not configured yet.
+    if _setting("is_production", False):
+        return True
+    return _setting("WEB_LOGIN_ENABLED", False)
 
 
 def _web_auth_enabled() -> bool:
@@ -168,22 +184,22 @@ def _web_auth_enabled() -> bool:
 
 
 def _authorize_url() -> str:
-    if settings.DRUPAL_OAUTH_AUTHORIZE_URL:
-        return settings.DRUPAL_OAUTH_AUTHORIZE_URL
-    return f"{settings.DRUPAL_OAUTH_BASE_URL}/oauth/authorize"
+    if _setting("DRUPAL_OAUTH_AUTHORIZE_URL", ""):
+        return _setting("DRUPAL_OAUTH_AUTHORIZE_URL")
+    return f"{_setting('DRUPAL_OAUTH_BASE_URL', '')}/oauth/authorize"
 
 
 def _token_url() -> str:
-    if settings.DRUPAL_OAUTH_TOKEN_URL:
-        return settings.DRUPAL_OAUTH_TOKEN_URL
-    return f"{settings.DRUPAL_OAUTH_BASE_URL}/oauth/token"
+    if _setting("DRUPAL_OAUTH_TOKEN_URL", ""):
+        return _setting("DRUPAL_OAUTH_TOKEN_URL")
+    return f"{_setting('DRUPAL_OAUTH_BASE_URL', '')}/oauth/token"
 
 
 def _userinfo_url() -> str:
-    if settings.DRUPAL_OAUTH_USERINFO_URL:
-        return settings.DRUPAL_OAUTH_USERINFO_URL
-    if settings.DRUPAL_OAUTH_BASE_URL:
-        return f"{settings.DRUPAL_OAUTH_BASE_URL}/oauth/userinfo"
+    if _setting("DRUPAL_OAUTH_USERINFO_URL", ""):
+        return _setting("DRUPAL_OAUTH_USERINFO_URL")
+    if _setting("DRUPAL_OAUTH_BASE_URL", ""):
+        return f"{_setting('DRUPAL_OAUTH_BASE_URL')}/oauth/userinfo"
     return ""
 
 
@@ -235,7 +251,7 @@ async def require_web_authentication(request: Request, call_next):
         return await call_next(request)
 
     path = _strip_root_path(request.url.path)
-    public_paths = ("/login", settings.DRUPAL_OAUTH_CALLBACK_PATH, "/logout", "/health")
+    public_paths = ("/login", DRUPAL_CALLBACK_PATH, "/logout", "/health")
     if path.startswith("/static/") or path in public_paths:
         return await call_next(request)
 
@@ -250,8 +266,8 @@ async def require_web_authentication(request: Request, call_next):
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key=settings.SESSION_SECRET_KEY,
-    https_only=settings.SESSION_COOKIE_SECURE,
+    secret_key=_setting("SESSION_SECRET_KEY") or settings.API_KEY,
+    https_only=_setting("SESSION_COOKIE_SECURE", False),
     same_site="lax",
 )
 # Operational SQLite store. Initialised on startup / closed on shutdown.
@@ -320,14 +336,14 @@ async def login(request: Request, next: str = "/"):
             {
                 "request": request,
                 "next_url": next if next.startswith("/") else "/",
-                "username": PRESENTATION_USERNAME if settings.is_production else settings.WEB_LOGIN_USERNAME,
+                "username": PRESENTATION_USERNAME if _setting("is_production", False) else _setting("WEB_LOGIN_USERNAME", PRESENTATION_USERNAME),
             },
         )
 
     if not _oauth_enabled():
         return RedirectResponse(url=next, status_code=302)
 
-    if not settings.DRUPAL_OAUTH_CLIENT_ID or not settings.DRUPAL_OAUTH_BASE_URL:
+    if not _setting("DRUPAL_OAUTH_CLIENT_ID", "") or not _setting("DRUPAL_OAUTH_BASE_URL", ""):
         raise HTTPException(status_code=500, detail="Drupal OAuth2 is not configured")
 
     state = secrets.token_urlsafe(32)
@@ -336,9 +352,9 @@ async def login(request: Request, next: str = "/"):
 
     params = {
         "response_type": "code",
-        "client_id": settings.DRUPAL_OAUTH_CLIENT_ID,
+        "client_id": _setting("DRUPAL_OAUTH_CLIENT_ID", ""),
         "redirect_uri": str(request.url_for("auth_callback")),
-        "scope": settings.DRUPAL_OAUTH_SCOPES,
+        "scope": _setting("DRUPAL_OAUTH_SCOPES", "openid profile email"),
         "state": state,
     }
     return RedirectResponse(url=f"{_authorize_url()}?{urlencode(params)}", status_code=302)
@@ -355,7 +371,7 @@ async def local_login(
     if not _local_login_enabled():
         return RedirectResponse(url=str(request.url_for("login")), status_code=302)
 
-    if not settings.WEB_LOGIN_PASSWORD:
+    if not _setting("WEB_LOGIN_PASSWORD", PRESENTATION_PASSWORD):
         raise HTTPException(status_code=500, detail="WEB_LOGIN_PASSWORD is not configured")
 
     username_ok = any(secrets.compare_digest(username, expected) for expected in _accepted_local_usernames())
@@ -375,9 +391,9 @@ async def local_login(
     request.session.clear()
     redirect = RedirectResponse(url=next_url if next_url.startswith("/") else "/", status_code=302)
     redirect.set_cookie(
-        key=settings.WEB_LOGIN_COOKIE_NAME,
+        key=_setting("WEB_LOGIN_COOKIE_NAME", DEFAULT_COOKIE_NAME),
         value=_create_local_jwt(username),
-        max_age=settings.WEB_LOGIN_TOKEN_TTL_SECONDS,
+        max_age=_setting("WEB_LOGIN_TOKEN_TTL_SECONDS", DEFAULT_TOKEN_TTL_SECONDS),
         httponly=True,
         secure=_secure_cookie_for_request(request),
         samesite="lax",
@@ -385,7 +401,7 @@ async def local_login(
     return redirect
 
 
-@app.get(settings.DRUPAL_OAUTH_CALLBACK_PATH, name="auth_callback")
+@app.get(DRUPAL_CALLBACK_PATH, name="auth_callback")
 async def auth_callback(request: Request, code: str | None = None, state: str | None = None, error: str | None = None):
     """Complete Drupal OAuth2 authorization-code login."""
     if error:
@@ -398,10 +414,10 @@ async def auth_callback(request: Request, code: str | None = None, state: str | 
         "grant_type": "authorization_code",
         "code": code,
         "redirect_uri": str(request.url_for("auth_callback")),
-        "client_id": settings.DRUPAL_OAUTH_CLIENT_ID,
+        "client_id": _setting("DRUPAL_OAUTH_CLIENT_ID", ""),
     }
-    if settings.DRUPAL_OAUTH_CLIENT_SECRET:
-        data["client_secret"] = settings.DRUPAL_OAUTH_CLIENT_SECRET
+    if _setting("DRUPAL_OAUTH_CLIENT_SECRET", ""):
+        data["client_secret"] = _setting("DRUPAL_OAUTH_CLIENT_SECRET")
 
     response = await http_client.post(_token_url(), data=data)
     if response.status_code != 200:
@@ -439,7 +455,7 @@ async def logout(request: Request):
     request.session.clear()
     target = str(request.url_for("login")) if _web_auth_enabled() else str(request.url_for("home"))
     redirect = RedirectResponse(url=target, status_code=302)
-    redirect.delete_cookie(settings.WEB_LOGIN_COOKIE_NAME)
+    redirect.delete_cookie(_setting("WEB_LOGIN_COOKIE_NAME", DEFAULT_COOKIE_NAME))
     return redirect
 
 
