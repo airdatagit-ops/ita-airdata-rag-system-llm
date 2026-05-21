@@ -222,6 +222,56 @@ cp env.example .env
 | `CORS_ORIGINS` | string | `http://localhost:3000,http://localhost:8080` | Origens permitidas (separadas por vírgula) |
 | `RATE_LIMIT` | int | `100` | Limite de requisições por minuto |
 
+#### Autenticacao da Web
+
+A interface web tem dois modos de login. O modo estatico serve como fallback temporario para apresentacoes; o Drupal OAuth2 deve ser usado quando o client OAuth estiver configurado no Drupal.
+
+| Cenario | Configuracao principal | Comportamento |
+|---------|------------------------|---------------|
+| Apresentacao / Drupal indisponivel | `AUTH_MODE=api_key` | Exibe a tela de login estatica e cria um JWT local em cookie HTTP-only. |
+| Drupal OAuth2 ativo | `AUTH_MODE=drupal_oauth2` + `DRUPAL_OAUTH_BASE_URL` + `DRUPAL_OAUTH_CLIENT_ID` | Redireciona `/login` para o Drupal e desabilita o login estatico. |
+
+Exemplo para manter o login estatico:
+
+```env
+AUTH_MODE=api_key
+WEB_LOGIN_ENABLED=true
+WEB_LOGIN_USERNAME=airdata
+WEB_LOGIN_PASSWORD=troque-esta-senha
+SESSION_SECRET_KEY=troque-este-segredo
+```
+
+Exemplo para ativar Drupal:
+
+```env
+AUTH_MODE=drupal_oauth2
+SESSION_SECRET_KEY=troque-este-segredo
+DRUPAL_OAUTH_BASE_URL=https://www.airdata.ita.br
+DRUPAL_OAUTH_CLIENT_ID=id-chat
+DRUPAL_OAUTH_CLIENT_SECRET=<secret>
+DRUPAL_OAUTH_AUTHORIZE_URL=https://www.airdata.ita.br/oauth/authorize
+DRUPAL_OAUTH_TOKEN_URL=https://www.airdata.ita.br/oauth/token
+DRUPAL_OAUTH_USERINFO_URL=https://www.airdata.ita.br/oauth/userinfo
+```
+
+| Variavel | Tipo | Padrao | Descricao |
+|----------|------|--------|-----------|
+| `AUTH_MODE` | string | `api_key` | Define o modo de autenticacao. Use `api_key` para login estatico na web + API key no backend; use `drupal_oauth2` para Drupal OAuth2. |
+| `SESSION_SECRET_KEY` | string | `API_KEY` | Segredo usado para assinar sessao/cookies da web. Em producao, use valor proprio e estavel. |
+| `WEB_LOGIN_ENABLED` | bool | `true` | Habilita o login estatico quando OAuth Drupal nao esta ativo. |
+| `WEB_LOGIN_USERNAME` | string | `airdata` | Usuario do login estatico. |
+| `WEB_LOGIN_PASSWORD` | string | `AirData-M7q9-V2x4-Kp31` | Senha temporaria do login estatico. Deve ser trocada ao sair do modo apresentacao. |
+| `WEB_LOGIN_TOKEN_TTL_SECONDS` | int | `28800` | Tempo de vida do JWT local, em segundos. |
+| `WEB_LOGIN_COOKIE_NAME` | string | `airdata_auth` | Nome do cookie do login estatico. |
+| `DRUPAL_OAUTH_BASE_URL` | string | - | URL base do Drupal, sem barra final. |
+| `DRUPAL_OAUTH_CLIENT_ID` | string | - | Client ID do app OAuth2 no Drupal. |
+| `DRUPAL_OAUTH_CLIENT_SECRET` | string | - | Client secret do app OAuth2 no Drupal. |
+| `DRUPAL_OAUTH_AUTHORIZE_URL` | string | `<base>/oauth/authorize` | Endpoint de autorizacao OAuth2. |
+| `DRUPAL_OAUTH_TOKEN_URL` | string | `<base>/oauth/token` | Endpoint de troca do code por token. |
+| `DRUPAL_OAUTH_USERINFO_URL` | string | `<base>/oauth/userinfo` | Endpoint de dados do usuario autenticado. |
+| `DRUPAL_OAUTH_CALLBACK_PATH` | string | `/auth/callback` | Callback registrado no Drupal. |
+| `DRUPAL_OAUTH_SCOPES` | string | `openid profile email` | Escopos solicitados no login Drupal. |
+
 #### Qdrant
 
 | Variável | Tipo | Padrão | Descrição |

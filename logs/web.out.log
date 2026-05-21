@@ -1,0 +1,12 @@
+INFO:     127.0.0.1:55207 - "GET / HTTP/1.1" 302 Found
+INFO:     127.0.0.1:55206 - "GET /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55209 - "POST /login HTTP/1.1" 302 Found
+INFO:     127.0.0.1:59153 - "GET / HTTP/1.1" 302 Found
+INFO:     127.0.0.1:59010 - "GET / HTTP/1.1" 302 Found
+INFO:     127.0.0.1:59010 - "GET /login?next=/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62011 - "POST /login HTTP/1.1" 302 Found
+INFO:     127.0.0.1:62011 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53795 - "GET / HTTP/1.1" 302 Found
+INFO:     127.0.0.1:53795 - "GET /login?next=/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53795 - "GET /static/css/login.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51876 - "GET /static/images/airdata-logo.png HTTP/1.1" 200 OK

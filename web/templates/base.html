@@ -58,7 +58,14 @@
         <a href="{{ request.url_for('about_page') }}" class="nav-link {% if current_page == 'about' %}active{% endif %}">Sobre</a>
       </div>
     </nav>
-    
+
+    {% if auth_enabled and current_user %}
+      <div class="auth-status">
+        <span class="auth-user">{{ current_user.name or current_user.preferred_username or current_user.mail or current_user.email or 'Usuario' }}</span>
+        <a href="{{ request.url_for('logout') }}" class="nav-link">Sair</a>
+      </div>
+    {% endif %}
+
     <button id="themeToggle" class="theme-toggle" aria-label="Alternar tema">
       <span class="theme-icon">🌙</span>
     </button>

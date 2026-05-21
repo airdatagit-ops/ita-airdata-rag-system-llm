@@ -60,11 +60,37 @@ class Settings(BaseSettings):
     # API Configuration
     API_BASE_URL: str = _get('API_BASE_URL')
     API_KEY: str = _get('API_KEY')
+    AUTH_MODE: str = _get('AUTH_MODE', 'api_key')
+
+    # Drupal OAuth2
+    SESSION_SECRET_KEY: str = _get('SESSION_SECRET_KEY', _get('API_KEY', 'change-me'))
+    DRUPAL_OAUTH_BASE_URL: str = _get('DRUPAL_OAUTH_BASE_URL').rstrip('/')
+    DRUPAL_OAUTH_CLIENT_ID: str = _get('DRUPAL_OAUTH_CLIENT_ID')
+    DRUPAL_OAUTH_CLIENT_SECRET: str = _get('DRUPAL_OAUTH_CLIENT_SECRET')
+    DRUPAL_OAUTH_AUTHORIZE_URL: str = _get('DRUPAL_OAUTH_AUTHORIZE_URL')
+    DRUPAL_OAUTH_TOKEN_URL: str = _get('DRUPAL_OAUTH_TOKEN_URL')
+    DRUPAL_OAUTH_USERINFO_URL: str = _get('DRUPAL_OAUTH_USERINFO_URL')
+    DRUPAL_OAUTH_SCOPES: str = _get('DRUPAL_OAUTH_SCOPES', 'openid profile email')
+    DRUPAL_OAUTH_CALLBACK_PATH: str = _get('DRUPAL_OAUTH_CALLBACK_PATH', '/auth/callback')
+    SESSION_COOKIE_SECURE: bool = _get(
+        'SESSION_COOKIE_SECURE',
+        'True' if _IS_PROD else 'False',
+    ).lower() in ('true', '1', 'yes')
+
+    # Temporary local web login for demos/presentations
+    WEB_LOGIN_ENABLED: bool = _get('WEB_LOGIN_ENABLED', 'True').lower() in ('true', '1', 'yes')
+    WEB_LOGIN_USERNAME: str = _get('WEB_LOGIN_USERNAME', 'airdata')
+    WEB_LOGIN_PASSWORD: str = _get('WEB_LOGIN_PASSWORD', 'AirData-M7q9-V2x4-Kp31')
+    WEB_LOGIN_TOKEN_TTL_SECONDS: int = int(_get('WEB_LOGIN_TOKEN_TTL_SECONDS', '28800'))
+    WEB_LOGIN_COOKIE_NAME: str = _get('WEB_LOGIN_COOKIE_NAME', 'airdata_auth')
 
     # Application
     APP_NAME: str = _get('APP_NAME', 'Aviation RAG Web Interface')
     APP_VERSION: str = _get('APP_VERSION', '1.0.0')
 
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT.lower() == 'production'
     # Operational SQLite database (feedback, and future users/flags/config).
     # Served by the Datasette explorer alongside data/store.db.
     APP_DB_PATH: str = _get('APP_DB_PATH', str(_DEFAULT_APP_DB))

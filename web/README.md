@@ -137,6 +137,56 @@ Todas as configurações são lidas do arquivo `.env` na raiz do diretório `web
 | `APP_NAME` | string | `Aviation RAG Web Interface` | Nome exibido internamente pela aplicação. |
 | `APP_VERSION` | string | `1.0.0` | Versão da aplicação. |
 
+#### Autenticacao
+
+| Variavel | Tipo | Padrao | Descricao |
+|----------|------|--------|-----------|
+| `AUTH_MODE` | string | `api_key` | Modo de autenticacao. Use `api_key` para manter o login estatico; use `drupal_oauth2` para Drupal OAuth2 quando configurado. |
+| `SESSION_SECRET_KEY` | string | `API_KEY` | Segredo usado para assinar sessao e cookies. |
+| `WEB_LOGIN_ENABLED` | booleano | `True` | Habilita o login estatico quando Drupal OAuth2 nao esta ativo. |
+| `WEB_LOGIN_USERNAME` | string | `airdata` | Usuario do login estatico temporario. |
+| `WEB_LOGIN_PASSWORD` | string | `AirData-M7q9-V2x4-Kp31` | Senha do login estatico temporario. Trocar ao sair do modo apresentacao. |
+| `WEB_LOGIN_TOKEN_TTL_SECONDS` | inteiro | `28800` | Tempo de vida do JWT local, em segundos. |
+| `WEB_LOGIN_COOKIE_NAME` | string | `airdata_auth` | Nome do cookie usado pelo login estatico. |
+| `DRUPAL_OAUTH_BASE_URL` | string | - | URL base do Drupal, sem barra final. |
+| `DRUPAL_OAUTH_CLIENT_ID` | string | - | Client ID do OAuth2 no Drupal. |
+| `DRUPAL_OAUTH_CLIENT_SECRET` | string | - | Client secret do OAuth2 no Drupal. |
+| `DRUPAL_OAUTH_AUTHORIZE_URL` | string | `<base>/oauth/authorize` | Endpoint de autorizacao OAuth2. |
+| `DRUPAL_OAUTH_TOKEN_URL` | string | `<base>/oauth/token` | Endpoint de token OAuth2. |
+| `DRUPAL_OAUTH_USERINFO_URL` | string | `<base>/oauth/userinfo` | Endpoint de dados do usuario autenticado. |
+| `DRUPAL_OAUTH_CALLBACK_PATH` | string | `/auth/callback` | Callback exposto pela web e registrado no Drupal. |
+| `DRUPAL_OAUTH_SCOPES` | string | `openid profile email` | Escopos solicitados durante o login Drupal. |
+
+#### Modos de login
+
+| Cenario | Configuracao principal | Comportamento |
+|---------|------------------------|---------------|
+| Apresentacao / Drupal indisponivel | `AUTH_MODE=api_key` | Exibe a tela de login estatica e cria um JWT local em cookie HTTP-only. |
+| Drupal OAuth2 ativo | `AUTH_MODE=drupal_oauth2` + `DRUPAL_OAUTH_BASE_URL` + `DRUPAL_OAUTH_CLIENT_ID` | Redireciona `/login` para o Drupal e desabilita o login estatico. |
+
+Exemplo para login estatico:
+
+```env
+AUTH_MODE=api_key
+WEB_LOGIN_ENABLED=true
+WEB_LOGIN_USERNAME=airdata
+WEB_LOGIN_PASSWORD=troque-esta-senha
+SESSION_SECRET_KEY=troque-este-segredo
+```
+
+Exemplo para Drupal OAuth2:
+
+```env
+AUTH_MODE=drupal_oauth2
+SESSION_SECRET_KEY=troque-este-segredo
+DRUPAL_OAUTH_BASE_URL=https://www.airdata.ita.br
+DRUPAL_OAUTH_CLIENT_ID=id-chat
+DRUPAL_OAUTH_CLIENT_SECRET=<secret>
+DRUPAL_OAUTH_AUTHORIZE_URL=https://www.airdata.ita.br/oauth/authorize
+DRUPAL_OAUTH_TOKEN_URL=https://www.airdata.ita.br/oauth/token
+DRUPAL_OAUTH_USERINFO_URL=https://www.airdata.ita.br/oauth/userinfo
+```
+
 ### Exemplo de arquivo `.env`:
 
 ```env

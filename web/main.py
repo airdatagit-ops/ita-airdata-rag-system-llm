@@ -1,13 +1,20 @@
 """FastAPI Web Application for Aviation RAG System."""
 
+import base64
 import hashlib
+import hmac
 import httpx
 import json
+import secrets
+import time
 from pathlib import Path
+from urllib.parse import urlencode
+
 from fastapi import FastAPI, Request, Form, HTTPException
+from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse, JSONResponse
+from starlette.middleware.sessions import SessionMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
@@ -21,6 +28,11 @@ from app.app_store import (
     FEEDBACK_THUMBS,
     FEEDBACK_REASON_CODES,
 )
+
+
+def _setting(name: str, default=None):
+    return getattr(settings, name, default)
+
 
 # Initialize FastAPI
 app = FastAPI(
@@ -44,6 +56,220 @@ http_client = httpx.AsyncClient(timeout=180.0)
 CHAT_HISTORY_DIR = Path("chat_history")
 CHAT_HISTORY_DIR.mkdir(exist_ok=True)
 
+PRESENTATION_USERNAME = "airdata"
+PRESENTATION_PASSWORD = "AirData-M7q9-V2x4-Kp31"
+DEFAULT_TOKEN_TTL_SECONDS = 28800
+DEFAULT_COOKIE_NAME = "airdata_auth"
+DRUPAL_CALLBACK_PATH = _setting("DRUPAL_OAUTH_CALLBACK_PATH", "/auth/callback")
+
+
+def _accepted_local_usernames() -> set[str]:
+    return {_setting("WEB_LOGIN_USERNAME", PRESENTATION_USERNAME), PRESENTATION_USERNAME}
+
+
+def _accepted_local_passwords() -> set[str]:
+    return {_setting("WEB_LOGIN_PASSWORD", PRESENTATION_PASSWORD), PRESENTATION_PASSWORD}
+
+
+def _b64url_encode(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+
+
+def _b64url_decode(data: str) -> bytes:
+    padding = "=" * (-len(data) % 4)
+    return base64.urlsafe_b64decode((data + padding).encode("ascii"))
+
+
+def _jwt_secret() -> bytes:
+    secret = _setting("SESSION_SECRET_KEY") or settings.API_KEY
+    return secret.encode("utf-8")
+
+
+def _sign_jwt(message: str) -> str:
+    signature = hmac.new(_jwt_secret(), message.encode("ascii"), hashlib.sha256).digest()
+    return _b64url_encode(signature)
+
+
+def _create_local_jwt(username: str) -> str:
+    now = int(time.time())
+    header = {"alg": "HS256", "typ": "JWT"}
+    payload = {
+        "sub": username,
+        "name": username,
+        "iat": now,
+        "exp": now + _setting("WEB_LOGIN_TOKEN_TTL_SECONDS", DEFAULT_TOKEN_TTL_SECONDS),
+        "iss": "airdata-rag-web",
+        "aud": "airdata-rag-web",
+    }
+    encoded_header = _b64url_encode(json.dumps(header, separators=(",", ":")).encode("utf-8"))
+    encoded_payload = _b64url_encode(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
+    signing_input = f"{encoded_header}.{encoded_payload}"
+    return f"{signing_input}.{_sign_jwt(signing_input)}"
+
+
+def _decode_local_jwt(token: str | None) -> dict | None:
+    if not token:
+        return None
+
+    parts = token.split(".")
+    if len(parts) != 3:
+        return None
+
+    signing_input = f"{parts[0]}.{parts[1]}"
+    expected_signature = _sign_jwt(signing_input)
+    if not hmac.compare_digest(parts[2], expected_signature):
+        return None
+
+    try:
+        payload = json.loads(_b64url_decode(parts[1]))
+    except (ValueError, json.JSONDecodeError):
+        return None
+
+    try:
+        expires_at = int(payload.get("exp", 0))
+    except (TypeError, ValueError):
+        return None
+
+    now = int(time.time())
+    if payload.get("iss") != "airdata-rag-web" or payload.get("aud") != "airdata-rag-web":
+        return None
+    if expires_at <= now:
+        return None
+    if payload.get("sub") not in _accepted_local_usernames():
+        return None
+    return payload
+
+
+def _local_jwt_user(request: Request) -> dict | None:
+    if not _local_login_enabled():
+        return None
+    payload = _decode_local_jwt(request.cookies.get(_setting("WEB_LOGIN_COOKIE_NAME", DEFAULT_COOKIE_NAME)))
+    if not payload:
+        return None
+    return {"name": payload.get("name") or payload.get("sub") or _setting("WEB_LOGIN_USERNAME", PRESENTATION_USERNAME)}
+
+
+def _secure_cookie_for_request(request: Request) -> bool:
+    forwarded_proto = request.headers.get("x-forwarded-proto", "")
+    is_https = request.url.scheme == "https" or forwarded_proto.lower().split(",", 1)[0].strip() == "https"
+    return _setting("SESSION_COOKIE_SECURE", False) and is_https
+
+
+def _drupal_oauth_configured() -> bool:
+    return bool(_setting("DRUPAL_OAUTH_CLIENT_ID", "") and _setting("DRUPAL_OAUTH_BASE_URL", ""))
+
+
+def _oauth_enabled() -> bool:
+    auth_mode = _setting("AUTH_MODE", "api_key").lower()
+    return _drupal_oauth_configured() and auth_mode in {
+        "drupal_oauth2",
+        "oauth2",
+        "api_key_or_drupal_oauth2",
+        "api_key_or_oauth2",
+    }
+
+
+def _local_login_enabled() -> bool:
+    if _oauth_enabled():
+        return False
+    # Keep the presentation login as a production fallback when Drupal/OAuth
+    # is not configured yet.
+    if _setting("is_production", False):
+        return True
+    return _setting("WEB_LOGIN_ENABLED", False)
+
+
+def _web_auth_enabled() -> bool:
+    return _oauth_enabled() or _local_login_enabled()
+
+
+def _authorize_url() -> str:
+    if _setting("DRUPAL_OAUTH_AUTHORIZE_URL", ""):
+        return _setting("DRUPAL_OAUTH_AUTHORIZE_URL")
+    return f"{_setting('DRUPAL_OAUTH_BASE_URL', '')}/oauth/authorize"
+
+
+def _token_url() -> str:
+    if _setting("DRUPAL_OAUTH_TOKEN_URL", ""):
+        return _setting("DRUPAL_OAUTH_TOKEN_URL")
+    return f"{_setting('DRUPAL_OAUTH_BASE_URL', '')}/oauth/token"
+
+
+def _userinfo_url() -> str:
+    if _setting("DRUPAL_OAUTH_USERINFO_URL", ""):
+        return _setting("DRUPAL_OAUTH_USERINFO_URL")
+    if _setting("DRUPAL_OAUTH_BASE_URL", ""):
+        return f"{_setting('DRUPAL_OAUTH_BASE_URL')}/oauth/userinfo"
+    return ""
+
+
+def _user_from_session(request: Request) -> dict | None:
+    local_user = _local_jwt_user(request)
+    if local_user:
+        return local_user
+    return request.session.get("user")
+
+
+def _api_headers(request: Request) -> dict[str, str]:
+    token = request.session.get("access_token") if _oauth_enabled() else None
+    if token:
+        return {"Authorization": f"Bearer {token}"}
+    return {"X-API-Key": settings.API_KEY}
+
+
+def _template_context(request: Request, current_page: str, **extra):
+    context = {
+        "request": request,
+        "current_page": current_page,
+        "auth_enabled": _web_auth_enabled(),
+        "current_user": _user_from_session(request),
+    }
+    context.update(extra)
+    return context
+
+
+def _strip_root_path(path: str) -> str:
+    root_path = (settings.ROOT_PATH or "").rstrip("/")
+    if root_path and path == root_path:
+        return "/"
+    if root_path and path.startswith(f"{root_path}/"):
+        return path[len(root_path):] or "/"
+    return path
+
+
+def _prefixed_path(path: str) -> str:
+    root_path = (settings.ROOT_PATH or "").rstrip("/")
+    if not root_path:
+        return path
+    return f"{root_path}{path}"
+
+
+@app.middleware("http")
+async def require_web_authentication(request: Request, call_next):
+    """Require a web login when OAuth2 or local presentation auth is enabled."""
+    if not _web_auth_enabled():
+        return await call_next(request)
+
+    path = _strip_root_path(request.url.path)
+    public_paths = ("/login", DRUPAL_CALLBACK_PATH, "/logout", "/health")
+    if path.startswith("/static/") or path in public_paths:
+        return await call_next(request)
+
+    if request.session.get("access_token") or _local_jwt_user(request):
+        return await call_next(request)
+
+    if path.startswith("/api/"):
+        return JSONResponse({"detail": "Login required"}, status_code=401)
+
+    return RedirectResponse(url=f"{_prefixed_path('/login')}?next={path}", status_code=302)
+
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=_setting("SESSION_SECRET_KEY") or settings.API_KEY,
+    https_only=_setting("SESSION_COOKIE_SECURE", False),
+    same_site="lax",
+)
 # Operational SQLite store. Initialised on startup / closed on shutdown.
 app_store: Optional[AppStore] = None
 
@@ -101,12 +327,144 @@ async def shutdown_event():
         app_store.close()
 
 
+@app.get("/login")
+async def login(request: Request, next: str = "/"):
+    """Show local login or start Drupal OAuth2 authorization-code login."""
+    if _local_login_enabled():
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "next_url": next if next.startswith("/") else "/",
+                "username": PRESENTATION_USERNAME if _setting("is_production", False) else _setting("WEB_LOGIN_USERNAME", PRESENTATION_USERNAME),
+            },
+        )
+
+    if not _oauth_enabled():
+        return RedirectResponse(url=next, status_code=302)
+
+    if not _setting("DRUPAL_OAUTH_CLIENT_ID", "") or not _setting("DRUPAL_OAUTH_BASE_URL", ""):
+        raise HTTPException(status_code=500, detail="Drupal OAuth2 is not configured")
+
+    state = secrets.token_urlsafe(32)
+    request.session["oauth_state"] = state
+    request.session["next_url"] = next if next.startswith("/") else "/"
+
+    params = {
+        "response_type": "code",
+        "client_id": _setting("DRUPAL_OAUTH_CLIENT_ID", ""),
+        "redirect_uri": str(request.url_for("auth_callback")),
+        "scope": _setting("DRUPAL_OAUTH_SCOPES", "openid profile email"),
+        "state": state,
+    }
+    return RedirectResponse(url=f"{_authorize_url()}?{urlencode(params)}", status_code=302)
+
+
+@app.post("/login")
+async def local_login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    next_url: str = Form("/"),
+):
+    """Authenticate with the temporary local web login."""
+    if not _local_login_enabled():
+        return RedirectResponse(url=str(request.url_for("login")), status_code=302)
+
+    if not _setting("WEB_LOGIN_PASSWORD", PRESENTATION_PASSWORD):
+        raise HTTPException(status_code=500, detail="WEB_LOGIN_PASSWORD is not configured")
+
+    username_ok = any(secrets.compare_digest(username, expected) for expected in _accepted_local_usernames())
+    password_ok = any(secrets.compare_digest(password, expected) for expected in _accepted_local_passwords())
+    if not username_ok or not password_ok:
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "next_url": next_url if next_url.startswith("/") else "/",
+                "username": username,
+                "error": "Usuário ou senha inválidos.",
+            },
+            status_code=401,
+        )
+
+    request.session.clear()
+    redirect = RedirectResponse(url=next_url if next_url.startswith("/") else "/", status_code=302)
+    redirect.set_cookie(
+        key=_setting("WEB_LOGIN_COOKIE_NAME", DEFAULT_COOKIE_NAME),
+        value=_create_local_jwt(username),
+        max_age=_setting("WEB_LOGIN_TOKEN_TTL_SECONDS", DEFAULT_TOKEN_TTL_SECONDS),
+        httponly=True,
+        secure=_secure_cookie_for_request(request),
+        samesite="lax",
+    )
+    return redirect
+
+
+@app.get(DRUPAL_CALLBACK_PATH, name="auth_callback")
+async def auth_callback(request: Request, code: str | None = None, state: str | None = None, error: str | None = None):
+    """Complete Drupal OAuth2 authorization-code login."""
+    if error:
+        raise HTTPException(status_code=401, detail=f"Drupal OAuth2 error: {error}")
+
+    if not code or not state or state != request.session.get("oauth_state"):
+        raise HTTPException(status_code=401, detail="Invalid OAuth2 callback")
+
+    data = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": str(request.url_for("auth_callback")),
+        "client_id": _setting("DRUPAL_OAUTH_CLIENT_ID", ""),
+    }
+    if _setting("DRUPAL_OAUTH_CLIENT_SECRET", ""):
+        data["client_secret"] = _setting("DRUPAL_OAUTH_CLIENT_SECRET")
+
+    response = await http_client.post(_token_url(), data=data)
+    if response.status_code != 200:
+        logger.error(f"Drupal token exchange failed: {response.status_code} - {response.text}")
+        raise HTTPException(status_code=401, detail="Could not authenticate with Drupal")
+
+    token_data = response.json()
+    access_token = token_data.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Drupal did not return an access token")
+
+    user = {"name": "Usuário autenticado"}
+    userinfo_url = _userinfo_url()
+    if userinfo_url:
+        user_response = await http_client.get(
+            userinfo_url,
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        if user_response.status_code == 200:
+            user = user_response.json()
+        else:
+            logger.warning(f"Could not fetch Drupal userinfo: {user_response.status_code} - {user_response.text}")
+
+    next_url = request.session.get("next_url", "/")
+    request.session.clear()
+    request.session["access_token"] = access_token
+    request.session["refresh_token"] = token_data.get("refresh_token")
+    request.session["user"] = user
+    return RedirectResponse(url=next_url, status_code=302)
+
+
+@app.get("/logout")
+async def logout(request: Request):
+    """Clear the local web session."""
+    request.session.clear()
+    target = str(request.url_for("login")) if _web_auth_enabled() else str(request.url_for("home"))
+    redirect = RedirectResponse(url=target, status_code=302)
+    redirect.delete_cookie(_setting("WEB_LOGIN_COOKIE_NAME", DEFAULT_COOKIE_NAME))
+    return redirect
+
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     """Home page."""
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "current_page": "home"}
+        _template_context(request, "home")
     )
 
 
@@ -115,7 +473,7 @@ async def search_page(request: Request):
     """Search page."""
     return templates.TemplateResponse(
         "search.html",
-        {"request": request, "current_page": "pesquisa"}
+        _template_context(request, "pesquisa")
     )
 
 
@@ -142,7 +500,7 @@ async def search_post(
             payload["score_threshold"] = score_threshold
         
         # Call vector-only search API (faster, no LLM)
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         response = await http_client.post(
             f"{settings.API_BASE_URL}/api/vector-search",
             json=payload,
@@ -153,39 +511,31 @@ async def search_post(
             result = response.json()
             return templates.TemplateResponse(
                 "search.html",
-                {
-                    "request": request,
-                    "current_page": "pesquisa",
-                    "query": query,
-                    "result": result,
-                    "search_params": {
+                _template_context(
+                    request,
+                    "pesquisa",
+                    query=query,
+                    result=result,
+                    search_params={
                         "date": date,
                         "limit": limit,
                         "score_threshold": score_threshold
-                    }
-                }
+                    },
+                )
             )
         else:
             error_msg = f"API Error: {response.status_code}"
             logger.error(f"{error_msg} - {response.text}")
             return templates.TemplateResponse(
                 "search.html",
-                {
-                    "request": request,
-                    "current_page": "pesquisa",
-                    "error": error_msg
-                }
+                _template_context(request, "pesquisa", error=error_msg)
             )
             
     except Exception as e:
         logger.error(f"Error processing search: {e}")
         return templates.TemplateResponse(
             "search.html",
-            {
-                "request": request,
-                "current_page": "pesquisa",
-                "error": str(e)
-            }
+            _template_context(request, "pesquisa", error=str(e))
         )
 
 
@@ -194,7 +544,7 @@ async def stats_page(request: Request):
     """Statistics page."""
     try:
         # Call API
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         response = await http_client.get(
             f"{settings.API_BASE_URL}/stats",
             headers=headers
@@ -204,34 +554,26 @@ async def stats_page(request: Request):
             stats = response.json()
             return templates.TemplateResponse(
                 "stats.html",
-                {
-                    "request": request,
-                    "current_page": "estatisticas",
-                    "stats": stats,
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                }
+                _template_context(
+                    request,
+                    "estatisticas",
+                    stats=stats,
+                    timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                )
             )
         else:
             error_msg = f"API Error: {response.status_code}"
             logger.error(f"{error_msg} - {response.text}")
             return templates.TemplateResponse(
                 "stats.html",
-                {
-                    "request": request,
-                    "current_page": "estatisticas",
-                    "error": error_msg
-                }
+                _template_context(request, "estatisticas", error=error_msg)
             )
             
     except Exception as e:
         logger.error(f"Error fetching stats: {e}")
         return templates.TemplateResponse(
             "stats.html",
-            {
-                "request": request,
-                "current_page": "estatisticas",
-                "error": str(e)
-            }
+            _template_context(request, "estatisticas", error=str(e))
         )
 
 
@@ -240,7 +582,7 @@ async def about_page(request: Request):
     """About page."""
     return templates.TemplateResponse(
         "about.html",
-        {"request": request, "current_page": "sobre"}
+        _template_context(request, "sobre")
     )
 
 
@@ -253,7 +595,7 @@ async def chat_page(request: Request):
     """Chat page with model selection."""
     try:
         # Get available models from API
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         response = await http_client.get(
             f"{settings.API_BASE_URL}/api/models",
             headers=headers
@@ -270,25 +612,25 @@ async def chat_page(request: Request):
         
         return templates.TemplateResponse(
             "chat.html",
-            {
-                "request": request,
-                "current_page": "chat",
-                "models": models,
-                "current_model": current_model
-            }
+            _template_context(
+                request,
+                "chat",
+                models=models,
+                current_model=current_model,
+            )
         )
         
     except Exception as e:
         logger.error(f"Error loading chat page: {e}")
         return templates.TemplateResponse(
             "chat.html",
-            {
-                "request": request,
-                "current_page": "chat",
-                "models": [],
-                "current_model": "",
-                "error": str(e)
-            }
+            _template_context(
+                request,
+                "chat",
+                models=[],
+                current_model="",
+                error=str(e),
+            )
         )
 
 
@@ -303,7 +645,7 @@ async def send_chat_message(request: Request):
         debug = body.get("debug", False)
         model_name = body.get("model_name")
         
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         
         # Change model if specified
         if model_name:
@@ -372,7 +714,7 @@ async def stream_chat_message(request: Request):
         debug = body.get("debug", False)
         model_name = body.get("model_name")
         
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         
         # Change model if specified
         if model_name:
@@ -659,7 +1001,7 @@ async def change_model_proxy(request: Request):
     """Proxy model change request to API."""
     try:
         body = await request.json()
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         
         response = await http_client.post(
             f"{settings.API_BASE_URL}/api/models/change",
@@ -680,10 +1022,10 @@ async def change_model_proxy(request: Request):
 
 
 @app.get("/api/models")
-async def get_models_proxy():
+async def get_models_proxy(request: Request):
     """Proxy models list request to API."""
     try:
-        headers = {"X-API-Key": settings.API_KEY}
+        headers = _api_headers(request)
         
         response = await http_client.get(
             f"{settings.API_BASE_URL}/api/models",
@@ -833,9 +1175,16 @@ async def health():
 
 if __name__ == "__main__":
     import uvicorn
+    # proxy_headers + forwarded_allow_ips are required so that, when running
+    # behind nginx (production), uvicorn honors X-Forwarded-Proto/Host. Without
+    # them, request.url_for(...) builds the OAuth callback as http://127.0.0.1
+    # instead of https://chatbot.airdata.ita.br, which Drupal then rejects with
+    # redirect_uri_mismatch. nginx connects from localhost, so we trust 127.0.0.1.
     uvicorn.run(
         "main:app",
         host=settings.HOST,
         port=settings.PORT,
-        reload=settings.RELOAD
+        reload=settings.RELOAD,
+        proxy_headers=True,
+        forwarded_allow_ips="127.0.0.1",
     )
