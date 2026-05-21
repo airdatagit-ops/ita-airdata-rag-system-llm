@@ -15,12 +15,19 @@ from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse,
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 from loguru import logger
 
 from app.config import settings
+from app.app_store import (
+    AppStore,
+    FEEDBACK_KINDS,
+    FEEDBACK_STAR_CATEGORIES,
+    FEEDBACK_THUMBS,
+    FEEDBACK_REASON_CODES,
+)
 
 # Initialize FastAPI
 app = FastAPI(
@@ -39,7 +46,8 @@ templates = Jinja2Templates(directory="templates")
 # HTTP client for API calls - longer timeout for RAG queries
 http_client = httpx.AsyncClient(timeout=180.0)
 
-# Chat history directory
+# Chat history directory (session store, legacy but still source of truth for
+# session replay on the chat UI). Feedback is mirrored into app.db for analytics.
 CHAT_HISTORY_DIR = Path("chat_history")
 CHAT_HISTORY_DIR.mkdir(exist_ok=True)
 
@@ -246,6 +254,20 @@ app.add_middleware(
     https_only=settings.SESSION_COOKIE_SECURE,
     same_site="lax",
 )
+# Operational SQLite store. Initialised on startup / closed on shutdown.
+app_store: Optional[AppStore] = None
+
+
+def _hash_client_ip(ip: Optional[str]) -> Optional[str]:
+    """Hash a client IP into a short, non-reversible identifier.
+
+    Used as a light abuse/duplication signal on feedback events without
+    storing raw IPs.
+    """
+    if not ip:
+        return None
+    digest = hashlib.sha256(ip.encode("utf-8")).hexdigest()
+    return digest[:16]
 
 
 def _generate_title_from_messages(messages: list, max_length: int = 50) -> str:
@@ -270,10 +292,23 @@ def _generate_title_from_messages(messages: list, max_length: int = 50) -> str:
     return "Conversa sem título"
 
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialise the operational SQLite store (feedback + future domains)."""
+    global app_store
+    app_store = AppStore(settings.APP_DB_PATH)
+    logger.info(
+        f"AppStore ready at {app_store.path} "
+        f"(migrations: {app_store.applied_migrations()})"
+    )
+
+
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Close HTTP client on shutdown."""
+    """Close HTTP client and AppStore on shutdown."""
     await http_client.aclose()
+    if app_store is not None:
+        app_store.close()
 
 
 @app.get("/login")
@@ -751,70 +786,198 @@ async def stream_chat_message(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-class RatingRequest(BaseModel):
+class FeedbackRequest(BaseModel):
+    """Unified feedback envelope for thumbs, stars, comments and clears."""
+
+    session_id: str
+    message_id: str
+    kind: str = Field(..., description="'thumbs' | 'star' | 'comment' | 'clear'")
+    thumbs: Optional[str] = Field(None, description="'up' | 'down' (kind='thumbs')")
+    category: Optional[str] = Field(
+        None, description="star category (kind='star' | 'clear')"
+    )
+    rating: Optional[int] = Field(
+        None, ge=0, le=5, description="star value 1–5; 0 to clear (kind='star')"
+    )
+    reason_code: Optional[str] = Field(None, description="feedback reason taxonomy")
+    comment: Optional[str] = Field(None, description="free-text comment")
+
+
+class LegacyRatingRequest(BaseModel):
+    """Deprecated: kept for /api/chat/rate clients. Maps 1:1 to kind='star'."""
+
     session_id: str
     message_id: str
     category: str
-    rating: int  # 0-5
+    rating: int  # 0–5 (0 = clear)
 
 
-@app.post("/api/chat/rate")
-async def rate_message(request: RatingRequest):
-    """Save rating for a specific message in the chat history."""
-    try:
-        # Validate rating value
-        if request.rating < 0 or request.rating > 5:
-            raise HTTPException(status_code=400, detail="Rating must be between 0 and 5")
-        
-        # Validate category
-        valid_categories = ["factual_accuracy", "completeness", "clarity", "citation_quality", "relevance"]
-        if request.category not in valid_categories:
-            raise HTTPException(status_code=400, detail=f"Invalid category. Must be one of: {valid_categories}")
-        
-        # Load the chat history file
-        history_file = CHAT_HISTORY_DIR / f"{request.session_id}.json"
-        if not history_file.exists():
-            raise HTTPException(status_code=404, detail="Session not found")
-        
-        with open(history_file, "r", encoding="utf-8") as f:
-            history = json.load(f)
-        
-        # Find the message by ID and update its rating
-        message_found = False
-        for msg in history.get("messages", []):
-            if msg.get("message_id") == request.message_id:
-                if "ratings" not in msg:
-                    msg["ratings"] = {}
-                msg["ratings"][request.category] = request.rating
-                message_found = True
+def _validate_feedback_payload(req: FeedbackRequest) -> None:
+    if req.kind not in FEEDBACK_KINDS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"invalid kind; must be one of {list(FEEDBACK_KINDS)}",
+        )
+    if req.kind == "thumbs":
+        if req.thumbs not in FEEDBACK_THUMBS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"thumbs must be one of {list(FEEDBACK_THUMBS)}",
+            )
+    if req.kind in ("star", "clear"):
+        if req.category not in FEEDBACK_STAR_CATEGORIES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"category must be one of {list(FEEDBACK_STAR_CATEGORIES)}",
+            )
+    if req.kind == "star":
+        if req.rating is None or not (0 <= req.rating <= 5):
+            raise HTTPException(
+                status_code=400, detail="rating must be between 0 and 5 for kind='star'"
+            )
+    if req.reason_code is not None and req.reason_code not in FEEDBACK_REASON_CODES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"reason_code must be one of {list(FEEDBACK_REASON_CODES)}",
+        )
+
+
+def _apply_feedback_to_json(req: FeedbackRequest) -> dict:
+    """Dual-write: update the consolidated state inside chat_history JSON.
+
+    Returns a snapshot of the target assistant message (or {}) so we can
+    denormalise model/query/sources into the SQLite event row.
+    """
+    history_file = CHAT_HISTORY_DIR / f"{req.session_id}.json"
+    if not history_file.exists():
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    with open(history_file, "r", encoding="utf-8") as f:
+        history = json.load(f)
+
+    target: Optional[dict] = None
+    for msg in history.get("messages", []):
+        if msg.get("message_id") == req.message_id:
+            target = msg
+            break
+    if target is None:
+        # Fallback: last assistant message without a message_id (compat path).
+        for msg in reversed(history.get("messages", [])):
+            if msg.get("role") == "assistant":
+                msg["message_id"] = req.message_id
+                target = msg
                 break
-        
-        if not message_found:
-            # If message_id not found, try to find the last assistant message
-            # This handles cases where message_id wasn't saved initially
-            for msg in reversed(history.get("messages", [])):
-                if msg.get("role") == "assistant":
-                    if "ratings" not in msg:
-                        msg["ratings"] = {}
-                    msg["ratings"][request.category] = request.rating
-                    msg["message_id"] = request.message_id  # Save the ID for future
-                    message_found = True
-                    break
-        
-        if not message_found:
-            raise HTTPException(status_code=404, detail="Message not found")
-        
-        # Save the updated history
-        with open(history_file, "w", encoding="utf-8") as f:
-            json.dump(history, f, ensure_ascii=False, indent=2)
-        
-        return {"status": "success", "message": "Rating saved"}
-        
+    if target is None:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    # Mutate the consolidated "ratings"/"feedback" block.
+    ratings = target.setdefault("ratings", {})
+    feedback = target.setdefault("feedback", {})
+
+    if req.kind == "thumbs":
+        feedback["thumbs"] = req.thumbs
+        if req.reason_code:
+            feedback["reason_code"] = req.reason_code
+        else:
+            feedback.pop("reason_code", None)
+    elif req.kind == "star":
+        if req.rating == 0:
+            ratings.pop(req.category, None)
+        else:
+            ratings[req.category] = req.rating
+    elif req.kind == "clear":
+        ratings.pop(req.category, None)
+    elif req.kind == "comment":
+        if req.comment:
+            feedback["comment"] = req.comment
+        else:
+            feedback.pop("comment", None)
+
+    with open(history_file, "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, indent=2)
+
+    return target or {}
+
+
+@app.post("/api/chat/feedback")
+async def submit_feedback(payload: FeedbackRequest, request: Request):
+    """Record an explicit user feedback event for a chat message.
+
+    Dual-writes: the consolidated state is kept in the JSON session file
+    (so session replay keeps working), and the event is appended to
+    ``feedback_events`` in ``data/app.db`` for analytics via Datasette.
+    """
+    _validate_feedback_payload(payload)
+
+    try:
+        target_msg = _apply_feedback_to_json(payload)
+
+        if app_store is None:  # pragma: no cover — startup order invariant
+            raise RuntimeError("AppStore not initialised")
+
+        sources = target_msg.get("sources")
+        app_store.feedback.insert_event(
+            session_id=payload.session_id,
+            message_id=payload.message_id,
+            kind=payload.kind,
+            thumbs=payload.thumbs if payload.kind == "thumbs" else None,
+            star_category=(
+                payload.category if payload.kind in ("star", "clear") else None
+            ),
+            star_value=(
+                payload.rating if payload.kind == "star" and payload.rating else None
+            ),
+            reason_code=payload.reason_code,
+            comment=payload.comment if payload.kind == "comment" else None,
+            model_used=target_msg.get("model"),
+            used_rag=target_msg.get("use_rag"),
+            user_query=_find_prev_user_query(payload, target_msg),
+            assistant_text=(target_msg.get("content") or "")[:2000],
+            sources_json=json.dumps(sources, ensure_ascii=False) if sources else None,
+            client_ip_hash=_hash_client_ip(
+                request.client.host if request.client else None
+            ),
+        )
+
+        return {"status": "success"}
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error saving rating: {e}")
+        logger.error(f"Error saving feedback: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def _find_prev_user_query(payload: FeedbackRequest, target_msg: dict) -> Optional[str]:
+    """Locate the user message that immediately precedes the rated reply."""
+    history_file = CHAT_HISTORY_DIR / f"{payload.session_id}.json"
+    if not history_file.exists():
+        return None
+    try:
+        with open(history_file, "r", encoding="utf-8") as f:
+            messages = json.load(f).get("messages", [])
+    except Exception:
+        return None
+    prev: Optional[str] = None
+    for msg in messages:
+        if msg is target_msg or msg.get("message_id") == payload.message_id:
+            return prev
+        if msg.get("role") == "user":
+            prev = msg.get("content")
+    return prev
+
+
+@app.post("/api/chat/rate", deprecated=True)
+async def rate_message(payload: LegacyRatingRequest, request: Request):
+    """Deprecated alias. Maps 1:1 to ``kind='star'`` (``rating=0`` clears)."""
+    feedback = FeedbackRequest(
+        session_id=payload.session_id,
+        message_id=payload.message_id,
+        kind="star",
+        category=payload.category,
+        rating=payload.rating,
+    )
+    return await submit_feedback(feedback, request)
 
 
 @app.post("/api/models/change")

@@ -1,10 +1,18 @@
 """Configuration for Web Application."""
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 from os import getenv
 
 load_dotenv()
+
+# Project root is two parents up from this file: web/app/config.py -> <root>.
+# Used to resolve default paths for operational data (e.g. app.db) regardless
+# of the cwd the web service is launched from.
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_DEFAULT_APP_DB = _PROJECT_ROOT / "data" / "app.db"
 
 _ENV = getenv('ENVIRONMENT', 'development').lower()
 _IS_PROD = _ENV == 'production'
@@ -83,6 +91,9 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.ENVIRONMENT.lower() == 'production'
+    # Operational SQLite database (feedback, and future users/flags/config).
+    # Served by the Datasette explorer alongside data/store.db.
+    APP_DB_PATH: str = _get('APP_DB_PATH', str(_DEFAULT_APP_DB))
 
     class Config:
         env_file = ".env"

@@ -374,6 +374,24 @@ fi
 # Enable services to start on boot
 systemctl enable ragapi ragweb ragexplore --quiet 2>/dev/null || true
 
+# ── Step 5b: Initialise operational SQLite (app.db) ──────────
+#
+# ragexplore.service serves data/app.db alongside the immutable
+# data/store.db, and ragweb.service writes feedback events to it at
+# runtime. Create it (with migrations applied) before restarting the
+# services so Datasette never observes an empty, schemaless file.
+# Idempotent: subsequent runs are no-ops when all migrations are
+# already recorded in schema_migrations.
+
+info "Ensuring operational database exists (data/app.db)..."
+sudo -u "$DEPLOY_USER" "$PROJECT_DIR/venv/bin/python" -c "
+import importlib.util as u
+spec = u.spec_from_file_location('app_store', '$PROJECT_DIR/web/app/app_store.py')
+mod = u.module_from_spec(spec); spec.loader.exec_module(mod)
+mod.AppStore('$PROJECT_DIR/data/app.db').close()
+"
+success "data/app.db ready."
+
 # ── Step 6: Install nginx configuration ──────────────────────
 
 if ! $SKIP_NGINX; then
