@@ -83,7 +83,20 @@ def main():
     parser.add_argument("--skip-ollama", action="store_true", help="Skip Ollama model pulls")
     parser.add_argument("--skip-embeddings", action="store_true", help="Skip embedding model")
     parser.add_argument("--skip-cross-encoder", action="store_true", help="Skip cross-encoder model")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Run downloads even when INFERENCE_MODE=remote",
+    )
     args = parser.parse_args()
+
+    if config.INFERENCE_MODE == "remote" and not args.force:
+        logger.info(
+            f"INFERENCE_MODE=remote → all ML inference runs on "
+            f"{config.GPU_SERVER_URL or '<GPU_SERVER_URL unset>'}. "
+            "Skipping local pre-download (use --force to override)."
+        )
+        return
 
     logger.info("=== Pre-downloading ML models ===")
     start = time.time()
