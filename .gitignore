@@ -11,7 +11,6 @@ docs/diagnostico-apis-coleta.md
 
 .env
 web/.env
-gpu_server/.env
 !*.env.example
 !env.example
 

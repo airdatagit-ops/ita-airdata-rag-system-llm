@@ -11,7 +11,10 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    # Pinned to label "app" to disambiguate from the GPU runner used by
+    # ita-airdata-gpu-proxy-server (label "gpu"). Re-register the
+    # airdatasrv02 runner with labels self-hosted,app,linux,x64.
+    runs-on: [self-hosted, app]
     concurrency:
       group: deploy-production
       cancel-in-progress: false
