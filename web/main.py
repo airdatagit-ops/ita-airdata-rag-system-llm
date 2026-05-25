@@ -34,14 +34,6 @@ def _setting(name: str, default=None):
     return getattr(settings, name, default)
 
 
-def _setting_any(*names: str, default=""):
-    for name in names:
-        value = _setting(name, "")
-        if value:
-            return value
-    return default
-
-
 # Initialize FastAPI
 app = FastAPI(
     title=settings.APP_NAME,
@@ -69,11 +61,6 @@ PRESENTATION_PASSWORD = "AirData-M7q9-V2x4-Kp31"
 DEFAULT_TOKEN_TTL_SECONDS = 28800
 DEFAULT_COOKIE_NAME = "airdata_auth"
 DRUPAL_CALLBACK_PATH = _setting("DRUPAL_OAUTH_CALLBACK_PATH", "/auth/callback")
-DRUPAL_AVAILABILITY_TTL_SECONDS = 30
-OAUTH_COOKIE_MAX_AGE_SECONDS = 600
-OAUTH_STATE_COOKIE_NAME = "airdata_rag_oauth_state"
-OAUTH_VERIFIER_COOKIE_NAME = "airdata_rag_oauth_verifier"
-_drupal_availability_cache: tuple[float, bool] | None = None
 
 
 def _accepted_local_usernames() -> set[str]:
@@ -154,7 +141,7 @@ def _decode_local_jwt(token: str | None) -> dict | None:
 
 
 def _local_jwt_user(request: Request) -> dict | None:
-    if not _static_login_fallback_enabled():
+    if not _local_login_enabled():
         return None
     payload = _decode_local_jwt(request.cookies.get(_setting("WEB_LOGIN_COOKIE_NAME", DEFAULT_COOKIE_NAME)))
     if not payload:
@@ -168,62 +155,8 @@ def _secure_cookie_for_request(request: Request) -> bool:
     return _setting("SESSION_COOKIE_SECURE", False) and is_https
 
 
-def _drupal_oauth_base_url() -> str:
-    return _setting("DRUPAL_OAUTH_BASE_URL", "").rstrip("/")
-
-
-def _drupal_oauth_client_id() -> str:
-    return _setting_any("DRUPAL_OAUTH_CLIENT_ID", "DRUPAL_CLIENT_ID")
-
-
-def _drupal_oauth_client_secret() -> str:
-    return _setting_any("DRUPAL_OAUTH_CLIENT_SECRET", "DRUPAL_CLIENT_SECRET")
-
-
-def _drupal_oauth_scopes() -> str:
-    return _setting_any("DRUPAL_OAUTH_SCOPES", "SCOPE", default="openid")
-
-
 def _drupal_oauth_configured() -> bool:
-    return bool(_drupal_oauth_client_id() and _authorize_url() and _token_url())
-
-
-def _oauth_redirect_uri(request: Request) -> str:
-    configured_uri = _setting("DRUPAL_OAUTH_REDIRECT_URI", "")
-    if configured_uri:
-        return configured_uri
-    return str(request.url_for("home"))
-
-
-def _create_oauth_state(next_url: str) -> str:
-    payload = {
-        "next": next_url if next_url.startswith("/") else "/",
-        "iat": int(time.time()),
-        "nonce": secrets.token_urlsafe(24),
-    }
-    encoded_payload = _b64url_encode(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
-    return f"{encoded_payload}.{_sign_jwt(encoded_payload)}"
-
-
-def _decode_oauth_state(state: str | None) -> dict | None:
-    if not state or "." not in state:
-        return None
-    encoded_payload, signature = state.rsplit(".", 1)
-    if not hmac.compare_digest(signature, _sign_jwt(encoded_payload)):
-        return None
-    try:
-        payload = json.loads(_b64url_decode(encoded_payload))
-    except (ValueError, json.JSONDecodeError):
-        return None
-    if int(time.time()) - int(payload.get("iat", 0)) > OAUTH_COOKIE_MAX_AGE_SECONDS:
-        return None
-    return payload
-
-
-def _create_pkce_pair() -> tuple[str, str]:
-    verifier = secrets.token_urlsafe(64)
-    challenge = _b64url_encode(hashlib.sha256(verifier.encode("ascii")).digest())
-    return verifier, challenge
+    return bool(_setting("DRUPAL_OAUTH_CLIENT_ID", "") and _setting("DRUPAL_OAUTH_BASE_URL", ""))
 
 
 def _oauth_enabled() -> bool:
@@ -251,53 +184,23 @@ def _web_auth_enabled() -> bool:
 
 
 def _authorize_url() -> str:
-    configured_url = _setting_any("DRUPAL_OAUTH_AUTHORIZE_URL", "DRUPAL_AUTHORIZE_URL")
-    if configured_url:
-        return configured_url
-    base_url = _drupal_oauth_base_url()
-    return f"{base_url}/oauth/authorize" if base_url else ""
+    if _setting("DRUPAL_OAUTH_AUTHORIZE_URL", ""):
+        return _setting("DRUPAL_OAUTH_AUTHORIZE_URL")
+    return f"{_setting('DRUPAL_OAUTH_BASE_URL', '')}/oauth/authorize"
 
 
 def _token_url() -> str:
-    configured_url = _setting_any("DRUPAL_OAUTH_TOKEN_URL", "DRUPAL_TOKEN_URL")
-    if configured_url:
-        return configured_url
-    base_url = _drupal_oauth_base_url()
-    return f"{base_url}/oauth/token" if base_url else ""
+    if _setting("DRUPAL_OAUTH_TOKEN_URL", ""):
+        return _setting("DRUPAL_OAUTH_TOKEN_URL")
+    return f"{_setting('DRUPAL_OAUTH_BASE_URL', '')}/oauth/token"
 
 
 def _userinfo_url() -> str:
     if _setting("DRUPAL_OAUTH_USERINFO_URL", ""):
         return _setting("DRUPAL_OAUTH_USERINFO_URL")
-    base_url = _drupal_oauth_base_url()
-    if base_url:
-        return f"{base_url}/oauth/userinfo"
+    if _setting("DRUPAL_OAUTH_BASE_URL", ""):
+        return f"{_setting('DRUPAL_OAUTH_BASE_URL')}/oauth/userinfo"
     return ""
-
-
-def _static_login_fallback_enabled() -> bool:
-    return _setting("WEB_LOGIN_ENABLED", False) or _setting("is_production", False)
-
-
-async def _drupal_oauth_available() -> bool:
-    global _drupal_availability_cache
-
-    if not _oauth_enabled():
-        return False
-
-    now = time.time()
-    if _drupal_availability_cache and _drupal_availability_cache[0] > now:
-        return _drupal_availability_cache[1]
-
-    try:
-        response = await http_client.get(_authorize_url(), timeout=3.0, follow_redirects=False)
-        available = response.status_code < 500
-    except httpx.RequestError as exc:
-        logger.warning(f"Drupal OAuth2 unavailable, falling back to local login: {exc}")
-        available = False
-
-    _drupal_availability_cache = (now + DRUPAL_AVAILABILITY_TTL_SECONDS, available)
-    return available
 
 
 def _user_from_session(request: Request) -> dict | None:
@@ -348,18 +251,11 @@ async def require_web_authentication(request: Request, call_next):
         return await call_next(request)
 
     path = _strip_root_path(request.url.path)
-    public_paths = ("/login", "/auth/drupal", DRUPAL_CALLBACK_PATH, "/logout", "/health")
+    public_paths = ("/login", DRUPAL_CALLBACK_PATH, "/logout", "/health")
     if path.startswith("/static/") or path in public_paths:
         return await call_next(request)
-    if path == "/" and (
-        request.query_params.get("error")
-        or (request.query_params.get("code") and request.query_params.get("state"))
-    ):
-        return await call_next(request)
 
-    drupal_available = await _drupal_oauth_available() if _oauth_enabled() else False
-
-    if request.session.get("access_token") or (_local_jwt_user(request) and not drupal_available):
+    if request.session.get("access_token") or _local_jwt_user(request):
         return await call_next(request)
 
     if path.startswith("/api/"):
@@ -433,85 +329,35 @@ async def shutdown_event():
 
 @app.get("/login")
 async def login(request: Request, next: str = "/"):
-    """Show the AirData login page with Drupal-first and local fallback options."""
-    next_url = next if next.startswith("/") else "/"
-
-    if _oauth_enabled():
-        if await _drupal_oauth_available():
-            return templates.TemplateResponse(
-                "login.html",
-                {
-                    "request": request,
-                    "next_url": next_url,
-                    "username": PRESENTATION_USERNAME if _setting("is_production", False) else _setting("WEB_LOGIN_USERNAME", PRESENTATION_USERNAME),
-                    "oauth_configured": True,
-                    "oauth_unavailable": False,
-                    "local_login_available": False,
-                },
-            )
-
-        if _static_login_fallback_enabled():
-            return templates.TemplateResponse(
-                "login.html",
-                {
-                    "request": request,
-                    "next_url": next_url,
-                    "username": PRESENTATION_USERNAME if _setting("is_production", False) else _setting("WEB_LOGIN_USERNAME", PRESENTATION_USERNAME),
-                    "oauth_configured": True,
-                    "oauth_unavailable": True,
-                    "local_login_available": True,
-                },
-            )
-        raise HTTPException(status_code=503, detail="Drupal OAuth2 is unavailable and local fallback is disabled")
-
+    """Show local login or start Drupal OAuth2 authorization-code login."""
     if _local_login_enabled():
         return templates.TemplateResponse(
             "login.html",
             {
                 "request": request,
-                "next_url": next_url,
+                "next_url": next if next.startswith("/") else "/",
                 "username": PRESENTATION_USERNAME if _setting("is_production", False) else _setting("WEB_LOGIN_USERNAME", PRESENTATION_USERNAME),
-                "oauth_configured": False,
-                "oauth_unavailable": False,
-                "local_login_available": True,
             },
         )
 
-    return RedirectResponse(url=next_url, status_code=302)
-
-
-@app.get("/auth/drupal", name="auth_drupal")
-async def auth_drupal(request: Request, next: str = "/"):
-    """Start Drupal OAuth2 authorization using the PKCE flow used by AirData apps."""
-    next_url = next if next.startswith("/") else "/"
-
     if not _oauth_enabled():
-        return RedirectResponse(url=f"{_prefixed_path('/login')}?next={next_url}", status_code=302)
-    if not await _drupal_oauth_available():
-        return RedirectResponse(url=f"{_prefixed_path('/login')}?next={next_url}", status_code=302)
+        return RedirectResponse(url=next, status_code=302)
 
-    state = _create_oauth_state(next_url)
-    verifier, challenge = _create_pkce_pair()
+    if not _setting("DRUPAL_OAUTH_CLIENT_ID", "") or not _setting("DRUPAL_OAUTH_BASE_URL", ""):
+        raise HTTPException(status_code=500, detail="Drupal OAuth2 is not configured")
+
+    state = secrets.token_urlsafe(32)
+    request.session["oauth_state"] = state
+    request.session["next_url"] = next if next.startswith("/") else "/"
+
     params = {
         "response_type": "code",
-        "client_id": _drupal_oauth_client_id(),
-        "redirect_uri": _oauth_redirect_uri(request),
+        "client_id": _setting("DRUPAL_OAUTH_CLIENT_ID", ""),
+        "redirect_uri": str(request.url_for("auth_callback")),
+        "scope": _setting("DRUPAL_OAUTH_SCOPES", "openid profile email"),
         "state": state,
-        "code_challenge": challenge,
-        "code_challenge_method": "S256",
-        "scope": _drupal_oauth_scopes(),
     }
-
-    redirect = RedirectResponse(url=f"{_authorize_url()}?{urlencode(params)}", status_code=302)
-    cookie_kwargs = {
-        "max_age": OAUTH_COOKIE_MAX_AGE_SECONDS,
-        "httponly": True,
-        "secure": _secure_cookie_for_request(request),
-        "samesite": "lax",
-    }
-    redirect.set_cookie(OAUTH_STATE_COOKIE_NAME, state, **cookie_kwargs)
-    redirect.set_cookie(OAUTH_VERIFIER_COOKIE_NAME, verifier, **cookie_kwargs)
-    return redirect
+    return RedirectResponse(url=f"{_authorize_url()}?{urlencode(params)}", status_code=302)
 
 
 @app.post("/login")
@@ -522,10 +368,7 @@ async def local_login(
     next_url: str = Form("/"),
 ):
     """Authenticate with the temporary local web login."""
-    if _oauth_enabled() and await _drupal_oauth_available():
-        return RedirectResponse(url=str(request.url_for("login")), status_code=302)
-
-    if not _static_login_fallback_enabled():
+    if not _local_login_enabled():
         return RedirectResponse(url=str(request.url_for("login")), status_code=302)
 
     if not _setting("WEB_LOGIN_PASSWORD", PRESENTATION_PASSWORD):
@@ -558,27 +401,23 @@ async def local_login(
     return redirect
 
 
-async def _complete_drupal_oauth(request: Request, code: str | None, state: str | None, error: str | None):
+@app.get(DRUPAL_CALLBACK_PATH, name="auth_callback")
+async def auth_callback(request: Request, code: str | None = None, state: str | None = None, error: str | None = None):
+    """Complete Drupal OAuth2 authorization-code login."""
     if error:
         raise HTTPException(status_code=401, detail=f"Drupal OAuth2 error: {error}")
 
-    state_payload = _decode_oauth_state(state)
-    expected_state = request.cookies.get(OAUTH_STATE_COOKIE_NAME)
-    verifier = request.cookies.get(OAUTH_VERIFIER_COOKIE_NAME)
-    if not code or not state_payload or not expected_state or not verifier:
-        raise HTTPException(status_code=401, detail="Invalid OAuth2 callback")
-    if not hmac.compare_digest(state, expected_state):
+    if not code or not state or state != request.session.get("oauth_state"):
         raise HTTPException(status_code=401, detail="Invalid OAuth2 callback")
 
     data = {
         "grant_type": "authorization_code",
         "code": code,
-        "redirect_uri": _oauth_redirect_uri(request),
-        "client_id": _drupal_oauth_client_id(),
-        "code_verifier": verifier,
+        "redirect_uri": str(request.url_for("auth_callback")),
+        "client_id": _setting("DRUPAL_OAUTH_CLIENT_ID", ""),
     }
-    if _drupal_oauth_client_secret():
-        data["client_secret"] = _drupal_oauth_client_secret()
+    if _setting("DRUPAL_OAUTH_CLIENT_SECRET", ""):
+        data["client_secret"] = _setting("DRUPAL_OAUTH_CLIENT_SECRET")
 
     response = await http_client.post(_token_url(), data=data)
     if response.status_code != 200:
@@ -602,21 +441,12 @@ async def _complete_drupal_oauth(request: Request, code: str | None, state: str 
         else:
             logger.warning(f"Could not fetch Drupal userinfo: {user_response.status_code} - {user_response.text}")
 
-    next_url = state_payload.get("next", "/")
+    next_url = request.session.get("next_url", "/")
     request.session.clear()
     request.session["access_token"] = access_token
     request.session["refresh_token"] = token_data.get("refresh_token")
     request.session["user"] = user
-    redirect = RedirectResponse(url=next_url if next_url.startswith("/") else "/", status_code=302)
-    redirect.delete_cookie(OAUTH_STATE_COOKIE_NAME)
-    redirect.delete_cookie(OAUTH_VERIFIER_COOKIE_NAME)
-    return redirect
-
-
-@app.get(DRUPAL_CALLBACK_PATH, name="auth_callback")
-async def auth_callback(request: Request, code: str | None = None, state: str | None = None, error: str | None = None):
-    """Complete Drupal OAuth2 authorization-code login."""
-    return await _complete_drupal_oauth(request, code, state, error)
+    return RedirectResponse(url=next_url, status_code=302)
 
 
 @app.get("/logout")
@@ -626,22 +456,12 @@ async def logout(request: Request):
     target = str(request.url_for("login")) if _web_auth_enabled() else str(request.url_for("home"))
     redirect = RedirectResponse(url=target, status_code=302)
     redirect.delete_cookie(_setting("WEB_LOGIN_COOKIE_NAME", DEFAULT_COOKIE_NAME))
-    redirect.delete_cookie(OAUTH_STATE_COOKIE_NAME)
-    redirect.delete_cookie(OAUTH_VERIFIER_COOKIE_NAME)
     return redirect
 
 
 @app.get("/", response_class=HTMLResponse)
-async def home(
-    request: Request,
-    code: str | None = None,
-    state: str | None = None,
-    error: str | None = None,
-):
+async def home(request: Request):
     """Home page."""
-    if code or state or error:
-        return await _complete_drupal_oauth(request, code, state, error)
-
     return templates.TemplateResponse(
         "index.html",
         _template_context(request, "home")

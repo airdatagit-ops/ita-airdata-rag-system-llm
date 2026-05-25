@@ -1,18 +1,11 @@
 :root {
-  --blue-900: #102a43;
-  --blue-800: #173f67;
-  --blue-700: #1f5f99;
-  --blue-600: #2675bd;
-  --surface: #ffffff;
-  --surface-soft: #f6f8fb;
-  --text: #172033;
+  --airdata-blue: #003c7d;
+  --airdata-blue-light: #0b66c3;
+  --airdata-green: #18a058;
+  --ink: #172033;
   --muted: #667085;
-  --border: #d9e2ec;
-  --danger: #b42318;
-  --danger-bg: #fff1f0;
-  --warning: #8a5200;
-  --warning-bg: #fff7e6;
-  --focus: rgba(38, 117, 189, 0.24);
+  --line: #d8e0ea;
+  --surface: #ffffff;
 }
 
 * {
@@ -22,348 +15,115 @@
 body {
   min-height: 100vh;
   margin: 0;
-  color: var(--text);
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   background:
-    radial-gradient(circle at 12% 18%, rgba(38, 117, 189, 0.16), transparent 28%),
-    linear-gradient(135deg, #eef5fb 0%, #f8fbff 46%, #ffffff 100%);
+    linear-gradient(135deg, rgba(0, 60, 125, 0.94), rgba(11, 102, 195, 0.78)),
+    radial-gradient(circle at 18% 12%, rgba(24, 160, 88, 0.35), transparent 32%),
+    #003c7d;
 }
 
 .login-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(360px, 0.95fr) minmax(420px, 1.05fr);
+  place-items: center;
+  padding: 24px;
 }
 
-.brand-panel {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: clamp(2rem, 5vw, 4.5rem);
-  color: #ffffff;
-  background:
-    linear-gradient(155deg, rgba(16, 42, 67, 0.96), rgba(31, 95, 153, 0.92)),
-    url("../images/airdata-logo.png") center 58% / min(66%, 440px) no-repeat;
+.login-panel {
+  width: min(100%, 420px);
+  padding: 36px;
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(11, 24, 44, 0.24);
 }
 
-.brand-panel::after {
-  content: "";
-  position: absolute;
-  inset: auto -18% -26% 22%;
-  height: 42%;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px 999px 0 0;
-  transform: rotate(-8deg);
-}
-
-.brand-mark {
-  position: relative;
-  z-index: 1;
+.brand {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: 16px;
+  margin-bottom: 32px;
 }
 
-.brand-mark img {
-  width: 58px;
-  height: 58px;
-  object-fit: contain;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.92);
-  padding: 0.35rem;
-}
-
-.brand-mark strong {
-  display: block;
-  font-size: 1.15rem;
-  line-height: 1.1;
-}
-
-.brand-mark span,
-.brand-footnote {
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 0.92rem;
-}
-
-.brand-copy {
-  position: relative;
-  z-index: 1;
-  max-width: 520px;
-  padding: 9vh 0;
-}
-
-.brand-copy h1 {
-  margin: 0 0 1rem;
-  font-size: clamp(2.4rem, 5vw, 4.35rem);
-  line-height: 1;
-  letter-spacing: 0;
-}
-
-.brand-copy p {
-  margin: 0;
-  max-width: 34rem;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: clamp(1rem, 1.8vw, 1.18rem);
-  line-height: 1.65;
-}
-
-.brand-stats {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  max-width: 520px;
-}
-
-.brand-stat {
-  border-top: 1px solid rgba(255, 255, 255, 0.28);
-  padding-top: 1rem;
-}
-
-.brand-stat strong {
-  display: block;
-  margin-bottom: 0.3rem;
-  font-size: 1rem;
-}
-
-.brand-stat span {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.84rem;
-  line-height: 1.45;
-}
-
-.form-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(1.5rem, 5vw, 4rem);
-}
-
-.login-card {
-  width: min(100%, 440px);
-}
-
-.login-card > img {
-  width: 182px;
+.brand-logo {
+  width: 92px;
   height: auto;
-  display: block;
-  margin-bottom: 2rem;
 }
 
-.login-card h2 {
-  margin: 0 0 0.6rem;
-  color: var(--blue-900);
-  font-size: clamp(1.8rem, 4vw, 2.35rem);
-  line-height: 1.1;
+.brand-kicker {
+  margin: 0 0 4px;
+  color: var(--airdata-green);
+  font-size: 0.82rem;
+  font-weight: 700;
   letter-spacing: 0;
+  text-transform: uppercase;
 }
 
-.login-card > p {
-  margin: 0 0 2rem;
-  color: var(--muted);
-  line-height: 1.6;
+h1 {
+  margin: 0;
+  color: var(--airdata-blue);
+  font-size: 2rem;
+  line-height: 1;
 }
 
 .login-form {
   display: grid;
-  gap: 1rem;
+  gap: 10px;
 }
 
-.field label {
-  display: block;
-  margin-bottom: 0.45rem;
-  color: #344054;
+label {
+  color: var(--muted);
   font-size: 0.9rem;
   font-weight: 650;
 }
 
-.field input {
+input {
   width: 100%;
-  min-height: 48px;
-  padding: 0.76rem 0.92rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text);
-  background: var(--surface);
-  font-size: 1rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.field input:focus {
+  height: 46px;
+  padding: 0 14px;
+  color: var(--ink);
+  background: #f8fbff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
   outline: none;
-  border-color: var(--blue-600);
-  box-shadow: 0 0 0 4px var(--focus);
 }
 
-.primary-button,
-.oauth-button {
-  width: 100%;
-  min-height: 48px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
-  transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+input:focus {
+  border-color: var(--airdata-blue-light);
+  box-shadow: 0 0 0 3px rgba(11, 102, 195, 0.14);
 }
 
-.primary-button {
-  margin-top: 0.35rem;
-  border: 0;
+button {
+  height: 48px;
+  margin-top: 8px;
   color: #ffffff;
-  background: linear-gradient(135deg, var(--blue-700), var(--blue-600));
-  box-shadow: 0 12px 24px rgba(31, 95, 153, 0.22);
+  background: var(--airdata-blue);
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.primary-button:hover,
-.oauth-button:hover {
-  transform: translateY(-1px);
-}
-
-.primary-button:hover {
-  background: linear-gradient(135deg, var(--blue-800), var(--blue-700));
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin: 1.6rem 0;
-  color: #98a2b3;
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.divider::before,
-.divider::after {
-  content: "";
-  height: 1px;
-  flex: 1;
-  background: var(--border);
-}
-
-.oauth-button {
-  border: 1px solid var(--border);
-  color: #344054;
-  background: var(--surface);
-}
-
-.oauth-button:hover {
-  border-color: #b8c6d8;
-  box-shadow: 0 10px 22px rgba(16, 42, 67, 0.08);
-}
-
-.login-error,
-.login-warning,
-.login-status,
-.support-note {
-  margin-bottom: 1rem;
-  padding: 0.9rem 1rem;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  line-height: 1.5;
+button:hover {
+  background: #052f60;
 }
 
 .login-error {
-  border: 1px solid #fecdca;
-  color: var(--danger);
-  background: var(--danger-bg);
+  margin: 2px 0 0;
+  color: #b42318;
+  font-size: 0.9rem;
 }
 
-.login-warning {
-  border: 1px solid #fedf89;
-  color: var(--warning);
-  background: var(--warning-bg);
-}
-
-.login-status {
-  border: 1px solid #abefc6;
-  color: var(--success);
-  background: var(--success-bg);
-}
-
-.login-status strong,
-.login-status span {
-  display: block;
-}
-
-.login-status span {
-  margin-top: 0.2rem;
-  color: #475467;
-}
-
-.support-note {
-  margin: 1.45rem 0 0;
-  color: #475467;
-  background: var(--surface-soft);
-}
-
-.support-note code {
-  color: #344054;
-  font-size: 0.82rem;
-  word-break: break-all;
-}
-
-@media (max-width: 900px) {
-  body {
-    background: #ffffff;
+@media (max-width: 480px) {
+  .login-panel {
+    padding: 28px 22px;
   }
 
-  .login-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .brand-panel {
-    min-height: 34vh;
-    padding: 1.5rem;
-    background:
-      linear-gradient(155deg, rgba(16, 42, 67, 0.96), rgba(31, 95, 153, 0.92)),
-      url("../images/airdata-logo.png") right 1.5rem bottom 1rem / 190px no-repeat;
-  }
-
-  .brand-copy {
-    padding: 3rem 0 1.2rem;
-  }
-
-  .brand-stats {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .brand-stat {
-    padding-top: 0.75rem;
-  }
-
-  .form-panel {
+  .brand {
     align-items: flex-start;
-    padding: 2rem 1.35rem 2.5rem;
-  }
-
-  .login-card > img {
-    display: none;
-  }
-}
-
-@media (max-width: 520px) {
-  .brand-copy h1 {
-    font-size: 2.4rem;
-  }
-
-  .brand-copy p,
-  .brand-stats {
-    display: none;
-  }
-
-  .brand-panel {
-    min-height: 220px;
+    flex-direction: column;
   }
 }

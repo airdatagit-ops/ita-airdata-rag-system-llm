@@ -154,9 +154,8 @@ Todas as configurações são lidas do arquivo `.env` na raiz do diretório `web
 | `DRUPAL_OAUTH_AUTHORIZE_URL` | string | `<base>/oauth/authorize` | Endpoint de autorizacao OAuth2. |
 | `DRUPAL_OAUTH_TOKEN_URL` | string | `<base>/oauth/token` | Endpoint de token OAuth2. |
 | `DRUPAL_OAUTH_USERINFO_URL` | string | `<base>/oauth/userinfo` | Endpoint de dados do usuario autenticado. |
-| `DRUPAL_OAUTH_CALLBACK_PATH` | string | `/auth/callback` | Callback legado aceito pela web para compatibilidade. |
-| `DRUPAL_OAUTH_REDIRECT_URI` | string | raiz publica da app | Redirect URI enviada ao Drupal. Use a raiz do dominio para seguir o padrao Data/OWL. |
-| `DRUPAL_OAUTH_SCOPES` | string | `openid` | Escopos solicitados durante o login Drupal. |
+| `DRUPAL_OAUTH_CALLBACK_PATH` | string | `/auth/callback` | Callback exposto pela web e registrado no Drupal. |
+| `DRUPAL_OAUTH_SCOPES` | string | `openid profile email` | Escopos solicitados durante o login Drupal. |
 
 #### Modos de login
 
@@ -164,8 +163,6 @@ Todas as configurações são lidas do arquivo `.env` na raiz do diretório `web
 |---------|------------------------|---------------|
 | Apresentacao / Drupal indisponivel | `AUTH_MODE=api_key` | Exibe a tela de login estatica e cria um JWT local em cookie HTTP-only. |
 | Drupal OAuth2 ativo | `AUTH_MODE=drupal_oauth2` + `DRUPAL_OAUTH_BASE_URL` + `DRUPAL_OAUTH_CLIENT_ID` | Redireciona `/login` para o Drupal e desabilita o login estatico. |
-
-Quando `AUTH_MODE=drupal_oauth2`, a web verifica se o Drupal esta acessivel antes de redirecionar. Se o Drupal nao responder, a tela estatica local e exibida como fallback temporario.
 
 Exemplo para login estatico:
 
@@ -183,28 +180,12 @@ Exemplo para Drupal OAuth2:
 AUTH_MODE=drupal_oauth2
 SESSION_SECRET_KEY=troque-este-segredo
 DRUPAL_OAUTH_BASE_URL=https://www.airdata.ita.br
-DRUPAL_OAUTH_CLIENT_ID=id-rag
+DRUPAL_OAUTH_CLIENT_ID=id-chat
 DRUPAL_OAUTH_CLIENT_SECRET=<secret>
 DRUPAL_OAUTH_AUTHORIZE_URL=https://www.airdata.ita.br/oauth/authorize
 DRUPAL_OAUTH_TOKEN_URL=https://www.airdata.ita.br/oauth/token
 DRUPAL_OAUTH_USERINFO_URL=https://www.airdata.ita.br/oauth/userinfo
-DRUPAL_OAUTH_SCOPES=openid
-DRUPAL_OAUTH_REDIRECT_URI=https://chatbot.airdata.ita.br
 ```
-
-O fluxo segue o padrao Data/OWL: `/login` exibe a tela, `/auth/drupal` inicia OAuth2 com PKCE e o Drupal retorna para a raiz publica da aplicacao. Redirect URI esperada em producao enquanto o host publico for `chatbot.airdata.ita.br`:
-
-```text
-https://chatbot.airdata.ita.br
-```
-
-Se o host mudar para `rag.airdata.ita.br`, cadastre no Drupal:
-
-```text
-https://rag.airdata.ita.br
-```
-
-Aliases aceitos: `DRUPAL_CLIENT_ID`, `DRUPAL_CLIENT_SECRET`, `DRUPAL_AUTHORIZE_URL`, `DRUPAL_TOKEN_URL` e `SCOPE`.
 
 ### Exemplo de arquivo `.env`:
 

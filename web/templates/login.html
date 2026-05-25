@@ -3,92 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login - Chatbot AirData</title>
-  <link rel="icon" href="{{ request.url_for('static', path='images/airdata-logo.png') }}">
+  <title>Entrar | AirData RAG</title>
   <link rel="stylesheet" href="{{ request.url_for('static', path='css/login.css') }}">
 </head>
 <body>
   <main class="login-shell">
-    <section class="brand-panel" aria-label="Chatbot AirData">
-      <div class="brand-mark">
-        <img src="{{ request.url_for('static', path='images/airdata-logo.png') }}" alt="AirData">
+    <section class="login-panel" aria-label="Acesso ao sistema">
+      <div class="brand">
+        <img src="{{ request.url_for('static', path='images/airdata-logo.png') }}" alt="AirData" class="brand-logo">
         <div>
-          <strong>AirData</strong>
-          <span>Instituto Tecnologico de Aeronautica</span>
+          <p class="brand-kicker">Sistema RAG</p>
+          <h1>AirData</h1>
         </div>
       </div>
 
-      <div class="brand-copy">
-        <h1>Chatbot AirData</h1>
-        <p>
-          Assistente RAG para consulta a documentos, normas e conhecimento operacional do ecossistema AirData.
-        </p>
-      </div>
+      <form class="login-form" method="post" action="{{ request.url_for('local_login') }}">
+        <input type="hidden" name="next_url" value="{{ next_url }}">
 
-      <div class="brand-stats" aria-label="Caracteristicas do sistema">
-        <div class="brand-stat">
-          <strong>Pesquisa</strong>
-          <span>Busca semantica em bases normativas e tecnicas do projeto.</span>
-        </div>
-        <div class="brand-stat">
-          <strong>Chatbot</strong>
-          <span>Respostas com contexto, fontes e apoio a analises tecnicas.</span>
-        </div>
-        <div class="brand-stat">
-          <strong>chatbot.airdata</strong>
-          <span>Acesso reservado para usuarios autorizados do AirData.</span>
-        </div>
-      </div>
-    </section>
+        <label for="username">Usuário</label>
+        <input id="username" name="username" type="text" value="{{ username or '' }}" autocomplete="username" required autofocus>
 
-    <section class="form-panel" aria-label="Entrar no sistema">
-      <div class="login-card">
-        <img src="{{ request.url_for('static', path='images/airdata-logo.png') }}" alt="AirData">
-        <h2>Acesse o Chatbot AirData</h2>
-        <p>
-          Entre com sua conta institucional Drupal para acessar o chatbot RAG. Se o Drupal estiver indisponivel, o acesso local temporario fica disponivel como contingencia.
-        </p>
-
-        {% if oauth_unavailable %}
-          <div class="login-warning" role="status">
-            Login Drupal indisponivel no momento. O acesso local temporario foi habilitado para manter o Chatbot AirData acessivel.
-          </div>
-        {% elif oauth_configured %}
-          <div class="login-status" role="status">
-            <strong>Drupal disponivel</strong>
-            <span>Login institucional prioritario para usuarios autorizados do AirData.</span>
-          </div>
-        {% endif %}
+        <label for="password">Senha</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
 
         {% if error %}
-          <div class="login-error" role="alert">{{ error }}</div>
+          <p class="login-error" role="alert">{{ error }}</p>
         {% endif %}
 
-        {% if oauth_configured and not oauth_unavailable %}
-          <a class="oauth-button" href="{{ request.url_for('auth_drupal') }}?next={{ next_url | urlencode }}">
-            Entrar com Drupal no Chatbot AirData
-          </a>
-        {% endif %}
-
-        {% if local_login_available %}
-          <form class="login-form" method="post" action="{{ request.url_for('local_login') }}">
-            <input type="hidden" name="next_url" value="{{ next_url }}">
-
-            <div class="field">
-              <label for="username">Usuario</label>
-              <input id="username" name="username" type="text" value="{{ username or '' }}" autocomplete="username" required autofocus>
-            </div>
-
-            <div class="field">
-              <label for="password">Senha</label>
-              <input id="password" name="password" type="password" autocomplete="current-password" required>
-            </div>
-
-            <button class="primary-button" type="submit">Entrar com acesso local</button>
-          </form>
-        {% endif %}
-
-      </div>
+        <button type="submit">Entrar</button>
+      </form>
     </section>
   </main>
 </body>
