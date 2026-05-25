@@ -52,6 +52,58 @@ success() { echo -e "${GREEN}[OK]${NC}    $*"; }
 warn()    { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 error()   { echo -e "${RED}[FAIL]${NC}  $*"; }
 
+set_env_from_action_secret() {
+    local file="$1"
+    local key="$2"
+    local value="${!key-}"
+
+    if [[ -z "$value" ]]; then
+        return 0
+    fi
+
+    touch "$file"
+    python3 - "$file" "$key" "$value" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+key = sys.argv[2]
+value = sys.argv[3]
+line = f"{key}={value}\n"
+
+lines = path.read_text(encoding="utf-8").splitlines(keepends=True) if path.exists() else []
+prefix = f"{key}="
+for index, existing in enumerate(lines):
+    if existing.startswith(prefix):
+        lines[index] = line
+        break
+else:
+    if lines and not lines[-1].endswith("\n"):
+        lines[-1] += "\n"
+    lines.append(line)
+
+path.write_text("".join(lines), encoding="utf-8")
+PY
+}
+
+sync_env_from_action_secrets() {
+    local file="$1"
+    shift
+
+    local applied=false
+    for key in "$@"; do
+        if [[ -n "${!key-}" ]]; then
+            set_env_from_action_secret "$file" "$key"
+            applied=true
+        fi
+    done
+
+    chown "$DEPLOY_USER:$DEPLOY_GROUP" "$file"
+    if $applied; then
+        info "Applied GitHub Actions secret overrides to ${file#$PROJECT_DIR/}"
+    fi
+}
+
 # ── Pre-flight checks ───────────────────────────────────────
 
 preflight_check() {
@@ -285,6 +337,42 @@ if [[ -f "$PROJECT_DIR/web/.env" ]]; then
         sed -i 's|^API_BASE_URL=http://161.*|API_BASE_URL=http://127.0.0.1:8083|' "$_web_env"
         info "Fixed API_BASE_URL to use direct local connection"
     fi
+
+    if ! grep -q '^ROOT_PATH=' "$_web_env"; then
+        echo 'ROOT_PATH=' >> "$_web_env"
+        info "Added empty ROOT_PATH to web/.env"
+    else
+        sed -i 's|^ROOT_PATH=.*|ROOT_PATH=|' "$_web_env"
+    fi
+
+    sync_env_from_action_secrets "$_web_env" \
+        AUTH_MODE \
+        SESSION_SECRET_KEY \
+        SESSION_COOKIE_SECURE \
+        DRUPAL_OAUTH_BASE_URL \
+        DRUPAL_OAUTH_CLIENT_ID \
+        DRUPAL_OAUTH_CLIENT_SECRET \
+        DRUPAL_OAUTH_AUTHORIZE_URL \
+        DRUPAL_OAUTH_TOKEN_URL \
+        DRUPAL_OAUTH_USERINFO_URL \
+        DRUPAL_OAUTH_SCOPES \
+        DRUPAL_OAUTH_CALLBACK_PATH \
+        DRUPAL_OAUTH_REDIRECT_URI \
+        WEB_LOGIN_ENABLED \
+        WEB_LOGIN_USERNAME \
+        WEB_LOGIN_PASSWORD \
+        WEB_LOGIN_TOKEN_TTL_SECONDS \
+        WEB_LOGIN_COOKIE_NAME
+fi
+
+if [[ -f "$PROJECT_DIR/.env" ]]; then
+    sync_env_from_action_secrets "$PROJECT_DIR/.env" \
+        AUTH_MODE \
+        DRUPAL_OAUTH_BASE_URL \
+        DRUPAL_OAUTH_CLIENT_ID \
+        DRUPAL_OAUTH_CLIENT_SECRET \
+        DRUPAL_OAUTH_INTROSPECTION_URL \
+        DRUPAL_OAUTH_USERINFO_URL
 fi
 
 # ── Step 3: Backend venv + dependencies ──────────────────────
