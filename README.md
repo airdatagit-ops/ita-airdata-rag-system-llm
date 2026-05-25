@@ -231,6 +231,8 @@ A interface web tem dois modos de login. O modo estatico serve como fallback tem
 | Apresentacao / Drupal indisponivel | `AUTH_MODE=api_key` | Exibe a tela de login estatica e cria um JWT local em cookie HTTP-only. |
 | Drupal OAuth2 ativo | `AUTH_MODE=drupal_oauth2` + `DRUPAL_OAUTH_BASE_URL` + `DRUPAL_OAUTH_CLIENT_ID` | Redireciona `/login` para o Drupal e desabilita o login estatico. |
 
+Quando `AUTH_MODE=drupal_oauth2`, a web verifica se o Drupal esta acessivel antes de redirecionar. Se o Drupal nao responder, a tela estatica local e exibida como fallback temporario. Quando o Drupal volta a responder, o login Drupal volta a ser priorizado.
+
 Exemplo para manter o login estatico:
 
 ```env
@@ -247,11 +249,26 @@ Exemplo para ativar Drupal:
 AUTH_MODE=drupal_oauth2
 SESSION_SECRET_KEY=troque-este-segredo
 DRUPAL_OAUTH_BASE_URL=https://www.airdata.ita.br
-DRUPAL_OAUTH_CLIENT_ID=id-chat
+DRUPAL_OAUTH_CLIENT_ID=id-rag
 DRUPAL_OAUTH_CLIENT_SECRET=<secret>
 DRUPAL_OAUTH_AUTHORIZE_URL=https://www.airdata.ita.br/oauth/authorize
 DRUPAL_OAUTH_TOKEN_URL=https://www.airdata.ita.br/oauth/token
 DRUPAL_OAUTH_USERINFO_URL=https://www.airdata.ita.br/oauth/userinfo
+DRUPAL_OAUTH_SCOPES=openid
+DRUPAL_OAUTH_CALLBACK_PATH=/auth/callback
+DRUPAL_OAUTH_REDIRECT_URI=https://chatbot.airdata.ita.br
+```
+
+O fluxo segue o padrao Data/OWL: `/login` exibe a tela, `/auth/drupal` inicia OAuth2 com PKCE (`code_challenge`) e o Drupal retorna para a raiz publica da aplicacao. Redirect URI esperada em producao enquanto o host publico for `chatbot.airdata.ita.br`:
+
+```text
+https://chatbot.airdata.ita.br
+```
+
+Se o host mudar para `rag.airdata.ita.br`, a Redirect URI cadastrada no Drupal tambem deve mudar exatamente para:
+
+```text
+https://rag.airdata.ita.br
 ```
 
 | Variavel | Tipo | Padrao | Descricao |
@@ -269,8 +286,35 @@ DRUPAL_OAUTH_USERINFO_URL=https://www.airdata.ita.br/oauth/userinfo
 | `DRUPAL_OAUTH_AUTHORIZE_URL` | string | `<base>/oauth/authorize` | Endpoint de autorizacao OAuth2. |
 | `DRUPAL_OAUTH_TOKEN_URL` | string | `<base>/oauth/token` | Endpoint de troca do code por token. |
 | `DRUPAL_OAUTH_USERINFO_URL` | string | `<base>/oauth/userinfo` | Endpoint de dados do usuario autenticado. |
-| `DRUPAL_OAUTH_CALLBACK_PATH` | string | `/auth/callback` | Callback registrado no Drupal. |
-| `DRUPAL_OAUTH_SCOPES` | string | `openid profile email` | Escopos solicitados no login Drupal. |
+| `DRUPAL_OAUTH_CALLBACK_PATH` | string | `/auth/callback` | Callback legado aceito pela web para compatibilidade. |
+| `DRUPAL_OAUTH_REDIRECT_URI` | string | raiz publica da app | Redirect URI enviada ao Drupal. Use a raiz do dominio para seguir o padrao Data/OWL. |
+| `DRUPAL_OAUTH_SCOPES` | string | `openid` | Escopos solicitados no login Drupal. |
+
+Aliases aceitos para compatibilidade com secrets legados ou nomes reduzidos: `DRUPAL_CLIENT_ID`, `DRUPAL_CLIENT_SECRET`, `DRUPAL_AUTHORIZE_URL`, `DRUPAL_TOKEN_URL` e `SCOPE`.
+
+No deploy via GitHub Actions, configure esses valores em **Settings > Secrets and variables > Actions > Repository secrets**. O workflow `Deploy` repassa os secrets para `deploy/deploy.sh`, que atualiza `.env` e `web/.env` no servidor sem versionar credenciais.
+
+Secrets recomendados para producao:
+
+```text
+AUTH_MODE=drupal_oauth2
+SESSION_SECRET_KEY=<segredo-estavel-gerado>
+SESSION_COOKIE_SECURE=true
+DRUPAL_OAUTH_BASE_URL=https://www.airdata.ita.br
+DRUPAL_OAUTH_CLIENT_ID=id-rag
+DRUPAL_OAUTH_CLIENT_SECRET=<client-secret-confirmado-no-drupal>
+DRUPAL_OAUTH_AUTHORIZE_URL=https://www.airdata.ita.br/oauth/authorize
+DRUPAL_OAUTH_TOKEN_URL=https://www.airdata.ita.br/oauth/token
+DRUPAL_OAUTH_USERINFO_URL=https://www.airdata.ita.br/oauth/userinfo
+DRUPAL_OAUTH_SCOPES=openid
+DRUPAL_OAUTH_CALLBACK_PATH=/auth/callback
+DRUPAL_OAUTH_REDIRECT_URI=https://chatbot.airdata.ita.br
+WEB_LOGIN_ENABLED=true
+WEB_LOGIN_USERNAME=airdata
+WEB_LOGIN_PASSWORD=<senha-fallback-estatica>
+```
+
+Importante: no GitHub Secrets, salve os valores sem aspas, exceto se a aspa fizer parte real do segredo. Se o Drupal retornar `invalid_client`, valide no Drupal se o client esta ativo e se o `DRUPAL_OAUTH_CLIENT_ID`, o secret e a Redirect URI batem exatamente.
 
 #### Qdrant
 
@@ -1742,6 +1786,8 @@ make check
 ### 14.3. Configuração nginx
 
 O nginx é configurado **manualmente** no servidor (não é alterado pelo `make deploy`). O repositório contém apenas o snippet `deploy/nginx-rag.conf` com as locations da API e do Datasette.
+
+O virtual host publico deve apontar `/` para `ragweb` em `127.0.0.1:8082`, incluir o snippet `rag` para `/ragapi/` e `/explore/`, e manter o certificado TLS gerenciado no servidor.
 
 #### Arquitetura
 

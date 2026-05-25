@@ -168,7 +168,7 @@ def test_drupal_login_takes_priority_when_configured(web_client):
     main_mod.settings.ENVIRONMENT = "production"
     main_mod.settings.is_production = True
     main_mod.settings.AUTH_MODE = "drupal_oauth2"
-    main_mod.settings.DRUPAL_OAUTH_CLIENT_ID = "id-chat"
+    main_mod.settings.DRUPAL_OAUTH_CLIENT_ID = "id-rag"
     main_mod.settings.DRUPAL_OAUTH_BASE_URL = "https://www.airdata.ita.br"
     main_mod.settings.WEB_LOGIN_ENABLED = True
 
@@ -176,23 +176,126 @@ def test_drupal_login_takes_priority_when_configured(web_client):
     assert main_mod._local_login_enabled() is False
 
 
-def test_login_redirects_to_drupal_authorization_when_oauth_is_configured(web_client):
+def test_login_shows_drupal_button_when_oauth_is_available(web_client):
     client, main_mod, _ = web_client
     main_mod.settings.AUTH_MODE = "drupal_oauth2"
     main_mod.settings.DRUPAL_OAUTH_BASE_URL = "https://www.airdata.ita.br"
-    main_mod.settings.DRUPAL_OAUTH_CLIENT_ID = "id-chat"
+    main_mod.settings.DRUPAL_OAUTH_CLIENT_ID = "id-rag"
     main_mod.settings.DRUPAL_OAUTH_AUTHORIZE_URL = "https://www.airdata.ita.br/oauth/authorize"
-    main_mod.settings.DRUPAL_OAUTH_SCOPES = "openid profile email"
+    main_mod.settings.DRUPAL_OAUTH_SCOPES = "openid"
     main_mod.settings.WEB_LOGIN_ENABLED = True
 
-    response = client.get("/login?next=/chat", follow_redirects=False)
+    async def drupal_available():
+        return True
+
+    main_mod._drupal_oauth_available = drupal_available
+
+    response = client.get("/login?next=/chat")
+
+    assert response.status_code == 200
+    assert "Drupal disponivel" in response.text
+    assert "/auth/drupal?next=/chat" in response.text
+    assert "Entrar com acesso local" not in response.text
+
+
+def test_auth_drupal_redirects_with_pkce_when_oauth_is_available(web_client):
+    client, main_mod, _ = web_client
+    main_mod.settings.AUTH_MODE = "drupal_oauth2"
+    main_mod.settings.DRUPAL_OAUTH_BASE_URL = "https://www.airdata.ita.br"
+    main_mod.settings.DRUPAL_OAUTH_CLIENT_ID = "id-rag"
+    main_mod.settings.DRUPAL_OAUTH_AUTHORIZE_URL = "https://www.airdata.ita.br/oauth/authorize"
+    main_mod.settings.DRUPAL_OAUTH_TOKEN_URL = "https://www.airdata.ita.br/oauth/token"
+    main_mod.settings.DRUPAL_OAUTH_SCOPES = "openid"
+    main_mod.settings.WEB_LOGIN_ENABLED = True
+
+    async def drupal_available():
+        return True
+
+    main_mod._drupal_oauth_available = drupal_available
+
+    response = client.get("/auth/drupal?next=/chat", follow_redirects=False)
 
     assert response.status_code == 302
     location = response.headers["location"]
     assert location.startswith("https://www.airdata.ita.br/oauth/authorize?")
-    assert "client_id=id-chat" in location
+    assert "client_id=id-rag" in location
     assert "response_type=code" in location
+    assert "redirect_uri=http%3A%2F%2Ftestserver%2F" in location
+    assert "code_challenge=" in location
+    assert "code_challenge_method=S256" in location
+    assert "scope=openid" in location
     assert "state=" in location
+    assert "airdata_rag_oauth_state" in response.headers["set-cookie"]
+    assert "airdata_rag_oauth_verifier" in response.headers["set-cookie"]
+
+
+def test_login_uses_static_fallback_when_drupal_is_unavailable(web_client):
+    client, main_mod, _ = web_client
+    main_mod.settings.ENVIRONMENT = "production"
+    main_mod.settings.is_production = True
+    main_mod.settings.AUTH_MODE = "drupal_oauth2"
+    main_mod.settings.DRUPAL_OAUTH_BASE_URL = "https://www.airdata.ita.br"
+    main_mod.settings.DRUPAL_OAUTH_CLIENT_ID = "id-rag"
+    main_mod.settings.DRUPAL_OAUTH_AUTHORIZE_URL = "https://www.airdata.ita.br/oauth/authorize"
+    main_mod.settings.DRUPAL_OAUTH_TOKEN_URL = "https://www.airdata.ita.br/oauth/token"
+    main_mod.settings.WEB_LOGIN_ENABLED = True
+
+    async def drupal_unavailable():
+        return False
+
+    main_mod._drupal_oauth_available = drupal_unavailable
+
+    response = client.get("/login?next=/chat")
+
+    assert response.status_code == 200
+    assert "Login Drupal indisponivel" in response.text
+    assert "Entrar com acesso local" in response.text
+
+
+def test_static_fallback_authenticates_when_drupal_is_unavailable(web_client):
+    client, main_mod, _ = web_client
+    main_mod.settings.ENVIRONMENT = "production"
+    main_mod.settings.is_production = True
+    main_mod.settings.AUTH_MODE = "drupal_oauth2"
+    main_mod.settings.DRUPAL_OAUTH_BASE_URL = "https://www.airdata.ita.br"
+    main_mod.settings.DRUPAL_OAUTH_CLIENT_ID = "id-rag"
+    main_mod.settings.DRUPAL_OAUTH_AUTHORIZE_URL = "https://www.airdata.ita.br/oauth/authorize"
+    main_mod.settings.DRUPAL_OAUTH_TOKEN_URL = "https://www.airdata.ita.br/oauth/token"
+    main_mod.settings.WEB_LOGIN_ENABLED = True
+    main_mod.settings.WEB_LOGIN_PASSWORD = "fallback-secret"
+
+    async def drupal_unavailable():
+        return False
+
+    main_mod._drupal_oauth_available = drupal_unavailable
+
+    login_response = client.post(
+        "/login",
+        data={"username": "airdata", "password": "fallback-secret", "next_url": "/"},
+        follow_redirects=False,
+    )
+    home_response = client.get("/")
+
+    assert login_response.status_code == 302
+    assert "airdata_auth" in login_response.headers["set-cookie"]
+    assert home_response.status_code == 200
+
+
+def test_drupal_oauth_env_aliases_are_supported(web_client):
+    _, main_mod, _ = web_client
+    main_mod.settings.AUTH_MODE = "drupal_oauth2"
+    main_mod.settings.DRUPAL_OAUTH_BASE_URL = ""
+    main_mod.settings.DRUPAL_OAUTH_CLIENT_ID = ""
+    main_mod.settings.DRUPAL_CLIENT_ID = "id-rag"
+    main_mod.settings.DRUPAL_CLIENT_SECRET = "secret"
+    main_mod.settings.DRUPAL_AUTHORIZE_URL = "https://www.airdata.ita.br/oauth/authorize"
+    main_mod.settings.DRUPAL_TOKEN_URL = "https://www.airdata.ita.br/oauth/token"
+    main_mod.settings.SCOPE = "openid"
+
+    assert main_mod._drupal_oauth_configured() is True
+    assert main_mod._drupal_oauth_client_id() == "id-rag"
+    assert main_mod._drupal_oauth_client_secret() == "secret"
+    assert main_mod._drupal_oauth_scopes() == "openid"
 
 
 def test_star_rating_zero_clears_category(web_client):

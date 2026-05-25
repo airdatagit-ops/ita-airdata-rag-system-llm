@@ -32,8 +32,8 @@ class Settings(BaseSettings):
 
     # Drupal OAuth2 (Simple OAuth / OpenID Connect)
     DRUPAL_OAUTH_BASE_URL: str = getenv('DRUPAL_OAUTH_BASE_URL', '').rstrip('/')
-    DRUPAL_OAUTH_CLIENT_ID: str = getenv('DRUPAL_OAUTH_CLIENT_ID', '')
-    DRUPAL_OAUTH_CLIENT_SECRET: str = getenv('DRUPAL_OAUTH_CLIENT_SECRET', '')
+    DRUPAL_OAUTH_CLIENT_ID: str = getenv('DRUPAL_OAUTH_CLIENT_ID', getenv('DRUPAL_CLIENT_ID', ''))
+    DRUPAL_OAUTH_CLIENT_SECRET: str = getenv('DRUPAL_OAUTH_CLIENT_SECRET', getenv('DRUPAL_CLIENT_SECRET', ''))
     DRUPAL_OAUTH_INTROSPECTION_URL: str = getenv('DRUPAL_OAUTH_INTROSPECTION_URL', '')
     DRUPAL_OAUTH_USERINFO_URL: str = getenv('DRUPAL_OAUTH_USERINFO_URL', '')
     DRUPAL_OAUTH_TIMEOUT: float = float(getenv('DRUPAL_OAUTH_TIMEOUT', '10'))
