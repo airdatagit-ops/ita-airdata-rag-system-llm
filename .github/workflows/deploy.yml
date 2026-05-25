@@ -49,4 +49,4 @@ jobs:
           cd "$PROJECT_DIR"
           git fetch origin
           git checkout "$BRANCH"
-          sudo /usr/bin/bash "$PROJECT_DIR/deploy/deploy.sh
+          sudo /usr/bin/bash "$PROJECT_DIR/deploy/deploy.sh"
