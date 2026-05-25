@@ -52,6 +52,20 @@ success() { echo -e "${GREEN}[OK]${NC}    $*"; }
 warn()    { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 error()   { echo -e "${RED}[FAIL]${NC}  $*"; }
 
+load_action_secret_env_file() {
+    local file="/tmp/airdata-rag-deploy-env"
+    if [[ ! -f "$file" ]]; then
+        return 0
+    fi
+
+    set -a
+    # shellcheck disable=SC1090
+    source "$file"
+    set +a
+    rm -f "$file"
+    info "Loaded GitHub Actions secret overrides from temporary env file"
+}
+
 set_env_from_action_secret() {
     local file="$1"
     local key="$2"
@@ -280,6 +294,7 @@ echo "  Mode:    $(if $FIRST_RUN; then echo 'first-run'; else echo 'update'; fi)
 echo "========================================"
 echo ""
 
+load_action_secret_env_file
 preflight_check
 
 # ── Step 1: Git pull ─────────────────────────────────────────
@@ -343,6 +358,17 @@ if [[ -f "$PROJECT_DIR/web/.env" ]]; then
         info "Added empty ROOT_PATH to web/.env"
     else
         sed -i 's|^ROOT_PATH=.*|ROOT_PATH=|' "$_web_env"
+    fi
+
+    # The RAG OAuth consumer follows the same naming pattern as Data/OWL:
+    # id-data, id-owl, id-rag. Avoid reusing the UUID secret value as client_id.
+    if [[ -z "${DRUPAL_OAUTH_CLIENT_ID-}" || "${DRUPAL_OAUTH_CLIENT_ID-}" == "5031bb77-38da-4f0d-a097-00648764dae9" ]]; then
+        DRUPAL_OAUTH_CLIENT_ID="id-rag"
+        info "Using Drupal OAuth client id for RAG: id-rag"
+    fi
+    if [[ -z "${DRUPAL_OAUTH_REDIRECT_URI-}" ]]; then
+        DRUPAL_OAUTH_REDIRECT_URI="https://chatbot.airdata.ita.br"
+        info "Using Drupal OAuth redirect URI for RAG: https://chatbot.airdata.ita.br"
     fi
 
     sync_env_from_action_secrets "$_web_env" \
