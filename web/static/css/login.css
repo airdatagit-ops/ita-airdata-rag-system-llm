@@ -10,6 +10,7 @@
   --border: #d9e2ec;
   --danger: #b42318;
   --danger-bg: #fff1f0;
+  --success: #027a48;
   --warning: #8a5200;
   --warning-bg: #fff7e6;
   --focus: rgba(38, 117, 189, 0.24);
@@ -46,16 +47,6 @@ body {
   background:
     linear-gradient(155deg, rgba(16, 42, 67, 0.96), rgba(31, 95, 153, 0.92)),
     url("../images/airdata-logo.png") center 58% / min(66%, 440px) no-repeat;
-}
-
-.brand-panel::after {
-  content: "";
-  position: absolute;
-  inset: auto -18% -26% 22%;
-  height: 42%;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px 999px 0 0;
-  transform: rotate(-8deg);
 }
 
 .brand-mark {
@@ -162,7 +153,7 @@ body {
 }
 
 .login-card > p {
-  margin: 0 0 2rem;
+  margin: 0 0 1.35rem;
   color: var(--muted);
   line-height: 1.6;
 }
@@ -192,7 +183,9 @@ body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.field input:focus {
+.field input:focus,
+.primary-button:focus-visible,
+.oauth-button:focus-visible {
   outline: none;
   border-color: var(--blue-600);
   box-shadow: 0 0 0 4px var(--focus);
@@ -206,7 +199,12 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
+  margin-top: 0.35rem;
+  border: 0;
   border-radius: 8px;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--blue-700), var(--blue-600));
+  box-shadow: 0 12px 24px rgba(31, 95, 153, 0.22);
   font-size: 1rem;
   font-weight: 700;
   text-decoration: none;
@@ -214,20 +212,9 @@ body {
   transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.primary-button {
-  margin-top: 0.35rem;
-  border: 0;
-  color: #ffffff;
-  background: linear-gradient(135deg, var(--blue-700), var(--blue-600));
-  box-shadow: 0 12px 24px rgba(31, 95, 153, 0.22);
-}
-
 .primary-button:hover,
 .oauth-button:hover {
   transform: translateY(-1px);
-}
-
-.primary-button:hover {
   background: linear-gradient(135deg, var(--blue-800), var(--blue-700));
 }
 
@@ -249,17 +236,6 @@ body {
   height: 1px;
   flex: 1;
   background: var(--border);
-}
-
-.oauth-button {
-  border: 1px solid var(--border);
-  color: #344054;
-  background: var(--surface);
-}
-
-.oauth-button:hover {
-  border-color: #b8c6d8;
-  box-shadow: 0 10px 22px rgba(16, 42, 67, 0.08);
 }
 
 .login-error,
@@ -286,9 +262,9 @@ body {
 }
 
 .login-status {
-  border: 1px solid #abefc6;
-  color: var(--success);
-  background: var(--success-bg);
+  border: 1px solid var(--border);
+  color: #475467;
+  background: var(--surface-soft);
 }
 
 .login-status strong,
@@ -299,6 +275,10 @@ body {
 .login-status span {
   margin-top: 0.2rem;
   color: #475467;
+}
+
+.login-status strong {
+  color: var(--success);
 }
 
 .support-note {
