@@ -308,9 +308,9 @@ def _user_from_session(request: Request) -> dict | None:
 
 
 def _api_headers(request: Request) -> dict[str, str]:
-    token = request.session.get("access_token") if _oauth_enabled() else None
-    if token:
-        return {"Authorization": f"Bearer {token}"}
+    # The web app is a trusted server-side client of the RAG API. Keep this
+    # hop authenticated with the shared internal API key even when the browser
+    # session came from Drupal OAuth.
     return {"X-API-Key": settings.API_KEY}
 
 
