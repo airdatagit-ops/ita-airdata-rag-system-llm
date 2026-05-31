@@ -1,9 +1,172 @@
-"""Chunking module for splitting documents into optimal chunks."""
+"""Chunking module for splitting documents into optimal chunks.
+
+Table-aware behaviour
+---------------------
+
+When the parser detects tables it rewrites the source text so each
+table is wrapped in ``@@@TABLE_BEGIN ...@@@`` / ``@@@TABLE_END@@@``
+markers (see ``parsers/table_extractor.py``). Both ``ArticleChunker``
+and ``ICAChunker`` honour these markers via the same pre-processing
+pipeline:
+
+1. ``_split_table_blocks(text)`` returns alternating prose / table
+   segments.
+2. Each table segment becomes one indivisible chunk
+   (``chunk_type="table"``) carrying title, page, the markdown body
+   and a column-header prefix injected for BM25 / dense retrieval.
+3. Prose segments go through the original article-aware logic.
+
+Behaviour for documents *without* table markers is unchanged — the
+pre-processor short-circuits when it finds zero ``@@@TABLE_BEGIN``
+occurrences.
+"""
 
 import re
-from typing import Dict, List, Tuple
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
 from loguru import logger
 from config import config
+from parsers.table_extractor import (
+    TABLE_BEGIN_PREFIX,
+    TableBlock,
+    iter_table_blocks,
+)
+
+
+# Soft cap for table chunks. The Phase 1 dry-run measured p95=1472
+# chars across 47 detected tables; we allow up to roughly 4x p95 so
+# rare matrix tables (e.g. ICA 100-12 Tabela 7, 27x12) still survive
+# as a single chunk. Anything bigger gets truncated below the marker
+# with an explicit ``... (table truncated) ...`` footer to keep
+# embedder/reranker token budgets predictable.
+_TABLE_CHUNK_MAX_CHARS = 6_000
+
+
+@dataclass
+class _TableSegment:
+    """A table block isolated from the surrounding prose."""
+    block: TableBlock
+    ctx_pre: str
+    ctx_post: str
+
+
+def _has_table_markers(text: str) -> bool:
+    return TABLE_BEGIN_PREFIX in text
+
+
+def _isolate_table_segments(
+    text: str, max_ctx_chars: int = 200
+) -> Tuple[List[str], List[_TableSegment]]:
+    """Split ``text`` into prose pieces and table segments.
+
+    Returns
+    -------
+    prose_parts
+        Prose between (and around) the table blocks, in document order.
+        Always one more entry than ``segments`` (sandwich layout).
+    segments
+        One ``_TableSegment`` per detected ``@@@TABLE_*@@@`` block.
+    """
+    blocks = list(iter_table_blocks(text))
+    if not blocks:
+        return [text], []
+
+    prose_parts: List[str] = []
+    segments: List[_TableSegment] = []
+    cursor = 0
+    for block in blocks:
+        start, end = block.span
+        prose_before = text[cursor:start]
+        prose_parts.append(prose_before)
+        ctx_pre = prose_before.rstrip()[-max_ctx_chars:] if max_ctx_chars else ""
+        # ctx_post will be set on the next pass once we know the prose
+        # segment that follows this table (filled in below).
+        segments.append(_TableSegment(block=block, ctx_pre=ctx_pre, ctx_post=""))
+        cursor = end
+    prose_parts.append(text[cursor:])
+
+    for i, seg in enumerate(segments):
+        prose_after = prose_parts[i + 1]
+        seg.ctx_post = prose_after.lstrip()[:max_ctx_chars] if max_ctx_chars else ""
+
+    return prose_parts, segments
+
+
+def _build_table_chunk_text(seg: _TableSegment) -> str:
+    """Render the body text for a ``chunk_type="table"`` chunk.
+
+    Layout (in order):
+
+      1. Title line — ``Tabela X`` (or fallback) for narrative anchor.
+      2. Column headers as plain text — Phase 2 enrichment for BM25
+         and dense retrieval (the markdown body alone has noisy
+         pipe characters that BM25 tokenisers split on, so we repeat
+         the headers without pipes here).
+      3. ctx_pre — last narrative paragraph above the table.
+      4. Markdown body — preserves the structure for the LLM.
+      5. ctx_post — first paragraph below the table.
+
+    The ``@@@TABLE_*@@@`` markers themselves are stripped: they were
+    just a transport mechanism between parser and chunker.
+    """
+    block = seg.block
+    parts: List[str] = []
+    title = (block.title or "").strip()
+    if title:
+        parts.append(title)
+
+    headers = block.column_headers_text
+    if headers:
+        parts.append(f"Cabeçalhos: {headers}")
+
+    if seg.ctx_pre:
+        parts.append(seg.ctx_pre)
+
+    body = block.markdown
+    if len(body) > _TABLE_CHUNK_MAX_CHARS:
+        body = body[:_TABLE_CHUNK_MAX_CHARS] + "\n... (table truncated) ..."
+    parts.append(body)
+
+    if seg.ctx_post:
+        parts.append(seg.ctx_post)
+
+    return "\n\n".join(p for p in parts if p)
+
+
+def _make_table_chunk(article: Dict, seg: _TableSegment, chunk_idx: int) -> Dict:
+    """Create one indivisible chunk for a detected table."""
+    text = _build_table_chunk_text(seg)
+    chunk = article.copy()
+    chunk["text"] = text
+    chunk["chunk_index"] = chunk_idx
+    base_id = article.get("regulation_id", article.get("slug", "unknown"))
+    table_id = seg.block.table_id or f"t{chunk_idx}"
+    chunk["regulation_id"] = f"{base_id}-{table_id}"
+    chunk["chunk_type"] = "table"
+
+    metadata = dict(chunk.get("metadata") or {})
+    metadata["chunk_type"] = "table"
+    metadata["table_id"] = seg.block.table_id
+    metadata["table_title"] = seg.block.title
+    metadata["table_rows"] = seg.block.rows
+    metadata["table_cols"] = seg.block.cols
+    if seg.block.page is not None:
+        metadata["table_page"] = seg.block.page
+    chunk["metadata"] = metadata
+    return chunk
+
+
+def _strip_table_markers(text: str) -> str:
+    """Remove ``@@@TABLE_*@@@`` lines from prose passed to legacy paths."""
+    if TABLE_BEGIN_PREFIX not in text:
+        return text
+    cleaned = re.sub(
+        r"@@@TABLE_BEGIN[^@\n]*@@@.*?@@@TABLE_END@@@",
+        " ",
+        text,
+        flags=re.DOTALL,
+    )
+    return cleaned
 
 
 class ArticleChunker:
@@ -25,46 +188,83 @@ class ArticleChunker:
             List of chunk dictionaries
         """
         text = article.get("text", "")
-        estimated_tokens = len(text.split())
 
-        # If article is small enough, return as single chunk
+        # Phase 1: detected tables become indivisible chunks.
+        if _has_table_markers(text):
+            return self._chunk_with_tables(article, text)
+
+        chunks = self._chunk_plain(article)
+        logger.debug(f"Split article into {len(chunks)} chunks")
+        return chunks
+
+    def _chunk_with_tables(self, article: Dict, text: str) -> List[Dict]:
+        """Phase 1 path — interleave table chunks with prose chunks.
+
+        Each detected table becomes one ``chunk_type="table"`` chunk.
+        Prose between tables is fed back through the legacy chunker so
+        non-tabular content keeps its existing behaviour.
+        """
+        prose_parts, segments = _isolate_table_segments(text)
+        out: List[Dict] = []
+        for i, seg in enumerate(segments):
+            prose = _strip_table_markers(prose_parts[i]).strip()
+            if prose:
+                out.extend(self._chunk_plain_prose(article, prose, len(out)))
+            out.append(_make_table_chunk(article, seg, len(out)))
+        tail = _strip_table_markers(prose_parts[-1]).strip()
+        if tail:
+            out.extend(self._chunk_plain_prose(article, tail, len(out)))
+        logger.debug(
+            f"Table-aware split: {sum(1 for c in out if c.get('chunk_type') == 'table')} "
+            f"table chunks + {sum(1 for c in out if c.get('chunk_type') != 'table')} prose chunks"
+        )
+        return out
+
+    def _chunk_plain_prose(self, article: Dict, text: str, start_idx: int) -> List[Dict]:
+        """Run the legacy chunker on a prose segment and reindex chunks."""
+        article_for_prose = {**article, "text": text}
+        legacy_chunks = self._chunk_plain(article_for_prose)
+        out = []
+        for offset, chunk in enumerate(legacy_chunks):
+            if chunk is article_for_prose:
+                # Single-chunk fast path: rebuild the dict so we don't
+                # mutate the caller's article.
+                chunk = {**chunk}
+            chunk["chunk_index"] = start_idx + offset
+            base_id = article.get("regulation_id", "unknown")
+            chunk["regulation_id"] = f"{base_id}-chunk-{start_idx + offset}"
+            out.append(chunk)
+        return out
+
+    def _chunk_plain(self, article: Dict) -> List[Dict]:
+        """Internal helper: run the original split logic without table support."""
+        text = article["text"]
+        estimated_tokens = len(text.split())
         if estimated_tokens <= self.max_tokens:
             return [article]
-
-        # Try to split into meaningful segments
         segments = self._split_into_segments(text)
-        
-        chunks = []
-        current_chunk = []
+        chunks: List[Dict] = []
+        current_chunk: List[str] = []
         current_size = 0
 
         for segment in segments:
             segment_size = len(segment.split())
-
-            # If single segment is too large, split it further
             if segment_size > self.max_tokens:
-                # Save current chunk first
                 if current_chunk:
-                    chunk = self._create_chunk(article, '\n'.join(current_chunk), len(chunks))
-                    chunks.append(chunk)
+                    chunks.append(
+                        self._create_chunk(article, "\n".join(current_chunk), len(chunks))
+                    )
                     current_chunk = []
                     current_size = 0
-                
-                # Split large segment by sentences
-                sub_chunks = self._split_large_segment(segment, self.max_tokens)
-                for sub in sub_chunks:
-                    chunk = self._create_chunk(article, sub, len(chunks))
-                    chunks.append(chunk)
+                for sub in self._split_large_segment(segment, self.max_tokens):
+                    chunks.append(self._create_chunk(article, sub, len(chunks)))
                 continue
 
             if current_size + segment_size > self.max_tokens and current_chunk:
-                # Save current chunk
-                chunk = self._create_chunk(article, '\n'.join(current_chunk), len(chunks))
-                chunks.append(chunk)
-
-                # Start new chunk with overlap if configured
+                chunks.append(
+                    self._create_chunk(article, "\n".join(current_chunk), len(chunks))
+                )
                 if self.overlap > 0 and len(current_chunk) > 1:
-                    # Keep last segment for overlap
                     overlap_segment = current_chunk[-1]
                     current_chunk = [overlap_segment, segment]
                     current_size = len(overlap_segment.split()) + segment_size
@@ -75,12 +275,9 @@ class ArticleChunker:
                 current_chunk.append(segment)
                 current_size += segment_size
 
-        # Add remaining
         if current_chunk:
-            chunk = self._create_chunk(article, '\n'.join(current_chunk), len(chunks))
-            chunks.append(chunk)
+            chunks.append(self._create_chunk(article, "\n".join(current_chunk), len(chunks)))
 
-        logger.debug(f"Split article into {len(chunks)} chunks")
         return chunks
 
     def _split_into_segments(self, text: str) -> List[str]:
@@ -207,7 +404,14 @@ class ICAChunker:
         
         if not text or len(text.strip()) < 50:
             return [article]
-        
+
+        # Phase 1: detected tables become indivisible chunks. The
+        # interleaving with the article-level logic happens here so
+        # that an Article that contains a table still emits the
+        # table as one indivisible chunk.
+        if _has_table_markers(text):
+            return self._chunk_with_tables_ica(article, text)
+
         # Extract document header (before first article)
         header = self._extract_header(text)
         
@@ -251,7 +455,75 @@ class ICAChunker:
         
         logger.debug(f"Split ICA into {len(chunks)} chunks ({len(articles)} articles found)")
         return chunks
-    
+
+    def _chunk_with_tables_ica(self, article: Dict, text: str) -> List[Dict]:
+        """Phase 1 path for ICA / RBAC documents.
+
+        Each detected table becomes one indivisible ``chunk_type="table"``
+        chunk. Prose between tables is fed through the regular ICA
+        article-aware chunker so legal-structure splitting (Art./§/inciso)
+        is preserved for non-tabular content.
+        """
+        prose_parts, segments = _isolate_table_segments(text)
+        out: List[Dict] = []
+
+        def _chunk_prose(prose: str) -> None:
+            cleaned = _strip_table_markers(prose).strip()
+            if not cleaned:
+                return
+            sub_article = {**article, "text": cleaned}
+            sub_chunks = ICAChunker._chunk_articles_only(self, sub_article, cleaned)
+            for chunk in sub_chunks:
+                chunk["chunk_index"] = len(out)
+                out.append(chunk)
+
+        for i, seg in enumerate(segments):
+            _chunk_prose(prose_parts[i])
+            table_chunk = _make_table_chunk(article, seg, len(out))
+            out.append(table_chunk)
+        _chunk_prose(prose_parts[-1])
+
+        logger.debug(
+            f"ICA table-aware split: {sum(1 for c in out if c.get('chunk_type') == 'table')} "
+            f"table chunks + {sum(1 for c in out if c.get('chunk_type') != 'table')} prose chunks"
+        )
+        return out
+
+    def _chunk_articles_only(self, article: Dict, text: str) -> List[Dict]:
+        """ICA chunking restricted to Article-aware logic, no table handling.
+
+        Used by ``_chunk_with_tables_ica`` to chunk the prose segments
+        without recursing into the table marker check.
+        """
+        header = self._extract_header(text)
+        articles = self._split_by_articles(text)
+
+        if not articles:
+            return self._fallback_chunk(article, text)
+
+        chunks: List[Dict] = []
+        for art_num, art_text in articles:
+            estimated_tokens = len(art_text.split())
+            if estimated_tokens <= self.max_tokens:
+                chunks.append(self._create_chunk(
+                    article=article,
+                    text=art_text,
+                    article_num=art_num,
+                    chunk_idx=len(chunks),
+                    header=header if len(chunks) == 0 else None,
+                ))
+            else:
+                for i, sub_text in enumerate(self._split_large_article(art_text, art_num, self.max_tokens)):
+                    chunks.append(self._create_chunk(
+                        article=article,
+                        text=sub_text,
+                        article_num=art_num,
+                        chunk_idx=len(chunks),
+                        sub_idx=i,
+                        header=header if len(chunks) == 0 else None,
+                    ))
+        return chunks
+
     def _extract_header(self, text: str) -> str:
         """Extract document header (everything before Art. 1º)."""
         match = self.ARTICLE_PATTERN.search(text)

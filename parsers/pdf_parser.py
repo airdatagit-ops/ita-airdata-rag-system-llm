@@ -28,7 +28,27 @@ from parsers.temporal_extractor import TemporalExtractor
 
 
 def extract_text_from_bytes(pdf_content: bytes) -> str | None:
-    """Extract text from in-memory PDF bytes (PyMuPDF -> pdfplumber -> OCR)."""
+    """Extract text from in-memory PDF bytes.
+
+    Cascade:
+      1. ``parsers.table_extractor.extract_text_with_tables`` — PyMuPDF
+         text + ``@@@TABLE_*@@@`` blocks for every detected table.
+         The downstream chunker (``pipeline.chunking``) recognises the
+         markers and emits indivisible ``chunk_type="table"`` chunks.
+      2. PyMuPDF plain text (no table markers) — kept as a safety net
+         in case ``find_tables`` raises on an exotic layout.
+      3. pdfplumber text extraction.
+      4. OCR (PaddleOCR) for scanned documents.
+    """
+    try:
+        from parsers.table_extractor import extract_text_with_tables
+
+        text = extract_text_with_tables(pdf_content)
+        if text and len(text.strip()) > 100:
+            return text
+    except (ImportError, Exception) as exc:
+        logger.debug(f"table-aware extraction failed, falling back: {exc}")
+
     try:
         import fitz
         doc = fitz.open(stream=pdf_content, filetype="pdf")
