@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login - Chatbot AirData</title>
+  <title>Login - RAG AirData</title>
   <link rel="icon" href="{{ request.url_for('static', path='images/airdata-logo.png') }}">
   <link rel="stylesheet" href="{{ request.url_for('static', path='css/login.css') }}">
 </head>
 <body>
   <main class="login-shell">
-    <section class="brand-panel" aria-label="Chatbot AirData">
+    <section class="brand-panel" aria-label="RAG AirData">
       <div class="brand-mark">
         <img src="{{ request.url_for('static', path='images/airdata-logo.png') }}" alt="AirData">
         <div>
@@ -19,24 +19,24 @@
       </div>
 
       <div class="brand-copy">
-        <h1>Chatbot AirData</h1>
+        <h1>RAG AirData</h1>
         <p>
-          Assistente RAG para consulta a documentos, normas e conhecimento operacional do ecossistema AirData.
+          Plataforma de consulta assistida para documentos, normas e conhecimento operacional do ecossistema AirData.
         </p>
       </div>
 
       <div class="brand-stats" aria-label="Caracteristicas do sistema">
         <div class="brand-stat">
-          <strong>Pesquisa</strong>
-          <span>Busca semantica em bases normativas e tecnicas do projeto.</span>
+          <strong>Consulta</strong>
+          <span>Busca semantica em bases normativas e tecnicas.</span>
         </div>
         <div class="brand-stat">
-          <strong>Chatbot</strong>
+          <strong>RAG</strong>
           <span>Respostas com contexto, fontes e apoio a analises tecnicas.</span>
         </div>
         <div class="brand-stat">
-          <strong>chatbot.airdata</strong>
-          <span>Acesso reservado para usuarios autorizados do AirData.</span>
+          <strong>AirData</strong>
+          <span>Acesso reservado para usuarios autorizados.</span>
         </div>
       </div>
     </section>
@@ -44,14 +44,14 @@
     <section class="form-panel" aria-label="Entrar no sistema">
       <div class="login-card">
         <img src="{{ request.url_for('static', path='images/airdata-logo.png') }}" alt="AirData">
-        <h2>Acesse o Chatbot AirData</h2>
+        <h2>Acesse sua conta</h2>
         <p>
-          Entre com sua conta institucional Drupal para acessar o chatbot RAG. Se o Drupal estiver indisponivel, o acesso local temporario fica disponivel como contingencia.
+          O sistema usa o login Drupal quando ele esta disponivel. Se o Drupal estiver fora, o acesso local entra automaticamente.
         </p>
 
         {% if oauth_unavailable %}
           <div class="login-warning" role="status">
-            Login Drupal indisponivel no momento. O acesso local temporario foi habilitado para manter o Chatbot AirData acessivel.
+            Login Drupal indisponivel no momento. O acesso local temporario foi habilitado para manter o RAG AirData acessivel.
           </div>
         {% elif oauth_configured %}
           <div class="login-status" role="status">
@@ -66,7 +66,7 @@
 
         {% if oauth_configured and not oauth_unavailable %}
           <a class="oauth-button" href="{{ request.url_for('auth_drupal') }}?next={{ next_url | urlencode }}">
-            Entrar com Drupal no Chatbot AirData
+            Entrar com Drupal
           </a>
         {% endif %}
 

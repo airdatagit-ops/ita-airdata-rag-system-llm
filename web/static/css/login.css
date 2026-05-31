@@ -262,9 +262,9 @@ body {
 }
 
 .login-status {
-  border: 1px solid var(--border);
+  border: 1px solid #e4e7ec;
   color: #475467;
-  background: var(--surface-soft);
+  background: #f7f8fa;
 }
 
 .login-status strong,
