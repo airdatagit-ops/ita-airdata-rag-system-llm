@@ -746,18 +746,34 @@ class SISLAERScraper(BaseScraper):
 
     # ── HTTP with retry ──────────────────────────────────────────
 
+    # Anti-bot validation gate. The portal returns a small HTML shell
+    # ("Aguarde, estamos validando sua requisição...") with an in-page
+    # AntiForgeryToken on the first GET to /acervo/detalhe/{id}. The
+    # client must POST that token to /acervo/validaacessodetalhe; once
+    # the response is {"Resultado": true} the session cookie is marked
+    # as validated and the next GET returns the real content.
+    _DETALHE_VALIDATION_MARKER = "estamos validando"
+    _DETALHE_VALIDATE_URL = "/acervo/validaacessodetalhe"
+    _DETALHE_VALIDATION_MAX_TRIES = 5
+    _DETALHE_VALIDATION_RETRY_DELAY_S = 2.0
+
     async def _get_html(self, url: str) -> Optional[str]:
         for attempt in range(1, _MAX_RETRIES + 1):
             try:
-                async with self._limiter:
-                    async with self._session.get(url) as resp:
-                        if resp.status == 200:
-                            return await resp.text()
-                        if resp.status in _RETRYABLE_STATUSES:
-                            raise aiohttp.ClientResponseError(
-                                resp.request_info, resp.history, status=resp.status
-                            )
-                        return None
+                html = await self._raw_get(url)
+                if html is None:
+                    return None
+                if self._is_detalhe_validation_page(html):
+                    validated = await self._validate_detalhe(html)
+                    if validated:
+                        # Post-validation GETs only return the real
+                        # document if the request carries a Referer
+                        # matching the URL — without it the backend
+                        # serves the validation shell again.
+                        html = await self._raw_get(url, referer=url)
+                        if html is None:
+                            return None
+                return html
             except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
                 delay = _RETRY_BASE_DELAY * (2 ** (attempt - 1))
                 if attempt < _MAX_RETRIES:
@@ -769,6 +785,66 @@ class SISLAERScraper(BaseScraper):
                 else:
                     logger.error(f"[sislaer] All {_MAX_RETRIES} attempts failed: {url}")
         return None
+
+    async def _raw_get(self, url: str, *, referer: Optional[str] = None) -> Optional[str]:
+        """Single GET without anti-bot retry. Caller handles retries."""
+        headers = {"Referer": referer} if referer else None
+        async with self._limiter:
+            async with self._session.get(url, headers=headers) as resp:
+                if resp.status == 200:
+                    return await resp.text()
+                if resp.status in _RETRYABLE_STATUSES:
+                    raise aiohttp.ClientResponseError(
+                        resp.request_info, resp.history, status=resp.status
+                    )
+                return None
+
+    @classmethod
+    def _is_detalhe_validation_page(cls, html: str) -> bool:
+        return cls._DETALHE_VALIDATION_MARKER in (html or "").lower()
+
+    async def _validate_detalhe(self, validation_html: str) -> bool:
+        """Run SISLAER's two-step anti-bot validation for a detail page.
+
+        Reads the AntiForgeryToken from the validation shell, POSTs to
+        ``/acervo/validaacessodetalhe`` until the JSON response reports
+        ``{"Resultado": true}``. The cookie set by the server then makes
+        the subsequent ``GET`` return the real document HTML.
+        """
+        m = re.search(r"AntiForgeryToken\s*=\s*'([^']+)'", validation_html)
+        if not m:
+            logger.debug("[sislaer] validation page without AntiForgeryToken")
+            return False
+        token = m.group(1)
+        validate_url = f"{self._base_url}{self._DETALHE_VALIDATE_URL}"
+        headers = {
+            "RequestVerificationToken": token,
+            "X-Requested-With": "XMLHttpRequest",
+        }
+        for attempt in range(1, self._DETALHE_VALIDATION_MAX_TRIES + 1):
+            try:
+                async with self._limiter:
+                    async with self._session.post(validate_url, headers=headers) as resp:
+                        if resp.status != 200:
+                            logger.debug(
+                                f"[sislaer] validaacessodetalhe HTTP {resp.status}"
+                            )
+                            return False
+                        try:
+                            data = await resp.json(content_type=None)
+                        except aiohttp.ContentTypeError:
+                            return False
+                if data.get("Resultado"):
+                    return True
+            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+                logger.debug(f"[sislaer] validation attempt {attempt} failed: {exc}")
+            if attempt < self._DETALHE_VALIDATION_MAX_TRIES:
+                await asyncio.sleep(self._DETALHE_VALIDATION_RETRY_DELAY_S)
+        logger.warning(
+            f"[sislaer] anti-bot validation gave up after "
+            f"{self._DETALHE_VALIDATION_MAX_TRIES} tries"
+        )
+        return False
 
     # ── detail page parsing ──────────────────────────────────────
 
