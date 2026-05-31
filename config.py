@@ -114,8 +114,8 @@ class Settings(BaseSettings):
         'SISLAER_BASE_URL',
         'https://www.sislaer.fab.mil.br/TerminalWebCENDOC',
     )
-    SISLAER_MAX_RATE: float = float(getenv('SISLAER_MAX_RATE', '10'))
-    SISLAER_CONCURRENCY: int = int(getenv('SISLAER_CONCURRENCY', '10'))
+    SISLAER_MAX_RATE: float = float(getenv('SISLAER_MAX_RATE', '32'))
+    SISLAER_CONCURRENCY: int = int(getenv('SISLAER_CONCURRENCY', '32'))
     SISLAER_TIMEOUT: int = int(getenv('SISLAER_TIMEOUT', '30'))
     SISLAER_START_ID: int = int(getenv('SISLAER_START_ID', '1'))
     SISLAER_END_ID: int = int(getenv('SISLAER_END_ID', '0'))

@@ -24,10 +24,11 @@ import json
 import re
 import uuid
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 import aiohttp
 from aiolimiter import AsyncLimiter
+from yarl import URL
 from bs4 import BeautifulSoup
 from loguru import logger
 
@@ -222,6 +223,15 @@ class SISLAERScraper(BaseScraper):
         # Search API session state (cookie + anti-forgery token)
         self._csrf_token: Optional[str] = None
 
+        # Per-instance counters for the detail-page anti-bot gate.
+        # Reported once at the end of a run instead of per-doc warnings.
+        self._validation_stats = {
+            "attempts": 0,
+            "successes": 0,
+            "still_shell": 0,    # gave up after _DETALHE_UNLOCK_MAX_CYCLES
+            "total_cycles": 0,   # cumulative GET-POST cycles across all attempts
+        }
+
         logger.info(
             f"SISLAERScraper initialized (rate={rate}/s, concurrency={self._concurrency}, "
             f"ids={self._start_id}-{self._end_id or 'auto'})"
@@ -239,6 +249,14 @@ class SISLAERScraper(BaseScraper):
         if self._session:
             await self._session.close()
             self._session = None
+        s = self._validation_stats
+        if s["attempts"]:
+            avg_cycles = s["total_cycles"] / max(s["attempts"], 1)
+            logger.info(
+                "[sislaer] anti-bot gate stats: "
+                f"attempts={s['attempts']} successes={s['successes']} "
+                f"still_shell={s['still_shell']} avg_cycles={avg_cycles:.1f}"
+            )
 
     # ── Search API session management ─────────────────────────
 
@@ -666,22 +684,44 @@ class SISLAERScraper(BaseScraper):
     async def fetch_document(
         self, doc: Dict, save_original: bool = True
     ) -> Optional[ScrapedDocument]:
-        """Fetch and parse a full document detail page."""
+        """Fetch and parse a full document detail page.
+
+        The detail page is gated by a per-doc anti-bot check. Once
+        unlocked, the validation cookie lives in an ephemeral session
+        owned by this call — viewer/PDF follow-up requests for the
+        same doc must use that session, otherwise they hit the gate
+        again on the main session.
+        """
         reg_id = doc["codigoRegistro"]
         url = f"{self._base_url}/acervo/detalhe/{reg_id}"
 
-        html = await self._get_html(url)
-        if not html or len(html) < 500:
-            return None
+        eph: Optional[aiohttp.ClientSession] = None
+        try:
+            html = await self._raw_get(url)
+            if html is None:
+                return None
+            if self._is_detalhe_validation_page(html):
+                unlocked = await self._unlock_detail(url, html)
+                if unlocked is None:
+                    return None
+                html, eph = unlocked
 
-        soup = BeautifulSoup(html, "html.parser")
-        detail = self._parse_detail(soup, reg_id)
-        if not detail:
-            return None
+            if len(html) < 500:
+                return None
 
-        content = await self._get_content(soup, reg_id, save_original)
-        if not content or len(content.strip()) < 50:
-            return None
+            soup = BeautifulSoup(html, "html.parser")
+            detail = self._parse_detail(soup, reg_id)
+            if not detail:
+                return None
+
+            content = await self._get_content(
+                soup, reg_id, save_original, session=eph,
+            )
+            if not content or len(content.strip()) < 50:
+                return None
+        finally:
+            if eph is not None:
+                await eph.close()
 
         parsed = _parse_title(detail["title"])
         doc_type = _normalize_doc_type(parsed["doc_type"]) or doc.get("doc_type")
@@ -746,33 +786,60 @@ class SISLAERScraper(BaseScraper):
 
     # ── HTTP with retry ──────────────────────────────────────────
 
-    # Anti-bot validation gate. The portal returns a small HTML shell
-    # ("Aguarde, estamos validando sua requisição...") with an in-page
-    # AntiForgeryToken on the first GET to /acervo/detalhe/{id}. The
-    # client must POST that token to /acervo/validaacessodetalhe; once
-    # the response is {"Resultado": true} the session cookie is marked
-    # as validated and the next GET returns the real content.
+    # Anti-bot validation gate. On the first GET to /acervo/detalhe/{id}
+    # the portal returns a small HTML shell ("Aguarde, estamos validando
+    # sua requisição...") with an in-page ``AntiForgeryToken``. The
+    # bundled ``validacao.js`` POSTs that token to
+    # ``/acervo/validaacessodetalhe`` and reloads the page; the POST
+    # always returns ``{"Resultado": true}`` and sets a per-request
+    # ``SBW.REQUEST.VALIDATION`` cookie.
+    #
+    # Empirically (probed against the live site):
+    #   * The cookie sometimes lets the GET through immediately, but
+    #     frequently the next GET still returns the shell — at which
+    #     point a fresh POST (with the new token from the new shell)
+    #     is required. With a 1 s gap between cycles, 2 cycles cover
+    #     ~95% of docs and 8 cycles cover essentially everything.
+    #   * The shell↔real-page transition is independent across docs,
+    #     so as long as each doc has its own cookie jar (ephemeral
+    #     session) we can run dozens in parallel — measured 32/32 OK
+    #     at 4 docs/s with concurrency=32.
     _DETALHE_VALIDATION_MARKER = "estamos validando"
     _DETALHE_VALIDATE_URL = "/acervo/validaacessodetalhe"
-    _DETALHE_VALIDATION_MAX_TRIES = 5
-    _DETALHE_VALIDATION_RETRY_DELAY_S = 2.0
+    # Max GET-POST cycles per doc. Empirically the 99th percentile is
+    # ≤4; 8 leaves ample headroom for slow corner cases.
+    _DETALHE_UNLOCK_MAX_CYCLES = 8
+    # Pause between cycles. Going below ~0.5 s gains nothing but
+    # extra load; the backend needs a moment to propagate the cookie.
+    _DETALHE_UNLOCK_CYCLE_DELAY_S = 1.0
+    _ANTIFORGERY_RE = re.compile(r"AntiForgeryToken\s*=\s*'([^']+)'")
 
-    async def _get_html(self, url: str) -> Optional[str]:
+    async def _get_html(
+        self, url: str, *, session: Optional[aiohttp.ClientSession] = None
+    ) -> Optional[str]:
+        """Fetch a URL, transparently handling the anti-bot gate.
+
+        ``session`` defaults to the main session. Pass an ephemeral
+        session (created by :meth:`_unlock_detail`) when fetching
+        follow-up resources for the same doc (viewer HTML, PDF), so
+        the validation cookie travels with the request.
+        """
+        sess = session or self._session
         for attempt in range(1, _MAX_RETRIES + 1):
             try:
-                html = await self._raw_get(url)
+                html = await self._raw_get(url, session=sess)
                 if html is None:
                     return None
                 if self._is_detalhe_validation_page(html):
-                    validated = await self._validate_detalhe(html)
-                    if validated:
-                        # Post-validation GETs only return the real
-                        # document if the request carries a Referer
-                        # matching the URL — without it the backend
-                        # serves the validation shell again.
-                        html = await self._raw_get(url, referer=url)
-                        if html is None:
-                            return None
+                    # Promote the main session through the gate by
+                    # discarding the ephemeral jar after copying the
+                    # html out — used only when caller didn't pass a
+                    # dedicated session.
+                    unlocked = await self._unlock_detail(url, html)
+                    if unlocked is None:
+                        return None
+                    html, eph = unlocked
+                    await eph.close()
                 return html
             except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
                 delay = _RETRY_BASE_DELAY * (2 ** (attempt - 1))
@@ -786,11 +853,116 @@ class SISLAERScraper(BaseScraper):
                     logger.error(f"[sislaer] All {_MAX_RETRIES} attempts failed: {url}")
         return None
 
-    async def _raw_get(self, url: str, *, referer: Optional[str] = None) -> Optional[str]:
+    async def _unlock_detail(
+        self, url: str, shell_html: str
+    ) -> Optional[Tuple[str, aiohttp.ClientSession]]:
+        """Bypass the per-doc anti-bot gate.
+
+        Returns ``(html, ephemeral_session)`` on success; the caller
+        owns the session and must close it after using it for any
+        follow-up requests on the same doc (viewer HTML, PDF). The
+        validation cookie is held in the ephemeral session's jar.
+
+        Algorithm: alternating POST validate / GET cycles in an
+        isolated cookie jar. The POST always returns
+        ``{"Resultado": true}`` but the next GET frequently still
+        serves the shell; a fresh POST against the new shell's token
+        drives the cookie state forward. Empirically 1-2 cycles cover
+        most docs and ≤4 cycles covers ~99% — we cap at
+        ``_DETALHE_UNLOCK_MAX_CYCLES``.
+
+        The ephemeral session is isolated so concurrent workers never
+        race on the shared cookie jar; the main session's TCP
+        connector is reused (``connector_owner=False``) so the
+        keep-alive pool is preserved — no extra TLS handshakes.
+        """
+        self._validation_stats["attempts"] += 1
+        eph = self._make_ephemeral_session()
+        try:
+            current_html = shell_html
+            cycles_used = 0
+            for cycle in range(1, self._DETALHE_UNLOCK_MAX_CYCLES + 1):
+                cycles_used = cycle
+                m = self._ANTIFORGERY_RE.search(current_html)
+                if not m:
+                    break
+                token = m.group(1)
+                ok = await self._post_validate(eph, url, token)
+                if not ok:
+                    break
+                await asyncio.sleep(self._DETALHE_UNLOCK_CYCLE_DELAY_S)
+                refreshed = await self._raw_get(url, referer=url, session=eph)
+                if refreshed is None:
+                    break
+                if not self._is_detalhe_validation_page(refreshed):
+                    self._validation_stats["successes"] += 1
+                    self._validation_stats["total_cycles"] += cycles_used
+                    return refreshed, eph
+                current_html = refreshed
+            await eph.close()
+            self._validation_stats["still_shell"] += 1
+            self._validation_stats["total_cycles"] += cycles_used
+            return None
+        except BaseException:
+            await eph.close()
+            raise
+
+    async def _post_validate(
+        self, session: aiohttp.ClientSession, url: str, token: str,
+    ) -> bool:
+        """POST the AntiForgeryToken; returns True iff Resultado:true."""
+        validate_url = f"{self._base_url}{self._DETALHE_VALIDATE_URL}"
+        headers = {
+            "RequestVerificationToken": token,
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": url,
+        }
+        try:
+            async with self._limiter:
+                async with session.post(validate_url, headers=headers) as resp:
+                    if resp.status != 200:
+                        return False
+                    try:
+                        data = await resp.json(content_type=None)
+                    except aiohttp.ContentTypeError:
+                        return False
+                    return bool(data.get("Resultado"))
+        except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+            logger.debug(f"[sislaer] POST validate failed: {exc}")
+            return False
+
+    def _make_ephemeral_session(self) -> aiohttp.ClientSession:
+        """Build an ephemeral session that inherits the main session's
+        cookies (e.g. ``ASP.NET_SessionId``) but isolates anything the
+        backend writes during the gate (the per-doc
+        ``SBW.REQUEST.VALIDATION``). When the session closes the
+        ephemeral cookies are dropped — the main jar stays clean and
+        concurrent workers cannot race on the validation cookie.
+        """
+        eph = aiohttp.ClientSession(
+            connector=self._session.connector,
+            connector_owner=False,
+            cookie_jar=aiohttp.CookieJar(unsafe=True),
+            headers=self._HEADERS,
+            timeout=aiohttp.ClientTimeout(total=self._timeout_sec),
+        )
+        seed = {c.key: c.value for c in self._session.cookie_jar}
+        if seed:
+            eph.cookie_jar.update_cookies(seed, response_url=URL(self._base_url))
+        return eph
+
+    async def _raw_get(
+        self,
+        url: str,
+        *,
+        referer: Optional[str] = None,
+        session: Optional[aiohttp.ClientSession] = None,
+    ) -> Optional[str]:
         """Single GET without anti-bot retry. Caller handles retries."""
+        sess = session or self._session
         headers = {"Referer": referer} if referer else None
         async with self._limiter:
-            async with self._session.get(url, headers=headers) as resp:
+            async with sess.get(url, headers=headers) as resp:
                 if resp.status == 200:
                     return await resp.text()
                 if resp.status in _RETRYABLE_STATUSES:
@@ -802,49 +974,6 @@ class SISLAERScraper(BaseScraper):
     @classmethod
     def _is_detalhe_validation_page(cls, html: str) -> bool:
         return cls._DETALHE_VALIDATION_MARKER in (html or "").lower()
-
-    async def _validate_detalhe(self, validation_html: str) -> bool:
-        """Run SISLAER's two-step anti-bot validation for a detail page.
-
-        Reads the AntiForgeryToken from the validation shell, POSTs to
-        ``/acervo/validaacessodetalhe`` until the JSON response reports
-        ``{"Resultado": true}``. The cookie set by the server then makes
-        the subsequent ``GET`` return the real document HTML.
-        """
-        m = re.search(r"AntiForgeryToken\s*=\s*'([^']+)'", validation_html)
-        if not m:
-            logger.debug("[sislaer] validation page without AntiForgeryToken")
-            return False
-        token = m.group(1)
-        validate_url = f"{self._base_url}{self._DETALHE_VALIDATE_URL}"
-        headers = {
-            "RequestVerificationToken": token,
-            "X-Requested-With": "XMLHttpRequest",
-        }
-        for attempt in range(1, self._DETALHE_VALIDATION_MAX_TRIES + 1):
-            try:
-                async with self._limiter:
-                    async with self._session.post(validate_url, headers=headers) as resp:
-                        if resp.status != 200:
-                            logger.debug(
-                                f"[sislaer] validaacessodetalhe HTTP {resp.status}"
-                            )
-                            return False
-                        try:
-                            data = await resp.json(content_type=None)
-                        except aiohttp.ContentTypeError:
-                            return False
-                if data.get("Resultado"):
-                    return True
-            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
-                logger.debug(f"[sislaer] validation attempt {attempt} failed: {exc}")
-            if attempt < self._DETALHE_VALIDATION_MAX_TRIES:
-                await asyncio.sleep(self._DETALHE_VALIDATION_RETRY_DELAY_S)
-        logger.warning(
-            f"[sislaer] anti-bot validation gave up after "
-            f"{self._DETALHE_VALIDATION_MAX_TRIES} tries"
-        )
-        return False
 
     # ── detail page parsing ──────────────────────────────────────
 
@@ -939,9 +1068,20 @@ class SISLAERScraper(BaseScraper):
     # ── content extraction ───────────────────────────────────────
 
     async def _get_content(
-        self, soup: BeautifulSoup, reg_id: int, save_original: bool
+        self,
+        soup: BeautifulSoup,
+        reg_id: int,
+        save_original: bool,
+        *,
+        session: Optional[aiohttp.ClientSession] = None,
     ) -> Optional[str]:
-        """Extract content in priority order: inline text > HTML viewer > PDF."""
+        """Extract content in priority order: inline text > HTML viewer > PDF.
+
+        ``session`` should be the ephemeral session that holds the
+        validation cookie for this doc. Without it, viewer/PDF GETs
+        trigger the anti-bot gate again on the main session.
+        """
+        sess = session or self._session
 
         # 1) Inline "Texto integral" expanded div
         for div in soup.find_all("div", id=re.compile(r"TextoIntegral.*html", re.I)):
@@ -955,7 +1095,7 @@ class SISLAERScraper(BaseScraper):
             html_url = a.get("href", "")
             if not html_url.startswith("http"):
                 html_url = f"https://www.sislaer.fab.mil.br{html_url}"
-            viewer_html = await self._get_html(html_url)
+            viewer_html = await self._get_html(html_url, session=sess)
             if viewer_html and len(viewer_html) > 200:
                 viewer_soup = BeautifulSoup(viewer_html, "html.parser")
                 for tag in viewer_soup(["script", "style", "nav", "header", "footer"]):
@@ -973,7 +1113,7 @@ class SISLAERScraper(BaseScraper):
                 pdf_url = f"https://www.sislaer.fab.mil.br{pdf_url}"
             try:
                 async with self._limiter:
-                    async with self._session.get(pdf_url) as resp:
+                    async with sess.get(pdf_url) as resp:
                         if resp.status != 200:
                             continue
                         pdf_bytes = await resp.read()

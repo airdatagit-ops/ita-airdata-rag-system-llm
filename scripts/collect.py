@@ -108,6 +108,13 @@ async def _collect_source(
         results: List[ScrapedDocument] = await scraper.fetch_all(
             documents, concurrency=concurrency, save_original=True,
         )
+        fetch_failures = len(documents) - len(results)
+        if fetch_failures > 0:
+            stats["errors"] += fetch_failures
+            logger.warning(
+                f"[{source}] {fetch_failures}/{len(documents)} fetches "
+                f"returned no content (counted as errors)"
+            )
 
     # -- persist
     for doc in results:
@@ -219,6 +226,13 @@ async def _collect_lexml(
         results = await scraper.fetch_all(
             documents, concurrency=concurrency, save_original=True,
         )
+        fetch_failures = len(documents) - len(results)
+        if fetch_failures > 0:
+            stats["errors"] += fetch_failures
+            logger.warning(
+                f"[lexml] {fetch_failures}/{len(documents)} fetches "
+                f"returned no content (counted as errors)"
+            )
 
     for doc in results:
         try:

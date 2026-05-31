@@ -691,8 +691,8 @@ make collect-sislaer                                  # Atalho: apenas SISLAER
 
 | Variável | Default | Descrição |
 |----------|---------|-----------|
-| `SISLAER_MAX_RATE` | `10` | Requisições por segundo |
-| `SISLAER_CONCURRENCY` | `10` | Conexões simultâneas |
+| `SISLAER_MAX_RATE` | `32` | Requisições por segundo |
+| `SISLAER_CONCURRENCY` | `32` | Conexões simultâneas |
 | `SISLAER_TIMEOUT` | `30` | Timeout HTTP em segundos |
 | `SISLAER_START_ID` | `1` | ID inicial para varredura (apenas `strategy=ids`) |
 | `SISLAER_END_ID` | `0` (auto) | ID final para varredura (apenas `strategy=ids`) |
