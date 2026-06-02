@@ -108,7 +108,7 @@ class RemoteEmbeddingModel:
         n = len(texts)
 
         if n <= self.CLIENT_BATCH_SIZE:
-            result = self._encode_chunk(texts, normalize, server_batch)
+            result = self._encode_with_split(texts, normalize, server_batch)
             return result[0] if was_single else result
 
         all_embs: List[np.ndarray] = []
@@ -126,7 +126,7 @@ class RemoteEmbeddingModel:
 
         for start in chunks:
             chunk_texts = texts[start : start + self.CLIENT_BATCH_SIZE]
-            embs = self._encode_chunk(chunk_texts, normalize, server_batch)
+            embs = self._encode_with_split(chunk_texts, normalize, server_batch)
             all_embs.append(embs)
 
         result = np.vstack(all_embs)
@@ -147,7 +147,15 @@ class RemoteEmbeddingModel:
         normalize: bool,
         server_batch: int,
     ) -> np.ndarray:
-        """Send a single batch of texts to the GPU server with retry."""
+        """Send a single batch of texts to the GPU server with retry.
+
+        Retries TRANSIENT failures (transport errors, network blips) with
+        exponential backoff. A persistent HTTP 5xx is propagated immediately
+        — typically ``_encode_with_split`` will halve the batch and retry,
+        isolating any input that crashes the server (PDFs with corrupted
+        font glyphs, malformed UTF-8 in markdown tables, sequences that
+        exceed the GPU memory pool).
+        """
         last_exc: Exception | None = None
         for attempt in range(1, self._MAX_RETRIES + 1):
             try:
@@ -164,7 +172,7 @@ class RemoteEmbeddingModel:
                 data = resp.json()
                 self.dimension = data["dimension"]
                 return np.array(data["embeddings"], dtype=np.float32)
-            except (httpx.TransportError, httpx.HTTPStatusError) as exc:
+            except httpx.TransportError as exc:
                 last_exc = exc
                 if attempt < self._MAX_RETRIES:
                     wait = self._RETRY_BACKOFF * attempt
@@ -173,7 +181,60 @@ class RemoteEmbeddingModel:
                         f"— retrying in {wait:.0f}s"
                     )
                     time.sleep(wait)
+            except httpx.HTTPStatusError:
+                # 5xx is deterministic for a given input. Don't burn 3
+                # retries on it — surface immediately so _encode_with_split
+                # can bisect.
+                raise
         raise last_exc  # type: ignore[misc]
+
+    def _encode_with_split(
+        self,
+        texts: List[str],
+        normalize: bool,
+        server_batch: int,
+    ) -> np.ndarray:
+        """Encode ``texts`` with bisect-on-server-error fallback.
+
+        On HTTP 5xx, recursively halves the batch to isolate toxic inputs.
+        At ``len(texts) == 1`` (the toxic chunk found), logs a fingerprint
+        and returns a zero vector so the rest of the pipeline can complete.
+        Without this, one bad chunk would abort the entire embed run.
+
+        Why this matters: the standalone /gpu-proxy/ deployment caps GPU
+        memory per process (GPU_MEMORY_LIMIT_MB). Long sequences from PDFs
+        with mis-mapped custom fonts or dense markdown tables can spike
+        attention memory above the cap, causing torch.OutOfMemoryError. The
+        previous in-tree gpu_server had no such cap and tolerated these
+        inputs silently; the new client now needs to defend itself by
+        bisecting and substituting zero vectors for chunks that the server
+        cannot encode at any batch size.
+        """
+        try:
+            return self._encode_chunk(texts, normalize, server_batch)
+        except httpx.HTTPStatusError as exc:
+            n = len(texts)
+            if n > 1:
+                mid = n // 2
+                logger.warning(
+                    f"_encode_with_split: HTTP {exc.response.status_code} "
+                    f"on batch of {n} — bisecting to {mid} + {n - mid}"
+                )
+                left = self._encode_with_split(texts[:mid], normalize, server_batch)
+                right = self._encode_with_split(texts[mid:], normalize, server_batch)
+                return np.vstack([left, right])
+            # n == 1: the toxic chunk is isolated. Log a useful fingerprint
+            # and substitute a zero vector. Downstream retrieval will rank
+            # this chunk last, which is the correct degraded behaviour.
+            sample = texts[0][:200].replace("\n", " ")
+            logger.error(
+                f"_encode_with_split: persistent HTTP "
+                f"{exc.response.status_code} on a single chunk "
+                f"(len={len(texts[0])} chars) — substituting zero vector. "
+                f"Sample: {sample!r}"
+            )
+            dim = self.dimension or 1024
+            return np.zeros((1, dim), dtype=np.float32)
 
     def encode_batch(
         self,
